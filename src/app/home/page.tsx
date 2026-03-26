@@ -61,7 +61,9 @@ export default function HomePage() {
         <div style={{display:'flex',justifyContent:'center',alignItems:'center'}}>
           <div style={{position:'relative',width:'260px',height:'540px',background:'#1a1a1a',borderRadius:'42px',border:'2px solid #2a2a2a',boxShadow:'0 40px 80px rgba(0,0,0,0.18)'}}>
             <div style={{position:'absolute',inset:0,borderRadius:'40px',overflow:'hidden',background:'#000',display:'flex',alignItems:'center',justifyContent:'center'}}>
-              <div style={{color:'#333',fontSize:'12px',fontFamily:'monospace',letterSpacing:'1px'}}>dinamo.media</div>
+              <video autoPlay muted loop playsInline style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover'}}>
+  <source src="/montage.webm" type="video/webm"/>
+</video>
             </div>
             <div style={{position:'absolute',top:'12px',left:'50%',transform:'translateX(-50%)',width:'90px',height:'24px',background:'#1a1a1a',borderRadius:'18px',zIndex:10}}></div>
             <div style={{position:'absolute',bottom:'10px',left:'50%',transform:'translateX(-50%)',width:'80px',height:'4px',background:'rgba(255,255,255,0.35)',borderRadius:'4px',zIndex:10}}></div>
