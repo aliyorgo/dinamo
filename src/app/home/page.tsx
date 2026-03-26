@@ -101,14 +101,14 @@ export default function HomePage() {
           <div style={{fontSize:'11px',letterSpacing:'2px',color:'#1db81d',marginBottom:'16px',fontFamily:'monospace'}}>ÖZELLİKLER</div>
           <h2 style={{fontSize:'44px',fontWeight:'300',letterSpacing:'-1.5px',marginBottom:'52px'}}>Neden Dinamo?</h2>
           <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'1px',background:'rgba(0,0,0,0.08)',border:'1px solid rgba(0,0,0,0.08)',borderRadius:'16px',overflow:'hidden'}}>
-            {[
-              {t:'24 Saat Teslim',b:'Brief\'ten videoya, garantili. Yayından 24 saat önce brief\'inizi girin, videonuz hazır olsun.'},
-              {t:'Brief\'e Sadık',b:'Her video prodüktör gözetiminde üretilir. Mesajınız, tonunuz, hedefiniz korunur.'},
-              {t:'Şeffaf Fiyatlandırma',b:'Kredi bazlı sistem. Her video tipinin kaç kredi harcadığını önceden bilirsiniz.'},
-              {t:'Telif Güvencesi',b:'Tüm haklar DCC FILM üzerinden temizlenir. İçeriği özgürce ve güvenle kullanın.'},
-              {t:'Marka Uyumu',b:'Logo, font ve görsel kimliğiniz sistemde hazır bekliyor.'},
-              {t:'AI Hızı, İnsan Kalitesi',b:'Her projeniz reklam deneyimine sahip AI yönetmenler tarafından üretilir, prodüktörlerimiz tarafından kontrol edilir.'},
-            ].map(f=>(
+{[
+  {t:'24 Saat Teslim',b:'Brief\'ten videoya, garantili. Yayından 24 saat önce brief\'inizi girin, videonuz hazır olsun.',icon:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>'},
+  {t:'Brief\'e Sadık',b:'Her video prodüktör gözetiminde üretilir. Mesajınız, tonunuz, hedefiniz korunur.',icon:'<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>'},
+  {t:'Şeffaf Fiyatlandırma',b:'Kredi bazlı sistem. Her video tipinin kaç kredi harcadığını önceden bilirsiniz.',icon:'<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>'},
+  {t:'Telif Güvencesi',b:'Tüm haklar DCC FILM üzerinden temizlenir. İçeriği özgürce ve güvenle kullanın.',icon:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'},
+  {t:'Marka Uyumu',b:'Logo, font ve görsel kimliğiniz sistemde hazır bekliyor.',icon:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>'},
+  {t:'AI Hızı, İnsan Kalitesi',b:'Her projeniz reklam deneyimine sahip AI yönetmenler tarafından üretilir, prodüktörlerimiz tarafından kontrol edilir.',icon:'<circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0112 0v2"/>'},
+].map(f=>(
               <div key={f.t} className="feature" style={{background:'#f7f6f2',padding:'32px 28px',transition:'background 0.2s'}}>
                 <div style={{width:'30px',height:'30px',borderRadius:'8px',background:'#e8f7e8',border:'1px solid rgba(29,184,29,0.2)',marginBottom:'18px'}}></div>
                 <div style={{fontSize:'15px',fontWeight:'500',marginBottom:'8px',letterSpacing:'-0.2px'}}>{f.t}</div>
