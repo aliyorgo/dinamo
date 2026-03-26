@@ -116,4 +116,4 @@ export default function ClientDashboard() {
           ) : briefs.map(brief => (
             <div key={brief.id}
               onClick={() => router.push(`/dashboard/client/briefs/${brief.id}`)}
-              style={{ background: '#fff', border: '1px solid #e8
+style={{ background: '#fff', border: '1px solid #e8e7e3', borderRadius: '12px', padding: '20px 24px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
