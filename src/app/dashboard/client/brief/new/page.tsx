@@ -156,7 +156,7 @@ export default function NewBriefPage() {
 
                 {field.type === 'pills' && field.options && (
                   <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
-                    {JSON.parse(field.options).map((opt: string) => {
+                    {(Array.isArray(field.options) ? field.options : JSON.parse(field.options)).map((opt: string) => {
                       const isMulti = multiPillFields.includes(field.field_key)
                       const selected = isMulti ? (form[field.field_key] || []).includes(opt) : form[field.field_key] === opt
                       return (
