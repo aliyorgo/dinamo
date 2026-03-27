@@ -1,135 +1,161 @@
 'use client'
-
 import { useState, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
-const NAV = [
-  { label: 'BRİEFLER', href: '/dashboard/producer' },
-  { label: 'DEVAM EDENLER', href: '/dashboard/producer/active' },
-  { label: 'TAMAMLANANLAR', href: '/dashboard/producer/completed' },
-]
+const statusLabel: Record<string,string> = {submitted:'İnceleniyor',read:'İncelendi',in_production:'Üretimde',revision:'Revizyon',approved:'Onaylandı',delivered:'Teslim Edildi'}
+const statusColor: Record<string,string> = {submitted:'#888',read:'#888',in_production:'#f59e0b',revision:'#e24b4a',approved:'#1db81d',delivered:'#1db81d'}
 
-const statusLabel: Record<string, string> = {
-  submitted: 'Yeni',
-  read: 'Okundu',
-  in_production: 'Üretimde',
-  revision: 'Revizyon',
-  approved: 'Onaylandı',
-  delivered: 'Teslim Edildi',
-}
-
-const statusColor: Record<string, string> = {
-  submitted: '#1db81d',
-  read: '#888',
-  in_production: '#f59e0b',
-  revision: '#e24b4a',
-  approved: '#1db81d',
-  delivered: '#888',
-}
-
-export default function ProducerDashboard() {
+export default function ClientBriefDetail() {
   const router = useRouter()
-  const [userName, setUserName] = useState('')
-  const [briefs, setBriefs] = useState<any[]>([])
+  const params = useParams()
+  const id = params.id as string
+  const [brief, setBrief] = useState<any>(null)
+  const [questions, setQuestions] = useState<any[]>([])
+  const [answers, setAnswers] = useState<Record<string,string>>({})
+  const [videos, setVideos] = useState<any[]>([])
+  const [revisionNote, setRevisionNote] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [msg, setMsg] = useState('')
 
-  useEffect(() => {
-    async function load() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { router.push('/login'); return }
+  useEffect(() => { loadData() }, [id])
 
-      const { data: userData } = await supabase.from('users').select('name, role').eq('id', user.id).single()
-      if (!userData || userData.role !== 'producer') { router.push('/login'); return }
-      setUserName(userData.name)
-
-      const { data: briefData } = await supabase
-        .from('briefs')
-        .select('*, clients(company_name)')
-        .order('created_at', { ascending: false })
-        .limit(20)
-      setBriefs(briefData || [])
-    }
-    load()
-  }, [router])
-
-  async function handleLogout() {
-    await supabase.auth.signOut()
-    router.push('/login')
+  async function loadData() {
+    const { data: b } = await supabase.from('briefs').select('*, clients(company_name)').eq('id', id).single()
+    setBrief(b)
+    const { data: q } = await supabase.from('brief_questions').select('*').eq('brief_id', id).order('asked_at')
+    setQuestions(q || [])
+    const { data: v } = await supabase.from('video_submissions').select('*').eq('brief_id', id).order('submitted_at', {ascending: false})
+    setVideos(v || [])
   }
 
+  async function handleAnswer(questionId: string) {
+    const answer = answers[questionId]
+    if (!answer?.trim()) return
+    await supabase.from('brief_questions').update({ answer, answered_at: new Date().toISOString() }).eq('id', questionId)
+    setAnswers(prev => ({...prev, [questionId]: ''}))
+    loadData()
+  }
+
+  async function handleRevision(e: React.FormEvent) {
+    e.preventDefault()
+    if (!revisionNote.trim()) return
+    setLoading(true)
+    await supabase.from('briefs').update({ status: 'revision' }).eq('id', id)
+    await supabase.from('brief_questions').insert({ brief_id: id, question: `REVİZYON: ${revisionNote}` })
+    setRevisionNote('')
+    setMsg('Revizyon talebi gönderildi.')
+    loadData()
+    setLoading(false)
+  }
+
+  const latestVideo = videos[0]
+  const activeQuestions = questions.filter(q => !q.question.startsWith('REVİZYON:'))
+
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'system-ui, sans-serif', background: '#f7f6f2' }}>
-      <div style={{ width: '220px', background: '#0a0a0a', padding: '32px 0', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
-        <div style={{ padding: '0 24px 32px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-          <div style={{ fontSize: '20px', fontWeight: '500', color: '#fff', letterSpacing: '-0.5px' }}>
-            dinam<span style={{ display: 'inline-block', width: '18px', height: '18px', borderRadius: '50%', border: '4px solid #1db81d', position: 'relative', top: '2px' }}></span>
-          </div>
-          <div style={{ fontSize: '11px', color: '#666', marginTop: '4px', letterSpacing: '1px', fontFamily: 'monospace' }}>PRODÜKTÖR</div>
+    <div style={{display:'flex',minHeight:'100vh',fontFamily:'system-ui,sans-serif',background:'#f7f6f2'}}>
+      <div style={{width:'220px',background:'#0a0a0a',padding:'32px 0',display:'flex',flexDirection:'column',flexShrink:0}}>
+        <div style={{padding:'0 24px 32px',borderBottom:'1px solid rgba(255,255,255,0.08)'}}>
+          <div style={{fontSize:'20px',fontWeight:'500',color:'#fff'}}>dinamo</div>
+          <div style={{fontSize:'11px',color:'#666',marginTop:'4px',letterSpacing:'1px',fontFamily:'monospace'}}>MÜŞTERİ</div>
         </div>
-        <nav style={{ flex: 1, padding: '24px 0' }}>
-          {NAV.map(item => (
-            <a key={item.href} href={item.href} style={{ display: 'block', padding: '10px 24px', fontSize: '11px', color: '#888', textDecoration: 'none', letterSpacing: '1px', fontFamily: 'monospace' }}
-              onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
-              onMouseLeave={e => (e.currentTarget.style.color = '#888')}>
-              {item.label}
-            </a>
-          ))}
+        <nav style={{flex:1,padding:'24px 0'}}>
+          <a href="/dashboard/client" style={{display:'block',padding:'10px 24px',fontSize:'11px',color:'#888',textDecoration:'none',letterSpacing:'1px',fontFamily:'monospace'}}>← PROJELERİM</a>
+          <a href="/dashboard/client/brief/new" style={{display:'block',padding:'10px 24px',fontSize:'11px',color:'#888',textDecoration:'none',letterSpacing:'1px',fontFamily:'monospace'}}>YENİ BRİEF</a>
         </nav>
-        <div style={{ padding: '24px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-          <div style={{ fontSize: '13px', color: '#666', marginBottom: '12px' }}>{userName}</div>
-          <button onClick={handleLogout} style={{ fontSize: '11px', color: '#666', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '1px', fontFamily: 'monospace', padding: 0 }}>
-            ÇIKIŞ YAP
-          </button>
-        </div>
       </div>
 
-      <div style={{ flex: 1, padding: '48px' }}>
-        <div style={{ marginBottom: '40px' }}>
-          <h1 style={{ fontSize: '28px', fontWeight: '300', letterSpacing: '-1px', margin: 0 }}>Briefler</h1>
-          <p style={{ color: '#888', fontSize: '14px', marginTop: '8px' }}>Gelen tüm briefler</p>
-        </div>
+      <div style={{flex:1,padding:'48px',maxWidth:'800px'}}>
+        {brief && (
+          <>
+            <div style={{marginBottom:'32px',display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+              <div>
+                <h1 style={{fontSize:'28px',fontWeight:'400',letterSpacing:'-1px',margin:'0 0 8px',color:'#0a0a0a'}}>{brief.campaign_name}</h1>
+                <div style={{fontSize:'14px',color:'#555'}}>{brief.video_type} · {new Date(brief.created_at).toLocaleDateString('tr-TR')}</div>
+              </div>
+              <span style={{fontSize:'11px',padding:'4px 12px',borderRadius:'100px',background:`${statusColor[brief.status]}15`,color:statusColor[brief.status],fontFamily:'monospace'}}>
+                {statusLabel[brief.status] || brief.status}
+              </span>
+            </div>
 
-        <div style={{ background: '#fff', border: '1px solid #e8e7e3', borderRadius: '12px', overflow: 'hidden' }}>
-          {briefs.length === 0 ? (
-            <div style={{ padding: '48px', textAlign: 'center', color: '#888', fontSize: '14px' }}>Henüz brief yok.</div>
-          ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid #e8e7e3' }}>
-                  {['Kampanya', 'Marka', 'Video Tipi', 'Durum', 'Tarih'].map(h => (
-                    <th key={h} style={{ padding: '12px 20px', textAlign: 'left', fontSize: '11px', color: '#888', letterSpacing: '1px', fontFamily: 'monospace', fontWeight: '400' }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {briefs.map((brief, i) => (
-                  <tr key={brief.id}
-                    style={{ borderBottom: i < briefs.length - 1 ? '1px solid #f0f0ee' : 'none', cursor: 'pointer' }}
-                    onClick={() => router.push(`/dashboard/producer/briefs/${brief.id}`)}
-                    onMouseEnter={e => (e.currentTarget.style.background = '#fafaf8')}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-                    <td style={{ padding: '14px 20px', fontSize: '14px', fontWeight: '500' }}>{brief.campaign_name}</td>
-                    <td style={{ padding: '14px 20px', fontSize: '13px', color: '#888' }}>{brief.clients?.company_name || '—'}</td>
-                    <td style={{ padding: '14px 20px', fontSize: '13px', color: '#888' }}>{brief.video_type}</td>
-                    <td style={{ padding: '14px 20px' }}>
-                      <span style={{ fontSize: '11px', padding: '3px 10px', borderRadius: '100px', background: `${statusColor[brief.status]}15`, color: statusColor[brief.status], fontFamily: 'monospace' }}>
-                        {statusLabel[brief.status] || brief.status}
-                      </span>
-                    </td>
-                    <td style={{ padding: '14px 20px', fontSize: '13px', color: '#888' }}>
-                      {new Date(brief.created_at).toLocaleDateString('tr-TR')}
-                    </td>
-                  </tr>
+            {activeQuestions.length > 0 && (
+              <div style={{background:'#fff',border:'1px solid rgba(29,184,29,0.3)',borderRadius:'12px',padding:'24px',marginBottom:'24px'}}>
+                <div style={{fontSize:'11px',color:'#1db81d',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'16px'}}>CEVAP BEKLİYEN SORULAR</div>
+                {activeQuestions.map(q=>(
+                  <div key={q.id} style={{marginBottom:'16px',padding:'12px 16px',background:'#f7f6f2',borderRadius:'8px'}}>
+                    <div style={{fontSize:'13px',color:'#0a0a0a',marginBottom:'8px',fontWeight:'500'}}>{q.question}</div>
+                    {q.answer ? (
+                      <div style={{fontSize:'13px',color:'#1db81d'}}>↳ {q.answer}</div>
+                    ) : (
+                      <div style={{display:'flex',gap:'8px',marginTop:'8px'}}>
+                        <input value={answers[q.id] || ''} onChange={e=>setAnswers(prev=>({...prev,[q.id]:e.target.value}))}
+                          placeholder="Cevabınız..." style={{flex:1,padding:'7px 12px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a'}} />
+                        <button onClick={()=>handleAnswer(q.id)} style={{padding:'7px 16px',background:'#0a0a0a',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer'}}>Yanıtla</button>
+                      </div>
+                    )}
+                  </div>
                 ))}
-              </tbody>
-            </table>
-          )}
-        </div>
+              </div>
+            )}
+
+            {latestVideo && (brief.status === 'approved' || brief.status === 'delivered') && (
+              <div style={{background:'#fff',border:'1px solid rgba(29,184,29,0.3)',borderRadius:'12px',padding:'24px',marginBottom:'24px'}}>
+                <div style={{fontSize:'11px',color:'#1db81d',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'16px'}}>VİDEONUZ HAZIR</div>
+                <video controls style={{width:'100%',borderRadius:'8px',background:'#000'}}>
+                  <source src={latestVideo.video_url} />
+                </video>
+                <a href={latestVideo.video_url} download target="_blank"
+                  style={{display:'inline-block',marginTop:'12px',padding:'10px 20px',background:'#0a0a0a',color:'#fff',borderRadius:'8px',fontSize:'13px',textDecoration:'none'}}>
+                  İndir
+                </a>
+              </div>
+            )}
+
+            <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',padding:'24px',marginBottom:'24px'}}>
+              <div style={{fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'16px'}}>BRİEF DETAYLARI</div>
+              {[
+                {label:'Video Tipi', value: brief.video_type},
+                {label:'Format', value: Array.isArray(brief.format) ? brief.format.join(', ') : brief.format},
+                {label:'Mesaj', value: brief.message},
+                {label:'CTA', value: brief.cta},
+                {label:'Hedef Kitle', value: brief.target_audience},
+                {label:'Seslendirme', value: brief.voiceover_type},
+                {label:'Seslendirme Metni', value: brief.voiceover_text},
+                {label:'Notlar', value: brief.notes},
+                {label:'Kredi', value: `${brief.credit_cost} kredi`},
+              ].filter(f=>f.value).map(f=>(
+                <div key={f.label} style={{marginBottom:'12px',paddingBottom:'12px',borderBottom:'1px solid #f0f0ee'}}>
+                  <div style={{fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'4px'}}>{f.label.toUpperCase()}</div>
+                  <div style={{fontSize:'14px',color:'#0a0a0a'}}>{f.value}</div>
+                </div>
+              ))}
+            </div>
+
+            {brief.status === 'in_production' && (
+              <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',padding:'24px',marginBottom:'24px'}}>
+                <div style={{fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'12px'}}>DURUM</div>
+                <div style={{fontSize:'14px',color:'#0a0a0a'}}>Videonuz üretim aşamasında. 24 saat içinde teslim edilecek.</div>
+              </div>
+            )}
+
+            {(brief.status === 'in_production' || brief.status === 'approved') && (
+              <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',padding:'24px'}}>
+                <div style={{fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'16px'}}>REVİZYON TALEBİ</div>
+                <form onSubmit={handleRevision}>
+                  <textarea value={revisionNote} onChange={e=>setRevisionNote(e.target.value)} placeholder="Revizyon notunuzu yazın..." rows={3}
+                    style={{width:'100%',padding:'10px 14px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'14px',boxSizing:'border-box',resize:'vertical',fontFamily:'system-ui,sans-serif',color:'#0a0a0a',marginBottom:'12px'}} />
+                  {msg && <div style={{fontSize:'13px',color:'#1db81d',marginBottom:'12px'}}>{msg}</div>}
+                  <button type="submit" disabled={loading}
+                    style={{padding:'10px 20px',background:'#0a0a0a',color:'#fff',border:'none',borderRadius:'8px',fontSize:'14px',cursor:'pointer'}}>
+                    {loading ? 'Gönderiliyor...' : 'Revizyon Talep Et'}
+                  </button>
+                </form>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   )
