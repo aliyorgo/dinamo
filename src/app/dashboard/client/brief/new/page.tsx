@@ -45,7 +45,7 @@ export default function ClientDashboard() {
         </div>
         <nav style={{flex:1,padding:'24px 0'}}>
           <a href="/dashboard/client" style={{display:'block',padding:'10px 24px',fontSize:'11px',color:'#fff',textDecoration:'none',letterSpacing:'1px',fontFamily:'monospace'}}>PROJELERİM</a>
-<a onClick={()=>router.push('/dashboard/client/brief/new')} style={{cursor:'pointer',...}}>YENİ BRİEF</a>
+<a onClick={()=>router.push('/dashboard/client/brief/new')} style={{cursor:'pointer',display:'block',padding:'10px 24px',fontSize:'11px',color:'#888',textDecoration:'none',letterSpacing:'1px',fontFamily:'monospace'}}>YENİ BRİEF</a>
         </nav>
         <div style={{padding:'24px',borderTop:'1px solid rgba(255,255,255,0.08)'}}>
           <div style={{fontSize:'11px',color:'#666',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'4px'}}>KREDİ BAKİYESİ</div>
