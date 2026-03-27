@@ -45,7 +45,7 @@ export default function ClientDashboard() {
         </div>
         <nav style={{flex:1,padding:'24px 0'}}>
           <a href="/dashboard/client" style={{display:'block',padding:'10px 24px',fontSize:'11px',color:'#fff',textDecoration:'none',letterSpacing:'1px',fontFamily:'monospace'}}>PROJELERİM</a>
-          <a href="/dashboard/client/brief/new" style={{display:'block',padding:'10px 24px',fontSize:'11px',color:'#888',textDecoration:'none',letterSpacing:'1px',fontFamily:'monospace'}}>YENİ BRİEF</a>
+<a onClick={()=>router.push('/dashboard/client/brief/new')} style={{cursor:'pointer',...}}>YENİ BRİEF</a>
         </nav>
         <div style={{padding:'24px',borderTop:'1px solid rgba(255,255,255,0.08)'}}>
           <div style={{fontSize:'11px',color:'#666',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'4px'}}>KREDİ BAKİYESİ</div>
@@ -61,7 +61,7 @@ export default function ClientDashboard() {
             <h1 style={{fontSize:'28px',fontWeight:'400',letterSpacing:'-1px',margin:0,color:'#0a0a0a'}}>Projelerim</h1>
             <p style={{color:'#555',fontSize:'14px',marginTop:'8px'}}>Tüm brief ve video üretimleriniz</p>
           </div>
-          <a href="/dashboard/client/brief/new" style={{padding:'12px 24px',background:'#0a0a0a',color:'#fff',borderRadius:'100px',fontSize:'14px',textDecoration:'none',fontWeight:'500'}}>+ Yeni Brief</a>
+<button onClick={()=>router.push('/dashboard/client/brief/new')} style={{padding:'12px 24px',background:'#0a0a0a',color:'#fff',borderRadius:'100px',fontSize:'14px',border:'none',fontWeight:'500',cursor:'pointer'}}>+ Yeni Brief</button>
         </div>
 
         <div style={{display:'grid',gap:'12px'}}>
