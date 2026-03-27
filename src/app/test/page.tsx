@@ -2,8 +2,6 @@
 import { useState } from 'react'
 
 export default function HomePage() {
-  const [menuOpen, setMenuOpen] = useState(false)
-
   return (
     <div style={{fontFamily:"'DM Sans', system-ui, sans-serif",background:'#fff',color:'#0a0a0a',minHeight:'100vh'}}>
       <style>{`
@@ -18,9 +16,8 @@ export default function HomePage() {
         .pricing-card:hover { border-color: rgba(0,0,0,0.2) !important; box-shadow: 0 8px 24px rgba(0,0,0,0.06) !important; }
       `}</style>
 
-      {/* NAV */}
       <nav style={{position:'fixed',top:0,left:0,right:0,zIndex:100,padding:'18px 52px',display:'flex',alignItems:'center',justifyContent:'space-between',background:'rgba(255,255,255,0.92)',backdropFilter:'blur(16px)',borderBottom:'1px solid rgba(0,0,0,0.08)'}}>
-        <a href="/" style={{fontSize:'20px',fontWeight:'500',letterSpacing:'-0.5px',color:'#0a0a0a'}}>
+        <a href="/test" style={{fontSize:'20px',fontWeight:'500',letterSpacing:'-0.5px',color:'#0a0a0a'}}>
           dinam<span style={{display:'inline-block',width:'20px',height:'20px',borderRadius:'50%',border:'4px solid #1db81d',position:'relative',top:'3px'}}></span>
         </a>
         <div style={{display:'flex',alignItems:'center',gap:'32px'}}>
@@ -32,7 +29,6 @@ export default function HomePage() {
         </div>
       </nav>
 
-      {/* HERO */}
       <div style={{minHeight:'100vh',display:'grid',gridTemplateColumns:'1fr 1fr',alignItems:'center',padding:'120px 52px 80px',gap:'60px',maxWidth:'1200px',margin:'0 auto'}}>
         <div>
           <div style={{display:'inline-flex',alignItems:'center',gap:'6px',fontSize:'11px',letterSpacing:'1.5px',color:'#1db81d',marginBottom:'28px',padding:'6px 14px',border:'1px solid rgba(29,184,29,0.25)',borderRadius:'100px',background:'#e8f7e8',fontFamily:'monospace'}}>
@@ -40,7 +36,7 @@ export default function HomePage() {
             AI VİDEO PRODÜKSIYONU
           </div>
           <h1 style={{fontSize:'80px',fontWeight:'300',lineHeight:'1.0',letterSpacing:'-3px',marginBottom:'24px'}}>
-            Brief'ten<br/><span style={{color:'#1db81d'}}>videoya.</span>
+            Tek yapmanız gereken brief yazmak.
           </h1>
           <p style={{fontSize:'17px',fontWeight:'300',color:'#888',marginBottom:'16px',lineHeight:'1.7',maxWidth:'420px'}}>
             Brief'inizi yükleyin, <strong style={{color:'#0a0a0a',fontWeight:'400'}}>24 saat içinde</strong> videonuz hazır.<br/>
@@ -60,10 +56,10 @@ export default function HomePage() {
         </div>
         <div style={{display:'flex',justifyContent:'center',alignItems:'center'}}>
           <div style={{position:'relative',width:'260px',height:'540px',background:'#1a1a1a',borderRadius:'42px',border:'2px solid #2a2a2a',boxShadow:'0 40px 80px rgba(0,0,0,0.18)'}}>
-            <div style={{position:'absolute',inset:0,borderRadius:'40px',overflow:'hidden',background:'#000',display:'flex',alignItems:'center',justifyContent:'center'}}>
+            <div style={{position:'absolute',inset:0,borderRadius:'40px',overflow:'hidden',background:'#000'}}>
               <video autoPlay muted loop playsInline style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover'}}>
-  <source src="/montage.webm" type="video/webm"/>
-</video>
+                <source src="/montage.webm" type="video/webm"/>
+              </video>
             </div>
             <div style={{position:'absolute',top:'12px',left:'50%',transform:'translateX(-50%)',width:'90px',height:'24px',background:'#1a1a1a',borderRadius:'18px',zIndex:10}}></div>
             <div style={{position:'absolute',bottom:'10px',left:'50%',transform:'translateX(-50%)',width:'80px',height:'4px',background:'rgba(255,255,255,0.35)',borderRadius:'4px',zIndex:10}}></div>
@@ -74,7 +70,6 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* NASIL ÇALIŞIR */}
       <section id="nasil-calisir" style={{padding:'100px 52px',maxWidth:'1200px',margin:'0 auto'}}>
         <div style={{fontSize:'11px',letterSpacing:'2px',color:'#1db81d',marginBottom:'16px',fontFamily:'monospace'}}>SÜREÇ</div>
         <h2 style={{fontSize:'44px',fontWeight:'300',letterSpacing:'-1.5px',marginBottom:'16px'}}>Dört adım, 24 saat.</h2>
@@ -95,22 +90,23 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ÖZELLİKLER */}
       <div style={{background:'#f7f6f2',borderTop:'1px solid rgba(0,0,0,0.08)',borderBottom:'1px solid rgba(0,0,0,0.08)'}}>
         <div style={{padding:'100px 52px',maxWidth:'1200px',margin:'0 auto'}}>
           <div style={{fontSize:'11px',letterSpacing:'2px',color:'#1db81d',marginBottom:'16px',fontFamily:'monospace'}}>ÖZELLİKLER</div>
           <h2 style={{fontSize:'44px',fontWeight:'300',letterSpacing:'-1.5px',marginBottom:'52px'}}>Neden Dinamo?</h2>
           <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'1px',background:'rgba(0,0,0,0.08)',border:'1px solid rgba(0,0,0,0.08)',borderRadius:'16px',overflow:'hidden'}}>
-{[
-  {t:'24 Saat Teslim',b:'Brief\'ten videoya, garantili. Yayından 24 saat önce brief\'inizi girin, videonuz hazır olsun.',icon:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>'},
-  {t:'Brief\'e Sadık',b:'Her video prodüktör gözetiminde üretilir. Mesajınız, tonunuz, hedefiniz korunur.',icon:'<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>'},
-  {t:'Şeffaf Fiyatlandırma',b:'Kredi bazlı sistem. Her video tipinin kaç kredi harcadığını önceden bilirsiniz.',icon:'<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>'},
-  {t:'Telif Güvencesi',b:'Tüm haklar DCC FILM üzerinden temizlenir. İçeriği özgürce ve güvenle kullanın.',icon:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'},
-  {t:'Marka Uyumu',b:'Logo, font ve görsel kimliğiniz sistemde hazır bekliyor.',icon:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>'},
-  {t:'AI Hızı, İnsan Kalitesi',b:'Her projeniz reklam deneyimine sahip AI yönetmenler tarafından üretilir, prodüktörlerimiz tarafından kontrol edilir.',icon:'<circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0112 0v2"/>'},
-].map(f=>(
+            {[
+              {t:'24 Saat Teslim',b:'Brief\'ten videoya, garantili.',icon:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>'},
+              {t:'Brief\'e Sadık',b:'Her video prodüktör gözetiminde üretilir.',icon:'<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>'},
+              {t:'Şeffaf Fiyatlandırma',b:'Kredi bazlı sistem, sürpriz maliyet yok.',icon:'<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>'},
+              {t:'Telif Güvencesi',b:'Tüm haklar DCC FILM üzerinden temizlenir.',icon:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'},
+              {t:'Marka Uyumu',b:'Logo, font ve görsel kimliğiniz sistemde hazır.',icon:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>'},
+              {t:'AI Hızı, İnsan Kalitesi',b:'Her projeniz AI yönetmenler tarafından üretilir, prodüktörlerimiz tarafından kontrol edilir.',icon:'<circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0112 0v2"/>'},
+            ].map(f=>(
               <div key={f.t} className="feature" style={{background:'#f7f6f2',padding:'32px 28px',transition:'background 0.2s'}}>
-                <div style={{width:'30px',height:'30px',borderRadius:'8px',background:'#e8f7e8',border:'1px solid rgba(29,184,29,0.2)',marginBottom:'18px'}}></div>
+                <div style={{width:'30px',height:'30px',borderRadius:'8px',background:'#e8f7e8',border:'1px solid rgba(29,184,29,0.2)',marginBottom:'18px',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1db81d" strokeWidth="1.5" dangerouslySetInnerHTML={{__html:f.icon}}/>
+                </div>
                 <div style={{fontSize:'15px',fontWeight:'500',marginBottom:'8px',letterSpacing:'-0.2px'}}>{f.t}</div>
                 <p style={{fontSize:'13px',color:'#888',lineHeight:'1.65',fontWeight:'300'}}>{f.b}</p>
               </div>
@@ -119,7 +115,6 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* FİYATLANDIRMA */}
       <div id="fiyatlandirma" style={{background:'#f7f6f2',borderBottom:'1px solid rgba(0,0,0,0.08)'}}>
         <div style={{padding:'100px 52px',maxWidth:'1200px',margin:'0 auto'}}>
           <div style={{fontSize:'11px',letterSpacing:'2px',color:'#1db81d',marginBottom:'16px',fontFamily:'monospace'}}>FİYATLANDIRMA</div>
@@ -142,17 +137,17 @@ export default function HomePage() {
           </div>
           <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'14px'}}>
             {[
-              {name:'Demo',credit:'40 kredi',price:null,priceNote:'Ücretsiz deneme',features:['2 video üretimi','Tanıtım toplantısı','Marka kiti kurulumu'],featured:false},
-              {name:'Başlangıç',credit:'100 kredi',price:'350.000 TL',priceNote:null,features:['~5–8 video üretimi','İlk revizyon dahil','Kredi süresiz geçerli'],featured:false},
-              {name:'Standart',credit:'500 kredi',price:'1.750.000 TL',priceNote:null,features:['~27 video üretimi','Öncelikli üretim','İlk revizyon dahil','Kredi süresiz geçerli'],featured:true},
-              {name:'Kurumsal',credit:'1.000+ kredi',price:null,priceNote:'Bizimle iletişime geçin',features:['Özel fiyatlandırma','Dedicated prodüktör','Öncelikli destek'],featured:false},
+              {name:'Demo',credit:'40',price:null,priceNote:'Ücretsiz deneme',features:['2 video üretimi','Tanıtım toplantısı','Marka kiti kurulumu'],featured:false},
+              {name:'Başlangıç',credit:'100',price:'350.000 TL',priceNote:null,features:['~5–8 video üretimi','İlk revizyon dahil','Kredi süresiz geçerli'],featured:false},
+              {name:'Standart',credit:'500',price:'1.750.000 TL',priceNote:null,features:['~27 video üretimi','Öncelikli üretim','İlk revizyon dahil'],featured:true},
+              {name:'Kurumsal',credit:'1.000+',price:null,priceNote:'Bizimle iletişime geçin',features:['Özel fiyatlandırma','Dedicated prodüktör','Öncelikli destek'],featured:false},
             ].map(p=>(
               <div key={p.name} className="pricing-card" style={{background:p.featured?'#e8f7e8':'#fff',border:`1px solid ${p.featured?'rgba(29,184,29,0.35)':'rgba(0,0,0,0.12)'}`,borderRadius:'16px',padding:'28px 22px',position:'relative',transition:'border-color 0.2s,box-shadow 0.2s'}}>
-                {p.featured && <div style={{position:'absolute',top:'-1px',left:'50%',transform:'translateX(-50%)',background:'#1db81d',color:'#fff',fontSize:'11px',fontWeight:'500',padding:'3px 12px',borderRadius:'0 0 8px 8px',letterSpacing:'0.5px'}}>Popüler</div>}
+                {p.featured && <div style={{position:'absolute',top:'-1px',left:'50%',transform:'translateX(-50%)',background:'#1db81d',color:'#fff',fontSize:'11px',fontWeight:'500',padding:'3px 12px',borderRadius:'0 0 8px 8px'}}>Popüler</div>}
                 <div style={{fontSize:'12px',color:'#888',fontFamily:'monospace',letterSpacing:'1px',textTransform:'uppercase',marginBottom:'18px'}}>{p.name}</div>
-                <div style={{fontSize:'32px',fontWeight:'300',letterSpacing:'-1px',marginBottom:'4px'}}>{p.credit.split(' ')[0]} <span style={{fontSize:'13px',color:'#888',fontWeight:'300',letterSpacing:'0'}}>kredi</span></div>
+                <div style={{fontSize:'32px',fontWeight:'300',letterSpacing:'-1px',marginBottom:'4px'}}>{p.credit} <span style={{fontSize:'13px',color:'#888',fontWeight:'300'}}>kredi</span></div>
                 <div style={{fontSize:'14px',color:'#888',marginBottom:'24px',paddingBottom:'24px',borderBottom:'1px solid rgba(0,0,0,0.08)',fontWeight:'300'}}>
-                  {p.price ? <strong style={{color:'#0a0a0a',fontWeight:'500'}}>{p.price}</strong> : <em>{p.priceNote}</em>}
+                  {p.price?<strong style={{color:'#0a0a0a',fontWeight:'500'}}>{p.price}</strong>:<em>{p.priceNote}</em>}
                 </div>
                 <ul style={{listStyle:'none',display:'flex',flexDirection:'column',gap:'9px'}}>
                   {p.features.map(f=>(
@@ -167,7 +162,6 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* DCC */}
       <div id="hakkimizda" style={{borderBottom:'1px solid rgba(0,0,0,0.08)'}}>
         <div style={{padding:'100px 52px',maxWidth:'1200px',margin:'0 auto',display:'grid',gridTemplateColumns:'1fr 1fr',gap:'80px',alignItems:'center'}}>
           <div>
@@ -193,7 +187,6 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* CTA */}
       <div id="demo" style={{background:'#f7f6f2',borderBottom:'1px solid rgba(0,0,0,0.08)'}}>
         <div style={{padding:'120px 52px',textAlign:'center',maxWidth:'640px',margin:'0 auto'}}>
           <h2 style={{fontSize:'58px',fontWeight:'300',letterSpacing:'-2px',lineHeight:'1.05',marginBottom:'20px'}}>Hemen başlayın.</h2>
@@ -204,7 +197,6 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* FOOTER */}
       <footer style={{borderTop:'1px solid rgba(0,0,0,0.08)',padding:'36px 52px',display:'flex',alignItems:'center',justifyContent:'space-between',background:'#f7f6f2'}}>
         <div style={{fontSize:'13px',color:'#888',fontWeight:'300'}}>Dinamo — Powered by <a href="https://dccfilm.com" target="_blank" style={{color:'#888',borderBottom:'1px solid #ddd'}}>DCC FILM</a></div>
         <div style={{fontSize:'12px',color:'#888',fontFamily:'monospace'}}>AI yönetmen ağımıza katılmak için <a href="mailto:dinamo@dccfilm.com" style={{color:'#555'}}>iletişime geçin</a></div>
