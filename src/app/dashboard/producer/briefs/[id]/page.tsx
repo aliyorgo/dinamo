@@ -1,23 +1,27 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
-import { useRouter, useParams } from 'next/navigation'
+import { useParams } from 'next/navigation'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
-const statusLabel: Record<string,string> = {submitted:'Yeni',read:'Okundu',in_production:'Üretimde',revision:'Revizyon',approved:'Onaylandı',delivered:'Teslim Edildi'}
+const statusLabel: Record<string,string> = {
+  submitted:'Yeni', read:'Okundu', in_production:'Üretimde',
+  revision:'Revizyon', approved:'Onay Bekliyor', delivered:'Teslim Edildi'
+}
+
+const REVISION_CREDIT_COST = 4
 
 export default function ProducerBriefDetail() {
-  const router = useRouter()
   const params = useParams()
   const id = params.id as string
   const [brief, setBrief] = useState<any>(null)
   const [creators, setCreators] = useState<any[]>([])
   const [voiceArtists, setVoiceArtists] = useState<any[]>([])
-  const [producerBrief, setProducerBrief] = useState<any>(null)
   const [submissions, setSubmissions] = useState<any[]>([])
   const [approvalDelegated, setApprovalDelegated] = useState(false)
   const [form, setForm] = useState({ producer_note: '', assigned_creator_id: '', assigned_voice_artist_id: '' })
+  const [revisionNotes, setRevisionNotes] = useState<Record<string,string>>({})
   const [question, setQuestion] = useState('')
   const [questions, setQuestions] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
@@ -32,7 +36,6 @@ export default function ProducerBriefDetail() {
       await supabase.from('briefs').update({ status: 'read', read_at: new Date().toISOString() }).eq('id', id)
     }
     const { data: pb } = await supabase.from('producer_briefs').select('*').eq('brief_id', id).maybeSingle()
-    setProducerBrief(pb)
     if (pb) setForm({ producer_note: pb.producer_note || '', assigned_creator_id: pb.assigned_creator_id || '', assigned_voice_artist_id: pb.assigned_voice_artist_id || '' })
     const { data: c } = await supabase.from('creators').select('*, users(name, email)').eq('is_active', true)
     setCreators(c || [])
@@ -40,9 +43,9 @@ export default function ProducerBriefDetail() {
     setVoiceArtists(va || [])
     const { data: q } = await supabase.from('brief_questions').select('*').eq('brief_id', id).order('asked_at')
     setQuestions(q || [])
-    const { data: s } = await supabase.from('video_submissions').select('*').eq('brief_id', id).order('submitted_at', { ascending: false })
+    const { data: s } = await supabase.from('video_submissions').select('*').eq('brief_id', id).order('version', { ascending: false })
     setSubmissions(s || [])
-    const { data: settings } = await supabase.from('admin_settings').select('*').eq('key', 'approval_delegated_to_producer').single()
+    const { data: settings } = await supabase.from('admin_settings').select('value').eq('key', 'approval_delegated_to_producer').maybeSingle()
     setApprovalDelegated(settings?.value === 'true')
   }
 
@@ -71,42 +74,50 @@ export default function ProducerBriefDetail() {
 
   async function handleApprove(submissionId: string) {
     setLoading(true)
+    setMsg('')
     const { data: { user } } = await supabase.auth.getUser()
     await supabase.from('video_submissions').update({ status: 'producer_approved' }).eq('id', submissionId)
     await supabase.from('approvals').insert({ video_submission_id: submissionId, approved_by: user?.id, role: 'producer' })
-
-    if (approvalDelegated) {
-      await supabase.from('briefs').update({ status: 'delivered' }).eq('id', id)
-      const { data: briefData } = await supabase.from('briefs').select('credit_cost, client_id, client_user_id, campaign_name').eq('id', id).single()
-      if (briefData?.client_user_id) {
-        const { data: cu } = await supabase.from('client_users').select('credit_balance').eq('id', briefData.client_user_id).single()
-        if (cu) {
-          const newBalance = Math.max(0, cu.credit_balance - (briefData.credit_cost || 0))
-          await supabase.from('client_users').update({ credit_balance: newBalance }).eq('id', briefData.client_user_id)
-          await supabase.from('credit_transactions').insert({
-            client_id: briefData.client_id,
-            client_user_id: briefData.client_user_id,
-            brief_id: id,
-            amount: -(briefData.credit_cost || 0),
-            type: 'deduct',
-            description: `${briefData.campaign_name} — video teslimi`
-          })
-        }
-      }
-      setMsg('Video onaylandı, müşteriye iletildi, kredi kesildi.')
-    } else {
-      await supabase.from('briefs').update({ status: 'approved' }).eq('id', id)
-      setMsg('Video onaylandı, admin onayına gönderildi.')
-    }
+    // Producer onayı = müşteriye iletilir (admin onayı bekler veya delegation varsa direkt)
+    await supabase.from('briefs').update({ status: 'approved' }).eq('id', id)
+    setMsg(approvalDelegated ? 'Video onaylandı, müşteriye iletildi.' : 'Video onaylandı, admin onayına gönderildi.')
     loadData()
     setLoading(false)
   }
 
   async function handleRevision(submissionId: string) {
+    const note = revisionNotes[submissionId]
+    if (!note?.trim()) { setMsg('Revizyon notu yazmak zorunludur.'); return }
     setLoading(true)
-    await supabase.from('video_submissions').update({ status: 'revision_requested' }).eq('id', submissionId)
+    await supabase.from('video_submissions').update({ status: 'revision_requested', producer_notes: note }).eq('id', submissionId)
     await supabase.from('briefs').update({ status: 'revision' }).eq('id', id)
-    setMsg('Revizyon talebi gönderildi.')
+    await supabase.from('brief_questions').insert({ brief_id: id, question: `İÇ REVİZYON: ${note}` })
+    setMsg('Revizyon talebi creator\'a iletildi.')
+    loadData()
+    setLoading(false)
+  }
+
+  async function handleClientApprove() {
+    if (!brief) return
+    setLoading(true)
+    const { data: briefData } = await supabase.from('briefs').select('credit_cost, client_id, client_user_id, campaign_name').eq('id', id).single()
+    if (briefData?.client_user_id) {
+      const { data: cu } = await supabase.from('client_users').select('credit_balance').eq('id', briefData.client_user_id).single()
+      if (cu) {
+        const newBalance = Math.max(0, cu.credit_balance - (briefData.credit_cost || 0))
+        await supabase.from('client_users').update({ credit_balance: newBalance }).eq('id', briefData.client_user_id)
+        await supabase.from('credit_transactions').insert({
+          client_id: briefData.client_id,
+          client_user_id: briefData.client_user_id,
+          brief_id: id,
+          amount: -(briefData.credit_cost || 0),
+          type: 'deduct',
+          description: `${briefData.campaign_name} — prodüktör müşteri onayı`
+        })
+      }
+    }
+    await supabase.from('briefs').update({ status: 'delivered' }).eq('id', id)
+    setMsg('Müşteri adına onaylandı, kredi kesildi.')
     loadData()
     setLoading(false)
   }
@@ -125,6 +136,12 @@ export default function ProducerBriefDetail() {
     loadData()
   }
 
+  const unansweredQuestions = questions.filter(q =>
+    !q.question.startsWith('REVİZYON:') &&
+    !q.question.startsWith('İÇ REVİZYON:') &&
+    !q.answer
+  )
+
   return (
     <div style={{display:'flex',minHeight:'100vh',fontFamily:'system-ui,sans-serif',background:'#f7f6f2'}}>
       <div style={{width:'220px',background:'#0a0a0a',padding:'32px 0',display:'flex',flexDirection:'column',flexShrink:0}}>
@@ -140,7 +157,7 @@ export default function ProducerBriefDetail() {
       <div style={{flex:1,padding:'48px',maxWidth:'900px'}}>
         {brief && (
           <>
-            <div style={{marginBottom:'32px',display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+            <div style={{marginBottom:'24px',display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
               <div>
                 <h1 style={{fontSize:'28px',fontWeight:'400',letterSpacing:'-1px',margin:'0 0 8px',color:'#0a0a0a'}}>{brief.campaign_name}</h1>
                 <div style={{fontSize:'14px',color:'#555'}}>{brief.clients?.company_name} · {brief.video_type}</div>
@@ -150,27 +167,48 @@ export default function ProducerBriefDetail() {
               </span>
             </div>
 
-            {msg && <div style={{padding:'12px 16px',background:'#e8f7e8',borderRadius:'8px',fontSize:'13px',color:'#1db81d',marginBottom:'24px'}}>{msg}</div>}
+            {msg && <div style={{padding:'12px 16px',background:'#e8f7e8',borderRadius:'8px',fontSize:'13px',color:msg.startsWith('Hata')||msg.includes('zorunlu')?'#e24b4a':'#1db81d',marginBottom:'24px'}}>{msg}</div>}
+
+            {unansweredQuestions.length > 0 && (
+              <div style={{background:'#fff',border:'2px solid #1db81d',borderRadius:'12px',padding:'24px',marginBottom:'24px'}}>
+                <div style={{fontSize:'11px',color:'#1db81d',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'12px'}}>MÜŞTERİ CEVAP BEKLİYOR ({unansweredQuestions.length})</div>
+                {unansweredQuestions.map(q=>(
+                  <div key={q.id} style={{padding:'10px 14px',background:'#f7f6f2',borderRadius:'8px',marginBottom:'8px'}}>
+                    <div style={{fontSize:'13px',color:'#0a0a0a'}}>{q.question}</div>
+                    <div style={{fontSize:'12px',color:'#888',marginTop:'4px'}}>Cevap bekleniyor...</div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {brief.status === 'approved' && (
+              <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',padding:'20px 24px',marginBottom:'24px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                <div style={{fontSize:'13px',color:'#555'}}>Müşteri henüz onaylamadı. Manuel olarak işaretleyebilirsiniz.</div>
+                <button onClick={handleClientApprove} disabled={loading}
+                  style={{padding:'9px 20px',background:'#1db81d',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontWeight:'500',whiteSpace:'nowrap',marginLeft:'16px'}}>
+                  Müşteri Onayladı
+                </button>
+              </div>
+            )}
 
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'24px',marginBottom:'24px'}}>
               <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',padding:'24px'}}>
                 <div style={{fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'16px'}}>MÜŞTERİ BRİEFİ</div>
-                {brief.video_type && <div style={{marginBottom:'12px'}}><div style={{fontSize:'11px',color:'#888',fontFamily:'monospace',marginBottom:'4px'}}>VİDEO TİPİ</div><div style={{fontSize:'14px',color:'#0a0a0a'}}>{brief.video_type}</div></div>}
-                {brief.format?.length > 0 && <div style={{marginBottom:'12px'}}><div style={{fontSize:'11px',color:'#888',fontFamily:'monospace',marginBottom:'4px'}}>FORMAT</div><div style={{fontSize:'14px',color:'#0a0a0a'}}>{Array.isArray(brief.format) ? brief.format.join(', ') : brief.format}</div></div>}
-                {brief.message && <div style={{marginBottom:'12px'}}><div style={{fontSize:'11px',color:'#888',fontFamily:'monospace',marginBottom:'4px'}}>MESAJ</div><div style={{fontSize:'14px',color:'#0a0a0a',lineHeight:'1.6'}}>{brief.message}</div></div>}
-                {brief.cta && <div style={{marginBottom:'12px'}}><div style={{fontSize:'11px',color:'#888',fontFamily:'monospace',marginBottom:'4px'}}>CTA</div><div style={{fontSize:'14px',color:'#0a0a0a'}}>{brief.cta}</div></div>}
-                {brief.target_audience && <div style={{marginBottom:'12px'}}><div style={{fontSize:'11px',color:'#888',fontFamily:'monospace',marginBottom:'4px'}}>HEDEF KİTLE</div><div style={{fontSize:'14px',color:'#0a0a0a'}}>{brief.target_audience}</div></div>}
-                {brief.voiceover_type && brief.voiceover_type !== 'none' && <div style={{marginBottom:'12px'}}><div style={{fontSize:'11px',color:'#888',fontFamily:'monospace',marginBottom:'4px'}}>SESLENDİRME</div><div style={{fontSize:'14px',color:'#0a0a0a'}}>{brief.voiceover_type}</div></div>}
-                {brief.voiceover_text && <div style={{marginBottom:'12px'}}><div style={{fontSize:'11px',color:'#888',fontFamily:'monospace',marginBottom:'4px'}}>SESLENDİRME METNİ</div><div style={{fontSize:'14px',color:'#0a0a0a'}}>{brief.voiceover_text}</div></div>}
-                {brief.notes && <div style={{marginBottom:'12px'}}><div style={{fontSize:'11px',color:'#888',fontFamily:'monospace',marginBottom:'4px'}}>NOTLAR</div><div style={{fontSize:'14px',color:'#0a0a0a'}}>{brief.notes}</div></div>}
-                <div><div style={{fontSize:'11px',color:'#888',fontFamily:'monospace',marginBottom:'4px'}}>KREDİ</div><div style={{fontSize:'14px',color:'#0a0a0a'}}>{brief.credit_cost} kredi</div></div>
+                {brief.video_type && <div style={{marginBottom:'10px'}}><div style={{fontSize:'11px',color:'#888',fontFamily:'monospace',marginBottom:'3px'}}>VİDEO TİPİ</div><div style={{fontSize:'14px',color:'#0a0a0a'}}>{brief.video_type}</div></div>}
+                {brief.format?.length > 0 && <div style={{marginBottom:'10px'}}><div style={{fontSize:'11px',color:'#888',fontFamily:'monospace',marginBottom:'3px'}}>FORMAT</div><div style={{fontSize:'14px',color:'#0a0a0a'}}>{Array.isArray(brief.format) ? brief.format.join(', ') : brief.format}</div></div>}
+                {brief.message && <div style={{marginBottom:'10px'}}><div style={{fontSize:'11px',color:'#888',fontFamily:'monospace',marginBottom:'3px'}}>MESAJ</div><div style={{fontSize:'14px',color:'#0a0a0a',lineHeight:'1.5'}}>{brief.message}</div></div>}
+                {brief.cta && <div style={{marginBottom:'10px'}}><div style={{fontSize:'11px',color:'#888',fontFamily:'monospace',marginBottom:'3px'}}>CTA</div><div style={{fontSize:'14px',color:'#0a0a0a'}}>{brief.cta}</div></div>}
+                {brief.target_audience && <div style={{marginBottom:'10px'}}><div style={{fontSize:'11px',color:'#888',fontFamily:'monospace',marginBottom:'3px'}}>HEDEF KİTLE</div><div style={{fontSize:'14px',color:'#0a0a0a'}}>{brief.target_audience}</div></div>}
+                {brief.voiceover_type && brief.voiceover_type !== 'none' && <div style={{marginBottom:'10px'}}><div style={{fontSize:'11px',color:'#888',fontFamily:'monospace',marginBottom:'3px'}}>SESLENDİRME</div><div style={{fontSize:'14px',color:'#0a0a0a'}}>{brief.voiceover_type}</div></div>}
+                {brief.voiceover_text && <div style={{marginBottom:'10px'}}><div style={{fontSize:'11px',color:'#888',fontFamily:'monospace',marginBottom:'3px'}}>SESLENDİRME METNİ</div><div style={{fontSize:'14px',color:'#0a0a0a'}}>{brief.voiceover_text}</div></div>}
+                {brief.notes && <div style={{marginBottom:'10px'}}><div style={{fontSize:'11px',color:'#888',fontFamily:'monospace',marginBottom:'3px'}}>NOTLAR</div><div style={{fontSize:'14px',color:'#0a0a0a'}}>{brief.notes}</div></div>}
+                <div><div style={{fontSize:'11px',color:'#888',fontFamily:'monospace',marginBottom:'3px'}}>KREDİ</div><div style={{fontSize:'14px',color:'#0a0a0a'}}>{brief.credit_cost} kredi</div></div>
               </div>
-
               <div style={{display:'flex',flexDirection:'column',gap:'16px'}}>
                 <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',padding:'24px'}}>
                   <div style={{fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'16px'}}>MARKA KİTİ</div>
-                  {brief.clients?.logo_url && <div style={{marginBottom:'8px'}}><a href={brief.clients.logo_url} target="_blank" style={{fontSize:'13px',color:'#1db81d'}}>Logo İndir</a></div>}
-                  {brief.clients?.font_url && <div><a href={brief.clients.font_url} target="_blank" style={{fontSize:'13px',color:'#1db81d'}}>Font İndir</a></div>}
+                  {brief.clients?.logo_url ? <a href={brief.clients.logo_url} target="_blank" style={{display:'block',fontSize:'13px',color:'#1db81d',marginBottom:'8px'}}>Logo İndir</a> : null}
+                  {brief.clients?.font_url ? <a href={brief.clients.font_url} target="_blank" style={{display:'block',fontSize:'13px',color:'#1db81d'}}>Font İndir</a> : null}
                   {!brief.clients?.logo_url && !brief.clients?.font_url && <div style={{fontSize:'13px',color:'#888'}}>Marka kiti yüklenmemiş.</div>}
                 </div>
                 <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',padding:'24px'}}>
@@ -178,7 +216,7 @@ export default function ProducerBriefDetail() {
                   <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
                     {['in_production','revision','approved','delivered'].map(s=>(
                       <button key={s} onClick={()=>handleStatusChange(s)}
-                        style={{padding:'6px 14px',borderRadius:'100px',border:'1px solid #e8e7e3',background:brief.status===s?'#0a0a0a':'#fff',color:brief.status===s?'#fff':'#555',fontSize:'12px',cursor:'pointer',fontFamily:'monospace'}}>
+                        style={{padding:'6px 14px',borderRadius:'100px',border:'1px solid #e8e7e3',background:brief.status===s?'#0a0a0a':'#fff',color:brief.status===s?'#fff':'#555',fontSize:'11px',cursor:'pointer',fontFamily:'monospace'}}>
                         {statusLabel[s]}
                       </button>
                     ))}
@@ -198,19 +236,28 @@ export default function ProducerBriefDetail() {
                       <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a'}}>Versiyon {s.version}</div>
                       <span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:'#f0f0ee',color:'#666',fontFamily:'monospace'}}>{s.status}</span>
                     </div>
-                    <video controls style={{width:'100%',borderRadius:'8px',background:'#000',marginBottom:'16px',maxHeight:'320px'}}>
+                    <video controls style={{width:'100%',borderRadius:'8px',background:'#000',marginBottom:'16px',maxHeight:'300px'}}>
                       <source src={s.video_url} />
                     </video>
                     {s.status === 'pending' && (
-                      <div style={{display:'flex',gap:'8px'}}>
-                        <button onClick={()=>handleApprove(s.id)} disabled={loading}
-                          style={{padding:'9px 20px',background:'#1db81d',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontWeight:'500'}}>
-                          {approvalDelegated ? 'Onayla & Teslim Et' : 'Onayla'}
-                        </button>
-                        <button onClick={()=>handleRevision(s.id)} disabled={loading}
-                          style={{padding:'9px 20px',background:'#fff',color:'#e24b4a',border:'1px solid #e24b4a',borderRadius:'8px',fontSize:'13px',cursor:'pointer'}}>
-                          Revizyon İste
-                        </button>
+                      <div>
+                        <div style={{display:'flex',gap:'8px',marginBottom:'12px'}}>
+                          <button onClick={()=>handleApprove(s.id)} disabled={loading}
+                            style={{padding:'9px 20px',background:'#1db81d',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontWeight:'500'}}>
+                            {approvalDelegated ? 'Onayla & Müşteriye İlet' : 'Onayla → Admin Onayına Gönder'}
+                          </button>
+                        </div>
+                        <div>
+                          <textarea
+                            value={revisionNotes[s.id] || ''}
+                            onChange={e=>setRevisionNotes(prev=>({...prev,[s.id]:e.target.value}))}
+                            placeholder="Revizyon notu (zorunlu)..." rows={2}
+                            style={{width:'100%',padding:'9px 13px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'13px',boxSizing:'border-box',resize:'vertical',fontFamily:'system-ui,sans-serif',color:'#0a0a0a',marginBottom:'8px'}} />
+                          <button onClick={()=>handleRevision(s.id)} disabled={loading}
+                            style={{padding:'9px 20px',background:'#fff',color:'#e24b4a',border:'1px solid #e24b4a',borderRadius:'8px',fontSize:'13px',cursor:'pointer'}}>
+                            Revizyon İste
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -242,10 +289,9 @@ export default function ProducerBriefDetail() {
               </div>
               <div style={{marginBottom:'16px'}}>
                 <label style={{display:'block',fontSize:'11px',color:'#555',marginBottom:'6px',letterSpacing:'1px',fontFamily:'monospace'}}>PRODÜKTÖR NOTU</label>
-                <textarea value={form.producer_note} onChange={e=>setForm({...form,producer_note:e.target.value})} rows={4}
+                <textarea value={form.producer_note} onChange={e=>setForm({...form,producer_note:e.target.value})} rows={3}
                   style={{width:'100%',padding:'10px 14px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'14px',boxSizing:'border-box',resize:'vertical',fontFamily:'system-ui,sans-serif',color:'#0a0a0a'}} />
               </div>
-              {msg && <div style={{fontSize:'13px',color:msg.startsWith('Hata')?'#e24b4a':'#1db81d',marginBottom:'12px'}}>{msg}</div>}
               <button type="submit" disabled={loading}
                 style={{padding:'11px 24px',background:'#0a0a0a',color:'#fff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'500',cursor:'pointer'}}>
                 {loading ? 'İletiliyor...' : "Creator'a İlet"}
@@ -254,12 +300,13 @@ export default function ProducerBriefDetail() {
 
             <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',padding:'24px'}}>
               <div style={{fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'16px'}}>SORULAR</div>
-              {questions.length === 0 && <div style={{fontSize:'13px',color:'#888',marginBottom:'16px'}}>Henüz soru yok.</div>}
-              {questions.map(q=>(
-                <div key={q.id} style={{marginBottom:'16px',padding:'12px 16px',background:'#f7f6f2',borderRadius:'8px'}}>
+              {questions.filter(q=>!q.question.startsWith('İÇ REVİZYON:')).length === 0 && (
+                <div style={{fontSize:'13px',color:'#888',marginBottom:'16px'}}>Henüz soru yok.</div>
+              )}
+              {questions.filter(q=>!q.question.startsWith('İÇ REVİZYON:')).map(q=>(
+                <div key={q.id} style={{marginBottom:'12px',padding:'12px 16px',background:'#f7f6f2',borderRadius:'8px'}}>
                   <div style={{fontSize:'13px',color:'#0a0a0a',marginBottom:'4px'}}>{q.question}</div>
-                  {q.answer && <div style={{fontSize:'13px',color:'#1db81d'}}>↳ {q.answer}</div>}
-                  {!q.answer && <div style={{fontSize:'12px',color:'#888'}}>Cevap bekleniyor...</div>}
+                  {q.answer ? <div style={{fontSize:'13px',color:'#1db81d'}}>↳ {q.answer}</div> : <div style={{fontSize:'12px',color:'#888'}}>Cevap bekleniyor...</div>}
                 </div>
               ))}
               <form onSubmit={handleQuestion} style={{display:'flex',gap:'8px',marginTop:'16px'}}>
