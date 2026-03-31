@@ -29,7 +29,7 @@ export default function ProducerBriefDetail() {
     if (b?.status === 'submitted') {
       await supabase.from('briefs').update({ status: 'read', read_at: new Date().toISOString() }).eq('id', id)
     }
-    const { data: pb } = await supabase.from('producer_briefs').select('*, creators(*, users(name)), voice_artists(*, users(name))').eq('brief_id', id).single()
+    const { data: pb } = await supabase.from('producer_briefs').select('*').eq('brief_id', id).maybeSingle()
     setProducerBrief(pb)
     if (pb) setForm({ producer_note: pb.producer_note || '', assigned_creator_id: pb.assigned_creator_id || '', assigned_voice_artist_id: pb.assigned_voice_artist_id || '' })
     const { data: c } = await supabase.from('creators').select('*, users(name, email)').eq('is_active', true)
@@ -46,16 +46,17 @@ export default function ProducerBriefDetail() {
     setMsg('')
     const { data: { user } } = await supabase.auth.getUser()
 
+    const creatorId = form.assigned_creator_id && form.assigned_creator_id.length > 10 ? form.assigned_creator_id : null
+    const voiceId = form.assigned_voice_artist_id && form.assigned_voice_artist_id.length > 10 ? form.assigned_voice_artist_id : null
+
     const payload = {
       brief_id: id,
       producer_id: user?.id,
       producer_note: form.producer_note,
-      assigned_creator_id: form.assigned_creator_id !== '' ? form.assigned_creator_id : null,
-      assigned_voice_artist_id: form.assigned_voice_artist_id !== '' ? form.assigned_voice_artist_id : null,
+      assigned_creator_id: creatorId,
+      assigned_voice_artist_id: voiceId,
       forwarded_at: new Date().toISOString()
     }
-
-    console.log('payload:', payload)
 
     if (producerBrief) {
       const { error } = await supabase.from('producer_briefs').update({
@@ -66,8 +67,7 @@ export default function ProducerBriefDetail() {
       }).eq('id', producerBrief.id)
       if (error) { setMsg('Hata: ' + error.message); setLoading(false); return }
     } else {
-      const { data, error } = await supabase.from('producer_briefs').insert(payload).select()
-      console.log('insert result:', data, error)
+      const { error } = await supabase.from('producer_briefs').insert(payload)
       if (error) { setMsg('Hata: ' + error.message); setLoading(false); return }
     }
 
@@ -137,7 +137,6 @@ export default function ProducerBriefDetail() {
                   {brief.clients?.font_url && <div><a href={brief.clients.font_url} target="_blank" style={{fontSize:'13px',color:'#1db81d'}}>Font İndir</a></div>}
                   {!brief.clients?.logo_url && !brief.clients?.font_url && <div style={{fontSize:'13px',color:'#888'}}>Marka kiti yüklenmemiş.</div>}
                 </div>
-
                 <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',padding:'24px'}}>
                   <div style={{fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'16px'}}>DURUM DEĞİŞTİR</div>
                   <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
