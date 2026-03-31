@@ -29,6 +29,7 @@ export default function NewBriefPage() {
     cta: '',
     message: '',
     voiceover_type: 'none',
+    voiceover_gender: '' as '' | 'male' | 'female',
     voiceover_text: '',
     notes: '',
   })
@@ -110,6 +111,7 @@ Seslendirme metni:`
       cta: form.has_cta === 'yes' ? form.cta : null,
       target_audience: form.target_audience,
       voiceover_type: form.voiceover_type,
+      voiceover_gender: form.voiceover_gender || null,
       voiceover_text: form.voiceover_text || null,
       notes: form.notes || null,
       status: 'submitted',
@@ -277,11 +279,20 @@ Seslendirme metni:`
               <div style={{marginBottom:'22px'}}>
                 <div style={{fontSize:'11px',color:'#888',letterSpacing:'0.5px',textTransform:'uppercase',marginBottom:'8px'}}>Seslendirme Tipi</div>
                 <div>
-                  <span style={pillStyle(form.voiceover_type==='none')} onClick={()=>setForm({...form,voiceover_type:'none',voiceover_text:''})}>Yok</span>
-                  <span style={pillStyle(form.voiceover_type==='ai')} onClick={()=>setForm({...form,voiceover_type:'ai'})}>AI Seslendirme</span>
+                  <span style={pillStyle(form.voiceover_type==='none')} onClick={()=>setForm({...form,voiceover_type:'none',voiceover_gender:'',voiceover_text:''})}>Yok</span>
+                  <span style={pillStyle(form.voiceover_type==='ai')} onClick={()=>setForm({...form,voiceover_type:'ai',voiceover_gender:''})}>AI Seslendirme</span>
                   <span style={pillStyle(form.voiceover_type==='real')} onClick={()=>setForm({...form,voiceover_type:'real'})}>Gerçek Seslendirme (+6 kredi)</span>
                 </div>
               </div>
+              {form.voiceover_type==='real'&&(
+                <div style={{marginBottom:'22px'}}>
+                  <div style={{fontSize:'11px',color:'#888',letterSpacing:'0.5px',textTransform:'uppercase',marginBottom:'8px'}}>Seslendirme Cinsiyeti</div>
+                  <div>
+                    <span style={pillStyle(form.voiceover_gender==='male')} onClick={()=>setForm({...form,voiceover_gender:'male'})}>Erkek</span>
+                    <span style={pillStyle(form.voiceover_gender==='female')} onClick={()=>setForm({...form,voiceover_gender:'female'})}>Kadın</span>
+                  </div>
+                </div>
+              )}
               {form.voiceover_type!=='none'&&(
                 <div>
                   <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}}>
@@ -310,13 +321,18 @@ Seslendirme metni:`
                 <div style={{fontSize:'11px',color:'#888',letterSpacing:'0.5px',textTransform:'uppercase',marginBottom:'8px'}}>Uyarılar & Hassasiyetler</div>
                 <textarea style={{...inputStyle,resize:'vertical',lineHeight:'1.7'}} rows={4} value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})} placeholder="Kaçınılması gereken içerik, hassas konular, marka kısıtlamaları..." />
               </div>
-              <div style={{background:'#f0fdf4',border:'0.5px solid #86efac',borderRadius:'12px',padding:'18px'}}>
-                <div style={{fontSize:'13px',fontWeight:'500',color:'#15803d',marginBottom:'8px'}}>Brief Özeti</div>
-                <div style={{fontSize:'12px',color:'#16a34a',lineHeight:'1.8'}}>
-                  <div>📹 {form.video_type} · {form.format.join(', ')}</div>
-                  {form.target_audience&&<div>👥 {form.target_audience}</div>}
-                  {form.voiceover_type!=='none'&&<div>🎙 {form.voiceover_type==='real'?'Gerçek Seslendirme':'AI Seslendirme'}</div>}
-                  <div style={{marginTop:'8px',paddingTop:'8px',borderTop:'0.5px solid #86efac',fontWeight:'500',fontSize:'13px'}}>{cost} kredi harcanacak</div>
+              <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'12px',padding:'18px'}}>
+                <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a',marginBottom:'12px'}}>Brief Özeti</div>
+                <div style={{fontSize:'12px',color:'#555',lineHeight:'2'}}>
+                  <div style={{display:'flex',justifyContent:'space-between'}}><span style={{color:'#888'}}>Kampanya</span><span style={{color:'#0a0a0a',fontWeight:'500'}}>{form.campaign_name}</span></div>
+                  <div style={{display:'flex',justifyContent:'space-between'}}><span style={{color:'#888'}}>Video Tipi</span><span style={{color:'#0a0a0a'}}>{form.video_type}</span></div>
+                  <div style={{display:'flex',justifyContent:'space-between'}}><span style={{color:'#888'}}>Format</span><span style={{color:'#0a0a0a'}}>{form.format.join(', ')}</span></div>
+                  <div style={{display:'flex',justifyContent:'space-between'}}><span style={{color:'#888'}}>Hedef Kitle</span><span style={{color:'#0a0a0a'}}>{form.target_audience}</span></div>
+                  <div style={{display:'flex',justifyContent:'space-between'}}><span style={{color:'#888'}}>CTA</span><span style={{color:'#0a0a0a'}}>{form.has_cta==='yes'?form.cta:'Yok'}</span></div>
+                  <div style={{display:'flex',justifyContent:'space-between'}}><span style={{color:'#888'}}>Seslendirme</span><span style={{color:'#0a0a0a'}}>{form.voiceover_type==='none'?'Yok':form.voiceover_type==='real'?'Gercek Seslendirme':'AI Seslendirme'}{form.voiceover_gender?` (${form.voiceover_gender==='male'?'Erkek':'Kadin'})`:''}</span></div>
+                  {form.message&&<div style={{marginTop:'6px',paddingTop:'6px',borderTop:'0.5px solid rgba(0,0,0,0.08)'}}><span style={{color:'#888'}}>Brief: </span><span style={{color:'#333'}}>{form.message.length>120?form.message.substring(0,120)+'...':form.message}</span></div>}
+                  {form.notes&&<div><span style={{color:'#888'}}>Notlar: </span><span style={{color:'#333'}}>{form.notes.length>80?form.notes.substring(0,80)+'...':form.notes}</span></div>}
+                  <div style={{marginTop:'8px',paddingTop:'8px',borderTop:'0.5px solid rgba(0,0,0,0.12)',fontWeight:'500',fontSize:'13px',color:'#0a0a0a'}}>{cost} kredi harcanacak</div>
                 </div>
               </div>
               {balance < cost && (
