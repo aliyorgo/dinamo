@@ -40,18 +40,31 @@ export default function ProducerBriefDetail() {
     setQuestions(q || [])
   }
 
-  async function handleForward(e: React.FormEvent) {
+  async function handleForward(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setLoading(true)
     setMsg('')
     const { data: { user } } = await supabase.auth.getUser()
-    if (producerBrief) {
-      await supabase.from('producer_briefs').update({ ...form, forwarded_at: new Date().toISOString() }).eq('id', producerBrief.id)
-    } else {
-      await supabase.from('producer_briefs').insert({ brief_id: id, producer_id: user?.id, ...form, forwarded_at: new Date().toISOString() })
-    }
+
+    const creatorId = form.assigned_creator_id && form.assigned_creator_id.length > 10 ? form.assigned_creator_id : null
+    const voiceId = form.assigned_voice_artist_id && form.assigned_voice_artist_id.length > 10 ? form.assigned_voice_artist_id : null
+
+    // Önce bu brief için mevcut kaydı sil, sonra yenisini ekle
+    await supabase.from('producer_briefs').delete().eq('brief_id', id)
+
+    const { error } = await supabase.from('producer_briefs').insert({
+      brief_id: id,
+      producer_id: user?.id,
+      producer_note: form.producer_note,
+      assigned_creator_id: creatorId,
+      assigned_voice_artist_id: voiceId,
+      forwarded_at: new Date().toISOString()
+    })
+
+    if (error) { setMsg('Hata: ' + error.message); setLoading(false); return }
+
     await supabase.from('briefs').update({ status: 'in_production' }).eq('id', id)
-    setMsg('Brief creator\'a iletildi.')
+    setMsg("Brief creator'a iletildi.")
     loadData()
     setLoading(false)
   }
