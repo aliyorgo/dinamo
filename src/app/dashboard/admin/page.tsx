@@ -1,43 +1,54 @@
 'use client'
-
 import { useState, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+
+const statusLabel: Record<string,string> = {
+  submitted:'Yeni', read:'Okundu', in_production:'Üretimde',
+  revision:'Revizyon', approved:'Onay Bekliyor', delivered:'Teslim Edildi', cancelled:'İptal'
+}
+const statusColor: Record<string,string> = {
+  submitted:'#22c55e', read:'#888', in_production:'#3b82f6',
+  revision:'#ef4444', approved:'#f59e0b', delivered:'#888', cancelled:'#555'
+}
 
 const NAV = [
-  { label: 'GENEL BAKIŞ', href: '/dashboard/admin' },
-  { label: 'KULLANICILAR', href: '/dashboard/admin/users' },
-  { label: 'MÜŞTERİLER', href: '/dashboard/admin/clients' },
-  { label: 'BRİEFLER', href: '/dashboard/admin/briefs' },
-  { label: 'KREDİLER', href: '/dashboard/admin/credits' },
-  { label: 'AYARLAR', href: '/dashboard/admin/settings' },
+  {label:'Genel Bakış',href:'/dashboard/admin'},
+  {label:'Kullanıcılar',href:'/dashboard/admin/users'},
+  {label:'Müşteriler',href:'/dashboard/admin/clients'},
+  {label:'Briefler',href:'/dashboard/admin/briefs'},
+  {label:"Creator'lar",href:'/dashboard/admin/creators'},
+  {label:'Krediler',href:'/dashboard/admin/credits'},
+  {label:'Ayarlar',href:'/dashboard/admin/settings'},
 ]
 
 export default function AdminDashboard() {
   const router = useRouter()
   const [userName, setUserName] = useState('')
-  const [stats, setStats] = useState({ briefs: 0, clients: 0, creators: 0 })
+  const [briefs, setBriefs] = useState<any[]>([])
+  const [stats, setStats] = useState({ total:0, new:0, inProd:0, revision:0, delivered:0 })
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
-
       const { data: userData } = await supabase.from('users').select('name, role').eq('id', user.id).single()
       if (!userData || userData.role !== 'admin') { router.push('/login'); return }
       setUserName(userData.name)
-
-      const [briefs, clients, creators] = await Promise.all([
-        supabase.from('briefs').select('id', { count: 'exact', head: true }),
-        supabase.from('clients').select('id', { count: 'exact', head: true }),
-        supabase.from('creators').select('id', { count: 'exact', head: true }),
-      ])
-      setStats({ briefs: briefs.count || 0, clients: clients.count || 0, creators: creators.count || 0 })
+      const { data: b } = await supabase.from('briefs').select('*, clients(company_name)').neq('status','cancelled').order('created_at', { ascending: false })
+      const allBriefs = b || []
+      setBriefs(allBriefs)
+      setStats({
+        total: allBriefs.length,
+        new: allBriefs.filter(x=>x.status==='submitted').length,
+        inProd: allBriefs.filter(x=>x.status==='in_production').length,
+        revision: allBriefs.filter(x=>x.status==='revision').length,
+        delivered: allBriefs.filter(x=>x.status==='delivered').length,
+      })
+      setLoading(false)
     }
     load()
   }, [router])
@@ -48,65 +59,82 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'system-ui, sans-serif', background: '#f7f6f2' }}>
-      <div style={{ width: '220px', background: '#0a0a0a', padding: '32px 0', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
-        <div style={{ padding: '0 24px 32px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-          <div style={{ fontSize: '20px', fontWeight: '500', color: '#fff', letterSpacing: '-0.5px' }}>
-            dinam<span style={{ display: 'inline-block', width: '18px', height: '18px', borderRadius: '50%', border: '4px solid #1db81d', position: 'relative', top: '2px' }}></span>
+    <div style={{display:'flex',minHeight:'100vh',fontFamily:"'Inter',system-ui,sans-serif"}}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');`}</style>
+
+      <div style={{width:'220px',background:'#111113',display:'flex',flexDirection:'column',flexShrink:0}}>
+        <div style={{padding:'18px 16px 14px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
+          <div style={{fontSize:'15px',fontWeight:'500',color:'#fff',letterSpacing:'-0.5px',marginBottom:'12px'}}>
+            dinam<span style={{display:'inline-block',width:'9px',height:'9px',borderRadius:'50%',border:'2px solid #22c55e',position:'relative',top:'1px'}}></span>
           </div>
-          <div style={{ fontSize: '11px', color: '#666', marginTop: '4px', letterSpacing: '1px', fontFamily: 'monospace' }}>ADMIN</div>
+          <div style={{fontSize:'10px',color:'rgba(255,255,255,0.3)',marginBottom:'3px'}}>Admin</div>
+          <div style={{fontSize:'13px',fontWeight:'500',color:'#fff'}}>{userName}</div>
         </div>
-        <nav style={{ flex: 1, padding: '24px 0' }}>
-          {NAV.map(item => (
-            <a key={item.href} href={item.href} style={{ display: 'block', padding: '10px 24px', fontSize: '11px', color: '#888', textDecoration: 'none', letterSpacing: '1px', fontFamily: 'monospace' }}
-              onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
-              onMouseLeave={e => (e.currentTarget.style.color = '#888')}>
-              {item.label}
-            </a>
+
+        <nav style={{padding:'10px 8px',flex:1}}>
+          {NAV.map(item=>(
+            <div key={item.href} onClick={()=>router.push(item.href)}
+              style={{display:'flex',alignItems:'center',padding:'7px 8px',borderRadius:'8px',cursor:'pointer',background:item.href==='/dashboard/admin'?'rgba(255,255,255,0.08)':'transparent',marginBottom:'1px'}}>
+              <span style={{fontSize:'12px',color:item.href==='/dashboard/admin'?'#fff':'rgba(255,255,255,0.4)',fontWeight:item.href==='/dashboard/admin'?'500':'400'}}>{item.label}</span>
+            </div>
           ))}
         </nav>
-        <div style={{ padding: '24px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-          <div style={{ fontSize: '13px', color: '#666', marginBottom: '12px' }}>{userName}</div>
-          <button onClick={handleLogout} style={{ fontSize: '11px', color: '#666', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '1px', fontFamily: 'monospace', padding: 0 }}>
-            ÇIKIŞ YAP
+
+        <div style={{padding:'10px 8px',borderTop:'0.5px solid rgba(255,255,255,0.07)'}}>
+          <button onClick={handleLogout} style={{display:'flex',alignItems:'center',gap:'7px',padding:'6px 8px',borderRadius:'7px',cursor:'pointer',width:'100%',background:'none',border:'none'}}>
+            <span style={{fontSize:'11px',color:'rgba(255,255,255,0.25)',fontFamily:'Inter,sans-serif'}}>Çıkış yap</span>
           </button>
         </div>
       </div>
 
-      <div style={{ flex: 1, padding: '48px' }}>
-        <div style={{ marginBottom: '40px' }}>
-          <h1 style={{ fontSize: '28px', fontWeight: '300', letterSpacing: '-1px', margin: 0 }}>Genel Bakış</h1>
-          <p style={{ color: '#888', fontSize: '14px', marginTop: '8px' }}>Dinamo Admin Paneli</p>
+      <div style={{flex:1,display:'flex',flexDirection:'column',background:'#f5f4f0',overflow:'hidden'}}>
+        <div style={{padding:'14px 28px',background:'#fff',borderBottom:'0.5px solid rgba(0,0,0,0.08)',flexShrink:0}}>
+          <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a'}}>Genel Bakış</div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '40px' }}>
-          {[
-            { label: 'Toplam Brief', value: stats.briefs },
-            { label: 'Müşteri', value: stats.clients },
-            { label: 'Creator', value: stats.creators },
-          ].map(stat => (
-            <div key={stat.label} style={{ background: '#fff', border: '1px solid #e8e7e3', borderRadius: '12px', padding: '24px' }}>
-              <div style={{ fontSize: '32px', fontWeight: '300', letterSpacing: '-1px' }}>{stat.value}</div>
-              <div style={{ fontSize: '13px', color: '#888', marginTop: '4px' }}>{stat.label}</div>
-            </div>
-          ))}
-        </div>
+        <div style={{flex:1,overflowY:'auto',padding:'24px 28px'}}>
+          {loading ? <div style={{color:'#888',fontSize:'14px'}}>Yükleniyor...</div> : (
+            <>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:'12px',marginBottom:'28px'}}>
+                {[
+                  {label:'Toplam',value:stats.total},
+                  {label:'Yeni Brief',value:stats.new,color:'#22c55e'},
+                  {label:'Üretimde',value:stats.inProd,color:'#3b82f6'},
+                  {label:'Revizyon',value:stats.revision,color:'#ef4444'},
+                  {label:'Tamamlanan',value:stats.delivered,color:'#888'},
+                ].map(card=>(
+                  <div key={card.label} style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'16px'}}>
+                    <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'8px'}}>{card.label}</div>
+                    <div style={{fontSize:'28px',fontWeight:'300',color:card.color||'#0a0a0a',letterSpacing:'-1px'}}>{card.value}</div>
+                  </div>
+                ))}
+              </div>
 
-        <div style={{ background: '#fff', border: '1px solid #e8e7e3', borderRadius: '12px', padding: '24px' }}>
-          <div style={{ fontSize: '12px', color: '#888', letterSpacing: '1px', fontFamily: 'monospace', marginBottom: '20px' }}>HIZLI İŞLEMLER</div>
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-            {[
-              { label: 'Yeni Kullanıcı', href: '/dashboard/admin/users/new' },
-              { label: 'Yeni Müşteri', href: '/dashboard/admin/clients/new' },
-              { label: 'Briefleri Gör', href: '/dashboard/admin/briefs' },
-              { label: 'Kredi Yönetimi', href: '/dashboard/admin/credits' },
-            ].map(action => (
-              <a key={action.href} href={action.href}
-                style={{ padding: '10px 20px', background: '#0a0a0a', color: '#fff', borderRadius: '100px', fontSize: '13px', textDecoration: 'none', fontWeight: '500' }}>
-                {action.label}
-              </a>
-            ))}
-          </div>
+              <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',overflow:'hidden'}}>
+                <div style={{padding:'14px 20px',borderBottom:'0.5px solid rgba(0,0,0,0.08)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                  <div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>Tüm Briefler</div>
+                  <div onClick={()=>router.push('/dashboard/admin/briefs')} style={{fontSize:'12px',color:'#3b82f6',cursor:'pointer'}}>Tümünü gör →</div>
+                </div>
+                {briefs.slice(0,10).map((b,i)=>(
+                  <div key={b.id} onClick={()=>router.push(`/dashboard/admin/briefs/${b.id}`)}
+                    style={{padding:'14px 20px',borderBottom:i<Math.min(briefs.length,10)-1?'0.5px solid rgba(0,0,0,0.06)':'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'space-between'}}
+                    onMouseEnter={e=>(e.currentTarget.style.background='#fafaf8')}
+                    onMouseLeave={e=>(e.currentTarget.style.background='transparent')}>
+                    <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
+                      <div style={{width:'7px',height:'7px',borderRadius:'50%',background:statusColor[b.status],flexShrink:0}}></div>
+                      <div>
+                        <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name}</div>
+                        <div style={{fontSize:'11px',color:'#888',marginTop:'2px'}}>{b.clients?.company_name} · {b.video_type} · {new Date(b.created_at).toLocaleDateString('tr-TR')}</div>
+                      </div>
+                    </div>
+                    <div style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:`${statusColor[b.status]}15`,color:statusColor[b.status]}}>
+                      {b.status==='revision'?'Müşteri Revizyonu':statusLabel[b.status]||b.status}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

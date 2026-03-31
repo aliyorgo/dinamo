@@ -5,10 +5,14 @@ import { useRouter } from 'next/navigation'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
-const NAV = [
-  {label:'İŞLERİM',href:'/dashboard/creator'},
-  {label:'CÜZDAN',href:'/dashboard/creator#wallet'},
-]
+const statusLabel: Record<string,string> = {
+  submitted:'İnceleniyor', read:'İncelendi', in_production:'Üretimde',
+  revision:'Müşteri Revizyonu', approved:'Onay Bekliyor', delivered:'Teslim Edildi'
+}
+const statusColor: Record<string,string> = {
+  submitted:'#888', read:'#888', in_production:'#3b82f6',
+  revision:'#ef4444', approved:'#f59e0b', delivered:'#22c55e'
+}
 
 export default function CreatorDashboard() {
   const router = useRouter()
@@ -17,7 +21,7 @@ export default function CreatorDashboard() {
   const [jobs, setJobs] = useState<any[]>([])
   const [earnings, setEarnings] = useState<any[]>([])
   const [payments, setPayments] = useState<any[]>([])
-  const [activeTab, setActiveTab] = useState<'jobs'|'wallet'>('jobs')
+  const [tab, setTab] = useState<'jobs'|'wallet'>('jobs')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -27,36 +31,19 @@ export default function CreatorDashboard() {
       const { data: userData } = await supabase.from('users').select('name, role').eq('id', user.id).single()
       if (!userData || userData.role !== 'creator') { router.push('/login'); return }
       setUserName(userData.name)
-      const { data: creator } = await supabase.from('creators').select('id').eq('user_id', user.id).single()
+      const { data: creator } = await supabase.from('creators').select('id').eq('user_id', user.id).maybeSingle()
       if (!creator) { setLoading(false); return }
       setCreatorId(creator.id)
-
-      // İşler: bu creator'a atanmış briefler
       const { data: pb } = await supabase.from('producer_briefs').select('brief_id').eq('assigned_creator_id', creator.id)
-      const briefIds = (pb || []).map((x: any) => x.brief_id)
+      const briefIds = (pb || []).map((x:any) => x.brief_id)
       if (briefIds.length > 0) {
-        const { data: briefs } = await supabase.from('briefs')
-          .select('*, clients(company_name)')
-          .in('id', briefIds)
-          .neq('status', 'cancelled')
-          .order('created_at', { ascending: false })
-        setJobs(briefs || [])
+        const { data: b } = await supabase.from('briefs').select('*, clients(company_name)').in('id', briefIds).neq('status','cancelled').order('created_at', { ascending: false })
+        setJobs(b || [])
       }
-
-      // Kazançlar
-      const { data: earn } = await supabase.from('creator_earnings')
-        .select('*, briefs(campaign_name)')
-        .eq('creator_id', creator.id)
-        .order('created_at', { ascending: false })
-      setEarnings(earn || [])
-
-      // Ödemeler
-      const { data: pay } = await supabase.from('creator_payments')
-        .select('*')
-        .eq('creator_id', creator.id)
-        .order('paid_at', { ascending: false })
-      setPayments(pay || [])
-
+      const { data: e } = await supabase.from('creator_earnings').select('*, briefs(campaign_name)').eq('creator_id', creator.id).order('created_at', { ascending: false })
+      setEarnings(e || [])
+      const { data: p } = await supabase.from('creator_payments').select('*').eq('creator_id', creator.id).order('paid_at', { ascending: false })
+      setPayments(p || [])
       setLoading(false)
     }
     load()
@@ -67,153 +54,120 @@ export default function CreatorDashboard() {
     router.push('/login')
   }
 
-  const statusLabel: Record<string,string> = {
-    submitted:'İnceleniyor', read:'İncelendi', in_production:'Üretimde',
-    revision:'Revizyon', approved:'Onay Bekliyor', delivered:'Teslim Edildi'
-  }
-  const statusColor: Record<string,string> = {
-    submitted:'#888', read:'#888', in_production:'#f59e0b',
-    revision:'#e24b4a', approved:'#f59e0b', delivered:'#1db81d'
-  }
-
-  // Cüzdan hesapları
-  const totalCreditsEarned = earnings.reduce((sum,e) => sum + e.credits, 0)
-  const totalTlEarned = earnings.reduce((sum,e) => sum + Number(e.tl_amount), 0)
-  const totalTlPaid = payments.reduce((sum,p) => sum + Number(p.amount_tl), 0)
-  const pendingTl = earnings.filter(e=>!e.paid).reduce((sum,e) => sum + Number(e.tl_amount), 0)
-  const pendingCredits = earnings.filter(e=>!e.paid).reduce((sum,e) => sum + e.credits, 0)
+  const totalEarned = earnings.reduce((s,e)=>s+Number(e.tl_amount),0)
+  const totalPaid = payments.reduce((s,p)=>s+Number(p.amount_tl),0)
+  const pending = earnings.filter(e=>!e.paid).reduce((s,e)=>s+Number(e.tl_amount),0)
+  const totalCredits = earnings.reduce((s,e)=>s+e.credits,0)
 
   return (
-    <div style={{display:'flex',minHeight:'100vh',fontFamily:'system-ui,sans-serif',background:'#f7f6f2'}}>
-      <div style={{width:'220px',background:'#0a0a0a',padding:'32px 0',display:'flex',flexDirection:'column',flexShrink:0}}>
-        <div style={{padding:'0 24px 32px',borderBottom:'1px solid rgba(255,255,255,0.08)'}}>
-          <div style={{fontSize:'20px',fontWeight:'500',color:'#fff'}}>dinamo</div>
-          <div style={{fontSize:'11px',color:'#666',marginTop:'4px',letterSpacing:'1px',fontFamily:'monospace'}}>CREATOR</div>
+    <div style={{display:'flex',minHeight:'100vh',fontFamily:"'Inter',system-ui,sans-serif"}}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');`}</style>
+
+      <div style={{width:'220px',background:'#111113',display:'flex',flexDirection:'column',flexShrink:0}}>
+        <div style={{padding:'18px 16px 14px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
+          <div style={{fontSize:'15px',fontWeight:'500',color:'#fff',letterSpacing:'-0.5px',marginBottom:'12px'}}>
+            dinam<span style={{display:'inline-block',width:'9px',height:'9px',borderRadius:'50%',border:'2px solid #22c55e',position:'relative',top:'1px'}}></span>
+          </div>
+          <div style={{fontSize:'10px',color:'rgba(255,255,255,0.3)',marginBottom:'3px'}}>Creator</div>
+          <div style={{fontSize:'13px',fontWeight:'500',color:'#fff'}}>{userName}</div>
         </div>
-        <nav style={{flex:1,padding:'24px 0'}}>
-          <button onClick={()=>setActiveTab('jobs')} style={{display:'block',width:'100%',textAlign:'left',padding:'10px 24px',fontSize:'11px',color:activeTab==='jobs'?'#fff':'#888',background:'none',border:'none',cursor:'pointer',letterSpacing:'1px',fontFamily:'monospace'}}>İŞLERİM</button>
-          <button onClick={()=>setActiveTab('wallet')} style={{display:'block',width:'100%',textAlign:'left',padding:'10px 24px',fontSize:'11px',color:activeTab==='wallet'?'#fff':'#888',background:'none',border:'none',cursor:'pointer',letterSpacing:'1px',fontFamily:'monospace'}}>CÜZDAN</button>
+
+        <nav style={{padding:'10px 8px',flex:1}}>
+          {[
+            {val:'jobs',label:'İşlerim'},
+            {val:'wallet',label:'Cüzdan'},
+          ].map(item=>(
+            <button key={item.val} onClick={()=>setTab(item.val as any)}
+              style={{display:'flex',alignItems:'center',gap:'8px',padding:'7px 8px',borderRadius:'8px',cursor:'pointer',background:tab===item.val?'rgba(255,255,255,0.08)':'transparent',marginBottom:'1px',width:'100%',border:'none',fontFamily:'Inter,sans-serif'}}>
+              <span style={{fontSize:'12px',color:tab===item.val?'#fff':'rgba(255,255,255,0.4)',fontWeight:tab===item.val?'500':'400'}}>{item.label}</span>
+            </button>
+          ))}
         </nav>
-        <div style={{padding:'24px',borderTop:'1px solid rgba(255,255,255,0.08)'}}>
-          <div style={{fontSize:'13px',color:'#666',marginBottom:'12px'}}>{userName}</div>
-          <button onClick={handleLogout} style={{fontSize:'11px',color:'#666',background:'none',border:'none',cursor:'pointer',letterSpacing:'1px',fontFamily:'monospace',padding:0}}>ÇIKIŞ YAP</button>
+
+        <div style={{padding:'10px 8px',borderTop:'0.5px solid rgba(255,255,255,0.07)'}}>
+          <button onClick={handleLogout} style={{display:'flex',alignItems:'center',gap:'7px',padding:'6px 8px',borderRadius:'7px',cursor:'pointer',width:'100%',background:'none',border:'none'}}>
+            <span style={{fontSize:'11px',color:'rgba(255,255,255,0.25)',fontFamily:'Inter,sans-serif'}}>Çıkış yap</span>
+          </button>
         </div>
       </div>
 
-      <div style={{flex:1,padding:'48px'}}>
-        {loading ? (
-          <div style={{color:'#888',fontSize:'14px'}}>Yükleniyor...</div>
-        ) : activeTab === 'jobs' ? (
-          <>
-            <h1 style={{fontSize:'28px',fontWeight:'300',letterSpacing:'-1px',margin:'0 0 32px',color:'#0a0a0a'}}>İşlerim</h1>
-            <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',overflow:'hidden'}}>
-              {jobs.length === 0 ? (
-                <div style={{padding:'48px',textAlign:'center',color:'#888',fontSize:'14px'}}>Atanmış iş yok.</div>
-              ) : (
-                <table style={{width:'100%',borderCollapse:'collapse'}}>
-                  <thead>
-                    <tr style={{borderBottom:'1px solid #e8e7e3'}}>
-                      {['Kampanya','Marka','Video Tipi','Durum','Tarih'].map(h=>(
-                        <th key={h} style={{padding:'12px 20px',textAlign:'left',fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace',fontWeight:'400'}}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {jobs.map((job,i)=>(
-                      <tr key={job.id} style={{borderBottom:i<jobs.length-1?'1px solid #f0f0ee':'none',cursor:'pointer'}}
-                        onClick={()=>router.push(`/dashboard/creator/jobs/${job.id}`)}
-                        onMouseEnter={e=>(e.currentTarget.style.background='#fafaf8')}
-                        onMouseLeave={e=>(e.currentTarget.style.background='transparent')}>
-                        <td style={{padding:'14px 20px',fontSize:'14px',fontWeight:'500',color:'#0a0a0a'}}>{job.campaign_name}</td>
-                        <td style={{padding:'14px 20px',fontSize:'13px',color:'#555'}}>{job.clients?.company_name||'—'}</td>
-                        <td style={{padding:'14px 20px',fontSize:'13px',color:'#555'}}>{job.video_type}</td>
-                        <td style={{padding:'14px 20px'}}>
-                          <span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:`${statusColor[job.status]}15`,color:statusColor[job.status],fontFamily:'monospace'}}>
-                            {job.status==='revision'?'Müşteri Revizyonu':statusLabel[job.status]||job.status}
-                          </span>
-                        </td>
-                        <td style={{padding:'14px 20px',fontSize:'13px',color:'#555'}}>{new Date(job.created_at).toLocaleDateString('tr-TR')}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          </>
-        ) : (
-          <>
-            <h1 style={{fontSize:'28px',fontWeight:'300',letterSpacing:'-1px',margin:'0 0 32px',color:'#0a0a0a'}}>Cüzdan</h1>
+      <div style={{flex:1,display:'flex',flexDirection:'column',background:'#f5f4f0',overflow:'hidden'}}>
+        <div style={{padding:'14px 28px',background:'#fff',borderBottom:'0.5px solid rgba(0,0,0,0.08)',flexShrink:0}}>
+          <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a'}}>{tab==='jobs'?'İşlerim':'Cüzdan'}</div>
+        </div>
 
-            {/* ÖZET KARTLAR */}
-            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'16px',marginBottom:'32px'}}>
-              {[
-                {label:'Toplam Kazanılan Kredi',value:totalCreditsEarned,unit:'kredi',color:'#0a0a0a'},
-                {label:'Toplam Kazanılan TL',value:`${totalTlEarned.toLocaleString('tr-TR')} ₺`,unit:'',color:'#0a0a0a'},
-                {label:'Ödenen TL',value:`${totalTlPaid.toLocaleString('tr-TR')} ₺`,unit:'',color:'#1db81d'},
-                {label:'Bekleyen TL',value:`${pendingTl.toLocaleString('tr-TR')} ₺`,unit:'',color:'#f59e0b'},
-              ].map(card=>(
-                <div key={card.label} style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',padding:'20px'}}>
-                  <div style={{fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'8px'}}>{card.label.toUpperCase()}</div>
-                  <div style={{fontSize:'24px',fontWeight:'300',letterSpacing:'-1px',color:card.color}}>{card.value} <span style={{fontSize:'13px',color:'#888'}}>{card.unit}</span></div>
+        <div style={{flex:1,overflowY:'auto',padding:'20px 28px'}}>
+          {loading ? <div style={{color:'#888',fontSize:'14px'}}>Yükleniyor...</div> : tab==='jobs' ? (
+            jobs.length === 0 ? (
+              <div style={{textAlign:'center',padding:'60px 0',color:'#888',fontSize:'14px'}}>Atanmış iş yok.</div>
+            ) : jobs.map(job=>(
+              <div key={job.id} onClick={()=>router.push(`/dashboard/creator/jobs/${job.id}`)}
+                style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'16px 20px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'8px'}}
+                onMouseEnter={e=>(e.currentTarget.style.borderColor='rgba(0,0,0,0.2)')}
+                onMouseLeave={e=>(e.currentTarget.style.borderColor='rgba(0,0,0,0.1)')}>
+                <div style={{display:'flex',alignItems:'center',gap:'14px'}}>
+                  <div style={{width:'8px',height:'8px',borderRadius:'50%',background:statusColor[job.status],flexShrink:0}}></div>
+                  <div>
+                    <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a'}}>{job.campaign_name}</div>
+                    <div style={{fontSize:'12px',color:'#888',marginTop:'3px'}}>{job.clients?.company_name} · {job.video_type}</div>
+                  </div>
                 </div>
-              ))}
-            </div>
-
-            {/* KAZANÇ DETAYI */}
-            <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',overflow:'hidden',marginBottom:'24px'}}>
-              <div style={{padding:'16px 24px',borderBottom:'1px solid #e8e7e3',fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace'}}>
-                KAZANÇ GEÇMİŞİ
+                <div style={{fontSize:'11px',padding:'4px 12px',borderRadius:'100px',background:`${statusColor[job.status]}15`,color:statusColor[job.status],fontWeight:'500'}}>
+                  {statusLabel[job.status]||job.status}
+                </div>
               </div>
-              {earnings.length === 0 ? (
-                <div style={{padding:'32px',textAlign:'center',color:'#888',fontSize:'14px'}}>Henüz kazanç yok.</div>
-              ) : (
-                <table style={{width:'100%',borderCollapse:'collapse'}}>
-                  <thead>
-                    <tr style={{borderBottom:'1px solid #e8e7e3'}}>
-                      {['Kampanya','Kredi','TL','Fiyat/Kredi','Durum','Tarih'].map(h=>(
-                        <th key={h} style={{padding:'12px 16px',textAlign:'left',fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace',fontWeight:'400'}}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {earnings.map((e,i)=>(
-                      <tr key={e.id} style={{borderBottom:i<earnings.length-1?'1px solid #f0f0ee':'none'}}>
-                        <td style={{padding:'12px 16px',fontSize:'13px',color:'#0a0a0a',fontWeight:'500'}}>{e.briefs?.campaign_name||'—'}</td>
-                        <td style={{padding:'12px 16px',fontSize:'13px',color:'#555'}}>{e.credits}</td>
-                        <td style={{padding:'12px 16px',fontSize:'13px',color:'#0a0a0a',fontWeight:'500'}}>{Number(e.tl_amount).toLocaleString('tr-TR')} ₺</td>
-                        <td style={{padding:'12px 16px',fontSize:'13px',color:'#888'}}>{Number(e.tl_rate).toLocaleString('tr-TR')} ₺/kredi</td>
-                        <td style={{padding:'12px 16px'}}>
-                          <span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:e.paid?'#e8f7e8':'#fff7e6',color:e.paid?'#1db81d':'#f59e0b',fontFamily:'monospace'}}>
-                            {e.paid?'Ödendi':'Bekliyor'}
-                          </span>
-                        </td>
-                        <td style={{padding:'12px 16px',fontSize:'12px',color:'#888'}}>{new Date(e.created_at).toLocaleDateString('tr-TR')}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-
-            {/* ÖDEME GEÇMİŞİ */}
-            {payments.length > 0 && (
-              <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',overflow:'hidden'}}>
-                <div style={{padding:'16px 24px',borderBottom:'1px solid #e8e7e3',fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace'}}>
-                  ÖDEME GEÇMİŞİ
-                </div>
-                {payments.map((p,i)=>(
-                  <div key={p.id} style={{padding:'14px 24px',borderBottom:i<payments.length-1?'1px solid #f0f0ee':'none',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                    <div>
-                      <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a'}}>{Number(p.amount_tl).toLocaleString('tr-TR')} ₺</div>
-                      {p.note && <div style={{fontSize:'12px',color:'#888',marginTop:'2px'}}>{p.note}</div>}
-                    </div>
-                    <div style={{fontSize:'12px',color:'#888'}}>{new Date(p.paid_at).toLocaleDateString('tr-TR')}</div>
+            ))
+          ) : (
+            <>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'28px'}}>
+                {[
+                  {label:'Toplam Kredi',value:totalCredits+' kredi'},
+                  {label:'Toplam Kazanç',value:totalEarned.toLocaleString('tr-TR')+' ₺'},
+                  {label:'Ödenen',value:totalPaid.toLocaleString('tr-TR')+' ₺'},
+                  {label:'Bekleyen',value:pending.toLocaleString('tr-TR')+' ₺'},
+                ].map(card=>(
+                  <div key={card.label} style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'16px'}}>
+                    <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'8px'}}>{card.label}</div>
+                    <div style={{fontSize:'20px',fontWeight:'300',color:'#0a0a0a',letterSpacing:'-0.5px'}}>{card.value}</div>
                   </div>
                 ))}
               </div>
-            )}
-          </>
-        )}
+
+              <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',overflow:'hidden',marginBottom:'20px'}}>
+                <div style={{padding:'14px 20px',borderBottom:'0.5px solid rgba(0,0,0,0.08)',fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>Kazanç Geçmişi</div>
+                {earnings.length===0 ? (
+                  <div style={{padding:'32px',textAlign:'center',color:'#888',fontSize:'14px'}}>Henüz kazanç yok.</div>
+                ) : earnings.map((e,i)=>(
+                  <div key={e.id} style={{padding:'14px 20px',borderBottom:i<earnings.length-1?'0.5px solid rgba(0,0,0,0.06)':'none',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                    <div>
+                      <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{e.briefs?.campaign_name||'—'}</div>
+                      <div style={{fontSize:'11px',color:'#888',marginTop:'2px'}}>{e.credits} kredi · {Number(e.tl_rate).toLocaleString('tr-TR')} ₺/kredi · {new Date(e.created_at).toLocaleDateString('tr-TR')}</div>
+                    </div>
+                    <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+                      <div style={{fontSize:'15px',fontWeight:'300',color:'#0a0a0a'}}>{Number(e.tl_amount).toLocaleString('tr-TR')} ₺</div>
+                      <span style={{fontSize:'10px',padding:'3px 8px',borderRadius:'100px',background:e.paid?'rgba(34,197,94,0.1)':'rgba(245,158,11,0.1)',color:e.paid?'#22c55e':'#f59e0b'}}>{e.paid?'Ödendi':'Bekliyor'}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {payments.length>0&&(
+                <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',overflow:'hidden'}}>
+                  <div style={{padding:'14px 20px',borderBottom:'0.5px solid rgba(0,0,0,0.08)',fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>Ödeme Geçmişi</div>
+                  {payments.map((p,i)=>(
+                    <div key={p.id} style={{padding:'14px 20px',borderBottom:i<payments.length-1?'0.5px solid rgba(0,0,0,0.06)':'none',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                      <div>
+                        <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{Number(p.amount_tl).toLocaleString('tr-TR')} ₺</div>
+                        {p.note&&<div style={{fontSize:'11px',color:'#888',marginTop:'2px'}}>{p.note}</div>}
+                      </div>
+                      <div style={{fontSize:'12px',color:'#888'}}>{new Date(p.paid_at).toLocaleDateString('tr-TR')}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   )
