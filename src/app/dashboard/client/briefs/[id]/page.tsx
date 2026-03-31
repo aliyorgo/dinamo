@@ -90,24 +90,42 @@ export default function ClientBriefDetail() {
     setLoading(false)
   }
 
-  async function handleApprove() {
-    if (!brief || !clientUser) return
-    setLoading(true)
-    const newBalance = Math.max(0, clientUser.credit_balance - (brief.credit_cost || 0))
-    await supabase.from('client_users').update({ credit_balance: newBalance }).eq('id', clientUser.id)
-    await supabase.from('credit_transactions').insert({
-      client_id: brief.client_id,
-      client_user_id: clientUser.id,
+async function handleApprove() {
+  if (!brief || !clientUser) return
+  setLoading(true)
+
+  // Müşteri kredisi kes
+  const newBalance = Math.max(0, clientUser.credit_balance - (brief.credit_cost || 0))
+  await supabase.from('client_users').update({ credit_balance: newBalance }).eq('id', clientUser.id)
+  await supabase.from('credit_transactions').insert({
+    client_id: brief.client_id,
+    client_user_id: clientUser.id,
+    brief_id: id,
+    amount: -(brief.credit_cost || 0),
+    type: 'deduct',
+    description: `${brief.campaign_name} — müşteri onayı`
+  })
+
+  // Creator kazanç kaydı
+  const { data: pb } = await supabase.from('producer_briefs').select('assigned_creator_id').eq('brief_id', id).maybeSingle()
+  if (pb?.assigned_creator_id) {
+    const { data: rate } = await supabase.from('admin_settings').select('value').eq('key', 'creator_credit_rate').maybeSingle()
+    const tlRate = parseFloat(rate?.value || '500')
+    await supabase.from('creator_earnings').insert({
       brief_id: id,
-      amount: -(brief.credit_cost || 0),
-      type: 'deduct',
-      description: `${brief.campaign_name} — müşteri onayı`
+      creator_id: pb.assigned_creator_id,
+      credits: brief.credit_cost,
+      tl_rate: tlRate,
+      tl_amount: brief.credit_cost * tlRate,
+      paid: false
     })
-    await supabase.from('briefs').update({ status: 'delivered' }).eq('id', id)
-    setMsg('Onaylandı. Teşekkürler!')
-    loadData()
-    setLoading(false)
   }
+
+  await supabase.from('briefs').update({ status: 'delivered' }).eq('id', id)
+  setMsg('Onaylandı. Teşekkürler!')
+  loadData()
+  setLoading(false)
+}
 
   async function handleDelete() {
     if (!confirm('Bu briefi silmek istediğinizden emin misiniz?')) return
