@@ -49,9 +49,8 @@ export default function ProducerBriefDetail() {
     if (producerBrief) {
       const { error } = await supabase.from('producer_briefs').update({
         producer_note: form.producer_note,
-        assigned_creator_id: form.assigned_creator_id || null,
-        assigned_voice_artist_id: form.assigned_voice_artist_id || null,
-        forwarded_at: new Date().toISOString()
+    assigned_creator_id: form.assigned_creator_id !== '' ? form.assigned_creator_id : null,
+assigned_voice_artist_id: form.assigned_voice_artist_id !== '' ? form.assigned_voice_artist_id : null,        forwarded_at: new Date().toISOString()
       }).eq('id', producerBrief.id)
       if (error) { setMsg('Hata: ' + error.message); setLoading(false); return }
     } else {
