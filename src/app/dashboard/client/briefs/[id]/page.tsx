@@ -109,6 +109,8 @@ async function handleApprove() {
   // Creator kazanç kaydı
   const { data: pb } = await supabase.from('producer_briefs').select('assigned_creator_id').eq('brief_id', id).maybeSingle()
   if (pb?.assigned_creator_id) {
+    console.log('pb:', pb)
+console.log('creator_id:', pb?.assigned_creator_id)
     const { data: rate } = await supabase.from('admin_settings').select('value').eq('key', 'creator_credit_rate').maybeSingle()
     const tlRate = parseFloat(rate?.value || '500')
     await supabase.from('creator_earnings').insert({
