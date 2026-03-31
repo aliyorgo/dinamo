@@ -57,7 +57,7 @@ export default function ClientBriefDetail() {
 
   async function handleRevision(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    if (!revisionNote.trim()) { setMsg('Revizyon notu yazın.'); return }
+    if (!revisionNote.trim()) { setMsg('Lütfen neyi değiştirmek istediğinizi yazın.'); return }
     if (!clientUser || !brief) return
     setLoading(true)
     setMsg('')
@@ -80,7 +80,10 @@ export default function ClientBriefDetail() {
     }
 
     await supabase.from('briefs').update({ status: 'revision' }).eq('id', id)
-    await supabase.from('brief_questions').insert({ brief_id: id, question: `REVİZYON: ${revisionNote}` })
+    await supabase.from('brief_questions').insert({
+      brief_id: id,
+      question: `REVİZYON: ${revisionNote}`
+    })
     setRevisionNote('')
     setMsg(revisionCount === 0 ? 'Revizyon talebiniz gönderildi (ücretsiz).' : `Revizyon talebiniz gönderildi (${REVISION_CREDIT_COST} kredi düşüldü).`)
     loadData()
@@ -101,7 +104,7 @@ export default function ClientBriefDetail() {
       description: `${brief.campaign_name} — müşteri onayı`
     })
     await supabase.from('briefs').update({ status: 'delivered' }).eq('id', id)
-    setMsg('Onayladınız. Teşekkürler!')
+    setMsg('Onaylandı. Teşekkürler!')
     loadData()
     setLoading(false)
   }
@@ -112,24 +115,29 @@ export default function ClientBriefDetail() {
     router.push('/dashboard/client')
   }
 
-  const unansweredQuestions = questions.filter(q =>
-    !q.question.startsWith('REVİZYON:') &&
-    !q.question.startsWith('İÇ REVİZYON:') &&
-    !q.answer
-  )
+  // Müşterinin sadece gördüğü sorular (iç revizyonlar hariç)
   const visibleQuestions = questions.filter(q =>
-    !q.question.startsWith('REVİZYON:') &&
-    !q.question.startsWith('İÇ REVİZYON:')
+    !q.question.startsWith('İÇ REVİZYON:') && !q.question.startsWith('REVİZYON:')
   )
-  const revisions = questions.filter(q => q.question.startsWith('REVİZYON:'))
-  const latestVideo = videos[videos.length - 1]
+  const unansweredQuestions = visibleQuestions.filter(q => !q.answer)
+  const clientRevisions = questions.filter(q => q.question.startsWith('REVİZYON:'))
 
-  // Kredi breakdown
-  const creditBreakdown = brief ? [
-    { label: brief.video_type, cost: brief.credit_cost - (brief.format?.length > 1 ? brief.format.length - 1 : 0) - (brief.voiceover_type === 'real' ? 6 : 0) },
-    ...(brief.format?.length > 1 ? [{ label: `Ekstra format (${brief.format.length - 1} adet)`, cost: brief.format.length - 1 }] : []),
-    ...(brief.voiceover_type === 'real' ? [{ label: 'Gerçek Seslendirme', cost: 6 }] : []),
-  ] : []
+  // Müşteriye gösterilecek son video: producer/admin onaylı olan
+  const approvedVideo = [...videos].reverse().find(v =>
+    v.status === 'producer_approved' || v.status === 'admin_approved'
+  ) || (brief?.status === 'approved' || brief?.status === 'delivered' ? videos[videos.length - 1] : null)
+
+  // Kredi dökümü
+  const creditBreakdown = brief ? (() => {
+    const formats = Array.isArray(brief.format) ? brief.format : []
+    const extra = formats.length > 1 ? formats.length - 1 : 0
+    const voiceCost = brief.voiceover_type === 'real' ? 6 : 0
+    const base = brief.credit_cost - extra - voiceCost
+    const items = [{ label: brief.video_type, cost: base }]
+    if (extra > 0) items.push({ label: `Ekstra format (${extra} adet)`, cost: extra })
+    if (voiceCost > 0) items.push({ label: 'Gerçek Seslendirme', cost: voiceCost })
+    return items
+  })() : []
 
   return (
     <div style={{display:'flex',minHeight:'100vh',fontFamily:'system-ui,sans-serif',background:'#f7f6f2'}}>
@@ -153,6 +161,7 @@ export default function ClientBriefDetail() {
           <div style={{color:'#888',fontSize:'14px'}}>Yükleniyor...</div>
         ) : (
           <>
+            {/* BAŞLIK */}
             <div style={{marginBottom:'24px',display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
               <div>
                 <h1 style={{fontSize:'28px',fontWeight:'400',letterSpacing:'-1px',margin:'0 0 8px',color:'#0a0a0a'}}>{brief.campaign_name}</h1>
@@ -163,6 +172,7 @@ export default function ClientBriefDetail() {
               </span>
             </div>
 
+            {/* İPTAL EDİLDİ */}
             {brief.status === 'cancelled' && (
               <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',padding:'24px',marginBottom:'24px'}}>
                 <div style={{fontSize:'14px',color:'#888',marginBottom:'16px'}}>Bu brief admin tarafından iptal edildi.</div>
@@ -170,61 +180,127 @@ export default function ClientBriefDetail() {
               </div>
             )}
 
+            {/* CEVAP BEKLEYEN SORULAR — TEPEDE */}
             {unansweredQuestions.length > 0 && (
               <div style={{background:'#fff',border:'2px solid #1db81d',borderRadius:'12px',padding:'24px',marginBottom:'24px'}}>
                 <div style={{fontSize:'11px',color:'#1db81d',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'16px',display:'flex',alignItems:'center',gap:'8px'}}>
                   <span style={{width:'8px',height:'8px',borderRadius:'50%',background:'#1db81d',display:'inline-block'}}></span>
-                  CEVAP GEREKİYOR ({unansweredQuestions.length})
+                  CEVABINIZI BEKLİYORUZ ({unansweredQuestions.length})
                 </div>
                 {unansweredQuestions.map(q=>(
-                  <div key={q.id} style={{marginBottom:'12px',padding:'12px 16px',background:'#f7f6f2',borderRadius:'8px'}}>
-                    <div style={{fontSize:'13px',color:'#0a0a0a',marginBottom:'8px',fontWeight:'500'}}>{q.question}</div>
+                  <div key={q.id} style={{marginBottom:'12px',padding:'14px 16px',background:'#f7f6f2',borderRadius:'8px'}}>
+                    <div style={{fontSize:'13px',color:'#0a0a0a',marginBottom:'10px',fontWeight:'500',lineHeight:'1.5'}}>{q.question}</div>
                     <div style={{display:'flex',gap:'8px'}}>
                       <input value={answers[q.id] || ''} onChange={e=>setAnswers(prev=>({...prev,[q.id]:e.target.value}))}
-                        placeholder="Cevabınız..." style={{flex:1,padding:'7px 12px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a'}} />
-                      <button onClick={()=>handleAnswer(q.id)} style={{padding:'7px 16px',background:'#0a0a0a',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer'}}>Yanıtla</button>
+                        placeholder="Cevabınız..." style={{flex:1,padding:'8px 12px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a'}} />
+                      <button onClick={()=>handleAnswer(q.id)} style={{padding:'8px 16px',background:'#0a0a0a',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontWeight:'500'}}>Yanıtla</button>
                     </div>
                   </div>
                 ))}
               </div>
             )}
 
-            {latestVideo && brief.status === 'approved' && (
-              <div style={{background:'#fff',border:'1px solid rgba(29,184,29,0.3)',borderRadius:'12px',padding:'24px',marginBottom:'24px'}}>
-                <div style={{fontSize:'11px',color:'#1db81d',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'16px'}}>VİDEONUZ HAZIR — ONAYINIZI BEKLİYOR</div>
-                <video controls style={{width:'100%',borderRadius:'8px',background:'#000',marginBottom:'16px'}}>
-                  <source src={latestVideo.video_url} />
-                </video>
-                <div style={{display:'flex',gap:'12px',flexWrap:'wrap'}}>
-                  <a href={latestVideo.video_url} download target="_blank"
-                    style={{padding:'10px 20px',background:'#0a0a0a',color:'#fff',borderRadius:'8px',fontSize:'13px',textDecoration:'none'}}>
-                    İndir
-                  </a>
-                  <button onClick={handleApprove} disabled={loading}
-                    style={{padding:'10px 20px',background:'#1db81d',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontWeight:'500'}}>
-                    {loading ? 'İşleniyor...' : 'Onaylıyorum'}
-                  </button>
+            {/* VİDEO ONAYI — ANA BÖLÜM */}
+            {approvedVideo && brief.status === 'approved' && (
+              <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',overflow:'hidden',marginBottom:'24px'}}>
+                <div style={{padding:'16px 24px',borderBottom:'1px solid #e8e7e3',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                  <div>
+                    <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a'}}>Versiyon {approvedVideo.version} hazır</div>
+                    <div style={{fontSize:'12px',color:'#888',marginTop:'2px'}}>{new Date(approvedVideo.submitted_at).toLocaleDateString('tr-TR')} tarihinde teslim edildi</div>
+                  </div>
+                  <span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:'#fff7e6',color:'#f59e0b',fontFamily:'monospace'}}>Onayınız bekleniyor</span>
+                </div>
+                <div style={{padding:'24px'}}>
+                  <video controls style={{width:'100%',borderRadius:'8px',background:'#000',marginBottom:'20px'}}>
+                    <source src={approvedVideo.video_url} />
+                  </video>
+                  <div style={{display:'flex',gap:'12px',flexWrap:'wrap',marginBottom:'20px'}}>
+                    <a href={approvedVideo.video_url} download target="_blank"
+                      style={{padding:'10px 20px',background:'#f7f6f2',color:'#0a0a0a',borderRadius:'8px',fontSize:'13px',textDecoration:'none',border:'1px solid #e8e7e3'}}>
+                      İndir
+                    </a>
+                    <button onClick={handleApprove} disabled={loading}
+                      style={{padding:'10px 24px',background:'#1db81d',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontWeight:'500'}}>
+                      {loading ? 'İşleniyor...' : '✓ Onaylıyorum'}
+                    </button>
+                  </div>
+
+                  {/* REVİZYON — DOĞRUDAN VİDEOYA BAĞLI */}
+                  <div style={{borderTop:'1px solid #f0f0ee',paddingTop:'20px'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}}>
+                      <div style={{fontSize:'13px',color:'#555',fontWeight:'500'}}>Bu videoyu revize ettirmek istiyorum</div>
+                      <span style={{fontSize:'12px',padding:'3px 10px',borderRadius:'100px',
+                        background:revisionCount===0?'#e8f7e8':'#fff7e6',
+                        color:revisionCount===0?'#1db81d':'#f59e0b',
+                        fontFamily:'monospace',
+                        border:`1px solid ${revisionCount===0?'rgba(29,184,29,0.3)':'rgba(245,158,11,0.3)'}`
+                      }}>
+                        {revisionCount === 0 ? 'İlk revizyon ücretsiz' : `${REVISION_CREDIT_COST} kredi`}
+                      </span>
+                    </div>
+                    <form onSubmit={handleRevision}>
+                      <textarea value={revisionNote} onChange={e=>setRevisionNote(e.target.value)}
+                        placeholder="Versiyon 3'te neyi değiştirmemi istiyorsunuz? Mümkün olduğunca detaylı açıklayın..."
+                        rows={3}
+                        style={{width:'100%',padding:'10px 14px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'13px',boxSizing:'border-box',resize:'vertical',fontFamily:'system-ui,sans-serif',color:'#0a0a0a',marginBottom:'10px'}} />
+                      {msg && <div style={{fontSize:'13px',color:msg.includes('Yetersiz')||msg.includes('Lütfen')?'#e24b4a':'#1db81d',marginBottom:'10px'}}>{msg}</div>}
+                      <button type="submit" disabled={loading}
+                        style={{padding:'9px 20px',background:'#fff',color:'#0a0a0a',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'13px',cursor:'pointer'}}>
+                        {loading ? 'Gönderiliyor...' : revisionCount === 0 ? 'Revizyon Gönder (Ücretsiz)' : `Revizyon Gönder (${REVISION_CREDIT_COST} Kredi)`}
+                      </button>
+                    </form>
+                  </div>
                 </div>
               </div>
             )}
 
-            {latestVideo && brief.status === 'delivered' && (
-              <div style={{background:'#fff',border:'1px solid rgba(29,184,29,0.3)',borderRadius:'12px',padding:'24px',marginBottom:'24px'}}>
-                <div style={{fontSize:'11px',color:'#1db81d',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'16px'}}>✓ ONAYLANDI & TESLİM EDİLDİ</div>
-                <video controls style={{width:'100%',borderRadius:'8px',background:'#000',marginBottom:'16px'}}>
-                  <source src={latestVideo.video_url} />
-                </video>
-                <a href={latestVideo.video_url} download target="_blank"
-                  style={{display:'inline-block',padding:'10px 20px',background:'#0a0a0a',color:'#fff',borderRadius:'8px',fontSize:'13px',textDecoration:'none'}}>
-                  İndir
-                </a>
+            {/* TESLİM EDİLDİ */}
+            {approvedVideo && brief.status === 'delivered' && (
+              <div style={{background:'#fff',border:'1px solid rgba(29,184,29,0.3)',borderRadius:'12px',overflow:'hidden',marginBottom:'24px'}}>
+                <div style={{padding:'16px 24px',borderBottom:'1px solid #f0f0ee',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                  <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a'}}>Versiyon {approvedVideo.version}</div>
+                  <span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:'#e8f7e8',color:'#1db81d',fontFamily:'monospace'}}>✓ Teslim Edildi</span>
+                </div>
+                <div style={{padding:'24px'}}>
+                  <video controls style={{width:'100%',borderRadius:'8px',background:'#000',marginBottom:'16px'}}>
+                    <source src={approvedVideo.video_url} />
+                  </video>
+                  <a href={approvedVideo.video_url} download target="_blank"
+                    style={{display:'inline-block',padding:'10px 20px',background:'#0a0a0a',color:'#fff',borderRadius:'8px',fontSize:'13px',textDecoration:'none'}}>
+                    İndir
+                  </a>
+                </div>
               </div>
             )}
 
+            {/* ÜRETİMDE */}
+            {!approvedVideo && brief.status === 'in_production' && (
+              <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',padding:'24px',marginBottom:'24px'}}>
+                <div style={{fontSize:'14px',color:'#0a0a0a',marginBottom:'4px'}}>Videonuz hazırlanıyor</div>
+                <div style={{fontSize:'13px',color:'#888'}}>24 saat içinde incelemenize sunulacak.</div>
+              </div>
+            )}
+
+            {/* REVİZYON GEÇMİŞİ */}
+            {clientRevisions.length > 0 && (
+              <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',padding:'24px',marginBottom:'24px'}}>
+                <div style={{fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'16px'}}>REVİZYON GEÇMİŞİ</div>
+                {clientRevisions.map((r,i)=>(
+                  <div key={r.id} style={{marginBottom:'8px',padding:'12px 16px',background:'#f7f6f2',borderRadius:'8px'}}>
+                    <div style={{fontSize:'12px',color:'#888',fontFamily:'monospace',marginBottom:'4px'}}>
+                      {i+1}. REVİZYON{i === 0 ? ' (Ücretsiz)' : ` (${REVISION_CREDIT_COST} Kredi)`}
+                    </div>
+                    <div style={{fontSize:'13px',color:'#0a0a0a'}}>{r.question.replace('REVİZYON: ','')}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* VERSİYON GEÇMİŞİ */}
             {videos.length > 1 && (
               <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',padding:'24px',marginBottom:'24px'}}>
                 <div style={{fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'16px'}}>VERSİYON GEÇMİŞİ</div>
-                {videos.map(v=>(
+                {[...videos].reverse().map(v=>(
                   <div key={v.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0',borderBottom:'1px solid #f0f0ee'}}>
                     <div style={{fontSize:'13px',color:'#0a0a0a'}}>Versiyon {v.version}</div>
                     <div style={{display:'flex',gap:'12px',alignItems:'center'}}>
@@ -236,80 +312,40 @@ export default function ClientBriefDetail() {
               </div>
             )}
 
+            {/* BRİEF DETAYLARI */}
             <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',padding:'24px',marginBottom:'24px'}}>
               <div style={{fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'16px'}}>BRİEF DETAYLARI</div>
               {brief.video_type && <div style={{marginBottom:'12px',paddingBottom:'12px',borderBottom:'1px solid #f0f0ee'}}><div style={{fontSize:'11px',color:'#888',fontFamily:'monospace',marginBottom:'4px'}}>VİDEO TİPİ</div><div style={{fontSize:'14px',color:'#0a0a0a'}}>{brief.video_type}</div></div>}
-              {brief.format?.length > 0 && <div style={{marginBottom:'12px',paddingBottom:'12px',borderBottom:'1px solid #f0f0ee'}}><div style={{fontSize:'11px',color:'#888',fontFamily:'monospace',marginBottom:'4px'}}>FORMAT</div><div style={{fontSize:'14px',color:'#0a0a0a'}}>{Array.isArray(brief.format) ? brief.format.join(', ') : brief.format}</div></div>}
+              {brief.format?.length > 0 && <div style={{marginBottom:'12px',paddingBottom:'12px',borderBottom:'1px solid #f0f0ee'}}><div style={{fontSize:'11px',color:'#888',fontFamily:'monospace',marginBottom:'4px'}}>FORMAT</div><div style={{fontSize:'14px',color:'#0a0a0a'}}>{Array.isArray(brief.format)?brief.format.join(', '):brief.format}</div></div>}
               {brief.message && <div style={{marginBottom:'12px',paddingBottom:'12px',borderBottom:'1px solid #f0f0ee'}}><div style={{fontSize:'11px',color:'#888',fontFamily:'monospace',marginBottom:'4px'}}>MESAJ</div><div style={{fontSize:'14px',color:'#0a0a0a',lineHeight:'1.6'}}>{brief.message}</div></div>}
               {brief.cta && <div style={{marginBottom:'12px',paddingBottom:'12px',borderBottom:'1px solid #f0f0ee'}}><div style={{fontSize:'11px',color:'#888',fontFamily:'monospace',marginBottom:'4px'}}>CTA</div><div style={{fontSize:'14px',color:'#0a0a0a'}}>{brief.cta}</div></div>}
               {brief.target_audience && <div style={{marginBottom:'12px',paddingBottom:'12px',borderBottom:'1px solid #f0f0ee'}}><div style={{fontSize:'11px',color:'#888',fontFamily:'monospace',marginBottom:'4px'}}>HEDEF KİTLE</div><div style={{fontSize:'14px',color:'#0a0a0a'}}>{brief.target_audience}</div></div>}
-              {brief.voiceover_type && brief.voiceover_type !== 'none' && <div style={{marginBottom:'12px',paddingBottom:'12px',borderBottom:'1px solid #f0f0ee'}}><div style={{fontSize:'11px',color:'#888',fontFamily:'monospace',marginBottom:'4px'}}>SESLENDİRME</div><div style={{fontSize:'14px',color:'#0a0a0a'}}>{brief.voiceover_type === 'real' ? 'Gerçek Seslendirme' : 'AI Seslendirme'}</div></div>}
+              {brief.voiceover_type && brief.voiceover_type !== 'none' && <div style={{marginBottom:'12px',paddingBottom:'12px',borderBottom:'1px solid #f0f0ee'}}><div style={{fontSize:'11px',color:'#888',fontFamily:'monospace',marginBottom:'4px'}}>SESLENDİRME</div><div style={{fontSize:'14px',color:'#0a0a0a'}}>{brief.voiceover_type==='real'?'Gerçek Seslendirme':'AI Seslendirme'}</div></div>}
               {brief.voiceover_text && <div style={{marginBottom:'12px',paddingBottom:'12px',borderBottom:'1px solid #f0f0ee'}}><div style={{fontSize:'11px',color:'#888',fontFamily:'monospace',marginBottom:'4px'}}>SESLENDİRME METNİ</div><div style={{fontSize:'14px',color:'#0a0a0a',lineHeight:'1.6'}}>{brief.voiceover_text}</div></div>}
               {brief.notes && <div style={{marginBottom:'16px',paddingBottom:'16px',borderBottom:'1px solid #f0f0ee'}}><div style={{fontSize:'11px',color:'#888',fontFamily:'monospace',marginBottom:'4px'}}>NOTLAR</div><div style={{fontSize:'14px',color:'#0a0a0a',lineHeight:'1.6'}}>{brief.notes}</div></div>}
               <div style={{background:'#f7f6f2',borderRadius:'8px',padding:'14px 16px'}}>
                 <div style={{fontSize:'11px',color:'#888',fontFamily:'monospace',marginBottom:'10px',letterSpacing:'1px'}}>KREDİ DÖKÜMÜ</div>
                 {creditBreakdown.map(item=>(
                   <div key={item.label} style={{display:'flex',justifyContent:'space-between',fontSize:'13px',color:'#555',marginBottom:'6px'}}>
-                    <span>{item.label}</span>
-                    <span>{item.cost} kredi</span>
+                    <span>{item.label}</span><span>{item.cost} kredi</span>
                   </div>
                 ))}
                 <div style={{display:'flex',justifyContent:'space-between',fontSize:'14px',fontWeight:'500',color:'#0a0a0a',marginTop:'8px',paddingTop:'8px',borderTop:'1px solid #e8e7e3'}}>
-                  <span>Toplam</span>
-                  <span>{brief.credit_cost} kredi</span>
+                  <span>Toplam</span><span>{brief.credit_cost} kredi</span>
                 </div>
-                {revisionCount > 0 && (
-                  <div style={{fontSize:'12px',color:'#888',marginTop:'8px'}}>
-                    {revisionCount} revizyon kullanıldı (+{(revisionCount - 1) * REVISION_CREDIT_COST} kredi)
-                  </div>
-                )}
               </div>
             </div>
 
-            {visibleQuestions.length > 0 && (
-              <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',padding:'24px',marginBottom:'24px'}}>
+            {/* SORULAR GEÇMİŞİ */}
+            {visibleQuestions.filter(q=>q.answer).length > 0 && (
+              <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',padding:'24px'}}>
                 <div style={{fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'16px'}}>SORULAR</div>
-                {visibleQuestions.map(q=>(
+                {visibleQuestions.filter(q=>q.answer).map(q=>(
                   <div key={q.id} style={{marginBottom:'12px',padding:'12px 16px',background:'#f7f6f2',borderRadius:'8px'}}>
                     <div style={{fontSize:'13px',color:'#0a0a0a',marginBottom:'4px',fontWeight:'500'}}>{q.question}</div>
-                    {q.answer
-                      ? <div style={{fontSize:'13px',color:'#1db81d'}}>↳ {q.answer}</div>
-                      : <div style={{fontSize:'12px',color:'#e24b4a'}}>Cevap bekleniyor</div>
-                    }
+                    <div style={{fontSize:'13px',color:'#1db81d'}}>↳ {q.answer}</div>
                   </div>
                 ))}
-              </div>
-            )}
-
-            {revisions.length > 0 && (
-              <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',padding:'24px',marginBottom:'24px'}}>
-                <div style={{fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'16px'}}>REVİZYON GEÇMİŞİ</div>
-                {revisions.map((r,i)=>(
-                  <div key={r.id} style={{marginBottom:'8px',padding:'10px 14px',background:'#fef2f2',borderRadius:'8px',fontSize:'13px',color:'#e24b4a'}}>
-                    {i+1}. revizyon{i > 0 ? ` (${REVISION_CREDIT_COST} kredi)` : ' (ücretsiz)'}: {r.question.replace('REVİZYON: ','')}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {brief.status !== 'delivered' && brief.status !== 'cancelled' && (
-              <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',padding:'24px'}}>
-                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px'}}>
-                  <div style={{fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace'}}>REVİZYON TALEBİ</div>
-                  <span style={{fontSize:'12px',padding:'3px 10px',borderRadius:'100px',background:revisionCount===0?'#e8f7e8':'#fff7e6',color:revisionCount===0?'#1db81d':'#f59e0b',fontFamily:'monospace',border:`1px solid ${revisionCount===0?'rgba(29,184,29,0.3)':'rgba(245,158,11,0.3)'}`}}>
-                    {revisionCount === 0 ? 'İlk revizyon ücretsiz' : `${REVISION_CREDIT_COST} kredi`}
-                  </span>
-                </div>
-                <form onSubmit={handleRevision}>
-                  <textarea value={revisionNote} onChange={e=>setRevisionNote(e.target.value)}
-                    placeholder="Ne değiştirilmesini istiyorsunuz? Detaylı açıklayın." rows={3}
-                    style={{width:'100%',padding:'10px 14px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'14px',boxSizing:'border-box',resize:'vertical',fontFamily:'system-ui,sans-serif',color:'#0a0a0a',marginBottom:'12px'}} />
-                  {msg && <div style={{fontSize:'13px',color:msg.includes('Yetersiz')||msg.includes('yazın')?'#e24b4a':'#1db81d',marginBottom:'12px'}}>{msg}</div>}
-                  <button type="submit" disabled={loading}
-                    style={{padding:'10px 20px',background:'#0a0a0a',color:'#fff',border:'none',borderRadius:'8px',fontSize:'14px',cursor:'pointer'}}>
-                    {loading ? 'Gönderiliyor...' : revisionCount === 0 ? 'Revizyon Talep Et (Ücretsiz)' : `Revizyon Talep Et (${REVISION_CREDIT_COST} Kredi)`}
-                  </button>
-                </form>
               </div>
             )}
           </>

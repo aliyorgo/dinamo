@@ -10,6 +10,7 @@ const NAV = [
   {label:'KULLANICILAR',href:'/dashboard/admin/users'},
   {label:'MÜŞTERİLER',href:'/dashboard/admin/clients'},
   {label:'BRİEFLER',href:'/dashboard/admin/briefs'},
+  {label:'CREATOR\'LAR',href:'/dashboard/admin/creators'},
   {label:'KREDİLER',href:'/dashboard/admin/credits'},
   {label:'AYARLAR',href:'/dashboard/admin/settings'},
 ]
@@ -21,6 +22,41 @@ interface Submission {
   video_url: string
   submitted_at: string
   producer_notes: string | null
+}
+
+async function recordCreatorEarning(briefId: string, submissionId: string) {
+  const { data: pb } = await supabase.from('producer_briefs').select('assigned_creator_id').eq('brief_id', briefId).maybeSingle()
+  if (!pb?.assigned_creator_id) return
+  const { data: brief } = await supabase.from('briefs').select('credit_cost').eq('id', briefId).single()
+  if (!brief) return
+  const { data: rate } = await supabase.from('admin_settings').select('value').eq('key', 'creator_credit_rate').maybeSingle()
+  const tlRate = parseFloat(rate?.value || '500')
+  await supabase.from('creator_earnings').insert({
+    brief_id: briefId,
+    creator_id: pb.assigned_creator_id,
+    video_submission_id: submissionId,
+    credits: brief.credit_cost,
+    tl_rate: tlRate,
+    tl_amount: brief.credit_cost * tlRate,
+    paid: false
+  })
+}
+
+async function deductClientCredits(briefId: string) {
+  const { data: brief } = await supabase.from('briefs').select('credit_cost, client_id, client_user_id, campaign_name').eq('id', briefId).single()
+  if (!brief?.client_user_id) return
+  const { data: cu } = await supabase.from('client_users').select('credit_balance').eq('id', brief.client_user_id).single()
+  if (!cu) return
+  const newBalance = Math.max(0, cu.credit_balance - (brief.credit_cost || 0))
+  await supabase.from('client_users').update({ credit_balance: newBalance }).eq('id', brief.client_user_id)
+  await supabase.from('credit_transactions').insert({
+    client_id: brief.client_id,
+    client_user_id: brief.client_user_id,
+    brief_id: briefId,
+    amount: -(brief.credit_cost || 0),
+    type: 'deduct',
+    description: `${brief.campaign_name} — teslim`
+  })
 }
 
 export default function AdminBriefDetail() {
@@ -58,11 +94,10 @@ export default function AdminBriefDetail() {
     setLoading(true)
     setMsg('')
     const { data: { user } } = await supabase.auth.getUser()
-
     await supabase.from('video_submissions').update({ status: 'admin_approved' }).eq('id', submissionId)
     await supabase.from('approvals').insert({ video_submission_id: submissionId, approved_by: user?.id, role: 'admin' })
-    // Admin onayı = direkt müşteriye iletilir (approved statüsüne alınır, müşteri onaylar)
     await supabase.from('briefs').update({ status: 'approved' }).eq('id', id)
+    await recordCreatorEarning(id, submissionId)
 
     if (clientEmail && brief) {
       await fetch('/api/notify', {
@@ -73,7 +108,7 @@ export default function AdminBriefDetail() {
           subject: `${brief.campaign_name} — Videonuz Hazır`,
           html: `<p>Merhaba,</p><p><strong>${brief.campaign_name}</strong> kampanyanız için hazırlanan video onaylandı ve hesabınıza iletildi.</p><p>Dinamo paneline giriş yaparak videonuzu inceleyebilir ve onaylayabilirsiniz.</p><p>İyi çalışmalar,<br/>Dinamo</p>`
         })
-      }).catch(() => null)
+      }).catch(()=>null)
     }
 
     setMsg('Video onaylandı, müşteriye iletildi.')
@@ -84,22 +119,7 @@ export default function AdminBriefDetail() {
   async function handleClientApprove() {
     if (!brief) return
     setLoading(true)
-    const { data: briefData } = await supabase.from('briefs').select('credit_cost, client_id, client_user_id, campaign_name').eq('id', id).single()
-    if (briefData?.client_user_id) {
-      const { data: cu } = await supabase.from('client_users').select('credit_balance').eq('id', briefData.client_user_id).single()
-      if (cu) {
-        const newBalance = Math.max(0, cu.credit_balance - (briefData.credit_cost || 0))
-        await supabase.from('client_users').update({ credit_balance: newBalance }).eq('id', briefData.client_user_id)
-        await supabase.from('credit_transactions').insert({
-          client_id: briefData.client_id,
-          client_user_id: briefData.client_user_id,
-          brief_id: id,
-          amount: -(briefData.credit_cost || 0),
-          type: 'deduct',
-          description: `${briefData.campaign_name} — admin müşteri onayı`
-        })
-      }
-    }
+    await deductClientCredits(id)
     await supabase.from('briefs').update({ status: 'delivered' }).eq('id', id)
     setMsg('Müşteri adına onaylandı, kredi kesildi.')
     loadData()
@@ -123,7 +143,7 @@ export default function AdminBriefDetail() {
           subject: `${brief.campaign_name} — Revizyon`,
           html: `<p>Merhaba,</p><p><strong>${brief.campaign_name}</strong> kampanyanız için revizyon talebi oluşturuldu.</p><p>İyi çalışmalar,<br/>Dinamo</p>`
         })
-      }).catch(() => null)
+      }).catch(()=>null)
     }
 
     setMsg('Revizyon talebi gönderildi.')
@@ -151,9 +171,8 @@ export default function AdminBriefDetail() {
   }
 
   async function handleCancel() {
-    if (!confirm('Bu briefi iptal etmek istediğinizden emin misiniz? Müşteri briefi iptal edildi olarak görecek.')) return
+    if (!confirm('Bu briefi iptal etmek istediğinizden emin misiniz?')) return
     await supabase.from('briefs').update({ status: 'cancelled' }).eq('id', id)
-
     if (clientEmail && brief) {
       await fetch('/api/notify', {
         method: 'POST',
@@ -161,13 +180,14 @@ export default function AdminBriefDetail() {
         body: JSON.stringify({
           to: clientEmail,
           subject: `${brief.campaign_name} — Brief İptal Edildi`,
-          html: `<p>Merhaba,</p><p><strong>${brief.campaign_name}</strong> kampanyanız için gönderilen brief iptal edildi. Dinamo panelinden detayları inceleyebilirsiniz.</p><p>İyi çalışmalar,<br/>Dinamo</p>`
+          html: `<p>Merhaba,</p><p><strong>${brief.campaign_name}</strong> kampanyanız için gönderilen brief iptal edildi.</p><p>İyi çalışmalar,<br/>Dinamo</p>`
         })
-      }).catch(() => null)
+      }).catch(()=>null)
     }
-
     router.push('/dashboard/admin/briefs')
   }
+
+  const clientRevisions = questions.filter(q => q.question.startsWith('REVİZYON:'))
 
   return (
     <div style={{display:'flex',minHeight:'100vh',fontFamily:'system-ui,sans-serif',background:'#f7f6f2'}}>
@@ -201,12 +221,28 @@ export default function AdminBriefDetail() {
                 </button>
                 <button onClick={handleCancel}
                   style={{padding:'8px 16px',background:'#fff',color:'#e24b4a',border:'1px solid #e24b4a',borderRadius:'8px',fontSize:'13px',cursor:'pointer'}}>
-                  İptal Et
+                  Brief İptal Et
                 </button>
               </div>
             </div>
 
             {msg && <div style={{padding:'12px 16px',background:msg.startsWith('Hata')||msg.includes('zorunlu')?'#fef2f2':'#e8f7e8',borderRadius:'8px',fontSize:'13px',color:msg.startsWith('Hata')||msg.includes('zorunlu')?'#e24b4a':'#1db81d',marginBottom:'24px'}}>{msg}</div>}
+
+            {/* MÜŞTERİ REVİZYONU */}
+            {clientRevisions.length > 0 && (
+              <div style={{background:'#fff',border:'2px solid #e24b4a',borderRadius:'12px',padding:'24px',marginBottom:'24px'}}>
+                <div style={{fontSize:'11px',color:'#e24b4a',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'12px',display:'flex',alignItems:'center',gap:'8px'}}>
+                  <span style={{width:'8px',height:'8px',borderRadius:'50%',background:'#e24b4a',display:'inline-block'}}></span>
+                  MÜŞTERİ REVİZYONU ({clientRevisions.length})
+                </div>
+                {clientRevisions.map((r,i)=>(
+                  <div key={r.id} style={{padding:'10px 14px',background:'#fef2f2',borderRadius:'8px',marginBottom:'8px'}}>
+                    <div style={{fontSize:'12px',color:'#e24b4a',fontFamily:'monospace',marginBottom:'4px'}}>{i+1}. REVİZYON</div>
+                    <div style={{fontSize:'14px',color:'#0a0a0a'}}>{r.question.replace('REVİZYON: ','')}</div>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {editMode ? (
               <form onSubmit={handleEdit} style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',padding:'24px',marginBottom:'24px'}}>
@@ -266,22 +302,11 @@ export default function AdminBriefDetail() {
                   {(brief.status === 'approved' || brief.status === 'in_production') && (
                     <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',padding:'24px'}}>
                       <div style={{fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'12px'}}>MÜŞTERİ ONAY</div>
-                      <div style={{fontSize:'13px',color:'#555',marginBottom:'12px'}}>Müşteri henüz onaylamadıysa manuel işaretleyin.</div>
+                      <div style={{fontSize:'13px',color:'#555',marginBottom:'12px'}}>Müşteri onaylamadıysa manuel işaretleyin.</div>
                       <button onClick={handleClientApprove} disabled={loading}
                         style={{padding:'9px 20px',background:'#1db81d',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontWeight:'500'}}>
                         Müşteri Onayladı
                       </button>
-                    </div>
-                  )}
-                  {questions.length > 0 && (
-                    <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',padding:'24px'}}>
-                      <div style={{fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'12px'}}>SORULAR ({questions.length})</div>
-                      {questions.filter(q=>!q.question.startsWith('İÇ REVİZYON:')).slice(0,3).map(q=>(
-                        <div key={q.id} style={{marginBottom:'8px',padding:'8px 12px',background:'#f7f6f2',borderRadius:'8px'}}>
-                          <div style={{fontSize:'12px',color:'#0a0a0a'}}>{q.question}</div>
-                          {q.answer && <div style={{fontSize:'12px',color:'#1db81d',marginTop:'4px'}}>↳ {q.answer}</div>}
-                        </div>
-                      ))}
                     </div>
                   )}
                 </div>
@@ -306,20 +331,18 @@ export default function AdminBriefDetail() {
                   {(s.status === 'pending' || s.status === 'producer_approved') && (
                     <div>
                       <button onClick={()=>handleApprove(s.id)} disabled={loading}
-                        style={{padding:'9px 20px',background:'#1db81d',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontWeight:'500',marginBottom:'12px'}}>
+                        style={{padding:'9px 20px',background:'#1db81d',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontWeight:'500',marginBottom:'12px',display:'block'}}>
                         {loading ? 'İşleniyor...' : 'Onayla → Müşteriye İlet'}
                       </button>
-                      <div>
-                        <textarea
-                          value={revisionNotes[s.id] || ''}
-                          onChange={e=>setRevisionNotes(prev=>({...prev,[s.id]:e.target.value}))}
-                          placeholder="Revizyon notu (zorunlu)..." rows={2}
-                          style={{width:'100%',padding:'9px 13px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'13px',boxSizing:'border-box',resize:'vertical',fontFamily:'system-ui,sans-serif',color:'#0a0a0a',marginBottom:'8px'}} />
-                        <button onClick={()=>handleRevision(s.id)} disabled={loading}
-                          style={{padding:'9px 20px',background:'#fff',color:'#e24b4a',border:'1px solid #e24b4a',borderRadius:'8px',fontSize:'13px',cursor:'pointer'}}>
-                          Revizyon İste
-                        </button>
-                      </div>
+                      <textarea
+                        value={revisionNotes[s.id] || ''}
+                        onChange={e=>setRevisionNotes(prev=>({...prev,[s.id]:e.target.value}))}
+                        placeholder="Revizyon notu (zorunlu)..." rows={2}
+                        style={{width:'100%',padding:'9px 13px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'13px',boxSizing:'border-box',resize:'vertical',fontFamily:'system-ui,sans-serif',color:'#0a0a0a',marginBottom:'8px'}} />
+                      <button onClick={()=>handleRevision(s.id)} disabled={loading}
+                        style={{padding:'9px 20px',background:'#fff',color:'#e24b4a',border:'1px solid #e24b4a',borderRadius:'8px',fontSize:'13px',cursor:'pointer'}}>
+                        Revizyon İste
+                      </button>
                     </div>
                   )}
                 </div>
