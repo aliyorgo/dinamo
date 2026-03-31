@@ -38,7 +38,7 @@ export default function CreatorDashboard() {
         const { data: briefs } = await supabase.from('briefs')
           .select('*, clients(company_name)')
           .in('id', briefIds)
-          .not('status', 'eq', 'cancelled')
+          .neq('status', 'cancelled')
           .order('created_at', { ascending: false })
         setJobs(briefs || [])
       }
