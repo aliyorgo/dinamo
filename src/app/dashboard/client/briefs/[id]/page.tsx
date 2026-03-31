@@ -46,24 +46,31 @@ export default function ProducerBriefDetail() {
     setMsg('')
     const { data: { user } } = await supabase.auth.getUser()
 
+    const payload = {
+      brief_id: id,
+      producer_id: user?.id,
+      producer_note: form.producer_note,
+      assigned_creator_id: form.assigned_creator_id !== '' ? form.assigned_creator_id : null,
+      assigned_voice_artist_id: form.assigned_voice_artist_id !== '' ? form.assigned_voice_artist_id : null,
+      forwarded_at: new Date().toISOString()
+    }
+
+    console.log('payload:', payload)
+
     if (producerBrief) {
       const { error } = await supabase.from('producer_briefs').update({
-        producer_note: form.producer_note,
-    assigned_creator_id: form.assigned_creator_id !== '' ? form.assigned_creator_id : null,
-assigned_voice_artist_id: form.assigned_voice_artist_id !== '' ? form.assigned_voice_artist_id : null,        forwarded_at: new Date().toISOString()
+        producer_note: payload.producer_note,
+        assigned_creator_id: payload.assigned_creator_id,
+        assigned_voice_artist_id: payload.assigned_voice_artist_id,
+        forwarded_at: payload.forwarded_at
       }).eq('id', producerBrief.id)
       if (error) { setMsg('Hata: ' + error.message); setLoading(false); return }
     } else {
-      const { error } = await supabase.from('producer_briefs').insert({
-        brief_id: id,
-        producer_id: user?.id,
-        producer_note: form.producer_note,
-        assigned_creator_id: form.assigned_creator_id || null,
-        assigned_voice_artist_id: form.assigned_voice_artist_id || null,
-        forwarded_at: new Date().toISOString()
-      })
+      const { data, error } = await supabase.from('producer_briefs').insert(payload).select()
+      console.log('insert result:', data, error)
       if (error) { setMsg('Hata: ' + error.message); setLoading(false); return }
     }
+
     await supabase.from('briefs').update({ status: 'in_production' }).eq('id', id)
     setMsg("Brief creator'a iletildi.")
     loadData()
