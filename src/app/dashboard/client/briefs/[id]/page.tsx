@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
-import { useRouter, useParams } from 'next/navigation'
+import { useParams } from 'next/navigation'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
@@ -9,7 +9,6 @@ const statusLabel: Record<string,string> = {submitted:'İnceleniyor',read:'İnce
 const statusColor: Record<string,string> = {submitted:'#888',read:'#888',in_production:'#f59e0b',revision:'#e24b4a',approved:'#1db81d',delivered:'#1db81d'}
 
 export default function ClientBriefDetail() {
-  const router = useRouter()
   const params = useParams()
   const id = params.id as string
   const [brief, setBrief] = useState<any>(null)
@@ -23,7 +22,7 @@ export default function ClientBriefDetail() {
   useEffect(() => { loadData() }, [id])
 
   async function loadData() {
-    const { data: b } = await supabase.from('briefs').select('*, clients(company_name)').eq('id', id).single()
+    const { data: b } = await supabase.from('briefs').select('*').eq('id', id).single()
     setBrief(b)
     const { data: q } = await supabase.from('brief_questions').select('*').eq('brief_id', id).order('asked_at')
     setQuestions(q || [])
@@ -52,6 +51,13 @@ export default function ClientBriefDetail() {
   }
 
   const latestVideo = videos[0]
+  const activeQuestions = questions.filter(q => !q.question.startsWith('REVİZYON:'))
+
+  const voiceoverLabel = (v: string) => {
+    if (v === 'real') return 'Gerçek Seslendirme'
+    if (v === 'ai') return 'AI Seslendirme'
+    return null
+  }
 
   return (
     <div style={{display:'flex',minHeight:'100vh',fontFamily:'system-ui,sans-serif',background:'#f7f6f2'}}>
@@ -67,7 +73,9 @@ export default function ClientBriefDetail() {
       </div>
 
       <div style={{flex:1,padding:'48px',maxWidth:'800px'}}>
-        {brief && (
+        {!brief ? (
+          <div style={{color:'#888',fontSize:'14px'}}>Yükleniyor...</div>
+        ) : (
           <>
             <div style={{marginBottom:'32px',display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
               <div>
@@ -78,6 +86,26 @@ export default function ClientBriefDetail() {
                 {statusLabel[brief.status] || brief.status}
               </span>
             </div>
+
+            {activeQuestions.length > 0 && (
+              <div style={{background:'#fff',border:'1px solid rgba(29,184,29,0.3)',borderRadius:'12px',padding:'24px',marginBottom:'24px'}}>
+                <div style={{fontSize:'11px',color:'#1db81d',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'16px'}}>SORULAR</div>
+                {activeQuestions.map(q=>(
+                  <div key={q.id} style={{marginBottom:'16px',padding:'12px 16px',background:'#f7f6f2',borderRadius:'8px'}}>
+                    <div style={{fontSize:'13px',color:'#0a0a0a',marginBottom:'8px',fontWeight:'500'}}>{q.question}</div>
+                    {q.answer ? (
+                      <div style={{fontSize:'13px',color:'#1db81d'}}>↳ {q.answer}</div>
+                    ) : (
+                      <div style={{display:'flex',gap:'8px',marginTop:'8px'}}>
+                        <input value={answers[q.id] || ''} onChange={e=>setAnswers(prev=>({...prev,[q.id]:e.target.value}))}
+                          placeholder="Cevabınız..." style={{flex:1,padding:'7px 12px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a'}} />
+                        <button onClick={()=>handleAnswer(q.id)} style={{padding:'7px 16px',background:'#0a0a0a',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer'}}>Yanıtla</button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
 
             {latestVideo && (brief.status === 'approved' || brief.status === 'delivered') && (
               <div style={{background:'#fff',border:'1px solid rgba(29,184,29,0.3)',borderRadius:'12px',padding:'24px',marginBottom:'24px'}}>
@@ -92,32 +120,59 @@ export default function ClientBriefDetail() {
               </div>
             )}
 
-            {brief.status === 'in_production' && (
-              <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',padding:'24px',marginBottom:'24px'}}>
-                <div style={{fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'12px'}}>DURUM</div>
-                <div style={{fontSize:'14px',color:'#0a0a0a'}}>Videonuz üretim aşamasında. 24 saat içinde teslim edilecek.</div>
+            <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',padding:'24px',marginBottom:'24px'}}>
+              <div style={{fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'16px'}}>BRİEF DETAYLARI</div>
+              <div style={{marginBottom:'14px',paddingBottom:'14px',borderBottom:'1px solid #f0f0ee'}}>
+                <div style={{fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'4px'}}>VİDEO TİPİ</div>
+                <div style={{fontSize:'14px',color:'#0a0a0a'}}>{brief.video_type}</div>
               </div>
-            )}
-
-            {questions.length > 0 && (
-              <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',padding:'24px',marginBottom:'24px'}}>
-                <div style={{fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'16px'}}>SORULAR</div>
-                {questions.map(q=>(
-                  <div key={q.id} style={{marginBottom:'16px',padding:'12px 16px',background:'#f7f6f2',borderRadius:'8px'}}>
-                    <div style={{fontSize:'13px',color:'#0a0a0a',marginBottom:'8px'}}>{q.question}</div>
-                    {q.answer ? (
-                      <div style={{fontSize:'13px',color:'#1db81d'}}>↳ {q.answer}</div>
-                    ) : (
-                      <div style={{display:'flex',gap:'8px',marginTop:'8px'}}>
-                        <input value={answers[q.id] || ''} onChange={e=>setAnswers(prev=>({...prev,[q.id]:e.target.value}))}
-                          placeholder="Cevabınız..." style={{flex:1,padding:'7px 12px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a'}} />
-                        <button onClick={()=>handleAnswer(q.id)} style={{padding:'7px 16px',background:'#0a0a0a',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer'}}>Gönder</button>
-                      </div>
-                    )}
-                  </div>
-                ))}
+              {brief.format && brief.format.length > 0 && (
+                <div style={{marginBottom:'14px',paddingBottom:'14px',borderBottom:'1px solid #f0f0ee'}}>
+                  <div style={{fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'4px'}}>FORMAT</div>
+                  <div style={{fontSize:'14px',color:'#0a0a0a'}}>{Array.isArray(brief.format) ? brief.format.join(', ') : brief.format}</div>
+                </div>
+              )}
+              {brief.message && (
+                <div style={{marginBottom:'14px',paddingBottom:'14px',borderBottom:'1px solid #f0f0ee'}}>
+                  <div style={{fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'4px'}}>MESAJ</div>
+                  <div style={{fontSize:'14px',color:'#0a0a0a',lineHeight:'1.6'}}>{brief.message}</div>
+                </div>
+              )}
+              {brief.cta && (
+                <div style={{marginBottom:'14px',paddingBottom:'14px',borderBottom:'1px solid #f0f0ee'}}>
+                  <div style={{fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'4px'}}>CALL TO ACTION</div>
+                  <div style={{fontSize:'14px',color:'#0a0a0a'}}>{brief.cta}</div>
+                </div>
+              )}
+              {brief.target_audience && (
+                <div style={{marginBottom:'14px',paddingBottom:'14px',borderBottom:'1px solid #f0f0ee'}}>
+                  <div style={{fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'4px'}}>HEDEF KİTLE</div>
+                  <div style={{fontSize:'14px',color:'#0a0a0a'}}>{brief.target_audience}</div>
+                </div>
+              )}
+              {voiceoverLabel(brief.voiceover_type) && (
+                <div style={{marginBottom:'14px',paddingBottom:'14px',borderBottom:'1px solid #f0f0ee'}}>
+                  <div style={{fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'4px'}}>SESLENDİRME</div>
+                  <div style={{fontSize:'14px',color:'#0a0a0a'}}>{voiceoverLabel(brief.voiceover_type)}</div>
+                </div>
+              )}
+              {brief.voiceover_text && (
+                <div style={{marginBottom:'14px',paddingBottom:'14px',borderBottom:'1px solid #f0f0ee'}}>
+                  <div style={{fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'4px'}}>SESLENDİRME METNİ</div>
+                  <div style={{fontSize:'14px',color:'#0a0a0a',lineHeight:'1.6'}}>{brief.voiceover_text}</div>
+                </div>
+              )}
+              {brief.notes && (
+                <div style={{marginBottom:'14px',paddingBottom:'14px',borderBottom:'1px solid #f0f0ee'}}>
+                  <div style={{fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'4px'}}>NOTLAR</div>
+                  <div style={{fontSize:'14px',color:'#0a0a0a',lineHeight:'1.6'}}>{brief.notes}</div>
+                </div>
+              )}
+              <div>
+                <div style={{fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'4px'}}>KREDİ</div>
+                <div style={{fontSize:'14px',color:'#0a0a0a'}}>{brief.credit_cost} kredi</div>
               </div>
-            )}
+            </div>
 
             {(brief.status === 'in_production' || brief.status === 'approved') && (
               <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',padding:'24px'}}>
