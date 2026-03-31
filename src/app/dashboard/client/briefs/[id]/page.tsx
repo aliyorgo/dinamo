@@ -80,54 +80,53 @@ export default function ClientBriefDetail() {
     }
 
     await supabase.from('briefs').update({ status: 'revision' }).eq('id', id)
-    await supabase.from('brief_questions').insert({
-      brief_id: id,
-      question: `REVİZYON: ${revisionNote}`
-    })
+    await supabase.from('brief_questions').insert({ brief_id: id, question: `REVİZYON: ${revisionNote}` })
     setRevisionNote('')
     setMsg(revisionCount === 0 ? 'Revizyon talebiniz gönderildi (ücretsiz).' : `Revizyon talebiniz gönderildi (${REVISION_CREDIT_COST} kredi düşüldü).`)
     loadData()
     setLoading(false)
   }
 
-async function handleApprove() {
-  if (!brief || !clientUser) return
-  setLoading(true)
+  async function handleApprove() {
+    if (!brief || !clientUser) return
+    setLoading(true)
 
-  // Müşteri kredisi kes
-  const newBalance = Math.max(0, clientUser.credit_balance - (brief.credit_cost || 0))
-  await supabase.from('client_users').update({ credit_balance: newBalance }).eq('id', clientUser.id)
-  await supabase.from('credit_transactions').insert({
-    client_id: brief.client_id,
-    client_user_id: clientUser.id,
-    brief_id: id,
-    amount: -(brief.credit_cost || 0),
-    type: 'deduct',
-    description: `${brief.campaign_name} — müşteri onayı`
-  })
-
-  // Creator kazanç kaydı
-  const { data: pb } = await supabase.from('producer_briefs').select('assigned_creator_id').eq('brief_id', id).maybeSingle()
-  if (pb?.assigned_creator_id) {
-    console.log('pb:', pb)
-console.log('creator_id:', pb?.assigned_creator_id)
-    const { data: rate } = await supabase.from('admin_settings').select('value').eq('key', 'creator_credit_rate').maybeSingle()
-    const tlRate = parseFloat(rate?.value || '500')
-    await supabase.from('creator_earnings').insert({
+    // Müşteri kredisi kes
+    const newBalance = Math.max(0, clientUser.credit_balance - (brief.credit_cost || 0))
+    await supabase.from('client_users').update({ credit_balance: newBalance }).eq('id', clientUser.id)
+    await supabase.from('credit_transactions').insert({
+      client_id: brief.client_id,
+      client_user_id: clientUser.id,
       brief_id: id,
-      creator_id: pb.assigned_creator_id,
-      credits: brief.credit_cost,
-      tl_rate: tlRate,
-      tl_amount: brief.credit_cost * tlRate,
-      paid: false
+      amount: -(brief.credit_cost || 0),
+      type: 'deduct',
+      description: `${brief.campaign_name} — müşteri onayı`
     })
-  }
 
-  await supabase.from('briefs').update({ status: 'delivered' }).eq('id', id)
-  setMsg('Onaylandı. Teşekkürler!')
-  loadData()
-  setLoading(false)
-}
+    // Creator kazanç kaydı
+    const { data: pb } = await supabase.from('producer_briefs').select('assigned_creator_id').eq('brief_id', id).maybeSingle()
+    console.log('pb:', pb)
+    console.log('creator_id:', pb?.assigned_creator_id)
+
+    if (pb?.assigned_creator_id) {
+      const { data: rate } = await supabase.from('admin_settings').select('value').eq('key', 'creator_credit_rate').maybeSingle()
+      const tlRate = parseFloat(rate?.value || '500')
+      const { error: earnError } = await supabase.from('creator_earnings').insert({
+        brief_id: id,
+        creator_id: pb.assigned_creator_id,
+        credits: brief.credit_cost,
+        tl_rate: tlRate,
+        tl_amount: brief.credit_cost * tlRate,
+        paid: false
+      })
+      console.log('earn error:', earnError)
+    }
+
+    await supabase.from('briefs').update({ status: 'delivered' }).eq('id', id)
+    setMsg('Onaylandı. Teşekkürler!')
+    loadData()
+    setLoading(false)
+  }
 
   async function handleDelete() {
     if (!confirm('Bu briefi silmek istediğinizden emin misiniz?')) return
@@ -135,19 +134,16 @@ console.log('creator_id:', pb?.assigned_creator_id)
     router.push('/dashboard/client')
   }
 
-  // Müşterinin sadece gördüğü sorular (iç revizyonlar hariç)
   const visibleQuestions = questions.filter(q =>
     !q.question.startsWith('İÇ REVİZYON:') && !q.question.startsWith('REVİZYON:')
   )
   const unansweredQuestions = visibleQuestions.filter(q => !q.answer)
   const clientRevisions = questions.filter(q => q.question.startsWith('REVİZYON:'))
 
-  // Müşteriye gösterilecek son video: producer/admin onaylı olan
   const approvedVideo = [...videos].reverse().find(v =>
     v.status === 'producer_approved' || v.status === 'admin_approved'
   ) || (brief?.status === 'approved' || brief?.status === 'delivered' ? videos[videos.length - 1] : null)
 
-  // Kredi dökümü
   const creditBreakdown = brief ? (() => {
     const formats = Array.isArray(brief.format) ? brief.format : []
     const extra = formats.length > 1 ? formats.length - 1 : 0
@@ -181,7 +177,6 @@ console.log('creator_id:', pb?.assigned_creator_id)
           <div style={{color:'#888',fontSize:'14px'}}>Yükleniyor...</div>
         ) : (
           <>
-            {/* BAŞLIK */}
             <div style={{marginBottom:'24px',display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
               <div>
                 <h1 style={{fontSize:'28px',fontWeight:'400',letterSpacing:'-1px',margin:'0 0 8px',color:'#0a0a0a'}}>{brief.campaign_name}</h1>
@@ -192,7 +187,6 @@ console.log('creator_id:', pb?.assigned_creator_id)
               </span>
             </div>
 
-            {/* İPTAL EDİLDİ */}
             {brief.status === 'cancelled' && (
               <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',padding:'24px',marginBottom:'24px'}}>
                 <div style={{fontSize:'14px',color:'#888',marginBottom:'16px'}}>Bu brief admin tarafından iptal edildi.</div>
@@ -200,7 +194,6 @@ console.log('creator_id:', pb?.assigned_creator_id)
               </div>
             )}
 
-            {/* CEVAP BEKLEYEN SORULAR — TEPEDE */}
             {unansweredQuestions.length > 0 && (
               <div style={{background:'#fff',border:'2px solid #1db81d',borderRadius:'12px',padding:'24px',marginBottom:'24px'}}>
                 <div style={{fontSize:'11px',color:'#1db81d',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'16px',display:'flex',alignItems:'center',gap:'8px'}}>
@@ -220,7 +213,6 @@ console.log('creator_id:', pb?.assigned_creator_id)
               </div>
             )}
 
-            {/* VİDEO ONAYI — ANA BÖLÜM */}
             {approvedVideo && brief.status === 'approved' && (
               <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',overflow:'hidden',marginBottom:'24px'}}>
                 <div style={{padding:'16px 24px',borderBottom:'1px solid #e8e7e3',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
@@ -245,7 +237,6 @@ console.log('creator_id:', pb?.assigned_creator_id)
                     </button>
                   </div>
 
-                  {/* REVİZYON — DOĞRUDAN VİDEOYA BAĞLI */}
                   <div style={{borderTop:'1px solid #f0f0ee',paddingTop:'20px'}}>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}}>
                       <div style={{fontSize:'13px',color:'#555',fontWeight:'500'}}>Bu videoyu revize ettirmek istiyorum</div>
@@ -260,7 +251,7 @@ console.log('creator_id:', pb?.assigned_creator_id)
                     </div>
                     <form onSubmit={handleRevision}>
                       <textarea value={revisionNote} onChange={e=>setRevisionNote(e.target.value)}
-                        placeholder="Versiyon 3'te neyi değiştirmemi istiyorsunuz? Mümkün olduğunca detaylı açıklayın..."
+                        placeholder={`Versiyon ${approvedVideo.version}'de neyi değiştirmemi istiyorsunuz? Mümkün olduğunca detaylı açıklayın...`}
                         rows={3}
                         style={{width:'100%',padding:'10px 14px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'13px',boxSizing:'border-box',resize:'vertical',fontFamily:'system-ui,sans-serif',color:'#0a0a0a',marginBottom:'10px'}} />
                       {msg && <div style={{fontSize:'13px',color:msg.includes('Yetersiz')||msg.includes('Lütfen')?'#e24b4a':'#1db81d',marginBottom:'10px'}}>{msg}</div>}
@@ -274,7 +265,6 @@ console.log('creator_id:', pb?.assigned_creator_id)
               </div>
             )}
 
-            {/* TESLİM EDİLDİ */}
             {approvedVideo && brief.status === 'delivered' && (
               <div style={{background:'#fff',border:'1px solid rgba(29,184,29,0.3)',borderRadius:'12px',overflow:'hidden',marginBottom:'24px'}}>
                 <div style={{padding:'16px 24px',borderBottom:'1px solid #f0f0ee',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
@@ -293,7 +283,6 @@ console.log('creator_id:', pb?.assigned_creator_id)
               </div>
             )}
 
-            {/* ÜRETİMDE */}
             {!approvedVideo && brief.status === 'in_production' && (
               <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',padding:'24px',marginBottom:'24px'}}>
                 <div style={{fontSize:'14px',color:'#0a0a0a',marginBottom:'4px'}}>Videonuz hazırlanıyor</div>
@@ -301,7 +290,6 @@ console.log('creator_id:', pb?.assigned_creator_id)
               </div>
             )}
 
-            {/* REVİZYON GEÇMİŞİ */}
             {clientRevisions.length > 0 && (
               <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',padding:'24px',marginBottom:'24px'}}>
                 <div style={{fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'16px'}}>REVİZYON GEÇMİŞİ</div>
@@ -316,7 +304,6 @@ console.log('creator_id:', pb?.assigned_creator_id)
               </div>
             )}
 
-            {/* VERSİYON GEÇMİŞİ */}
             {videos.length > 1 && (
               <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',padding:'24px',marginBottom:'24px'}}>
                 <div style={{fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'16px'}}>VERSİYON GEÇMİŞİ</div>
@@ -332,7 +319,6 @@ console.log('creator_id:', pb?.assigned_creator_id)
               </div>
             )}
 
-            {/* BRİEF DETAYLARI */}
             <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',padding:'24px',marginBottom:'24px'}}>
               <div style={{fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'16px'}}>BRİEF DETAYLARI</div>
               {brief.video_type && <div style={{marginBottom:'12px',paddingBottom:'12px',borderBottom:'1px solid #f0f0ee'}}><div style={{fontSize:'11px',color:'#888',fontFamily:'monospace',marginBottom:'4px'}}>VİDEO TİPİ</div><div style={{fontSize:'14px',color:'#0a0a0a'}}>{brief.video_type}</div></div>}
@@ -356,7 +342,6 @@ console.log('creator_id:', pb?.assigned_creator_id)
               </div>
             </div>
 
-            {/* SORULAR GEÇMİŞİ */}
             {visibleQuestions.filter(q=>q.answer).length > 0 && (
               <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',padding:'24px'}}>
                 <div style={{fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'16px'}}>SORULAR</div>
