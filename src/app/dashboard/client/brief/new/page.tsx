@@ -32,6 +32,7 @@ export default function NewBriefPage() {
     voiceover_gender: '' as '' | 'male' | 'female',
     voiceover_text: '',
     notes: '',
+    extra_topic: '',
   })
 
   useEffect(() => {
@@ -114,6 +115,7 @@ Seslendirme metni:`
       voiceover_gender: form.voiceover_gender || null,
       voiceover_text: form.voiceover_text || null,
       notes: form.notes || null,
+      extra_topic: form.extra_topic || null,
       status: 'submitted',
       credit_cost: cost,
     })
@@ -317,11 +319,7 @@ Seslendirme metni:`
             <div>
               <div style={{fontSize:'10px',letterSpacing:'1px',color:'#888',textTransform:'uppercase',marginBottom:'8px'}}>Adım 5 / 5 · {form.campaign_name}</div>
               <div style={{fontSize:'26px',fontWeight:'300',color:'#0a0a0a',letterSpacing:'-0.5px',marginBottom:'28px'}}>Son notlar</div>
-              <div style={{marginBottom:'22px'}}>
-                <div style={{fontSize:'11px',color:'#888',letterSpacing:'0.5px',textTransform:'uppercase',marginBottom:'8px'}}>Uyarılar & Hassasiyetler</div>
-                <textarea style={{...inputStyle,resize:'vertical',lineHeight:'1.7'}} rows={4} value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})} placeholder="Kaçınılması gereken içerik, hassas konular, marka kısıtlamaları..." />
-              </div>
-              <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'12px',padding:'18px'}}>
+              <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'12px',padding:'18px',marginBottom:'22px'}}>
                 <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a',marginBottom:'12px'}}>Brief Özeti</div>
                 <div style={{fontSize:'12px',color:'#555',lineHeight:'2'}}>
                   <div style={{display:'flex',justifyContent:'space-between'}}><span style={{color:'#888'}}>Kampanya</span><span style={{color:'#0a0a0a',fontWeight:'500'}}>{form.campaign_name}</span></div>
@@ -332,8 +330,17 @@ Seslendirme metni:`
                   <div style={{display:'flex',justifyContent:'space-between'}}><span style={{color:'#888'}}>Seslendirme</span><span style={{color:'#0a0a0a'}}>{form.voiceover_type==='none'?'Yok':form.voiceover_type==='real'?'Gercek Seslendirme':'AI Seslendirme'}{form.voiceover_gender?` (${form.voiceover_gender==='male'?'Erkek':'Kadin'})`:''}</span></div>
                   {form.message&&<div style={{marginTop:'6px',paddingTop:'6px',borderTop:'0.5px solid rgba(0,0,0,0.08)'}}><span style={{color:'#888'}}>Brief: </span><span style={{color:'#333'}}>{form.message.length>120?form.message.substring(0,120)+'...':form.message}</span></div>}
                   {form.notes&&<div><span style={{color:'#888'}}>Notlar: </span><span style={{color:'#333'}}>{form.notes.length>80?form.notes.substring(0,80)+'...':form.notes}</span></div>}
+                  {form.extra_topic&&<div><span style={{color:'#888'}}>Ek Konu: </span><span style={{color:'#333'}}>{form.extra_topic.length>80?form.extra_topic.substring(0,80)+'...':form.extra_topic}</span></div>}
                   <div style={{marginTop:'8px',paddingTop:'8px',borderTop:'0.5px solid rgba(0,0,0,0.12)',fontWeight:'500',fontSize:'13px',color:'#0a0a0a'}}>{cost} kredi harcanacak</div>
                 </div>
+              </div>
+              <div style={{marginBottom:'22px'}}>
+                <div style={{fontSize:'11px',color:'#888',letterSpacing:'0.5px',textTransform:'uppercase',marginBottom:'8px'}}>Eklemek istediğiniz başka bir konu var mı?</div>
+                <textarea style={{...inputStyle,resize:'vertical',lineHeight:'1.7'}} rows={4} value={form.extra_topic} onChange={e=>setForm({...form,extra_topic:e.target.value})} placeholder="Belirtmek istediğiniz ek konular, detaylar..." />
+              </div>
+              <div style={{marginBottom:'22px'}}>
+                <div style={{fontSize:'11px',color:'#888',letterSpacing:'0.5px',textTransform:'uppercase',marginBottom:'8px'}}>Uyarılar & Hassasiyetler</div>
+                <textarea style={{...inputStyle,resize:'vertical',lineHeight:'1.7'}} rows={4} value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})} placeholder="Kaçınılması gereken içerik, hassas konular, marka kısıtlamaları..." />
               </div>
               {balance < cost && (
                 <div style={{marginTop:'12px',background:'#fef2f2',border:'0.5px solid #fca5a5',borderRadius:'10px',padding:'14px',fontSize:'13px',color:'#dc2626'}}>
