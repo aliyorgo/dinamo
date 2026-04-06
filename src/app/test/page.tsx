@@ -70,9 +70,9 @@ export default function HomePage() {
           background: rgba(0,0,0,0.65);
           display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
           padding-bottom: 32px;
-          opacity: 0; transition: opacity 0.4s;
+          opacity: 1; transition: opacity 0.4s;
         }
-        .work-card:hover .work-overlay { opacity: 1; }
+        .work-card:hover .work-overlay { opacity: 0; }
 
         .feat-card {
           background: rgba(255,255,255,0.03);
