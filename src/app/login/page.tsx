@@ -29,31 +29,62 @@ export default function LoginPage() {
     router.push('/dashboard')
   }
 
+  const inputStyle: React.CSSProperties = {
+    width: '100%', boxSizing: 'border-box',
+    padding: '14px 16px', fontSize: '14px', fontFamily: "'Inter', sans-serif",
+    background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
+    borderRadius: '10px', color: '#fff', outline: 'none',
+    transition: 'border-color 0.3s',
+  }
+
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f7f6f2', fontFamily: 'system-ui, sans-serif' }}>
-      <div style={{ background: '#fff', border: '1px solid #e8e7e3', borderRadius: '16px', padding: '48px', width: '100%', maxWidth: '400px' }}>
-        <div style={{ marginBottom: '32px', textAlign: 'center', fontSize: '24px', fontWeight: '500' }}>
-          dinamo
+    <div style={{
+      minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: '#0a0a0a', fontFamily: "'Inter', system-ui, sans-serif",
+    }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');
+        input::placeholder { color: rgba(255,255,255,0.25); }
+        input:focus { border-color: #1db81d !important; }
+      `}</style>
+      <div style={{ width: '100%', maxWidth: '380px', padding: '0 24px' }}>
+        {/* Logo */}
+        <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+          <div style={{ fontSize: '48px', fontWeight: '500', letterSpacing: '-2px', color: '#fff' }}>
+            dinam<span style={{
+              display: 'inline-block', width: '36px', height: '36px', borderRadius: '50%',
+              border: '5px solid #1db81d', position: 'relative', top: '5px', marginLeft: '2px',
+            }}></span>
+          </div>
         </div>
+
+        {/* Form */}
         <form onSubmit={handleLogin}>
           <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', fontSize: '12px', color: '#888', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '1px' }}>E-posta</label>
+            <label style={{ display: 'block', fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '400' }}>E-posta</label>
             <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
-              style={{ width: '100%', padding: '10px 14px', border: '1px solid #e8e7e3', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box' }} />
+              placeholder="ornek@sirket.com" style={inputStyle} />
           </div>
-          <div style={{ marginBottom: '24px' }}>
-            <label style={{ display: 'block', fontSize: '12px', color: '#888', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '1px' }}>Şifre</label>
+          <div style={{ marginBottom: '28px' }}>
+            <label style={{ display: 'block', fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '400' }}>Şifre</label>
             <input type="password" value={password} onChange={e => setPassword(e.target.value)} required
-              style={{ width: '100%', padding: '10px 14px', border: '1px solid #e8e7e3', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box' }} />
+              placeholder="••••••••" style={inputStyle} />
           </div>
-          {error && <div style={{ color: '#e24b4a', fontSize: '13px', marginBottom: '16px' }}>{error}</div>}
-          <button type="submit" disabled={loading}
-            style={{ width: '100%', padding: '12px', background: '#0a0a0a', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '500', cursor: 'pointer' }}>
+          {error && (
+            <div style={{ color: '#ef4444', fontSize: '13px', marginBottom: '16px', fontWeight: '400' }}>{error}</div>
+          )}
+          <button type="submit" disabled={loading} style={{
+            width: '100%', padding: '14px', background: '#1db81d', color: '#fff',
+            border: 'none', borderRadius: '10px', fontSize: '14px', fontWeight: '500',
+            cursor: 'pointer', fontFamily: "'Inter', sans-serif",
+            transition: 'opacity 0.3s',
+            opacity: loading ? 0.6 : 1,
+          }}>
             {loading ? 'Giriş yapılıyor...' : 'Giriş Yap'}
           </button>
         </form>
-        <div style={{ marginTop: '20px', textAlign: 'center' }}>
-          <a href="#" style={{ fontSize: '13px', color: '#888', textDecoration: 'none' }}>Şifremi unuttum</a>
+        <div style={{ marginTop: '24px', textAlign: 'center' }}>
+          <a href="#" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.25)', fontWeight: '300' }}>Şifremi unuttum</a>
         </div>
       </div>
     </div>

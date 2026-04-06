@@ -6,12 +6,29 @@ import { useRouter } from 'next/navigation'
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
 const statusLabel: Record<string,string> = {
-  submitted:'İnceleniyor', read:'İncelendi', in_production:'Üretimde',
+  draft:'Taslak', submitted:'İnceleniyor', read:'İncelendi', in_production:'Üretimde',
   revision:'Revizyon', approved:'Onay Bekliyor', delivered:'Teslim Edildi', cancelled:'İptal Edildi'
 }
 const statusColor: Record<string,string> = {
-  submitted:'#888', read:'#888', in_production:'#3b82f6',
+  draft:'#f59e0b', submitted:'#888', read:'#888', in_production:'#3b82f6',
   revision:'#ef4444', approved:'#f59e0b', delivered:'#22c55e', cancelled:'#555'
+}
+const PROGRESS_STEPS = ['Brief Alındı','Üretimde','İncelemenizde','Teslim']
+function getProgressStep(status: string) {
+  if (['submitted','read'].includes(status)) return 0
+  if (['in_production','revision'].includes(status)) return 1
+  if (status === 'approved') return 2
+  if (status === 'delivered') return 3
+  return 0
+}
+function timeAgo(d: string) {
+  const diff = Date.now() - new Date(d).getTime()
+  const mins = Math.floor(diff/60000)
+  if (mins < 60) return `${mins} dk önce`
+  const hrs = Math.floor(mins/60)
+  if (hrs < 24) return `${hrs} saat önce`
+  const days = Math.floor(hrs/24)
+  return `${days} gün önce`
 }
 
 export default function ClientDashboard() {
@@ -19,8 +36,18 @@ export default function ClientDashboard() {
   const [userName, setUserName] = useState('')
   const [companyName, setCompanyName] = useState('')
   const [credits, setCredits] = useState(0)
+  const [clientUserId, setClientUserId] = useState('')
   const [briefs, setBriefs] = useState<any[]>([])
+  const [videoMap, setVideoMap] = useState<Record<string,string>>({})
   const [loading, setLoading] = useState(true)
+  // Notifications
+  const [notifications, setNotifications] = useState<any[]>([])
+  const [showNotifs, setShowNotifs] = useState(false)
+  // Activity
+  const [activities, setActivities] = useState<any[]>([])
+  // Stats
+  const [totalSpent, setTotalSpent] = useState(0)
+  const [avgDelivery, setAvgDelivery] = useState(0)
 
   useEffect(() => {
     async function load() {
@@ -29,70 +56,123 @@ export default function ClientDashboard() {
       const { data: userData } = await supabase.from('users').select('name, role').eq('id', user.id).single()
       if (!userData || userData.role !== 'client') { router.push('/login'); return }
       setUserName(userData.name)
-      const { data: cu } = await supabase.from('client_users').select('credit_balance, client_id, clients(company_name)').eq('user_id', user.id).single()
+      const { data: cu } = await supabase.from('client_users').select('id, credit_balance, client_id, clients(company_name)').eq('user_id', user.id).single()
       if (cu) {
         setCredits(cu.credit_balance)
+        setClientUserId(cu.id)
         setCompanyName((cu as any).clients?.company_name || '')
         const { data: b } = await supabase.from('briefs').select('*').eq('client_id', cu.client_id).neq('status','cancelled').order('created_at', { ascending: false })
         setBriefs(b || [])
+
+        const deliveredIds = (b || []).filter(br => br.status === 'delivered').map(br => br.id)
+        if (deliveredIds.length > 0) {
+          const { data: vids } = await supabase.from('video_submissions').select('brief_id, video_url').in('brief_id', deliveredIds).order('version', { ascending: false })
+          const map: Record<string,string> = {}
+          vids?.forEach((v: any) => { if (!map[v.brief_id]) map[v.brief_id] = v.video_url })
+          setVideoMap(map)
+        }
+
+        // Notifications
+        const { data: notifs } = await supabase.from('notifications').select('*').eq('client_user_id', cu.id).order('created_at', { ascending: false }).limit(10)
+        setNotifications(notifs || [])
+
+        // Stats
+        const { data: txns } = await supabase.from('credit_transactions').select('amount').eq('client_id', cu.client_id).lt('amount', 0)
+        setTotalSpent(Math.abs((txns || []).reduce((s: number, t: any) => s + t.amount, 0)))
+
+        // Avg delivery
+        const delivered = (b || []).filter(br => br.status === 'delivered' && br.updated_at)
+        if (delivered.length > 0) {
+          const totalDays = delivered.reduce((s: number, br: any) => s + (new Date(br.updated_at).getTime() - new Date(br.created_at).getTime()) / 86400000, 0)
+          setAvgDelivery(Math.round(totalDays / delivered.length * 10) / 10)
+        }
+
+        // Activities (last 5 briefs activity)
+        const acts: any[] = []
+        for (const br of (b || []).slice(0, 10)) {
+          acts.push({ msg: `${br.campaign_name} — ${statusLabel[br.status] || br.status}`, date: br.updated_at || br.created_at })
+        }
+        acts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        setActivities(acts.slice(0, 5))
       }
       setLoading(false)
     }
     load()
   }, [router])
 
-  async function handleLogout() {
-    await supabase.auth.signOut()
-    router.push('/login')
+  async function markNotifRead(id: string) {
+    await supabase.from('notifications').update({ is_read: true }).eq('id', id)
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n))
   }
 
+  async function handleLogout() { await supabase.auth.signOut(); router.push('/login') }
+
+  const drafts = briefs.filter(b => b.status === 'draft')
   const pending = briefs.filter(b => b.status === 'approved')
   const inProd = briefs.filter(b => ['submitted','read','in_production','revision'].includes(b.status))
   const done = briefs.filter(b => b.status === 'delivered')
 
-  const sidebarStyle: React.CSSProperties = {
-    width: '220px', background: '#111113', display: 'flex',
-    flexDirection: 'column', flexShrink: 0
+  async function handleDeleteDraft(briefId: string) {
+    if (!confirm('Bu taslağı silmek istediğinizden emin misiniz?')) return
+    await supabase.from('briefs').delete().eq('id', briefId)
+    setBriefs(prev => prev.filter(b => b.id !== briefId))
   }
+  const unreadCount = notifications.filter(n => !n.is_read).length
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
+
+  function toggleGroup(id: string) {
+    setExpandedGroups(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
+  }
+
+  // Group by parent — only for done briefs
+  const doneGrouped: Record<string,any[]> = {}
+  done.forEach(b => {
+    const parentId = b.parent_brief_id || b.id
+    if (!doneGrouped[parentId]) doneGrouped[parentId] = []
+    doneGrouped[parentId].push(b)
+  })
+  // Get root briefs for each group (the one without parent_brief_id, or first in group)
+  const doneRoots = Object.entries(doneGrouped).map(([parentId, items]) => {
+    const root = items.find(b => !b.parent_brief_id) || items[0]
+    const children = items.filter(b => b.id !== root.id).sort((a,b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+    return { root, children, parentId }
+  })
 
   return (
     <div style={{display:'flex',minHeight:'100vh',fontFamily:"'Inter',system-ui,sans-serif",background:'#f5f4f0'}}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');`}</style>
 
       {/* SIDEBAR */}
-      <div style={sidebarStyle}>
+      <div style={{width:'220px',background:'#111113',display:'flex',flexDirection:'column',flexShrink:0,height:'100vh',position:'sticky',top:0}}>
         <div style={{padding:'18px 16px 14px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
-          <div style={{fontSize:'15px',fontWeight:'500',color:'#fff',letterSpacing:'-0.5px',marginBottom:'12px'}}>
-            dinam<span style={{display:'inline-block',width:'9px',height:'9px',borderRadius:'50%',border:'2px solid #22c55e',position:'relative',top:'1px'}}></span>
+          <div style={{fontSize:'18px',fontWeight:'500',color:'#fff',letterSpacing:'-0.5px',marginBottom:'12px'}}>
+            dinam<span style={{display:'inline-block',width:'11px',height:'11px',borderRadius:'50%',border:'2.5px solid #22c55e',position:'relative',top:'1px'}}></span>
           </div>
-          <div style={{fontSize:'10px',color:'rgba(255,255,255,0.3)',letterSpacing:'0.3px',marginBottom:'3px'}}>{companyName}</div>
+          <div style={{fontSize:'10px',color:'rgba(255,255,255,0.3)',marginBottom:'3px'}}>{companyName}</div>
           <div style={{fontSize:'13px',fontWeight:'500',color:'#fff'}}>{userName}</div>
         </div>
-
         <div style={{padding:'12px 16px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
-          <div style={{fontSize:'10px',color:'rgba(255,255,255,0.3)',letterSpacing:'0.5px',textTransform:'uppercase',marginBottom:'4px'}}>Kredi Bakiyesi</div>
+          <div style={{fontSize:'10px',color:'rgba(255,255,255,0.3)',textTransform:'uppercase',marginBottom:'4px'}}>Kredi Bakiyesi</div>
           <div style={{fontSize:'24px',fontWeight:'300',color:'#fff',letterSpacing:'-1px'}}>{credits}</div>
         </div>
-
         <nav style={{padding:'10px 8px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
           {[
-            {label:'Projelerim', href:'/dashboard/client', active:true, icon:<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1" fill="white"/><rect x="9" y="2" width="5" height="5" rx="1" fill="white"/><rect x="2" y="9" width="5" height="5" rx="1" fill="white"/><rect x="9" y="9" width="5" height="5" rx="1" fill="white"/></svg>},
-            {label:'Yeni Brief', href:'/dashboard/client/brief/new', active:false, icon:<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="rgba(255,255,255,0.4)" strokeWidth="2" strokeLinecap="round"/></svg>},
-            {label:'Marka Paketi', href:'/dashboard/client/brand', active:false, icon:<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1.5" stroke="rgba(255,255,255,0.4)" strokeWidth="1.2"/><path d="M5 7h6M5 9.5h4" stroke="rgba(255,255,255,0.4)" strokeWidth="1.2" strokeLinecap="round"/></svg>},
+            {label:'Projelerim', href:'/dashboard/client', active:true},
+            {label:'Yeni Brief', href:'/dashboard/client/brief/new', active:false},
+            {label:'Marka Paketi', href:'/dashboard/client/brand', active:false},
+            {label:'Raporlar', href:'/dashboard/client/reports', active:false},
+            {label:'Telif Belgeleri', href:'/dashboard/client/certificates', active:false},
+            {label:'İçerik Güvencesi', href:'/dashboard/client/guarantee', active:false},
           ].map(item=>(
             <div key={item.href} onClick={()=>router.push(item.href)}
               style={{display:'flex',alignItems:'center',gap:'8px',padding:'7px 8px',borderRadius:'8px',cursor:'pointer',background:item.active?'rgba(255,255,255,0.08)':'transparent',marginBottom:'1px'}}>
-              {item.icon}
               <span style={{fontSize:'12px',color:item.active?'#fff':'rgba(255,255,255,0.4)',fontWeight:item.active?'500':'400'}}>{item.label}</span>
             </div>
           ))}
         </nav>
-
         <div style={{flex:1}}></div>
-
         <div style={{padding:'10px 8px',borderTop:'0.5px solid rgba(255,255,255,0.07)'}}>
           <button onClick={handleLogout} style={{display:'flex',alignItems:'center',gap:'7px',padding:'6px 8px',borderRadius:'7px',cursor:'pointer',width:'100%',background:'none',border:'none'}}>
-            <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M6 3H3a1 1 0 00-1 1v8a1 1 0 001 1h3M10 11l3-3-3-3M13 8H6" stroke="rgba(255,255,255,0.25)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
             <span style={{fontSize:'11px',color:'rgba(255,255,255,0.25)',fontFamily:'Inter,sans-serif'}}>Çıkış yap</span>
           </button>
         </div>
@@ -100,13 +180,36 @@ export default function ClientDashboard() {
 
       {/* MAIN */}
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
-        <div style={{padding:'14px 28px',background:'#fff',borderBottom:'0.5px solid rgba(0,0,0,0.08)',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
-          <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a'}}>Merhaba, {userName.split(' ')[0]} 👋</div>
+        {/* TOP BAR with notifications */}
+        <div style={{padding:'10px 28px',background:'#fff',borderBottom:'0.5px solid rgba(0,0,0,0.08)',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
+          <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a'}}>Projelerim</div>
+          <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
+          {/* Notification bell */}
+          <div style={{position:'relative'}}>
+            <button onClick={()=>setShowNotifs(!showNotifs)} style={{background:'none',border:'none',cursor:'pointer',padding:'6px',position:'relative'}}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="1.5"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+              {unreadCount > 0 && <div style={{position:'absolute',top:'2px',right:'2px',width:'8px',height:'8px',borderRadius:'50%',background:'#ef4444'}}></div>}
+            </button>
+            {showNotifs && (
+              <div style={{position:'absolute',top:'40px',right:0,width:'320px',background:'#fff',borderRadius:'12px',boxShadow:'0 8px 32px rgba(0,0,0,0.12)',border:'0.5px solid rgba(0,0,0,0.08)',zIndex:50,maxHeight:'360px',overflowY:'auto'}}>
+                <div style={{padding:'12px 16px',borderBottom:'0.5px solid rgba(0,0,0,0.06)',fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>Bildirimler</div>
+                {notifications.length === 0 ? (
+                  <div style={{padding:'20px',textAlign:'center',fontSize:'12px',color:'#888'}}>Bildirim yok.</div>
+                ) : notifications.map(n=>(
+                  <div key={n.id} onClick={()=>{markNotifRead(n.id);if(n.brief_id) router.push(`/dashboard/client/briefs/${n.brief_id}`)}}
+                    style={{padding:'10px 16px',borderBottom:'0.5px solid rgba(0,0,0,0.04)',cursor:'pointer',background:n.is_read?'transparent':'rgba(34,197,94,0.03)'}}>
+                    <div style={{fontSize:'12px',color:'#0a0a0a',fontWeight:n.is_read?'400':'500'}}>{n.message}</div>
+                    <div style={{fontSize:'10px',color:'#aaa',marginTop:'2px'}}>{timeAgo(n.created_at)}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
           <button onClick={()=>router.push('/dashboard/client/brief/new')}
-            style={{background:'#111113',color:'#fff',border:'none',borderRadius:'8px',padding:'8px 18px',fontSize:'12px',fontFamily:'Inter,sans-serif',cursor:'pointer',fontWeight:'500',display:'flex',alignItems:'center',gap:'6px'}}>
-            <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="white" strokeWidth="2" strokeLinecap="round"/></svg>
-            Yeni Brief
+            style={{background:'#111113',color:'#fff',border:'none',borderRadius:'8px',padding:'8px 18px',fontSize:'12px',fontFamily:'Inter,sans-serif',cursor:'pointer',fontWeight:'500',flexShrink:0}}>
+            + Yeni Brief
           </button>
+          </div>
         </div>
 
         <div style={{flex:1,overflowY:'auto',padding:'24px 28px'}}>
@@ -114,26 +217,72 @@ export default function ClientDashboard() {
             <div style={{color:'#888',fontSize:'14px'}}>Yükleniyor...</div>
           ) : (
             <>
+              {/* 6. STATS */}
+              {briefs.length > 0 && (
+                <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'24px'}}>
+                  {[
+                    {label:'Toplam Video',value:String(done.length),color:'#22c55e'},
+                    {label:'Üretimde',value:String(inProd.length + pending.length),color:'#3b82f6'},
+                    {label:'Harcanan Kredi',value:String(totalSpent),color:'#0a0a0a'},
+                    {label:'Ort. Teslim',value:avgDelivery > 0 ? `${avgDelivery} gün` : '—',color:'#888'},
+                  ].map(c=>(
+                    <div key={c.label} style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'14px'}}>
+                      <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'6px'}}>{c.label}</div>
+                      <div style={{fontSize:'22px',fontWeight:'300',color:c.color,letterSpacing:'-0.5px'}}>{c.value}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* DRAFTS */}
+              {drafts.length > 0 && (
+                <div style={{marginBottom:'24px'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'10px'}}>
+                    <div style={{width:'7px',height:'7px',borderRadius:'50%',background:'#f59e0b',animation:'pulse 2s infinite'}}></div>
+                    <div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>Taslaklar — Gönderilmedi</div>
+                    <div style={{fontSize:'10px',color:'#aaa'}}>{drafts.length}</div>
+                  </div>
+                  <style>{`@keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.4 } }`}</style>
+                  {drafts.map(b=>(
+                    <div key={b.id}
+                      style={{background:'#fffbeb',border:'1.5px dashed #f59e0b',borderRadius:'12px',padding:'14px 18px',marginBottom:'8px',display:'flex',alignItems:'center',justifyContent:'space-between',position:'relative',transition:'box-shadow 0.2s'}}
+                      onMouseEnter={e=>{e.currentTarget.style.boxShadow='0 2px 12px rgba(245,158,11,0.15)';(e.currentTarget.querySelector('[data-actions]') as HTMLElement)?.style.setProperty('opacity','1')}}
+                      onMouseLeave={e=>{e.currentTarget.style.boxShadow='none';(e.currentTarget.querySelector('[data-actions]') as HTMLElement)?.style.setProperty('opacity','0')}}>
+                      <div style={{flex:1,cursor:'pointer'}} onClick={()=>router.push(`/dashboard/client/brief/new?draft=${b.id}`)}>
+                        <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name || 'İsimsiz Taslak'}</div>
+                        <div style={{fontSize:'11px',color:'#888',marginTop:'2px'}}>{b.video_type ? `${b.video_type} · ` : ''}{timeAgo(b.created_at)}</div>
+                      </div>
+                      <div style={{position:'absolute',top:'10px',right:'14px',fontSize:'9px',fontWeight:'600',color:'#f59e0b',background:'rgba(245,158,11,0.1)',padding:'2px 8px',borderRadius:'100px',letterSpacing:'0.5px'}}>TASLAK</div>
+                      <div data-actions="" style={{display:'flex',gap:'6px',opacity:0,transition:'opacity 0.15s'}}>
+                        <button onClick={()=>router.push(`/dashboard/client/brief/new?draft=${b.id}`)}
+                          style={{padding:'6px 14px',background:'#22c55e',color:'#fff',border:'none',borderRadius:'8px',fontSize:'11px',cursor:'pointer',fontFamily:'Inter,sans-serif',fontWeight:'500'}}>
+                          Düzenle ve Gönder
+                        </button>
+                        <button onClick={()=>handleDeleteDraft(b.id)}
+                          style={{padding:'6px 14px',background:'none',border:'1px solid rgba(239,68,68,0.3)',color:'#ef4444',borderRadius:'8px',fontSize:'11px',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                          Sil
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* PENDING */}
               {pending.length > 0 && (
-                <div style={{marginBottom:'28px'}}>
-                  <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'12px'}}>
+                <div style={{marginBottom:'24px'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'10px'}}>
                     <div style={{width:'7px',height:'7px',borderRadius:'50%',background:'#f59e0b'}}></div>
                     <div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>Onayınızı Bekliyor</div>
-                    <div style={{fontSize:'11px',color:'#888'}}>{pending.length} proje</div>
                   </div>
                   {pending.map(b=>(
                     <div key={b.id} onClick={()=>router.push(`/dashboard/client/briefs/${b.id}`)}
-                      style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'14px 18px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'8px',transition:'border-color 0.15s'}}
-                      onMouseEnter={e=>(e.currentTarget.style.borderColor='rgba(0,0,0,0.2)')}
+                      style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'14px 18px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'8px',transition:'border-color 0.2s'}}
+                      onMouseEnter={e=>(e.currentTarget.style.borderColor='rgba(0,0,0,0.25)')}
                       onMouseLeave={e=>(e.currentTarget.style.borderColor='rgba(0,0,0,0.1)')}>
-                      <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
-                        <div style={{width:'36px',height:'36px',borderRadius:'9px',background:'#f5f4f0',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M5 3l9 5-9 5V3z" fill="#888"/></svg>
-                        </div>
-                        <div>
-                          <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name}</div>
-                          <div style={{fontSize:'11px',color:'#888',marginTop:'2px'}}>{b.video_type} · {new Date(b.created_at).toLocaleDateString('tr-TR')}</div>
-                        </div>
+                      <div>
+                        <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name}</div>
+                        <div style={{fontSize:'11px',color:'#888',marginTop:'2px'}}>{b.video_type} · {new Date(b.created_at).toLocaleDateString('tr-TR')}</div>
                       </div>
                       <div style={{fontSize:'10px',padding:'4px 12px',borderRadius:'100px',background:'rgba(245,158,11,0.1)',color:'#f59e0b',fontWeight:'500'}}>İncele & Onayla</div>
                     </div>
@@ -141,72 +290,133 @@ export default function ClientDashboard() {
                 </div>
               )}
 
+              {/* IN PRODUCTION with progress bars */}
               {inProd.length > 0 && (
-                <div style={{marginBottom:'28px'}}>
-                  <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'12px'}}>
+                <div style={{marginBottom:'24px'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'10px'}}>
                     <div style={{width:'7px',height:'7px',borderRadius:'50%',background:'#3b82f6'}}></div>
                     <div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>Devam Edenler</div>
-                    <div style={{fontSize:'11px',color:'#888'}}>{inProd.length} proje</div>
                   </div>
-                  {inProd.map(b=>(
-                    <div key={b.id} onClick={()=>router.push(`/dashboard/client/briefs/${b.id}`)}
-                      style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'14px 18px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'8px'}}
-                      onMouseEnter={e=>(e.currentTarget.style.borderColor='rgba(0,0,0,0.2)')}
-                      onMouseLeave={e=>(e.currentTarget.style.borderColor='rgba(0,0,0,0.1)')}>
-                      <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
-                        <div style={{width:'36px',height:'36px',borderRadius:'9px',background:'#f5f4f0',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5" stroke="#888" strokeWidth="1.2"/><path d="M8 5v3l2 1" stroke="#888" strokeWidth="1.2" strokeLinecap="round"/></svg>
+                  {inProd.map(b=>{
+                    const step = getProgressStep(b.status)
+                    return (
+                      <div key={b.id} onClick={()=>router.push(`/dashboard/client/briefs/${b.id}`)}
+                        style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'14px 18px',cursor:'pointer',marginBottom:'8px',transition:'border-color 0.2s'}}
+                        onMouseEnter={e=>(e.currentTarget.style.borderColor='rgba(0,0,0,0.25)')}
+                        onMouseLeave={e=>(e.currentTarget.style.borderColor='rgba(0,0,0,0.1)')}>
+                        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'10px'}}>
+                          <div>
+                            <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name}</div>
+                            <div style={{fontSize:'11px',color:'#888',marginTop:'2px'}}>{b.video_type}</div>
+                          </div>
+                          <div style={{fontSize:'10px',padding:'4px 12px',borderRadius:'100px',background:`${statusColor[b.status]}15`,color:statusColor[b.status],fontWeight:'500'}}>{statusLabel[b.status]}</div>
                         </div>
-                        <div>
-                          <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name}</div>
-                          <div style={{fontSize:'11px',color:'#888',marginTop:'2px'}}>{b.video_type} · {statusLabel[b.status]}</div>
+                        {/* Progress bar */}
+                        <div style={{display:'flex',gap:'4px'}}>
+                          {PROGRESS_STEPS.map((s,i)=>(
+                            <div key={s} style={{flex:1}}>
+                              <div style={{height:'3px',borderRadius:'2px',background:i<=step?'#22c55e':'rgba(0,0,0,0.06)',transition:'background 0.3s'}}></div>
+                              <div style={{fontSize:'9px',color:i<=step?'#22c55e':'#ccc',marginTop:'4px',textAlign:'center'}}>{s}</div>
+                            </div>
+                          ))}
                         </div>
                       </div>
-                      <div style={{fontSize:'10px',padding:'4px 12px',borderRadius:'100px',background:`${statusColor[b.status]}15`,color:statusColor[b.status],fontWeight:'500'}}>{statusLabel[b.status]}</div>
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* DONE — grouped by parent */}
+              {done.length > 0 && (
+                <div style={{marginBottom:'24px'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'10px'}}>
+                    <div style={{width:'7px',height:'7px',borderRadius:'50%',background:'#22c55e'}}></div>
+                    <div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>Tamamlananlar</div>
+                    <div style={{fontSize:'11px',color:'#888'}}>{done.length}</div>
+                  </div>
+                  {doneRoots.map(({root, children, parentId}) => {
+                    const isExpanded = expandedGroups.has(parentId)
+                    const videoUrl = videoMap[root.id]
+                    return (
+                      <div key={parentId} style={{marginBottom:'8px'}}>
+                        {/* ROOT CARD */}
+                        <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',overflow:'hidden',transition:'border-color 0.2s'}}
+                          onMouseEnter={e=>(e.currentTarget.style.borderColor='rgba(0,0,0,0.25)')}
+                          onMouseLeave={e=>(e.currentTarget.style.borderColor='rgba(0,0,0,0.1)')}>
+                          <div style={{display:'flex',alignItems:'center',gap:'14px',padding:'14px 18px',cursor:'pointer'}}
+                            onClick={()=>router.push(`/dashboard/client/briefs/${root.id}`)}>
+                            {/* Thumbnail */}
+                            <div style={{width:'48px',height:'48px',borderRadius:'8px',overflow:'hidden',background:'#1a1a1f',flexShrink:0}}>
+                              {videoUrl ? <video src={videoUrl} style={{width:'100%',height:'100%',objectFit:'cover'}} preload="metadata" muted playsInline />
+                              : <div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center'}}><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M5 3l9 5-9 5V3z" fill="white"/></svg></div>}
+                            </div>
+                            <div style={{flex:1,minWidth:0}}>
+                              <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a'}}>{root.campaign_name}</div>
+                              <div style={{fontSize:'11px',color:'#888',marginTop:'2px'}}>{root.video_type} · {new Date(root.created_at).toLocaleDateString('tr-TR')}</div>
+                            </div>
+                            <div style={{display:'flex',alignItems:'center',gap:'8px',flexShrink:0}}>
+                              <span style={{fontSize:'10px',padding:'3px 10px',borderRadius:'100px',background:'rgba(34,197,94,0.1)',color:'#22c55e',fontWeight:'500'}}>Teslim</span>
+                              {children.length > 0 && (
+                                <button onClick={e=>{e.stopPropagation();toggleGroup(parentId)}}
+                                  style={{fontSize:'10px',padding:'3px 10px',borderRadius:'100px',background:'rgba(0,0,0,0.05)',color:'#555',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif',fontWeight:'500'}}>
+                                  {children.length} versiyon {isExpanded?'▲':'▼'}
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* CHILDREN — accordion */}
+                        {isExpanded && children.length > 0 && (
+                          <div style={{marginLeft:'24px',borderLeft:'2px solid #22c55e',paddingLeft:'16px',marginTop:'4px'}}>
+                            {children.map(child=>(
+                              <div key={child.id} onClick={()=>router.push(`/dashboard/client/briefs/${child.id}`)}
+                                style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.08)',borderRadius:'10px',padding:'12px 16px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'4px',transition:'border-color 0.15s'}}
+                                onMouseEnter={e=>(e.currentTarget.style.borderColor='rgba(0,0,0,0.2)')}
+                                onMouseLeave={e=>(e.currentTarget.style.borderColor='rgba(0,0,0,0.08)')}>
+                                <div>
+                                  <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{child.campaign_name}</div>
+                                  <div style={{fontSize:'10px',color:'#888',marginTop:'2px'}}>{child.video_type} · {new Date(child.created_at).toLocaleDateString('tr-TR')}</div>
+                                </div>
+                                <span style={{fontSize:'10px',padding:'3px 10px',borderRadius:'100px',background:`${statusColor[child.status]}15`,color:statusColor[child.status],fontWeight:'500'}}>{statusLabel[child.status]}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* EMPTY STATE */}
+              {briefs.length === 0 && (
+                <div style={{display:'flex',justifyContent:'center',padding:'48px 0'}}>
+                  <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'16px',padding:'48px 56px',textAlign:'center',maxWidth:'420px'}}>
+                    <div style={{fontSize:'32px',fontWeight:'300',color:'#0a0a0a',letterSpacing:'-0.5px',marginBottom:'12px'}}>Hoş geldin, {userName.split(' ')[0]}!</div>
+                    <div style={{fontSize:'14px',color:'#888',lineHeight:1.6,marginBottom:'28px'}}>İlk brief'ini oluştur, 24 saat içinde vidyon hazır olsun.</div>
+                    <button onClick={()=>router.push('/dashboard/client/brief/new')}
+                      style={{background:'#22c55e',color:'#fff',border:'none',borderRadius:'10px',padding:'14px 32px',fontSize:'15px',fontFamily:'Inter,sans-serif',cursor:'pointer',fontWeight:'500'}}>
+                      İlk Brief'ini Oluştur
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* ACTIVITY PANEL */}
+              {activities.length > 0 && (
+                <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'16px 20px',marginTop:'8px'}}>
+                  <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'12px'}}>Son Aktiviteler</div>
+                  {activities.map((a,i)=>(
+                    <div key={i} style={{display:'flex',alignItems:'center',gap:'10px',padding:'6px 0',borderBottom:i<activities.length-1?'0.5px solid rgba(0,0,0,0.04)':'none'}}>
+                      <div style={{width:'6px',height:'6px',borderRadius:'50%',background:'#22c55e',flexShrink:0}}></div>
+                      <div style={{fontSize:'12px',color:'#0a0a0a',flex:1}}>{a.msg}</div>
+                      <div style={{fontSize:'10px',color:'#aaa',flexShrink:0}}>{timeAgo(a.date)}</div>
                     </div>
                   ))}
                 </div>
               )}
 
-              {done.length > 0 && (
-                <div style={{marginBottom:'28px'}}>
-                  <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'12px'}}>
-                    <div style={{width:'7px',height:'7px',borderRadius:'50%',background:'#22c55e'}}></div>
-                    <div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>Tamamlananlar</div>
-                    <div style={{fontSize:'11px',color:'#888'}}>{done.length} proje</div>
-                  </div>
-                  <div style={{display:'flex',gap:'10px',flexWrap:'wrap'}}>
-                    {done.map(b=>(
-                      <div key={b.id} onClick={()=>router.push(`/dashboard/client/briefs/${b.id}`)}
-                        style={{width:'160px',background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',overflow:'hidden',cursor:'pointer'}}
-                        onMouseEnter={e=>(e.currentTarget.style.borderColor='rgba(0,0,0,0.2)')}
-                        onMouseLeave={e=>(e.currentTarget.style.borderColor='rgba(0,0,0,0.1)')}>
-                        <div style={{height:'90px',background:'#1a1a1f',position:'relative',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                          <div style={{width:'28px',height:'28px',borderRadius:'50%',background:'rgba(255,255,255,0.15)',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                            <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M5 3l9 5-9 5V3z" fill="white"/></svg>
-                          </div>
-                          <div style={{position:'absolute',top:'8px',right:'8px',fontSize:'9px',padding:'2px 7px',borderRadius:'100px',background:'rgba(34,197,94,0.9)',color:'#fff',fontWeight:'500'}}>Teslim</div>
-                        </div>
-                        <div style={{padding:'10px 12px'}}>
-                          <div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{b.campaign_name}</div>
-                          <div style={{fontSize:'10px',color:'#888',marginTop:'2px'}}>{b.video_type}</div>
-                          <div style={{fontSize:'10px',color:'#aaa',marginTop:'2px'}}>{new Date(b.created_at).toLocaleDateString('tr-TR')}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {briefs.length === 0 && (
-                <div style={{textAlign:'center',padding:'60px 0'}}>
-                  <div style={{fontSize:'14px',color:'#888',marginBottom:'20px'}}>Henüz bir projeniz yok.</div>
-                  <button onClick={()=>router.push('/dashboard/client/brief/new')}
-                    style={{background:'#111113',color:'#fff',border:'none',borderRadius:'10px',padding:'12px 24px',fontSize:'13px',fontFamily:'Inter,sans-serif',cursor:'pointer',fontWeight:'500'}}>
-                    İlk Brief'inizi Oluşturun
-                  </button>
-                </div>
-              )}
             </>
           )}
         </div>

@@ -12,6 +12,10 @@ const NAV = [
   {label:'BRİEFLER',href:'/dashboard/admin/briefs'},
   {label:"CREATOR'LAR",href:'/dashboard/admin/creators'},
   {label:'KREDİLER',href:'/dashboard/admin/credits'},
+  {label:'RAPORLAR',href:'/dashboard/admin/reports'},
+  {label:'FATURALAR',href:'/dashboard/admin/invoices'},
+  {label:'AJANSLAR',href:'/dashboard/admin/agencies'},
+  {label:'ANA SAYFA',href:'/dashboard/admin/homepage'},
   {label:'AYARLAR',href:'/dashboard/admin/settings'},
 ]
 

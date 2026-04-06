@@ -1,29 +1,47 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { createClient } from '@supabase/supabase-js'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
 const VIDEO_TYPES = ['Bumper / Pre-roll','Story / Reels','Feed Video','Long Form']
-const FORMATS = ['9:16','16:9','1:1']
+const VIDEO_DURATIONS: Record<string,string> = {'Bumper / Pre-roll':'6 saniye','Story / Reels':'15 saniye','Feed Video':'30 saniye','Long Form':'60 saniye'}
+const FORMATS: {ratio:string,w:number,h:number}[] = [
+  {ratio:'9:16',w:27,h:48},{ratio:'16:9',w:48,h:27},{ratio:'1:1',w:36,h:36},{ratio:'4:5',w:32,h:40},{ratio:'2:3',w:28,h:42}
+]
 const BASE_COSTS: Record<string,number> = {'Bumper / Pre-roll':12,'Story / Reels':18,'Feed Video':24,'Long Form':36}
 const REVISION_COST = 4
 
-export default function NewBriefPage() {
+export default function NewBriefPageWrapper() {
+  return <Suspense><NewBriefPage /></Suspense>
+}
+
+function NewBriefPage() {
   const router = useRouter()
-  const [step, setStep] = useState(1)
+  const searchParams = useSearchParams()
+  const [step, setStep] = useState(0)
   const [clientUser, setClientUser] = useState<any>(null)
   const [companyName, setCompanyName] = useState('')
   const [userName, setUserName] = useState('')
   const [settings, setSettings] = useState<Record<string,string>>({})
   const [submitting, setSubmitting] = useState(false)
   const [aiLoading, setAiLoading] = useState(false)
+  const [aiBriefInput, setAiBriefInput] = useState('')
+  const [aiBriefLoading, setAiBriefLoading] = useState(false)
+  const [editBriefId, setEditBriefId] = useState<string|null>(null)
+  const [isDraftEdit, setIsDraftEdit] = useState(false)
+  const [briefScore, setBriefScore] = useState<any>(null)
+  const [scoreLoading, setScoreLoading] = useState(false)
+  const [expandLoading, setExpandLoading] = useState(false)
+  const [prevMessage, setPrevMessage] = useState<string|null>(null)
+  const filesRef = useRef<HTMLInputElement>(null)
 
   const [form, setForm] = useState({
     campaign_name: '',
     video_type: '',
-    format: [] as string[],
+    format: '',
+    platforms: [] as string[],
     target_audience: '',
     has_cta: '',
     cta: '',
@@ -33,6 +51,7 @@ export default function NewBriefPage() {
     voiceover_text: '',
     notes: '',
     extra_topic: '',
+    languages: [] as string[],
   })
 
   useEffect(() => {
@@ -52,74 +71,214 @@ export default function NewBriefPage() {
     load()
   }, [router])
 
-  function calcCost() {
-    let cost = BASE_COSTS[form.video_type] || 0
-    if (form.format.length > 1) cost += form.format.length - 1
-    if (form.voiceover_type === 'real') cost += parseInt(settings['credit_voiceover_real'] || '6')
-    return cost
+  // Handle URL params: AI mode or Edit mode
+  useEffect(() => {
+    if (searchParams.get('ai') === '1') {
+      const prompt = searchParams.get('prompt') || ''
+      setAiBriefInput(prompt)
+      setStep(-1)
+    }
+    const editId = searchParams.get('edit')
+    const draftId = searchParams.get('draft')
+    const loadId = editId || draftId
+    if (loadId) {
+      setEditBriefId(loadId)
+      if (draftId) setIsDraftEdit(true)
+      supabase.from('briefs').select('*').eq('id', loadId).single().then(({ data: b }) => {
+        if (b) {
+          setForm({
+            campaign_name: b.campaign_name || '',
+            video_type: b.video_type || '',
+            format: b.format || '',
+            platforms: b.platforms || [],
+            target_audience: b.target_audience || '',
+            has_cta: b.cta ? 'yes' : 'no',
+            cta: b.cta || '',
+            message: b.message || '',
+            voiceover_type: b.voiceover_type || 'none',
+            voiceover_gender: b.voiceover_gender || '',
+            voiceover_text: b.voiceover_text || '',
+            notes: b.notes || '',
+            extra_topic: '',
+            languages: b.languages || [],
+          })
+          setStep(1)
+        }
+      })
+    }
+  }, [searchParams])
+
+  // Fetch brief score when entering step 5
+  useEffect(() => {
+    if (step !== 5) { setBriefScore(null); return }
+    if (scoreLoading) return
+    setScoreLoading(true)
+    fetch('/api/brief-score', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ brief: form })
+    }).then(r => r.json()).then(data => {
+      if (data.total) setBriefScore(data)
+    }).catch(() => {}).finally(() => setScoreLoading(false))
+  }, [step])
+
+  async function handleExpand() {
+    if (!form.message.trim() || expandLoading) return
+    setExpandLoading(true)
+    setPrevMessage(form.message)
+    try {
+      const res = await fetch('/api/generate-brief', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_input: `Aşağıdaki brief metnini koru ama genişlet. Eksik detayları tamamla, hedef kitle, beklenti ve mecra bilgilerini daha net hale getir. Aynı tonda kal, pazarlama yöneticisi sesi. Sadece message alanını dön, diğer alanları olduğu gibi bırak.\n\nMevcut brief metni:\n${form.message}\n\nKampanya: ${form.campaign_name}\nVideo Tipi: ${form.video_type}\nHedef Kitle: ${form.target_audience}\nCTA: ${form.cta || 'Yok'}`,
+          brand_name: companyName,
+        })
+      })
+      const data = await res.json()
+      if (data.message) setForm(prev => ({ ...prev, message: data.message }))
+    } catch {}
+    setExpandLoading(false)
   }
 
-  function toggleFormat(f: string) {
-    setForm(prev => ({
-      ...prev,
-      format: prev.format.includes(f) ? prev.format.filter(x=>x!==f) : [...prev.format, f]
-    }))
+  function handleUndoExpand() {
+    if (prevMessage !== null) {
+      setForm(prev => ({ ...prev, message: prevMessage }))
+      setPrevMessage(null)
+    }
+  }
+
+  function calcCost() {
+    let cost = BASE_COSTS[form.video_type] || 0
+    if (form.voiceover_type === 'real') cost += parseInt(settings['credit_voiceover_real'] || '6')
+    cost += form.languages.length * 2
+    return cost
   }
 
   async function generateVoiceover() {
     if (!form.message && !form.campaign_name) return
     setAiLoading(true)
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const res = await fetch('/api/generate-voiceover', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 400,
-          messages: [{
-            role: 'user',
-            content: `Aşağıdaki reklam kampanyası için kısa, etkili bir Türkçe seslendirme metni yaz. Sadece metni ver, açıklama ekleme.
-
-Kampanya: ${form.campaign_name}
-Mesaj: ${form.message}
-CTA: ${form.cta}
-Hedef kitle: ${form.target_audience}
-Video tipi: ${form.video_type}
-
-Seslendirme metni:`
-          }]
+          brand_name: companyName,
+          campaign_name: form.campaign_name,
+          message: form.message,
+          cta: form.cta,
+          target_audience: form.target_audience,
+          video_type: form.video_type,
         })
       })
       const data = await res.json()
-      const text = data.content?.[0]?.text || ''
-      setForm(prev => ({...prev, voiceover_text: text.trim()}))
+      if (data.text) setForm(prev => ({...prev, voiceover_text: data.text}))
     } catch {}
     setAiLoading(false)
   }
 
-  async function handleSubmit() {
+  async function handleAiBrief() {
+    if (!aiBriefInput.trim()) return
+    setAiBriefLoading(true)
+    try {
+      const res = await fetch('/api/generate-brief', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_input: aiBriefInput, brand_name: companyName })
+      })
+      const data = await res.json()
+      if (data.error) { setAiBriefLoading(false); return }
+      setForm(prev => ({
+        ...prev,
+        campaign_name: data.campaign_name || prev.campaign_name,
+        video_type: VIDEO_TYPES.includes(data.video_type) ? data.video_type : prev.video_type,
+        format: data.format || prev.format,
+        target_audience: data.target_audience || prev.target_audience,
+        has_cta: data.has_cta || prev.has_cta,
+        cta: data.cta || prev.cta,
+        message: data.message || prev.message,
+        voiceover_type: data.voiceover_type || prev.voiceover_type,
+        voiceover_gender: data.voiceover_gender || prev.voiceover_gender,
+        voiceover_text: data.voiceover_text || prev.voiceover_text,
+        notes: data.notes || prev.notes,
+      }))
+      setStep(1)
+    } catch {}
+    setAiBriefLoading(false)
+  }
+
+  async function handleSubmit(asDraft = false) {
     if (!clientUser) return
     const cost = calcCost()
-    if (clientUser.credit_balance < cost) return
+    if (!asDraft && clientUser.credit_balance < cost) return
     setSubmitting(true)
-    await supabase.from('briefs').insert({
-      client_id: clientUser.client_id,
-      client_user_id: clientUser.id,
+    const noteParts = [form.notes, form.extra_topic].filter(Boolean)
+    const combinedNotes = noteParts.length > 0 ? noteParts.join('\n\n---\n\n') : null
+
+    const briefData = {
       campaign_name: form.campaign_name,
       video_type: form.video_type,
       format: form.format,
+      platforms: form.platforms.length > 0 ? form.platforms : null,
       message: form.message,
       cta: form.has_cta === 'yes' ? form.cta : null,
       target_audience: form.target_audience,
       voiceover_type: form.voiceover_type,
       voiceover_gender: form.voiceover_gender || null,
       voiceover_text: form.voiceover_text || null,
-      notes: form.notes || null,
-      extra_topic: form.extra_topic || null,
-      status: 'submitted',
+      notes: combinedNotes,
+      languages: form.languages.length > 0 ? form.languages : [],
       credit_cost: cost,
-    })
-    router.push('/dashboard/client?submitted=1')
+    }
+
+    let newBrief: any = null
+    let error: any = null
+
+    if (editBriefId) {
+      const updatePayload = asDraft
+        ? { ...briefData, status: 'draft' }
+        : isDraftEdit
+          ? { ...briefData, status: 'submitted' }
+          : briefData
+      const res = await supabase.from('briefs').update(updatePayload).eq('id', editBriefId).select('id').single()
+      newBrief = res.data; error = res.error
+    } else {
+      const res = await supabase.from('briefs').insert({
+        ...briefData,
+        client_id: clientUser.client_id,
+        client_user_id: clientUser.id,
+        status: asDraft ? 'draft' : 'submitted',
+      }).select('id').single()
+      newBrief = res.data; error = res.error
+    }
+    if (error) { setSubmitting(false); alert('Hata: ' + error.message); return }
+
+    // Upload files if any
+    const files = filesRef.current?.files
+    if (files && files.length > 0 && newBrief) {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i]
+        const ext = file.name.split('.').pop() || 'bin'
+        const path = `${clientUser.client_id}/${newBrief.id}/${Date.now()}_${i}.${ext}`
+        const { error: upErr } = await supabase.storage.from('brand-assets').upload(path, file)
+        if (!upErr) {
+          const { data: urlData } = supabase.storage.from('brand-assets').getPublicUrl(path)
+          await supabase.from('brief_files').insert({
+            client_id: clientUser.client_id,
+            brief_id: newBrief.id,
+            file_name: file.name,
+            file_url: urlData.publicUrl,
+            file_type: file.type || null,
+          })
+        }
+      }
+    }
+
+    if (asDraft) {
+      router.push('/dashboard/client?saved=draft')
+    } else {
+      setStep(99)
+    }
   }
 
   const cost = calcCost()
@@ -129,10 +288,10 @@ Seslendirme metni:`
 
   function Sidebar() {
     return (
-      <div style={{width:'220px',background:'#111113',display:'flex',flexDirection:'column',flexShrink:0}}>
+      <div style={{width:'220px',background:'#111113',display:'flex',flexDirection:'column',flexShrink:0,height:'100vh',position:'sticky',top:0}}>
         <div style={{padding:'18px 16px 14px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
-          <div style={{fontSize:'15px',fontWeight:'500',color:'#fff',letterSpacing:'-0.5px',marginBottom:'12px'}}>
-            dinam<span style={{display:'inline-block',width:'9px',height:'9px',borderRadius:'50%',border:'2px solid #22c55e',position:'relative',top:'1px'}}></span>
+          <div style={{fontSize:'18px',fontWeight:'500',color:'#fff',letterSpacing:'-0.5px',marginBottom:'12px'}}>
+            dinam<span style={{display:'inline-block',width:'11px',height:'11px',borderRadius:'50%',border:'2.5px solid #22c55e',position:'relative',top:'1px'}}></span>
           </div>
           <div style={{fontSize:'10px',color:'rgba(255,255,255,0.3)',marginBottom:'3px'}}>{companyName}</div>
           <div style={{fontSize:'13px',fontWeight:'500',color:'#fff'}}>{userName}</div>
@@ -147,8 +306,8 @@ Seslendirme metni:`
                 <span style={{fontSize:'10px',color:'rgba(34,197,94,0.7)'}}>Bu brief</span>
                 <span style={{fontSize:'14px',fontWeight:'500',color:'#22c55e'}}>{cost} kredi</span>
               </div>
-              {form.format.length > 1 && <div style={{fontSize:'9px',color:'rgba(34,197,94,0.5)',marginTop:'3px'}}>+{form.format.length-1} ek format</div>}
               {form.voiceover_type==='real' && <div style={{fontSize:'9px',color:'rgba(34,197,94,0.5)',marginTop:'2px'}}>+6 gerçek seslendirme</div>}
+              {form.languages.length>0 && <div style={{fontSize:'9px',color:'rgba(34,197,94,0.5)',marginTop:'2px'}}>+{form.languages.length*2} dil versiyonu ({form.languages.length} dil)</div>}
             </div>
           )}
         </div>
@@ -172,7 +331,7 @@ Seslendirme metni:`
                     <div style={{fontSize:'11px',color:isDone?'rgba(255,255,255,0.45)':isCur?'#fff':'rgba(255,255,255,0.3)',fontWeight:isCur?'500':'400'}}>
                       {n===1&&form.campaign_name?form.campaign_name.substring(0,18)+(form.campaign_name.length>18?'…':''):s}
                     </div>
-                    {isDone&&n===1&&form.video_type&&<div style={{fontSize:'9px',color:'rgba(255,255,255,0.2)',marginTop:'1px'}}>{form.video_type} · {form.format.join(', ')}</div>}
+                    {isDone&&n===1&&form.video_type&&<div style={{fontSize:'9px',color:'rgba(255,255,255,0.2)',marginTop:'1px'}}>{form.video_type} · {form.format}</div>}
                   </div>
                 </div>
                 {n<5&&<div style={{width:'1px',height:'8px',background:'rgba(255,255,255,0.07)',marginLeft:'14px'}}></div>}
@@ -205,17 +364,103 @@ Seslendirme metni:`
     fontFamily:'Inter,sans-serif',display:'inline-block',margin:'3px'
   })
 
+  if (step === 99) {
+    return (
+      <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'#0a0a0a',fontFamily:"'Inter',system-ui,sans-serif"}}>
+        <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');`}</style>
+        <div style={{textAlign:'center',maxWidth:'520px',padding:'0 24px'}}>
+          <div style={{fontSize:'28px',fontWeight:'500',color:'#fff',letterSpacing:'-0.5px',marginBottom:'32px'}}>
+            dinam<span style={{display:'inline-block',width:'22px',height:'22px',borderRadius:'50%',border:'3.5px solid #22c55e',position:'relative',top:'4px',marginLeft:'2px'}}></span>
+          </div>
+          <div style={{fontSize:'36px',fontWeight:'300',color:'#fff',letterSpacing:'-1px',marginBottom:'12px'}}>Brief'iniz alındı.</div>
+          <div style={{fontSize:'18px',fontWeight:'300',color:'#fff',fontStyle:'italic',marginBottom:'24px'}}>"{form.campaign_name}"</div>
+          <div style={{fontSize:'15px',color:'rgba(255,255,255,0.45)',lineHeight:1.8,marginBottom:'24px',maxWidth:'480px',margin:'0 auto 24px'}}>
+            Ekibimiz en kısa sürede incelemeye başlayacak. Sorularımız olursa platform üzerinden iletişime geçeceğiz. Videonuz hazır olduğunda bildirim alacaksınız.
+          </div>
+          <div style={{display:'inline-block',padding:'6px 16px',borderRadius:'100px',background:'rgba(34,197,94,0.1)',border:'1px solid rgba(34,197,94,0.2)',fontSize:'13px',color:'#22c55e',fontWeight:'400',marginBottom:'36px'}}>
+            Tahmini teslim süresi: 24 saat
+          </div>
+          <div style={{display:'flex',gap:'12px',justifyContent:'center'}}>
+            <a href="/dashboard/client" style={{padding:'13px 28px',borderRadius:'10px',border:'1px solid rgba(255,255,255,0.15)',background:'transparent',color:'#fff',fontSize:'14px',fontWeight:'400',textDecoration:'none',fontFamily:'Inter,sans-serif'}}>Tüm Projelerim</a>
+            <a href="/dashboard/client/brief/new" style={{padding:'13px 28px',borderRadius:'10px',background:'#22c55e',color:'#fff',fontSize:'14px',fontWeight:'500',textDecoration:'none',fontFamily:'Inter,sans-serif'}}>Yeni Brief</a>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div style={{display:'flex',minHeight:'100vh',fontFamily:"'Inter',system-ui,sans-serif"}}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');`}</style>
       <Sidebar/>
       <div style={{flex:1,display:'flex',flexDirection:'column',background:'#f5f4f0',overflow:'hidden'}}>
         <div style={{padding:'14px 28px',background:'#fff',borderBottom:'0.5px solid rgba(0,0,0,0.08)',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
-          <div style={{fontSize:'12px',color:'#888'}}>Yeni Brief / <span style={{color:'#0a0a0a',fontWeight:'500'}}>{steps[step-1]}</span></div>
-          <div style={{fontSize:'11px',color:'#aaa'}}>Adım {step} / 5</div>
+          <div style={{fontSize:'12px',color:'#888'}}>Yeni Brief{step > 0 ? <> / <span style={{color:'#0a0a0a',fontWeight:'500'}}>{steps[step-1]}</span></> : ''}</div>
+          {step > 0 && <div style={{fontSize:'11px',color:'#aaa'}}>Adım {step} / 5</div>}
         </div>
 
         <div style={{flex:1,overflowY:'auto',padding:'32px 40px',maxWidth:'640px'}}>
+
+          {/* ADIM 0 — Mod Seçimi */}
+          {step===0&&(
+            <div style={{position:'fixed',inset:0,left:'220px',background:'#0a0a0a',display:'flex',alignItems:'center',justifyContent:'center',zIndex:10}}>
+              <style>{`@media (max-width: 768px) { .step0-cards { flex-direction: column !important; } }`}</style>
+              <div style={{textAlign:'center',width:'100%',maxWidth:'560px',padding:'0 24px'}}>
+                <div style={{marginBottom:'24px'}}>
+                  <span style={{fontSize:'20px',fontWeight:'500',color:'#fff',letterSpacing:'-0.5px'}}>
+                    dinam<span style={{display:'inline-block',width:'14px',height:'14px',borderRadius:'50%',border:'2.5px solid #22c55e',position:'relative',top:'2px',marginLeft:'1px'}}></span>
+                  </span>
+                </div>
+                <div style={{fontSize:'28px',fontWeight:'300',color:'#fff',letterSpacing:'-0.5px',marginBottom:'32px'}}>Nasıl ilerlemek istersiniz?</div>
+                <div className="step0-cards" style={{display:'flex',gap:'16px'}}>
+                  {/* SOL KART */}
+                  <div onClick={()=>setStep(1)}
+                    style={{flex:1,background:'#fff',borderRadius:'16px',padding:'40px',cursor:'pointer',minHeight:'200px',display:'flex',flexDirection:'column',justifyContent:'space-between',transition:'transform 0.2s,box-shadow 0.2s',textAlign:'left'}}
+                    onMouseEnter={e=>{e.currentTarget.style.transform='scale(1.02)';e.currentTarget.style.boxShadow='0 8px 32px rgba(0,0,0,0.2)'}}
+                    onMouseLeave={e=>{e.currentTarget.style.transform='scale(1)';e.currentTarget.style.boxShadow='none'}}>
+                    <div>
+                      <div style={{fontSize:'20px',fontWeight:'500',color:'#0a0a0a',marginBottom:'8px'}}>Kendim Yazacağım</div>
+                      <div style={{fontSize:'13px',color:'#888',lineHeight:1.6}}>Brief alanlarını adım adım kendiniz doldurun.</div>
+                    </div>
+                    <div style={{textAlign:'right',marginTop:'20px',fontSize:'18px',color:'#ccc'}}>→</div>
+                  </div>
+                  {/* SAĞ KART */}
+                  <div onClick={()=>setStep(-1)}
+                    style={{flex:1,background:'#0a0a0a',border:'2px solid #1db81d',borderRadius:'16px',padding:'40px',cursor:'pointer',minHeight:'200px',display:'flex',flexDirection:'column',justifyContent:'space-between',transition:'transform 0.2s,border-color 0.2s',textAlign:'left',position:'relative'}}
+                    onMouseEnter={e=>{e.currentTarget.style.transform='scale(1.02)';e.currentTarget.style.borderColor='#22c55e'}}
+                    onMouseLeave={e=>{e.currentTarget.style.transform='scale(1)';e.currentTarget.style.borderColor='#1db81d'}}>
+                    <div style={{position:'absolute',top:'16px',left:'16px',fontSize:'10px',color:'#1db81d',fontWeight:'500',background:'rgba(29,184,29,0.1)',padding:'3px 10px',borderRadius:'100px',letterSpacing:'0.5px'}}>AI</div>
+                    <div style={{marginTop:'16px'}}>
+                      <div style={{fontSize:'20px',fontWeight:'500',color:'#fff',marginBottom:'8px'}}>Anlat, Oluşturalım</div>
+                      <div style={{fontSize:'13px',color:'rgba(255,255,255,0.5)',lineHeight:1.6}}>Ne yapmak istediğinizi anlatın, brief'i sizin için oluşturalım.</div>
+                    </div>
+                    <div style={{textAlign:'right',marginTop:'20px',fontSize:'18px',color:'#1db81d'}}>→</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ADIM -1 — AI Modu */}
+          {step===-1&&(
+            <div>
+              <div style={{fontSize:'26px',fontWeight:'300',color:'#0a0a0a',letterSpacing:'-0.5px',marginBottom:'8px'}}>Bize anlatın</div>
+              <div style={{fontSize:'14px',color:'#888',marginBottom:'24px',lineHeight:'1.6'}}>Ne aklınızdaysa yazın — gerisini biz halledelim.</div>
+              <textarea
+                value={aiBriefInput}
+                onChange={e=>setAiBriefInput(e.target.value)}
+                placeholder="Videonuz hakkında aklınızda ne varsa yazın — ürününüz, mesajınız, hedef kitleniz, kullanmak istediğiniz platform..."
+                rows={8}
+                style={{...inputStyle,resize:'vertical',lineHeight:'1.7',marginBottom:'16px',fontSize:'14px'}} />
+              <div style={{display:'flex',gap:'10px'}}>
+                <button onClick={()=>setStep(0)} style={{background:'none',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'8px',padding:'11px 20px',fontSize:'13px',fontFamily:'Inter,sans-serif',color:'#555',cursor:'pointer'}}>← Geri</button>
+                <button onClick={handleAiBrief} disabled={aiBriefLoading||!aiBriefInput.trim()}
+                  style={{background:'#22c55e',color:'#fff',border:'none',borderRadius:'8px',padding:'11px 24px',fontSize:'13px',fontFamily:'Inter,sans-serif',cursor:'pointer',fontWeight:'500',opacity:aiBriefLoading||!aiBriefInput.trim()?0.5:1,display:'flex',alignItems:'center',gap:'8px'}}>
+                  {aiBriefLoading?'Brief oluşturuluyor...':'Brief Oluştur →'}
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* ADIM 1 */}
           {step===1&&(
@@ -228,12 +473,79 @@ Seslendirme metni:`
               </div>
               <div style={{marginBottom:'22px'}}>
                 <div style={{fontSize:'11px',color:'#888',letterSpacing:'0.5px',textTransform:'uppercase',marginBottom:'8px'}}>Video Tipi</div>
-                <div>{VIDEO_TYPES.map(t=><span key={t} style={pillStyle(form.video_type===t)} onClick={()=>setForm({...form,video_type:t})}>{t}</span>)}</div>
+                <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>{VIDEO_TYPES.map(t=>{
+                  const sel = form.video_type===t
+                  return <span key={t} style={{...pillStyle(sel),display:'inline-flex',flexDirection:'column',alignItems:'center',gap:'2px',padding:'10px 18px'}} onClick={()=>setForm({...form,video_type:t})}>
+                    <span>{t}</span>
+                    <span style={{fontSize:'10px',color:sel?'rgba(255,255,255,0.7)':'#aaa'}}>{VIDEO_DURATIONS[t]}</span>
+                  </span>
+                })}</div>
               </div>
               <div style={{marginBottom:'8px'}}>
-                <div style={{fontSize:'11px',color:'#888',letterSpacing:'0.5px',textTransform:'uppercase',marginBottom:'4px'}}>Format</div>
-                <div style={{fontSize:'11px',color:'#aaa',marginBottom:'8px'}}>Birden fazla seçebilirsiniz. İlk format krediye dahil, her ek format +1 kredi.</div>
-                <div>{FORMATS.map(f=><span key={f} style={pillStyle(form.format.includes(f))} onClick={()=>toggleFormat(f)}>{f}</span>)}</div>
+                <div style={{fontSize:'11px',color:'#888',letterSpacing:'0.5px',textTransform:'uppercase',marginBottom:'8px'}}>Format</div>
+                <div style={{display:'flex',gap:'10px',flexWrap:'wrap'}}>
+                  {FORMATS.map(f=>{
+                    const sel = form.format===f.ratio
+                    return (
+                      <div key={f.ratio} onClick={()=>setForm({...form,format:f.ratio})}
+                        style={{cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',gap:'6px',padding:'12px 16px',borderRadius:'10px',border:sel?'2px solid #22c55e':'1.5px solid rgba(0,0,0,0.1)',background:sel?'rgba(34,197,94,0.04)':'#fff',transition:'all 0.15s',minWidth:'64px'}}>
+                        <div style={{width:`${f.w}px`,height:`${f.h}px`,borderRadius:'4px',border:sel?'2px solid #22c55e':'1.5px solid rgba(0,0,0,0.15)',background:sel?'rgba(34,197,94,0.08)':'#f5f4f0',transition:'all 0.15s'}} />
+                        <span style={{fontSize:'12px',fontWeight:'500',color:sel?'#22c55e':'#555'}}>{f.ratio}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+              <div style={{marginTop:'22px'}}>
+                <div style={{fontSize:'11px',color:'#888',letterSpacing:'0.5px',textTransform:'uppercase',marginBottom:'8px'}}>Video hangi mecralarda kullanılacak?</div>
+                <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
+                  {[
+                    {id:'tiktok',label:'TikTok',icon:<span style={{fontWeight:'700',fontSize:'11px'}}>TT</span>},
+                    {id:'instagram',label:'Instagram',icon:<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>},
+                    {id:'youtube',label:'YouTube',icon:<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22.54 6.42a2.78 2.78 0 00-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 00-1.94 2A29 29 0 001 12a29 29 0 00.46 5.58 2.78 2.78 0 001.94 2C5.12 20 12 20 12 20s6.88 0 8.6-.46a2.78 2.78 0 001.94-2A29 29 0 0023 12a29 29 0 00-.46-5.58z"/><path d="M9.75 15.02l5.75-3.27-5.75-3.27v6.54z" fill="currentColor" stroke="none"/></svg>},
+                    {id:'twitter',label:'X',icon:<span style={{fontWeight:'700',fontSize:'13px'}}>𝕏</span>},
+                    {id:'other',label:'Diğer',icon:<svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>},
+                  ].map(p=>{
+                    const sel = form.platforms.includes(p.id)
+                    return (
+                      <div key={p.id} onClick={()=>setForm(prev=>({...prev,platforms:prev.platforms.includes(p.id)?prev.platforms.filter(x=>x!==p.id):[...prev.platforms,p.id]}))}
+                        style={{display:'flex',alignItems:'center',gap:'6px',padding:'8px 16px',borderRadius:'100px',cursor:'pointer',transition:'all 0.15s',
+                          border:sel?'1.5px solid #22c55e':'1px solid rgba(0,0,0,0.12)',
+                          background:sel?'rgba(34,197,94,0.06)':'#fff',
+                          color:sel?'#22c55e':'#888'}}>
+                        {p.icon}
+                        <span style={{fontSize:'12px',fontWeight:'500'}}>{p.label}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+              <div style={{marginTop:'22px'}}>
+                <div style={{fontSize:'11px',color:'#888',letterSpacing:'0.5px',textTransform:'uppercase',marginBottom:'4px'}}>Yabancı Dil Versiyonu</div>
+                <div style={{fontSize:'11px',color:'#aaa',marginBottom:'10px'}}>Her dil için +2 kredi uygulanır</div>
+                <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
+                  {[
+                    {id:'en',label:'İngilizce',flag:'🇬🇧'},
+                    {id:'de',label:'Almanca',flag:'🇩🇪'},
+                    {id:'fr',label:'Fransızca',flag:'🇫🇷'},
+                    {id:'ru',label:'Rusça',flag:'🇷🇺'},
+                    {id:'ar',label:'Arapça',flag:'🇸🇦'},
+                    {id:'it',label:'İtalyanca',flag:'🇮🇹'},
+                    {id:'es',label:'İspanyolca',flag:'🇪🇸'},
+                  ].map(lang=>{
+                    const sel = form.languages.includes(lang.id)
+                    return (
+                      <div key={lang.id} onClick={()=>setForm(prev=>({...prev,languages:prev.languages.includes(lang.id)?prev.languages.filter(x=>x!==lang.id):[...prev.languages,lang.id]}))}
+                        style={{display:'flex',alignItems:'center',gap:'6px',padding:'8px 16px',borderRadius:'100px',cursor:'pointer',transition:'all 0.15s',
+                          border:sel?'1.5px solid #22c55e':'1px solid rgba(0,0,0,0.12)',
+                          background:sel?'rgba(34,197,94,0.06)':'#fff',
+                          color:sel?'#22c55e':'#888'}}>
+                        <span>{lang.flag}</span>
+                        <span style={{fontSize:'12px',fontWeight:'500'}}>{lang.label}</span>
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
             </div>
           )}
@@ -269,7 +581,28 @@ Seslendirme metni:`
               <div style={{fontSize:'10px',letterSpacing:'1px',color:'#888',textTransform:'uppercase',marginBottom:'8px'}}>Adım 3 / 5 · {form.campaign_name}</div>
               <div style={{fontSize:'26px',fontWeight:'300',color:'#0a0a0a',letterSpacing:'-0.5px',marginBottom:'8px'}}>Brief'inizi yazın</div>
               <div style={{fontSize:'13px',color:'#888',marginBottom:'24px',lineHeight:'1.6'}}>Ne anlatmak istiyorsunuz? Tonunuzu, mesajınızı, hikayenizi ve önemli detayları buraya yazın. Ne kadar detaylı olursa o kadar iyi.</div>
-              <textarea style={{...inputStyle,resize:'vertical',lineHeight:'1.7'}} rows={10} value={form.message} onChange={e=>setForm({...form,message:e.target.value})} placeholder="Videonun mesajını, tonunu, hikayesini ve önemli detaylarını buraya yazın..." />
+              <div style={{position:'relative'}}>
+                <textarea style={{...inputStyle,resize:'vertical',lineHeight:'1.7',paddingTop:'36px',opacity:expandLoading?0.5:1,transition:'opacity 0.2s'}} rows={10} value={form.message} onChange={e=>{setForm({...form,message:e.target.value});setPrevMessage(null)}} placeholder="Videonun mesajını, tonunu, hikayesini ve önemli detaylarını buraya yazın. Referans video veya reklam varsa linkini de ekleyebilirsiniz..." />
+                <div style={{position:'absolute',top:'8px',right:'8px',display:'flex',gap:'5px',zIndex:2}}>
+                  {prevMessage !== null && !expandLoading && (
+                    <button onClick={handleUndoExpand}
+                      style={{display:'flex',alignItems:'center',gap:'4px',padding:'3px 8px',borderRadius:'5px',border:'1px solid rgba(0,0,0,0.12)',background:'#fff',fontSize:'10px',color:'#888',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6.69 3L3 13"/></svg>
+                      Geri Al
+                    </button>
+                  )}
+                  <button onClick={handleExpand} disabled={expandLoading || !form.message.trim()}
+                    style={{display:'flex',alignItems:'center',gap:'4px',padding:'3px 8px',borderRadius:'5px',border:'none',background:expandLoading||!form.message.trim()?'rgba(0,0,0,0.04)':'#111113',fontSize:'10px',color:expandLoading||!form.message.trim()?'#ccc':'#fff',cursor:expandLoading||!form.message.trim()?'default':'pointer',fontFamily:'Inter,sans-serif'}}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v5m4.5-2.5L14 8m5 4h-5m2.5 4.5L14 14m-2 7v-5m-4.5 2.5L10 16m-7-4h5m-2.5-4.5L8 10"/></svg>
+                    {expandLoading ? '...' : 'Detaylandır'}
+                  </button>
+                </div>
+                {expandLoading && (
+                  <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',pointerEvents:'none'}}>
+                    <div style={{fontSize:'13px',color:'#888',background:'rgba(255,255,255,0.8)',padding:'6px 16px',borderRadius:'8px'}}>Detaylandırılıyor...</div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -282,16 +615,16 @@ Seslendirme metni:`
                 <div style={{fontSize:'11px',color:'#888',letterSpacing:'0.5px',textTransform:'uppercase',marginBottom:'8px'}}>Seslendirme Tipi</div>
                 <div>
                   <span style={pillStyle(form.voiceover_type==='none')} onClick={()=>setForm({...form,voiceover_type:'none',voiceover_gender:'',voiceover_text:''})}>Yok</span>
-                  <span style={pillStyle(form.voiceover_type==='ai')} onClick={()=>setForm({...form,voiceover_type:'ai',voiceover_gender:''})}>AI Seslendirme</span>
-                  <span style={pillStyle(form.voiceover_type==='real')} onClick={()=>setForm({...form,voiceover_type:'real'})}>Gerçek Seslendirme (+6 kredi)</span>
+                  <span style={pillStyle(form.voiceover_type==='ai')} onClick={()=>setForm({...form,voiceover_type:'ai',voiceover_gender:'female'})}>AI Seslendirme</span>
+                  <span style={pillStyle(form.voiceover_type==='real')} onClick={()=>setForm({...form,voiceover_type:'real',voiceover_gender:'female'})}>Gerçek Seslendirme (+6 kredi)</span>
                 </div>
               </div>
-              {form.voiceover_type==='real'&&(
+              {form.voiceover_type!=='none'&&(
                 <div style={{marginBottom:'22px'}}>
                   <div style={{fontSize:'11px',color:'#888',letterSpacing:'0.5px',textTransform:'uppercase',marginBottom:'8px'}}>Seslendirme Cinsiyeti</div>
                   <div>
-                    <span style={pillStyle(form.voiceover_gender==='male')} onClick={()=>setForm({...form,voiceover_gender:'male'})}>Erkek</span>
-                    <span style={pillStyle(form.voiceover_gender==='female')} onClick={()=>setForm({...form,voiceover_gender:'female'})}>Kadın</span>
+                    <span style={pillStyle(form.voiceover_gender==='female')} onClick={()=>setForm({...form,voiceover_gender:'female'})}>Kadın Sesi</span>
+                    <span style={pillStyle(form.voiceover_gender==='male')} onClick={()=>setForm({...form,voiceover_gender:'male'})}>Erkek Sesi</span>
                   </div>
                 </div>
               )}
@@ -315,64 +648,181 @@ Seslendirme metni:`
           )}
 
           {/* ADIM 5 */}
-          {step===5&&(
-            <div>
-              <div style={{fontSize:'10px',letterSpacing:'1px',color:'#888',textTransform:'uppercase',marginBottom:'8px'}}>Adım 5 / 5 · {form.campaign_name}</div>
-              <div style={{fontSize:'26px',fontWeight:'300',color:'#0a0a0a',letterSpacing:'-0.5px',marginBottom:'28px'}}>Son notlar</div>
-              <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'12px',padding:'18px',marginBottom:'22px'}}>
-                <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a',marginBottom:'12px'}}>Brief Özeti</div>
-                <div style={{fontSize:'12px',color:'#555',lineHeight:'2'}}>
-                  <div style={{display:'flex',justifyContent:'space-between'}}><span style={{color:'#888'}}>Kampanya</span><span style={{color:'#0a0a0a',fontWeight:'500'}}>{form.campaign_name}</span></div>
-                  <div style={{display:'flex',justifyContent:'space-between'}}><span style={{color:'#888'}}>Video Tipi</span><span style={{color:'#0a0a0a'}}>{form.video_type}</span></div>
-                  <div style={{display:'flex',justifyContent:'space-between'}}><span style={{color:'#888'}}>Format</span><span style={{color:'#0a0a0a'}}>{form.format.join(', ')}</span></div>
-                  <div style={{display:'flex',justifyContent:'space-between'}}><span style={{color:'#888'}}>Hedef Kitle</span><span style={{color:'#0a0a0a'}}>{form.target_audience}</span></div>
-                  <div style={{display:'flex',justifyContent:'space-between'}}><span style={{color:'#888'}}>CTA</span><span style={{color:'#0a0a0a'}}>{form.has_cta==='yes'?form.cta:'Yok'}</span></div>
-                  <div style={{display:'flex',justifyContent:'space-between'}}><span style={{color:'#888'}}>Seslendirme</span><span style={{color:'#0a0a0a'}}>{form.voiceover_type==='none'?'Yok':form.voiceover_type==='real'?'Gercek Seslendirme':'AI Seslendirme'}{form.voiceover_gender?` (${form.voiceover_gender==='male'?'Erkek':'Kadin'})`:''}</span></div>
-                  {form.message&&<div style={{marginTop:'6px',paddingTop:'6px',borderTop:'0.5px solid rgba(0,0,0,0.08)'}}><span style={{color:'#888'}}>Brief: </span><span style={{color:'#333'}}>{form.message.length>120?form.message.substring(0,120)+'...':form.message}</span></div>}
-                  {form.notes&&<div><span style={{color:'#888'}}>Notlar: </span><span style={{color:'#333'}}>{form.notes.length>80?form.notes.substring(0,80)+'...':form.notes}</span></div>}
-                  {form.extra_topic&&<div><span style={{color:'#888'}}>Ek Konu: </span><span style={{color:'#333'}}>{form.extra_topic.length>80?form.extra_topic.substring(0,80)+'...':form.extra_topic}</span></div>}
-                  <div style={{marginTop:'8px',paddingTop:'8px',borderTop:'0.5px solid rgba(0,0,0,0.12)',fontWeight:'500',fontSize:'13px',color:'#0a0a0a'}}>{cost} kredi harcanacak</div>
+          {step===5&&(()=>{
+            const durMap:Record<string,string>={'Bumper / Pre-roll':'6 sn','Story / Reels':'15 sn','Feed Video':'30 sn','Long Form':'60 sn'}
+            const dur=durMap[form.video_type]||'—'
+            const wordCount=form.message?form.message.trim().split(/\s+/).length:0
+            return (
+              <div>
+                <div style={{fontSize:'10px',letterSpacing:'1px',color:'#888',textTransform:'uppercase',marginBottom:'8px'}}>Adım 5 / 5 · {form.campaign_name}</div>
+                <div style={{fontSize:'26px',fontWeight:'300',color:'#0a0a0a',letterSpacing:'-0.5px',marginBottom:'28px'}}>Son notlar</div>
+
+                {/* BRIEF SUMMARY */}
+                <div style={{background:'#f0efeb',borderRadius:'16px',padding:'28px',marginBottom:'22px'}}>
+                  <div style={{fontSize:'22px',fontWeight:'600',color:'#0a0a0a',marginBottom:'4px'}}>{form.campaign_name}</div>
+                  <div style={{fontSize:'13px',color:'#888',marginBottom:'12px'}}>{form.video_type} · {form.format} · {dur}</div>
+                  {form.platforms.length>0&&(
+                    <div style={{display:'flex',gap:'6px',flexWrap:'wrap',marginBottom:'16px'}}>
+                      {form.platforms.map(p=>(
+                        <span key={p} style={{fontSize:'10px',padding:'3px 10px',borderRadius:'100px',background:'rgba(34,197,94,0.08)',color:'#22c55e',fontWeight:'500'}}>{p}</span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* 4 STAT BOXES */}
+                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',marginBottom:'16px'}}>
+                    {[
+                      {label:'Süre',value:dur},
+                      {label:'Format',value:form.format||'—'},
+                      {label:'Brief',value:`${wordCount} kelime`},
+                      {label:'Hazırlayan',value:userName.split(' ')[0]||'—'},
+                    ].map(s=>(
+                      <div key={s.label} style={{background:'#fff',borderRadius:'8px',padding:'12px'}}>
+                        <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>{s.label}</div>
+                        <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a'}}>{s.value}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* BRIEF TEXT */}
+                  {form.message&&(
+                    <div style={{marginTop:'20px'}}>
+                      <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'6px'}}>Brief Metni</div>
+                      <div style={{fontSize:'14px',color:'#333',lineHeight:1.7}}>{form.message}</div>
+                    </div>
+                  )}
+                  {form.has_cta==='yes'&&form.cta&&(
+                    <div style={{marginTop:'14px'}}>
+                      <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>CTA</div>
+                      <div style={{fontSize:'14px',color:'#333',lineHeight:1.7}}>{form.cta}</div>
+                    </div>
+                  )}
+                  {form.target_audience&&(
+                    <div style={{marginTop:'14px'}}>
+                      <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>Hedef Kitle</div>
+                      <div style={{fontSize:'14px',color:'#333',lineHeight:1.7}}>{form.target_audience}</div>
+                    </div>
+                  )}
+                  {form.voiceover_type!=='none'&&(
+                    <div style={{marginTop:'14px'}}>
+                      <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>Seslendirme</div>
+                      <div style={{fontSize:'14px',color:'#333'}}>{form.voiceover_type==='real'?'Gerçek Seslendirme':'AI Seslendirme'}{form.voiceover_gender?` (${form.voiceover_gender==='male'?'Erkek':'Kadın'})`:''}</div>
+                    </div>
+                  )}
+                  {form.languages.length>0&&(
+                    <div style={{marginTop:'14px'}}>
+                      <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'6px'}}>Yabancı Dil Versiyonları</div>
+                      <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
+                        {form.languages.map(lid=>{
+                          const langMap:Record<string,{label:string,flag:string}>={en:{label:'İngilizce',flag:'🇬🇧'},de:{label:'Almanca',flag:'🇩🇪'},fr:{label:'Fransızca',flag:'🇫🇷'},ru:{label:'Rusça',flag:'🇷🇺'},ar:{label:'Arapça',flag:'🇸🇦'},it:{label:'İtalyanca',flag:'🇮🇹'},es:{label:'İspanyolca',flag:'🇪🇸'}}
+                          const l=langMap[lid]
+                          return l?<span key={lid} style={{fontSize:'12px',padding:'4px 12px',borderRadius:'100px',background:'rgba(34,197,94,0.08)',color:'#22c55e',fontWeight:'500'}}>{l.flag} {l.label}</span>:null
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* CREDIT */}
+                  <div style={{marginTop:'20px',background:'rgba(34,197,94,0.06)',border:'1px solid rgba(34,197,94,0.15)',borderRadius:'10px',padding:'12px 16px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                    <span style={{fontSize:'13px',color:'#0a0a0a'}}>Toplam Kredi</span>
+                    <span style={{fontSize:'18px',fontWeight:'500',color:'#22c55e'}}>{cost} kredi</span>
+                  </div>
                 </div>
-              </div>
-              <div style={{marginBottom:'22px'}}>
-                <div style={{fontSize:'11px',color:'#888',letterSpacing:'0.5px',textTransform:'uppercase',marginBottom:'8px'}}>Eklemek istediğiniz başka bir konu var mı?</div>
-                <textarea style={{...inputStyle,resize:'vertical',lineHeight:'1.7'}} rows={4} value={form.extra_topic} onChange={e=>setForm({...form,extra_topic:e.target.value})} placeholder="Belirtmek istediğiniz ek konular, detaylar..." />
-              </div>
-              <div style={{marginBottom:'22px'}}>
-                <div style={{fontSize:'11px',color:'#888',letterSpacing:'0.5px',textTransform:'uppercase',marginBottom:'8px'}}>Uyarılar & Hassasiyetler</div>
-                <textarea style={{...inputStyle,resize:'vertical',lineHeight:'1.7'}} rows={4} value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})} placeholder="Kaçınılması gereken içerik, hassas konular, marka kısıtlamaları..." />
-              </div>
-              {balance < cost && (
-                <div style={{marginTop:'12px',background:'#fef2f2',border:'0.5px solid #fca5a5',borderRadius:'10px',padding:'14px',fontSize:'13px',color:'#dc2626'}}>
-                  Yetersiz kredi. Bakiyeniz: {balance} kredi.
+
+                {/* BRIEF SCORE */}
+                <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'20px',marginBottom:'22px'}}>
+                  <div style={{fontSize:'11px',color:'#888',letterSpacing:'0.5px',textTransform:'uppercase',marginBottom:'14px'}}>Brief Kalite Skoru</div>
+                  {scoreLoading ? (
+                    <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
+                      {[1,2,3,4].map(i=>(
+                        <div key={i} style={{display:'flex',alignItems:'center',gap:'12px'}}>
+                          <div style={{width:'80px',height:'10px',borderRadius:'4px',background:'rgba(0,0,0,0.06)',animation:'pulse 1.5s infinite'}} />
+                          <div style={{flex:1,height:'6px',borderRadius:'3px',background:'rgba(0,0,0,0.04)'}} />
+                        </div>
+                      ))}
+                      <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }`}</style>
+                    </div>
+                  ) : briefScore ? (
+                    <div>
+                      <div style={{display:'flex',alignItems:'baseline',gap:'8px',marginBottom:'16px'}}>
+                        <div style={{fontSize:'36px',fontWeight:'300',letterSpacing:'-2px',color:briefScore.total>=80?'#22c55e':briefScore.total>=60?'#f59e0b':'#ef4444'}}>{briefScore.total}</div>
+                        <div style={{fontSize:'13px',color:'#aaa'}}>/100</div>
+                      </div>
+                      <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
+                        {briefScore.criteria?.map((c: any)=>(
+                          <div key={c.key}>
+                            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'4px'}}>
+                              <span style={{fontSize:'12px',color:'#0a0a0a',fontWeight:'500'}}>{c.label}</span>
+                              <span style={{fontSize:'12px',color:c.score>=80?'#22c55e':c.score>=60?'#f59e0b':'#ef4444',fontWeight:'500'}}>{c.score}</span>
+                            </div>
+                            <div style={{width:'100%',height:'4px',background:'rgba(0,0,0,0.06)',borderRadius:'2px',overflow:'hidden'}}>
+                              <div style={{width:`${c.score}%`,height:'100%',borderRadius:'2px',background:c.score>=80?'#22c55e':c.score>=60?'#f59e0b':'#ef4444',transition:'width 0.6s ease'}} />
+                            </div>
+                            {c.tip && <div style={{fontSize:'11px',color:'#999',fontStyle:'italic',marginTop:'4px',lineHeight:'1.4'}}>{c.tip}</div>}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{fontSize:'12px',color:'#aaa'}}>Skor hesaplanamadı.</div>
+                  )}
                 </div>
-              )}
-            </div>
-          )}
+
+                {/* NOTES */}
+                <div style={{marginBottom:'22px'}}>
+                  <div style={{fontSize:'11px',color:'#888',letterSpacing:'0.5px',textTransform:'uppercase',marginBottom:'8px'}}>Uyarılar, Hassasiyetler & Eklemek İstedikleriniz</div>
+                  <textarea style={{...inputStyle,resize:'vertical',lineHeight:'1.7'}} rows={4} value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})} placeholder="Kaçınılması gereken içerik, hassas konular, marka kısıtlamaları veya eklemek istediğiniz herhangi bir bilgi..." />
+                </div>
+
+                {/* FILES */}
+                <div style={{marginBottom:'22px'}}>
+                  <div style={{fontSize:'11px',color:'#888',letterSpacing:'0.5px',textTransform:'uppercase',marginBottom:'8px'}}>Referans Dosyalar</div>
+                  <div style={{background:'#f5f4f0',borderRadius:'10px',padding:'16px',display:'flex',alignItems:'center',gap:'12px'}}>
+                    <input ref={filesRef} type="file" multiple style={{fontSize:'12px',color:'#0a0a0a',flex:1}} />
+                  </div>
+                  <div style={{fontSize:'10px',color:'#aaa',marginTop:'6px'}}>Opsiyonel. Logo, referans video, moodboard vb.</div>
+                </div>
+
+                {balance < cost && (
+                  <div style={{background:'#fef2f2',border:'0.5px solid #fca5a5',borderRadius:'10px',padding:'14px',fontSize:'13px',color:'#dc2626'}}>
+                    Yetersiz kredi. Bakiyeniz: {balance} kredi.
+                  </div>
+                )}
+              </div>
+            )
+          })()}
         </div>
 
-        <div style={{padding:'16px 40px',background:'#fff',borderTop:'0.5px solid rgba(0,0,0,0.08)',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
-          <button onClick={()=>step>1?setStep(step-1):router.push('/dashboard/client')}
-            style={{background:'none',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'8px',padding:'9px 20px',fontSize:'13px',fontFamily:'Inter,sans-serif',color:'#555',cursor:'pointer'}}>
-            {step===1?'İptal':'← Geri'}
-          </button>
-          {step<5?(
-            <button onClick={()=>setStep(step+1)}
-              disabled={
-                (step===1&&(!form.campaign_name||!form.video_type||form.format.length===0))||
-                (step===2&&(!form.target_audience||!form.has_cta))||
-                (step===3&&!form.message)
-              }
-              style={{background:'#111113',color:'#fff',border:'none',borderRadius:'8px',padding:'9px 24px',fontSize:'13px',fontFamily:'Inter,sans-serif',cursor:'pointer',fontWeight:'500',opacity:(step===1&&(!form.campaign_name||!form.video_type||form.format.length===0))||(step===2&&(!form.target_audience||!form.has_cta))||(step===3&&!form.message)?0.4:1}}>
-              Devam et →
+        {step >= 1 && (
+          <div style={{padding:'16px 40px',background:'#fff',borderTop:'0.5px solid rgba(0,0,0,0.08)',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
+            <button onClick={()=>step>1?setStep(step-1):router.push('/dashboard/client')}
+              style={{background:'none',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'8px',padding:'9px 20px',fontSize:'13px',fontFamily:'Inter,sans-serif',color:'#555',cursor:'pointer'}}>
+              {step===1?'İptal':'← Geri'}
             </button>
-          ):(
-            <button onClick={handleSubmit} disabled={submitting||balance<cost}
-              style={{background:'#22c55e',color:'#fff',border:'none',borderRadius:'8px',padding:'9px 24px',fontSize:'13px',fontFamily:'Inter,sans-serif',cursor:'pointer',fontWeight:'500',opacity:balance<cost?0.4:1}}>
-              {submitting?'Gönderiliyor...':'Brief Gönder'}
-            </button>
-          )}
-        </div>
+            {step<5?(
+              <button onClick={()=>setStep(step+1)}
+                disabled={
+                  (step===1&&(!form.campaign_name||!form.video_type||!form.format))||
+                  (step===2&&(!form.target_audience||!form.has_cta))||
+                  (step===3&&!form.message)
+                }
+                style={{background:'#111113',color:'#fff',border:'none',borderRadius:'8px',padding:'9px 24px',fontSize:'13px',fontFamily:'Inter,sans-serif',cursor:'pointer',fontWeight:'500',opacity:(step===1&&(!form.campaign_name||!form.video_type||!form.format))||(step===2&&(!form.target_audience||!form.has_cta))||(step===3&&!form.message)?0.4:1}}>
+                Devam et →
+              </button>
+            ):(
+              <div style={{display:'flex',gap:'8px'}}>
+                <button onClick={()=>handleSubmit(true)} disabled={submitting}
+                  style={{background:'none',border:'1px solid rgba(0,0,0,0.15)',borderRadius:'8px',padding:'9px 20px',fontSize:'13px',fontFamily:'Inter,sans-serif',cursor:'pointer',fontWeight:'400',color:'#555'}}>
+                  {submitting?'...':'Taslağa Kaydet'}
+                </button>
+                <button onClick={()=>handleSubmit(false)} disabled={submitting||balance<cost}
+                  style={{background:'#22c55e',color:'#fff',border:'none',borderRadius:'8px',padding:'9px 24px',fontSize:'13px',fontFamily:'Inter,sans-serif',cursor:'pointer',fontWeight:'500',opacity:balance<cost?0.4:1}}>
+                  {submitting?'Gönderiliyor...':'Brief Gönder'}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )

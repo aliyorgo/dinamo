@@ -50,13 +50,17 @@ export default function BrandPage() {
     const { error: upErr } = await supabase.storage.from('brand-assets').upload(path, file)
     if (upErr) { setMsg(upErr.message); setUploading(false); return }
     const { data: urlData } = supabase.storage.from('brand-assets').getPublicUrl(path)
-    await supabase.from('brief_files').insert({
+    const insertData = {
       client_id: clientId,
       brief_id: selectedBriefId || null,
       file_url: urlData.publicUrl,
       file_name: fileLabel || file.name,
       file_type: file.type,
-    })
+    }
+    console.log('[Brand] Inserting brief_file:', insertData)
+    const { error: insErr } = await supabase.from('brief_files').insert(insertData)
+    console.log('[Brand] Insert result — error:', insErr)
+    if (insErr) { setMsg('Kayıt hatası: ' + insErr.message); setUploading(false); return }
     setMsg('Dosya yüklendi.')
     setShowModal(false)
     setSelectedBriefId('')
@@ -72,22 +76,21 @@ export default function BrandPage() {
     router.push('/login')
   }
 
-  const getIcon = (type: string) => {
-    if (type?.includes('image')) return '🖼'
-    if (type?.includes('pdf')) return '📄'
-    if (type?.includes('font') || type?.includes('otf') || type?.includes('ttf')) return '🔤'
-    if (type?.includes('video')) return '🎬'
-    return '📎'
+  function FileThumb({ type, url }: { type: string, url: string }) {
+    if (type?.includes('image')) return <img src={url} style={{width:'100%',height:'100%',objectFit:'contain',background:'#f5f5f5',padding:'6px'}} />
+    if (type?.includes('video')) return <div style={{width:'100%',height:'100%',background:'#111',display:'flex',alignItems:'center',justifyContent:'center'}}><span style={{fontSize:'24px',color:'rgba(255,255,255,0.5)'}}>▶</span></div>
+    if (type?.includes('pdf')) return <div style={{width:'100%',height:'100%',background:'#f5f4f0',display:'flex',alignItems:'center',justifyContent:'center'}}><span style={{fontSize:'14px',fontWeight:'600',color:'#888',letterSpacing:'0.5px'}}>PDF</span></div>
+    return <div style={{width:'100%',height:'100%',background:'#f5f4f0'}} />
   }
 
   return (
     <div style={{display:'flex',minHeight:'100vh',fontFamily:"'Inter',system-ui,sans-serif"}}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');`}</style>
 
-      <div style={{width:'220px',background:'#111113',display:'flex',flexDirection:'column',flexShrink:0}}>
+      <div style={{width:'220px',background:'#111113',display:'flex',flexDirection:'column',flexShrink:0,height:'100vh',position:'sticky',top:0}}>
         <div style={{padding:'18px 16px 14px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
-          <div style={{fontSize:'15px',fontWeight:'500',color:'#fff',letterSpacing:'-0.5px',marginBottom:'12px'}}>
-            dinam<span style={{display:'inline-block',width:'9px',height:'9px',borderRadius:'50%',border:'2px solid #22c55e',position:'relative',top:'1px'}}></span>
+          <div style={{fontSize:'18px',fontWeight:'500',color:'#fff',letterSpacing:'-0.5px',marginBottom:'12px'}}>
+            dinam<span style={{display:'inline-block',width:'11px',height:'11px',borderRadius:'50%',border:'2.5px solid #22c55e',position:'relative',top:'1px'}}></span>
           </div>
           <div style={{fontSize:'10px',color:'rgba(255,255,255,0.3)',marginBottom:'3px'}}>{companyName}</div>
           <div style={{fontSize:'13px',fontWeight:'500',color:'#fff'}}>{userName}</div>
@@ -101,6 +104,9 @@ export default function BrandPage() {
             {label:'Projelerim',href:'/dashboard/client',active:false},
             {label:'Yeni Brief',href:'/dashboard/client/brief/new',active:false},
             {label:'Marka Paketi',href:'/dashboard/client/brand',active:true},
+            {label:'Raporlar',href:'/dashboard/client/reports',active:false},
+            {label:'Telif Belgeleri',href:'/dashboard/client/certificates',active:false},
+            {label:'İçerik Güvencesi',href:'/dashboard/client/guarantee',active:false},
           ].map(item=>(
             <div key={item.href} onClick={()=>router.push(item.href)}
               style={{display:'flex',alignItems:'center',gap:'8px',padding:'7px 8px',borderRadius:'8px',cursor:'pointer',background:item.active?'rgba(255,255,255,0.08)':'transparent',marginBottom:'1px'}}>
@@ -133,8 +139,8 @@ export default function BrandPage() {
               const brief = briefs.find(b=>b.id===f.brief_id)
               return (
                 <div key={f.id} style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',overflow:'hidden'}}>
-                  <div style={{height:'100px',background:'#1a1a1f',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'32px'}}>
-                    {getIcon(f.file_type)}
+                  <div style={{height:'100px',overflow:'hidden'}}>
+                    <FileThumb type={f.file_type} url={f.file_url} />
                   </div>
                   <div style={{padding:'12px'}}>
                     <div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',marginBottom:'4px'}}>{f.file_name}</div>

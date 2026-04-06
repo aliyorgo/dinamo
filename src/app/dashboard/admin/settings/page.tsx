@@ -11,6 +11,10 @@ const NAV = [
   {label:'BRİEFLER',href:'/dashboard/admin/briefs'},
   {label:'CREATOR\'LAR',href:'/dashboard/admin/creators'},
   {label:'KREDİLER',href:'/dashboard/admin/credits'},
+  {label:'RAPORLAR',href:'/dashboard/admin/reports'},
+  {label:'FATURALAR',href:'/dashboard/admin/invoices'},
+  {label:'AJANSLAR',href:'/dashboard/admin/agencies'},
+  {label:'ANA SAYFA',href:'/dashboard/admin/homepage'},
   {label:'AYARLAR',href:'/dashboard/admin/settings'},
 ]
 
@@ -18,6 +22,9 @@ export default function SettingsPage() {
   const [settings, setSettings] = useState<Record<string,string>>({})
   const [loading, setLoading] = useState(false)
   const [msg, setMsg] = useState('')
+  const [packages, setPackages] = useState<any[]>([])
+  const [pkgEdits, setPkgEdits] = useState<Record<string,{name:string,credits:string,price_tl:string}>>({})
+  const [newPkg, setNewPkg] = useState({name:'',credits:'',price_tl:''})
 
   useEffect(() => { loadSettings() }, [])
 
@@ -26,6 +33,11 @@ export default function SettingsPage() {
     const map: Record<string,string> = {}
     data?.forEach(s => map[s.key] = s.value)
     setSettings(map)
+    const { data: pkgs } = await supabase.from('credit_packages').select('*').order('credits')
+    setPackages(pkgs || [])
+    const edits: Record<string,{name:string,credits:string,price_tl:string}> = {}
+    pkgs?.forEach(p => { edits[p.id] = { name: p.name, credits: String(p.credits), price_tl: String(p.price_tl || 0) } })
+    setPkgEdits(edits)
   }
 
   async function saveSetting(key: string, value: string) {
@@ -39,6 +51,32 @@ export default function SettingsPage() {
     setMsg('Kaydedildi.')
     setTimeout(() => setMsg(''), 2000)
     setLoading(false)
+  }
+
+  async function savePkg(id: string) {
+    const e = pkgEdits[id]
+    if (!e) return
+    await supabase.from('credit_packages').update({ name: e.name, credits: parseInt(e.credits), price_tl: parseFloat(e.price_tl) || 0 }).eq('id', id)
+    setMsg('Paket güncellendi.')
+    setTimeout(() => setMsg(''), 2000)
+    loadSettings()
+  }
+
+  async function addPkg() {
+    if (!newPkg.name || !newPkg.credits) return
+    await supabase.from('credit_packages').insert({ name: newPkg.name, credits: parseInt(newPkg.credits), price_tl: parseFloat(newPkg.price_tl) || 0 })
+    setNewPkg({ name: '', credits: '', price_tl: '' })
+    setMsg('Paket eklendi.')
+    setTimeout(() => setMsg(''), 2000)
+    loadSettings()
+  }
+
+  async function deletePkg(id: string, name: string) {
+    if (!confirm(`"${name}" paketini silmek istediğinizden emin misiniz?`)) return
+    await supabase.from('credit_packages').delete().eq('id', id)
+    setMsg('Paket silindi.')
+    setTimeout(() => setMsg(''), 2000)
+    loadSettings()
   }
 
   const fields = [
@@ -92,6 +130,63 @@ export default function SettingsPage() {
               )}
             </div>
           ))}
+        </div>
+
+        {/* KREDİ PAKETLERİ */}
+        <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',overflow:'hidden',marginTop:'32px'}}>
+          <div style={{padding:'16px 24px',borderBottom:'1px solid #e8e7e3',fontSize:'12px',color:'#888',letterSpacing:'1px',fontFamily:'monospace'}}>KREDİ PAKETLERİ</div>
+          {packages.map((p, i) => {
+            const e = pkgEdits[p.id] || { name: p.name, credits: String(p.credits), price_tl: String(p.price_tl || 0) }
+            const isKurumsal = p.name === 'Kurumsal' || e.name === 'Kurumsal'
+            return (
+              <div key={p.id} style={{padding:'16px 24px',borderBottom:i<packages.length-1?'1px solid #f0f0ee':'none',display:'flex',alignItems:'center',gap:'12px'}}>
+                <div>
+                  <div style={{fontSize:'10px',color:'#888',marginBottom:'4px'}}>İsim</div>
+                  <input value={e.name} onChange={ev=>setPkgEdits({...pkgEdits,[p.id]:{...e,name:ev.target.value}})}
+                    style={{width:'120px',padding:'7px 10px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a'}} />
+                </div>
+                <div>
+                  <div style={{fontSize:'10px',color:'#888',marginBottom:'4px'}}>Kredi</div>
+                  <input type="number" value={e.credits} onChange={ev=>setPkgEdits({...pkgEdits,[p.id]:{...e,credits:ev.target.value}})}
+                    style={{width:'80px',padding:'7px 10px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a',textAlign:'right'}} />
+                </div>
+                <div>
+                  <div style={{fontSize:'10px',color:'#888',marginBottom:'4px'}}>Fiyat (TL)</div>
+                  {isKurumsal ? (
+                    <div style={{padding:'7px 10px',fontSize:'12px',color:'#888',fontStyle:'italic'}}>İletişime Geçin</div>
+                  ) : (
+                    <input type="number" value={e.price_tl} onChange={ev=>setPkgEdits({...pkgEdits,[p.id]:{...e,price_tl:ev.target.value}})}
+                      style={{width:'120px',padding:'7px 10px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a',textAlign:'right'}} />
+                  )}
+                </div>
+                <div style={{display:'flex',gap:'6px',marginTop:'16px'}}>
+                  <button onClick={()=>savePkg(p.id)} style={{padding:'7px 14px',background:'#0a0a0a',color:'#fff',border:'none',borderRadius:'6px',fontSize:'11px',cursor:'pointer'}}>Kaydet</button>
+                  <button onClick={()=>deletePkg(p.id,p.name)} style={{padding:'7px 14px',background:'#fff',color:'#ef4444',border:'1px solid #ef4444',borderRadius:'6px',fontSize:'11px',cursor:'pointer'}}>Sil</button>
+                </div>
+              </div>
+            )
+          })}
+          {/* New package form */}
+          <div style={{padding:'16px 24px',borderTop:'1px solid #e8e7e3',background:'#fafaf8',display:'flex',alignItems:'center',gap:'12px'}}>
+            <div>
+              <div style={{fontSize:'10px',color:'#888',marginBottom:'4px'}}>İsim</div>
+              <input value={newPkg.name} onChange={e=>setNewPkg({...newPkg,name:e.target.value})} placeholder="Paket adı"
+                style={{width:'120px',padding:'7px 10px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a'}} />
+            </div>
+            <div>
+              <div style={{fontSize:'10px',color:'#888',marginBottom:'4px'}}>Kredi</div>
+              <input type="number" value={newPkg.credits} onChange={e=>setNewPkg({...newPkg,credits:e.target.value})} placeholder="0"
+                style={{width:'80px',padding:'7px 10px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a',textAlign:'right'}} />
+            </div>
+            <div>
+              <div style={{fontSize:'10px',color:'#888',marginBottom:'4px'}}>Fiyat (TL)</div>
+              <input type="number" value={newPkg.price_tl} onChange={e=>setNewPkg({...newPkg,price_tl:e.target.value})} placeholder="0"
+                style={{width:'120px',padding:'7px 10px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a',textAlign:'right'}} />
+            </div>
+            <button onClick={addPkg} disabled={!newPkg.name||!newPkg.credits} style={{padding:'7px 18px',background:'#1db81d',color:'#fff',border:'none',borderRadius:'6px',fontSize:'11px',cursor:'pointer',fontWeight:'500',marginTop:'16px',opacity:!newPkg.name||!newPkg.credits?0.4:1}}>
+              Yeni Paket Ekle
+            </button>
+          </div>
         </div>
       </div>
     </div>

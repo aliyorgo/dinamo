@@ -1,232 +1,457 @@
 'use client'
+import { useEffect, useState } from 'react'
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
 export default function HomePage() {
+  const [mounted, setMounted] = useState(false)
+  const [packages, setPackages] = useState<any[]>([])
+  const [homeVideos, setHomeVideos] = useState<any[]>([])
+  const [videoCredits, setVideoCredits] = useState<Record<string,number>>({})
+  const [cms, setCms] = useState<Record<string,string>>({})
+
+  function c(key: string, fallback: string) { return cms[key] || fallback }
+
+  useEffect(() => {
+    setMounted(true)
+    supabase.from('credit_packages').select('*').order('credits').then(({ data }) => {
+      if (data) setPackages(data)
+    })
+    supabase.from('homepage_videos').select('*').eq('is_active', true).then(({ data }) => {
+      if (data) {
+        const shuffled = [...data].sort(() => Math.random() - 0.5)
+        setHomeVideos(shuffled.slice(0, 4))
+      }
+    })
+    supabase.from('admin_settings').select('key, value').in('key', ['credit_bumper','credit_story','credit_feed','credit_longform']).then(({ data }) => {
+      const map: Record<string,number> = {}
+      data?.forEach((s: any) => { map[s.key] = Number(s.value) || 0 })
+      setVideoCredits(map)
+    })
+    supabase.from('cms_content').select('key, value').then(({ data }) => {
+      const map: Record<string,string> = {}
+      data?.forEach((s: any) => { map[s.key] = s.value })
+      setCms(map)
+    })
+  }, [])
+
   return (
-    <div style={{fontFamily:"'DM Sans', system-ui, sans-serif",background:'#fff',color:'#0a0a0a',minHeight:'100vh'}}>
+    <div style={{ fontFamily: "'Inter', system-ui, sans-serif", background: '#0a0a0a', color: '#fff', minHeight: '100vh' }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        a { text-decoration: none; }
-        .nav-link { color: #888; font-size: 12px; font-weight: 500; letter-spacing: 0.5px; transition: color 0.2s; }
-        .nav-link:hover { color: #0a0a0a; }
-        .step:hover { background: #f7f6f2 !important; }
-        .feature:hover { background: #f7f6f2 !important; }
-        .vtype:hover { background: #f7f6f2 !important; }
-        .pricing-card:hover { border-color: rgba(0,0,0,0.2) !important; }
-        @media (max-width: 768px) {
-          .nav-links { display: none !important; }
-          .hero-grid { grid-template-columns: 1fr !important; padding: 100px 24px 60px !important; }
-          .hero-title { font-size: 48px !important; letter-spacing: -2px !important; }
-          .phone-wrap { display: none !important; }
-          .steps-grid { grid-template-columns: 1fr !important; }
-          .features-grid { grid-template-columns: 1fr !important; }
-          .video-types-grid { grid-template-columns: 1fr 1fr !important; }
-          .pricing-grid { grid-template-columns: 1fr 1fr !important; }
-          .dcc-grid { grid-template-columns: 1fr !important; }
-          .dcc-stats { grid-template-columns: 1fr 1fr !important; }
-          .section-pad { padding: 60px 24px !important; }
-          .cta-title { font-size: 40px !important; }
-          .footer { flex-direction: column !important; gap: 12px !important; text-align: center !important; }
-          .nav { padding: 16px 24px !important; }
-          .nav-mobile-btns { gap: 8px !important; }
-          .nav-mobile-btns a { padding: 8px 14px !important; font-size: 12px !important; }
+        html { scroll-behavior: smooth; }
+        a { text-decoration: none; color: inherit; }
+        ::selection { background: rgba(29,184,29,0.3); }
+
+        .nav-link { color: rgba(255,255,255,0.5); font-size: 13px; font-weight: 400; letter-spacing: 0.5px; transition: color 0.3s; }
+        .nav-link:hover { color: #fff; }
+
+        .step-card {
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 16px;
+          padding: 36px 28px;
+          transition: border-color 0.3s, transform 0.3s;
+        }
+        .step-card:hover { border-color: #1db81d; transform: translateY(-4px); }
+
+        .work-card {
+          position: relative;
+          border-radius: 16px;
+          overflow: hidden;
+          aspect-ratio: 9/16;
+          cursor: pointer;
+        }
+        .work-card video { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .work-overlay {
+          position: absolute; inset: 0;
+          background: rgba(0,0,0,0.65);
+          display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+          padding-bottom: 32px;
+          opacity: 0; transition: opacity 0.4s;
+        }
+        .work-card:hover .work-overlay { opacity: 1; }
+
+        .feat-card {
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 16px;
+          padding: 32px 28px;
+          transition: border-color 0.3s, transform 0.3s;
+        }
+        .feat-card:hover { border-color: rgba(29,184,29,0.4); transform: translateY(-4px); }
+
+        .price-card {
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 16px;
+          padding: 36px 28px;
+          transition: border-color 0.3s, transform 0.3s;
+          display: flex; flex-direction: column;
+        }
+        .price-card:hover { border-color: rgba(255,255,255,0.2); transform: translateY(-4px); }
+        .price-card.featured { border-color: #1db81d; background: rgba(29,184,29,0.04); }
+        .price-card.featured:hover { border-color: #1db81d; }
+
+        .stat-box {
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 16px;
+          padding: 32px;
+          transition: border-color 0.3s;
+        }
+        .stat-box:hover { border-color: rgba(29,184,29,0.3); }
+
+        .cta-btn {
+          display: inline-flex; align-items: center; gap: 10px;
+          padding: 16px 36px; border-radius: 100px;
+          font-size: 15px; font-weight: 500; font-family: 'Inter', sans-serif;
+          cursor: pointer; transition: transform 0.3s, box-shadow 0.3s; border: none;
+        }
+        .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(29,184,29,0.3); }
+
+        @media (max-width: 900px) {
+          .nav-desk { display: none !important; }
+          .hero-inner { padding: 0 24px !important; }
+          .hero-h1 { font-size: clamp(32px, 9vw, 48px) !important; }
+          .s-pad { padding-left: 24px !important; padding-right: 24px !important; }
+          .grid-4 { grid-template-columns: 1fr 1fr !important; }
+          .grid-3 { grid-template-columns: 1fr !important; }
+          .grid-2 { grid-template-columns: 1fr !important; }
+          .about-grid { grid-template-columns: 1fr !important; gap: 48px !important; }
+          .stat-grid { grid-template-columns: 1fr 1fr !important; }
+          .footer-inner { flex-direction: column !important; text-align: center !important; gap: 8px !important; }
+          .hero-demo { right: 24px !important; bottom: 40px !important; }
+        }
+        @media (max-width: 600px) {
+          .grid-4 { grid-template-columns: 1fr !important; }
+          .stat-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
 
-      {/* NAV */}
-      <nav className="nav" style={{position:'fixed',top:0,left:0,right:0,zIndex:100,padding:'18px 52px',display:'flex',alignItems:'center',justifyContent:'space-between',background:'rgba(255,255,255,0.92)',backdropFilter:'blur(16px)',borderBottom:'1px solid rgba(0,0,0,0.08)'}}>
-        <a href="/test" style={{fontSize:'20px',fontWeight:'500',letterSpacing:'-0.5px',color:'#0a0a0a',flexShrink:0}}>
-          dinam<span style={{display:'inline-block',width:'20px',height:'20px',borderRadius:'50%',border:'4px solid #1db81d',position:'relative',top:'3px'}}></span>
+      {/* ══════ NAV ══════ */}
+      <nav style={{
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
+        padding: '20px 48px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        background: 'rgba(10,10,10,0.85)',
+        backdropFilter: 'blur(24px)',
+        WebkitBackdropFilter: 'blur(24px)',
+        borderBottom: '1px solid rgba(255,255,255,0.06)',
+      }}>
+        <a href="/test" style={{ fontSize: '24px', fontWeight: '500', letterSpacing: '-0.5px' }}>
+          dinam<span style={{ display: 'inline-block', width: '22px', height: '22px', borderRadius: '50%', border: '3.5px solid #1db81d', position: 'relative', top: '3px', marginLeft: '1px' }}></span>
         </a>
-        <div className="nav-links" style={{display:'flex',alignItems:'center',gap:'32px'}}>
-          <a href="#nasil-calisir" className="nav-link">NASIL ÇALIŞIR</a>
-          <a href="#fiyatlandirma" className="nav-link">FİYATLANDIRMA</a>
-          <a href="#hakkimizda" className="nav-link">HAKKIMIZDA</a>
+        <div className="nav-desk" style={{ display: 'flex', alignItems: 'center', gap: '36px' }}>
+          <a href="#nasil-calisir" className="nav-link">Nasıl Çalışır</a>
+          <a href="#islerimiz" className="nav-link">İşlerimiz</a>
+          <a href="#fiyatlandirma" className="nav-link">Fiyatlandırma</a>
+          <a href="#hakkimizda" className="nav-link">Hakkımızda</a>
         </div>
-        <div className="nav-mobile-btns" style={{display:'flex',alignItems:'center',gap:'12px'}}>
-          <a href="/login" style={{background:'#0a0a0a',color:'#fff',padding:'9px 20px',borderRadius:'100px',fontSize:'14px',fontWeight:'500'}}>GİRİŞ YAP</a>
-          <a href="#demo" style={{background:'#1db81d',color:'#fff',padding:'9px 20px',borderRadius:'100px',fontSize:'14px',fontWeight:'500'}}>DEMO HESAP</a>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <a href="/login" className="nav-link">Giriş</a>
+          <a href="/demo-request" style={{
+            background: '#1db81d', color: '#fff', padding: '10px 22px', borderRadius: '100px',
+            fontSize: '13px', fontWeight: '500', transition: 'transform 0.2s',
+          }}>Demo</a>
         </div>
       </nav>
 
-      {/* HERO */}
-      <div className="hero-grid" style={{minHeight:'100vh',display:'grid',gridTemplateColumns:'1fr 1fr',alignItems:'center',padding:'120px 52px 80px',gap:'60px',maxWidth:'1200px',margin:'0 auto'}}>
-        <div>
-          <div style={{display:'inline-flex',alignItems:'center',gap:'6px',fontSize:'11px',letterSpacing:'1.5px',color:'#1db81d',marginBottom:'28px',padding:'6px 14px',border:'1px solid rgba(29,184,29,0.25)',borderRadius:'100px',background:'#e8f7e8',fontFamily:'monospace'}}>
-            <span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#1db81d',display:'inline-block'}}></span>
-            AI VİDEO PRODÜKSIYONU
+      {/* ══════ HERO ══════ */}
+      <section style={{ position: 'relative', height: '100vh', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <video autoPlay muted loop playsInline style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}>
+          <source src="/montage.webm" type="video/webm" />
+        </video>
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)' }} />
+        <div className="hero-inner" style={{ position: 'relative', zIndex: 2, textAlign: 'center', padding: '0 48px' }}>
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: '8px',
+            fontSize: '11px', letterSpacing: '2px', color: '#1db81d',
+            marginBottom: '32px', padding: '8px 18px',
+            border: '1px solid rgba(29,184,29,0.25)', borderRadius: '100px',
+            background: 'rgba(29,184,29,0.08)', textTransform: 'uppercase',
+          }}>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#1db81d' }}></span>
+            AI Video Prodüksiyon
           </div>
-          <h1 className="hero-title" style={{fontSize:'80px',fontWeight:'300',lineHeight:'1.0',letterSpacing:'-3px',marginBottom:'24px'}}>
-            Tek yapmanız<br/>gereken<br/>brief yazmak.
+          <h1 className="hero-h1" style={{
+            fontSize: 'clamp(40px, 7vw, 80px)', fontWeight: '300',
+            lineHeight: 1.05, letterSpacing: '-3px', marginBottom: '20px',
+          }}>
+            {c('hero_title', 'Brief yaz. 24 saatte video.').split('.').filter(Boolean).map((part, i) => (
+              <span key={i}>{i > 0 && <br />}<span style={i > 0 ? { fontWeight: '500' } : {}}>{part.trim()}.</span></span>
+            ))}
           </h1>
-          <p style={{fontSize:'17px',fontWeight:'300',color:'#888',marginBottom:'16px',lineHeight:'1.7',maxWidth:'420px'}}>
-            Brief'inizi yükleyin, <strong style={{color:'#0a0a0a',fontWeight:'400'}}>24 saat içinde</strong> videonuz hazır.<br/>
-            Hızlı, brief'e sadık, insan kalitesinde AI video üretimi.
+          <p style={{ fontSize: '17px', fontWeight: '300', color: 'rgba(255,255,255,0.55)', lineHeight: 1.7, maxWidth: '480px', margin: '0 auto' }}>
+            {c('hero_desc', "Brief'inizi yükleyin, 24 saat içinde videonuz hazır. Hızlı, brief'e sadık, insan kalitesinde AI video üretimi.")}
           </p>
-          <div style={{display:'flex',alignItems:'center',gap:'16px',marginTop:'36px',flexWrap:'wrap'}}>
-            <a href="#demo" style={{background:'#0a0a0a',color:'#fff',padding:'13px 26px',borderRadius:'100px',fontSize:'14px',fontWeight:'500',display:'inline-flex',alignItems:'center',gap:'8px'}}>
-              Demo hesap talep edin →
-            </a>
-            <a href="#nasil-calisir" style={{color:'#888',fontSize:'14px',display:'inline-flex',alignItems:'center',gap:'6px'}}>
-              Nasıl çalışır ↓
-            </a>
-          </div>
-          <div style={{marginTop:'44px',fontSize:'11px',color:'#bbb',letterSpacing:'1.5px',fontFamily:'monospace'}}>
-            POWERED BY <a href="https://dccfilm.com" target="_blank" style={{color:'#bbb',borderBottom:'1px solid #bbb'}}>DCC FILM</a>
-          </div>
         </div>
-        <div className="phone-wrap" style={{display:'flex',justifyContent:'center',alignItems:'center'}}>
-          <div style={{position:'relative',width:'260px',height:'540px',background:'#1a1a1a',borderRadius:'42px',border:'2px solid #2a2a2a',boxShadow:'0 40px 80px rgba(0,0,0,0.18)'}}>
-            <div style={{position:'absolute',inset:0,borderRadius:'40px',overflow:'hidden',background:'#000'}}>
-              <video autoPlay muted loop playsInline style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover'}}>
-                <source src="/montage.webm" type="video/webm"/>
-              </video>
-            </div>
-            <div style={{position:'absolute',top:'12px',left:'50%',transform:'translateX(-50%)',width:'90px',height:'24px',background:'#1a1a1a',borderRadius:'18px',zIndex:10}}></div>
-            <div style={{position:'absolute',bottom:'10px',left:'50%',transform:'translateX(-50%)',width:'80px',height:'4px',background:'rgba(255,255,255,0.35)',borderRadius:'4px',zIndex:10}}></div>
-            <div style={{position:'absolute',bottom:'28px',left:0,right:0,textAlign:'center',zIndex:10,fontSize:'13px',fontWeight:'400',color:'rgba(255,255,255,0.7)'}}>
-              dinam<span style={{display:'inline-block',width:'12px',height:'12px',borderRadius:'50%',border:'3px solid #2ecc2e',position:'relative',top:'2px'}}></span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* NASIL ÇALIŞIR */}
-      <section id="nasil-calisir" className="section-pad" style={{padding:'100px 52px',maxWidth:'1200px',margin:'0 auto'}}>
-        <div style={{fontSize:'11px',letterSpacing:'2px',color:'#1db81d',marginBottom:'16px',fontFamily:'monospace'}}>SÜREÇ</div>
-        <h2 style={{fontSize:'44px',fontWeight:'300',letterSpacing:'-1.5px',marginBottom:'16px'}}>Dört adım, 24 saat.</h2>
-        <p style={{fontSize:'16px',color:'#888',fontWeight:'300',maxWidth:'520px',lineHeight:'1.7',marginBottom:'52px'}}>Yayından 24 saat önce brief'inizi girin.</p>
-        <div className="steps-grid" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'1px',background:'rgba(0,0,0,0.08)',border:'1px solid rgba(0,0,0,0.08)',borderRadius:'16px',overflow:'hidden'}}>
-          {[
-            {n:'01',t:'Brief\'inizi girin',b:'Kampanya hedefinizi, mesajınızı ve video tipini belirleyin. Marka kimliğiniz sistemde hazır.'},
-            {n:'02',t:'Prodüktörümüz inceliyor',b:'Brief\'inizi değerlendiriyor, gerekirse onay veya ek bilgi talep ediyoruz.'},
-            {n:'03',t:'24 saat içinde teslim',b:'Videonuz üretilir, prodüktör onayından geçer ve hesabınıza iletilir.'},
-            {n:'04',t:'Revizyon hakkınız var',b:'Her videoya bir revizyon hakkı tanınır, ek ücret alınmaz.'},
-          ].map(s=>(
-            <div key={s.n} className="step" style={{background:'#fff',padding:'36px 28px',transition:'background 0.2s'}}>
-              <div style={{fontSize:'11px',color:'#1db81d',letterSpacing:'1px',marginBottom:'18px',fontFamily:'monospace'}}>{s.n}</div>
-              <div style={{fontSize:'16px',fontWeight:'500',marginBottom:'10px',letterSpacing:'-0.3px'}}>{s.t}</div>
-              <p style={{fontSize:'14px',color:'#888',lineHeight:'1.65',fontWeight:'300'}}>{s.b}</p>
-            </div>
-          ))}
+        {/* Demo button — bottom right */}
+        <a href="/demo-request" className="cta-btn hero-demo" style={{
+          position: 'absolute', bottom: 48, right: 48, zIndex: 2,
+          background: '#1db81d', color: '#fff',
+        }}>
+          Demo Hesap →
+        </a>
+        {/* Scroll indicator */}
+        <div style={{ position: 'absolute', bottom: 48, left: '50%', transform: 'translateX(-50%)', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', letterSpacing: '1px' }}>SCROLL</span>
+          <div style={{ width: '1px', height: '32px', background: 'linear-gradient(to bottom, rgba(255,255,255,0.3), transparent)' }} />
         </div>
       </section>
 
-      {/* ÖZELLİKLER */}
-      <div style={{background:'#f7f6f2',borderTop:'1px solid rgba(0,0,0,0.08)',borderBottom:'1px solid rgba(0,0,0,0.08)'}}>
-        <div className="section-pad" style={{padding:'100px 52px',maxWidth:'1200px',margin:'0 auto'}}>
-          <div style={{fontSize:'11px',letterSpacing:'2px',color:'#1db81d',marginBottom:'16px',fontFamily:'monospace'}}>ÖZELLİKLER</div>
-          <h2 style={{fontSize:'44px',fontWeight:'300',letterSpacing:'-1.5px',marginBottom:'52px'}}>Neden Dinamo?</h2>
-          <div className="features-grid" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'1px',background:'rgba(0,0,0,0.08)',border:'1px solid rgba(0,0,0,0.08)',borderRadius:'16px',overflow:'hidden'}}>
-            {[
-              {t:'24 Saat Teslim',b:'Brief\'ten videoya, garantili.',icon:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>'},
-              {t:'Brief\'e Sadık',b:'Her video prodüktör gözetiminde üretilir.',icon:'<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>'},
-              {t:'Şeffaf Fiyatlandırma',b:'Kredi bazlı sistem, sürpriz maliyet yok.',icon:'<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>'},
-              {t:'Telif Güvencesi',b:'Tüm haklar DCC FILM üzerinden temizlenir.',icon:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'},
-              {t:'Marka Uyumu',b:'Logo, font ve görsel kimliğiniz sistemde hazır.',icon:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>'},
-              {t:'AI Hızı, İnsan Kalitesi',b:'Her projeniz AI yönetmenler tarafından üretilir, prodüktörlerimiz tarafından kontrol edilir.',icon:'<circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0112 0v2"/>'},
-            ].map(f=>(
-              <div key={f.t} className="feature" style={{background:'#f7f6f2',padding:'32px 28px',transition:'background 0.2s'}}>
-                <div style={{width:'30px',height:'30px',borderRadius:'8px',background:'#e8f7e8',border:'1px solid rgba(29,184,29,0.2)',marginBottom:'18px',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1db81d" strokeWidth="1.5" dangerouslySetInnerHTML={{__html:f.icon}}/>
-                </div>
-                <div style={{fontSize:'15px',fontWeight:'500',marginBottom:'8px',letterSpacing:'-0.2px'}}>{f.t}</div>
-                <p style={{fontSize:'13px',color:'#888',lineHeight:'1.65',fontWeight:'300'}}>{f.b}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* FİYATLANDIRMA */}
-      <div id="fiyatlandirma" style={{background:'#f7f6f2',borderBottom:'1px solid rgba(0,0,0,0.08)'}}>
-        <div className="section-pad" style={{padding:'100px 52px',maxWidth:'1200px',margin:'0 auto'}}>
-          <div style={{fontSize:'11px',letterSpacing:'2px',color:'#1db81d',marginBottom:'16px',fontFamily:'monospace'}}>FİYATLANDIRMA</div>
-          <h2 style={{fontSize:'44px',fontWeight:'300',letterSpacing:'-1.5px',marginBottom:'16px'}}>Şeffaf, öngörülebilir.</h2>
-          <p style={{fontSize:'16px',color:'#888',fontWeight:'300',marginBottom:'36px'}}>Kredi satın alın, harcayın. Sürpriz maliyet yok.</p>
-          <div className="video-types-grid" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'1px',background:'rgba(0,0,0,0.08)',border:'1px solid rgba(0,0,0,0.08)',borderRadius:'16px',overflow:'hidden',marginBottom:'32px'}}>
-            {[
-              {dur:'6–10 SN',name:'Bumper / Pre-roll',credit:'12 kredi',price:'42.000 TL'},
-              {dur:'15 SN',name:'Story / Reels',credit:'18 kredi',price:'63.000 TL'},
-              {dur:'30 SN',name:'Feed Video',credit:'24 kredi',price:'84.000 TL'},
-              {dur:'45–60 SN',name:'Long Form',credit:'36 kredi',price:'126.000 TL'},
-            ].map(v=>(
-              <div key={v.name} className="vtype" style={{background:'#f7f6f2',padding:'28px 22px',transition:'background 0.2s'}}>
-                <div style={{fontSize:'11px',color:'#1db81d',letterSpacing:'1px',marginBottom:'10px',fontFamily:'monospace'}}>{v.dur}</div>
-                <div style={{fontSize:'15px',fontWeight:'500',marginBottom:'6px',letterSpacing:'-0.3px'}}>{v.name}</div>
-                <div style={{fontSize:'13px',color:'#888',fontWeight:'300'}}>{v.credit}</div>
-                <div style={{fontSize:'18px',fontWeight:'300',letterSpacing:'-0.5px',marginTop:'14px',paddingTop:'14px',borderTop:'1px solid rgba(0,0,0,0.08)'}}>{v.price}</div>
-              </div>
-            ))}
-          </div>
-          <div className="pricing-grid" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'14px'}}>
-            {[
-              {name:'Demo',credit:'40',price:null,priceNote:'Ücretsiz deneme',features:['2 video üretimi','Tanıtım toplantısı','Marka kiti kurulumu'],featured:false},
-              {name:'Başlangıç',credit:'100',price:'350.000 TL',priceNote:null,features:['~5–8 video üretimi','İlk revizyon dahil','Kredi süresiz geçerli'],featured:false},
-              {name:'Standart',credit:'500',price:'1.750.000 TL',priceNote:null,features:['~27 video üretimi','Öncelikli üretim','İlk revizyon dahil'],featured:true},
-              {name:'Kurumsal',credit:'1.000+',price:null,priceNote:'Bizimle iletişime geçin',features:['Özel fiyatlandırma','Dedicated prodüktör','Öncelikli destek'],featured:false},
-            ].map(p=>(
-              <div key={p.name} className="pricing-card" style={{background:p.featured?'#e8f7e8':'#fff',border:`1px solid ${p.featured?'rgba(29,184,29,0.35)':'rgba(0,0,0,0.12)'}`,borderRadius:'16px',padding:'28px 22px',position:'relative',transition:'border-color 0.2s'}}>
-                {p.featured&&<div style={{position:'absolute',top:'-1px',left:'50%',transform:'translateX(-50%)',background:'#1db81d',color:'#fff',fontSize:'11px',fontWeight:'500',padding:'3px 12px',borderRadius:'0 0 8px 8px'}}>Popüler</div>}
-                <div style={{fontSize:'12px',color:'#888',fontFamily:'monospace',letterSpacing:'1px',textTransform:'uppercase',marginBottom:'18px'}}>{p.name}</div>
-                <div style={{fontSize:'32px',fontWeight:'300',letterSpacing:'-1px',marginBottom:'4px'}}>{p.credit} <span style={{fontSize:'13px',color:'#888',fontWeight:'300'}}>kredi</span></div>
-                <div style={{fontSize:'14px',color:'#888',marginBottom:'24px',paddingBottom:'24px',borderBottom:'1px solid rgba(0,0,0,0.08)',fontWeight:'300'}}>
-                  {p.price?<strong style={{color:'#0a0a0a',fontWeight:'500'}}>{p.price}</strong>:<em>{p.priceNote}</em>}
-                </div>
-                <ul style={{listStyle:'none',display:'flex',flexDirection:'column',gap:'9px'}}>
-                  {p.features.map(f=>(
-                    <li key={f} style={{fontSize:'13px',color:'#888',display:'flex',alignItems:'center',gap:'8px',fontWeight:'300'}}>
-                      <span style={{width:'5px',height:'5px',borderRadius:'50%',background:'#1db81d',flexShrink:0}}></span>{f}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* DCC */}
-      <div id="hakkimizda" style={{borderBottom:'1px solid rgba(0,0,0,0.08)'}}>
-        <div className="section-pad dcc-grid" style={{padding:'100px 52px',maxWidth:'1200px',margin:'0 auto',display:'grid',gridTemplateColumns:'1fr 1fr',gap:'80px',alignItems:'center'}}>
+      {/* ══════ NASIL ÇALIŞIR ══════ */}
+      <section id="nasil-calisir" style={{ background: '#0f0f0f' }}>
+        <div className="s-pad" style={{ maxWidth: '1200px', margin: '0 auto', padding: '120px 48px' }}>
           <div>
-            <div style={{fontSize:'11px',letterSpacing:'2px',color:'#1db81d',marginBottom:'16px',fontFamily:'monospace'}}>DCC FILM GÜVENCESİ</div>
-            <h2 style={{fontSize:'40px',fontWeight:'300',letterSpacing:'-1.5px',marginBottom:'20px'}}>Arkasında gerçek bir prodüksiyon şirketi var.</h2>
-            <p style={{fontSize:'16px',color:'#888',fontWeight:'300',marginBottom:'20px',lineHeight:'1.7'}}>Dinamo'nun arkasında gerçek bir prodüksiyon şirketi var. DCC FILM olarak yıllardır Türkiye'nin en büyük markalarıyla çalışıyor, global kampanyalar üretiyoruz.</p>
-            <p style={{fontSize:'16px',color:'#888',fontWeight:'300',marginBottom:'20px',lineHeight:'1.7'}}>Şeffaf fiyatlandırma, 24 saat teslim garantisi ve yıllarca süren prodüksiyon deneyimiyle her projeniz emin ellerde. Tek yapmanız gereken yayından 24 saat önce brief'inizi girmek.</p>
-            <p style={{fontSize:'16px',color:'#1db81d',fontWeight:'500'}}>Türkiye'nin bu alanda ilk ve tek garantili AI video prodüksiyon platformu.</p>
+            <div style={{ fontSize: '11px', letterSpacing: '3px', color: '#1db81d', textTransform: 'uppercase', marginBottom: '16px', fontWeight: '400' }}>Süreç</div>
+            <h2 style={{ fontSize: 'clamp(32px, 5vw, 48px)', fontWeight: '300', letterSpacing: '-1.5px', marginBottom: '16px' }}>Dört adım, 24 saat.</h2>
+            <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.4)', fontWeight: '300', maxWidth: '480px', lineHeight: 1.7, marginBottom: '60px' }}>Yayından 24 saat önce brief'inizi girin.</p>
           </div>
-          <div className="dcc-stats" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'1px',background:'rgba(0,0,0,0.08)',border:'1px solid rgba(0,0,0,0.08)',borderRadius:'16px',overflow:'hidden'}}>
+          <div className="grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
             {[
-              {n:'24h',l:'Teslim garantisi'},
-              {n:'%100',l:'Telif güvencesi'},
-              {n:'20+',l:'Yıl prodüksiyon deneyimi'},
-              {n:'∞',l:'Kredi geçerlilik süresi'},
-            ].map(s=>(
-              <div key={s.l} style={{background:'#fff',padding:'28px'}}>
-                <div style={{fontSize:'36px',fontWeight:'300',letterSpacing:'-2px',marginBottom:'4px'}}>{s.n}</div>
-                <div style={{fontSize:'13px',color:'#888',fontWeight:'300'}}>{s.l}</div>
+              { n: '01', t: c('step1_title', "Brief'inizi girin"), b: c('step1_desc', 'Kampanya hedefinizi, mesajınızı ve video tipini belirleyin.') },
+              { n: '02', t: c('step2_title', 'Prodüktörümüz inceliyor'), b: c('step2_desc', "Brief'inizi değerlendiriyor, gerekirse onay veya ek bilgi talep ediyoruz.") },
+              { n: '03', t: c('step3_title', '24 saat içinde teslim'), b: c('step3_desc', 'Videonuz üretilir, prodüktör onayından geçer ve hesabınıza iletilir.') },
+              { n: '04', t: c('step4_title', 'Revizyon hakkınız var'), b: c('step4_desc', 'Her videoya bir revizyon hakkı tanınır, ek ücret alınmaz.') },
+            ].map((s) => (
+              <div key={s.n} className="step-card">
+                <div style={{ fontSize: '40px', fontWeight: '600', color: '#1db81d', letterSpacing: '-2px', marginBottom: '20px', lineHeight: 1 }}>{s.n}</div>
+                <div style={{ fontSize: '16px', fontWeight: '500', marginBottom: '10px', letterSpacing: '-0.3px' }}>{s.t}</div>
+                <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.7, fontWeight: '300' }}>{s.b}</p>
               </div>
             ))}
           </div>
         </div>
+      </section>
+
+      {/* ══════ İŞLERİMİZ ══════ */}
+      {mounted && homeVideos.length > 0 && (
+        <section id="islerimiz" style={{ background: '#0a0a0a' }}>
+          <div className="s-pad" style={{ maxWidth: '1200px', margin: '0 auto', padding: '120px 48px' }}>
+            <div>
+              <div style={{ fontSize: '11px', letterSpacing: '3px', color: '#1db81d', textTransform: 'uppercase', marginBottom: '16px', fontWeight: '400' }}>Portföy</div>
+              <h2 style={{ fontSize: 'clamp(32px, 5vw, 48px)', fontWeight: '300', letterSpacing: '-1.5px', marginBottom: '60px' }}>İşlerimizden</h2>
+            </div>
+            <div className="grid-4" style={{ display: 'grid', gridTemplateColumns: `repeat(${homeVideos.length}, 1fr)`, gap: '20px' }}>
+              {homeVideos.map((w) => (
+                <div
+                  key={w.id}
+                  className="work-card"
+                  onMouseEnter={(e) => {
+                    const vid = e.currentTarget.querySelector('video')
+                    vid?.play()
+                  }}
+                  onMouseLeave={(e) => {
+                    const vid = e.currentTarget.querySelector('video')
+                    if (vid) { vid.pause(); vid.currentTime = 0 }
+                  }}
+                >
+                  <video src={w.video_url} muted loop playsInline preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <div className="work-overlay">
+                    <div style={{ fontSize: '18px', fontWeight: '500', marginBottom: '6px' }}>{w.title}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ══════ ÖZELLİKLER ══════ */}
+      <section style={{ background: '#0f0f0f' }}>
+        <div className="s-pad" style={{ maxWidth: '1200px', margin: '0 auto', padding: '120px 48px' }}>
+          <div>
+            <div style={{ fontSize: '11px', letterSpacing: '3px', color: '#1db81d', textTransform: 'uppercase', marginBottom: '16px', fontWeight: '400' }}>Özellikler</div>
+            <h2 style={{ fontSize: 'clamp(32px, 5vw, 48px)', fontWeight: '300', letterSpacing: '-1.5px', marginBottom: '60px' }}>Neden Dinamo?</h2>
+          </div>
+          <div className="grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+            {[
+              { t: '24 Saat Teslim', b: "Brief'ten videoya, garantili.", icon: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>' },
+              { t: "Brief'e Sadık", b: 'Her video prodüktör gözetiminde üretilir.', icon: '<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>' },
+              { t: 'Şeffaf Fiyatlandırma', b: 'Kredi bazlı sistem, sürpriz maliyet yok.', icon: '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>' },
+              { t: 'Telif Güvencesi', b: 'Tüm haklar DCC FILM üzerinden temizlenir.', icon: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>' },
+              { t: 'Marka Uyumu', b: 'Logo, font ve görsel kimliğiniz sistemde hazır.', icon: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>' },
+              { t: 'AI Hızı, İnsan Kalitesi', b: 'AI yönetmenler üretir, prodüktörler kontrol eder.', icon: '<circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0112 0v2"/>' },
+            ].map((f) => (
+              <div key={f.t} className="feat-card">
+                <div style={{
+                  width: '40px', height: '40px', borderRadius: '12px',
+                  background: 'rgba(29,184,29,0.1)', border: '1px solid rgba(29,184,29,0.15)',
+                  marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1db81d" strokeWidth="1.5" dangerouslySetInnerHTML={{ __html: f.icon }} />
+                </div>
+                <div style={{ fontSize: '16px', fontWeight: '500', marginBottom: '8px' }}>{f.t}</div>
+                <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.7, fontWeight: '300' }}>{f.b}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════ FİYATLANDIRMA ══════ */}
+      <section id="fiyatlandirma" style={{ background: '#0a0a0a' }}>
+        <div className="s-pad" style={{ maxWidth: '1200px', margin: '0 auto', padding: '120px 48px' }}>
+          <div>
+            <div style={{ fontSize: '11px', letterSpacing: '3px', color: '#1db81d', textTransform: 'uppercase', marginBottom: '16px', fontWeight: '400' }}>Fiyatlandırma</div>
+            <h2 style={{ fontSize: 'clamp(32px, 5vw, 48px)', fontWeight: '300', letterSpacing: '-1.5px', marginBottom: '16px' }}>Şeffaf, öngörülebilir.</h2>
+            <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.4)', fontWeight: '300', marginBottom: '48px' }}>Kredi satın alın, harcayın. Sürpriz maliyet yok.</p>
+          </div>
+
+          {/* Video Types */}
+          <div style={{ marginBottom: '60px' }}>
+            <div style={{ fontSize: '12px', letterSpacing: '2px', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', marginBottom: '24px' }}>Video Tipleri</div>
+            <div className="grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
+              {[
+                { dur: '6–10 sn', name: 'Bumper / Pre-roll', key: 'credit_bumper', fallback: 12 },
+                { dur: '15 sn', name: 'Story / Reels', key: 'credit_story', fallback: 18 },
+                { dur: '30 sn', name: 'Feed Video', key: 'credit_feed', fallback: 24 },
+                { dur: '45–60 sn', name: 'Long Form', key: 'credit_longform', fallback: 36 },
+              ].map((v) => {
+                const cr = videoCredits[v.key] || v.fallback
+                return (
+                  <div key={v.name} style={{
+                    background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: '16px', padding: '28px 24px', transition: 'border-color 0.3s',
+                  }}>
+                    <div style={{ fontSize: '11px', color: '#1db81d', letterSpacing: '1px', marginBottom: '12px', fontWeight: '500' }}>{v.dur}</div>
+                    <div style={{ fontSize: '15px', fontWeight: '500', marginBottom: '4px' }}>{v.name}</div>
+                    <div style={{ fontSize: '28px', fontWeight: '300', letterSpacing: '-1px', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                      {cr} <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.3)', fontWeight: '400' }}>kredi</span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Packages — from Supabase credit_packages */}
+          <div style={{ fontSize: '12px', letterSpacing: '2px', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', marginBottom: '24px' }}>Paketler</div>
+          {mounted && packages.length > 0 ? (
+          <div className="grid-4" style={{ display: 'grid', gridTemplateColumns: `repeat(${packages.length}, 1fr)`, gap: '20px' }}>
+            {packages.map((p) => (
+              <div key={p.id} className={`price-card ${p.is_popular ? 'featured' : ''}`}>
+                {p.is_popular && (
+                  <div style={{
+                    background: '#1db81d', color: '#fff', fontSize: '10px', fontWeight: '600',
+                    padding: '5px 14px', borderRadius: '100px', alignSelf: 'flex-start',
+                    marginBottom: '20px', letterSpacing: '0.5px',
+                  }}>Popüler</div>
+                )}
+                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: '20px', fontWeight: '400' }}>{p.name}</div>
+                <div style={{ fontSize: '40px', fontWeight: '300', letterSpacing: '-2px', marginBottom: '4px' }}>
+                  {p.name === 'Kurumsal' ? '1.000+' : p.credits?.toLocaleString('tr-TR')} <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.3)', fontWeight: '400' }}>kredi</span>
+                </div>
+                <div style={{
+                  fontSize: '15px', color: 'rgba(255,255,255,0.4)', marginBottom: '28px',
+                  paddingBottom: '28px', borderBottom: '1px solid rgba(255,255,255,0.06)', fontWeight: '300',
+                }}>
+                  {p.name === 'Demo' ? (
+                    <span style={{ color: '#1db81d', fontWeight: '500' }}>Ücretsiz</span>
+                  ) : p.name === 'Kurumsal' ? (
+                    <a href="/demo-request" style={{ display: 'inline-block', padding: '8px 20px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '100px', color: '#fff', fontSize: '13px', fontWeight: '500', textDecoration: 'none', transition: 'background 0.2s' }}>İletişime Geçin</a>
+                  ) : p.price_tl ? (
+                    <><strong style={{ color: '#fff', fontWeight: '500' }}>{Number(p.price_tl).toLocaleString('tr-TR')} TL</strong><span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', marginLeft: '4px' }}>+KDV</span></>
+                  ) : (
+                    <em style={{ fontStyle: 'normal' }}>{p.price_note || 'İletişime geçin'}</em>
+                  )}
+                </div>
+                {p.features && (
+                  <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
+                    {(Array.isArray(p.features) ? p.features : []).map((f: string) => (
+                      <li key={f} style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '300' }}>
+                        <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#1db81d', flexShrink: 0 }}></span>
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ))}
+          </div>
+          ) : (
+            <div style={{ padding: '40px 0', textAlign: 'center', color: 'rgba(255,255,255,0.2)', fontSize: '13px' }}>Yükleniyor...</div>
+          )}
+        </div>
+      </section>
+
+      {/* ══════ DCC FILM ══════ */}
+      <section id="hakkimizda" style={{ background: '#0f0f0f' }}>
+        <div className="s-pad about-grid" style={{
+          maxWidth: '1200px', margin: '0 auto', padding: '120px 48px',
+          display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'center',
+        }}>
+          <div>
+            <div style={{ fontSize: '11px', letterSpacing: '3px', color: '#1db81d', textTransform: 'uppercase', marginBottom: '16px', fontWeight: '400' }}>DCC Film Güvencesi</div>
+            <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: '300', letterSpacing: '-1.5px', marginBottom: '24px', lineHeight: 1.2 }}>
+              Arkasında gerçek bir prodüksiyon şirketi var.
+            </h2>
+            <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.4)', fontWeight: '300', marginBottom: '20px', lineHeight: 1.8 }}>
+              Dinamo'nun arkasında gerçek bir prodüksiyon şirketi var. DCC FILM olarak yıllardır Türkiye'nin en büyük markalarıyla çalışıyor, global kampanyalar üretiyoruz.
+            </p>
+            <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.4)', fontWeight: '300', marginBottom: '24px', lineHeight: 1.8 }}>
+              Şeffaf fiyatlandırma, 24 saat teslim garantisi ve yıllarca süren prodüksiyon deneyimiyle her projeniz emin ellerde. Tek yapmanız gereken yayından 24 saat önce brief'inizi girmek.
+            </p>
+            <p style={{ fontSize: '16px', color: '#1db81d', fontWeight: '500' }}>
+              Türkiye'nin bu alanda ilk ve tek garantili AI video prodüksiyon platformu.
+            </p>
+          </div>
+          <div className="stat-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            {[
+              { n: '24h', l: 'Teslim garantisi' },
+              { n: '%100', l: 'Telif güvencesi' },
+              { n: '20+', l: 'Yıl prodüksiyon deneyimi' },
+              { n: '∞', l: 'Kredi geçerlilik süresi' },
+            ].map((s) => (
+              <div key={s.l} className="stat-box">
+                <div style={{ fontSize: '40px', fontWeight: '300', letterSpacing: '-2px', marginBottom: '6px', lineHeight: 1 }}>{s.n}</div>
+                <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.3)', fontWeight: '300' }}>{s.l}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════ LOGO BANDI ══════ */}
+      <div style={{ background: '#0f0f0f', padding: '8px 0 48px 0' }}>
+        <img src="/logos.png" style={{ width: '100%', maxWidth: '1100px', margin: '0 auto', display: 'block', filter: 'brightness(0.65)', objectFit: 'contain' }} />
       </div>
 
-      {/* CTA */}
-      <div id="demo" style={{background:'#f7f6f2',borderBottom:'1px solid rgba(0,0,0,0.08)'}}>
-        <div className="section-pad" style={{padding:'120px 52px',textAlign:'center',maxWidth:'640px',margin:'0 auto'}}>
-          <h2 className="cta-title" style={{fontSize:'58px',fontWeight:'300',letterSpacing:'-2px',lineHeight:'1.05',marginBottom:'20px'}}>Hemen başlayın.</h2>
-          <p style={{fontSize:'16px',color:'#888',fontWeight:'300',marginBottom:'36px',lineHeight:'1.7'}}>Demo hesabınızı talep edin, ilk videonuzu birlikte üretelim.</p>
-          <a href="mailto:dinamo@dccfilm.com" style={{padding:'14px 30px',background:'#0a0a0a',color:'#fff',borderRadius:'100px',fontSize:'15px',fontWeight:'500',display:'inline-flex',alignItems:'center',gap:'8px'}}>
-            Demo hesap talep edin →
+      {/* ══════ CTA ══════ */}
+      <section id="demo" style={{ background: '#0a0a0a' }}>
+        <div className="s-pad" style={{ maxWidth: '700px', margin: '0 auto', padding: '140px 48px', textAlign: 'center' }}>
+          <h2 style={{
+            fontSize: 'clamp(36px, 6vw, 56px)', fontWeight: '300',
+            letterSpacing: '-2px', lineHeight: 1.1, marginBottom: '20px',
+          }}>
+            {c('cta_title', 'Hemen başlayın.')}
+          </h2>
+          <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.4)', fontWeight: '300', marginBottom: '40px', lineHeight: 1.7 }}>
+            Demo hesabınızı talep edin, ilk videonuzu birlikte üretelim.
+          </p>
+          <a href="/demo-request" className="cta-btn" style={{ background: '#1db81d', color: '#fff' }}>
+            {c('cta_button', 'Demo hesap talep edin →')}
           </a>
         </div>
-      </div>
+      </section>
 
-      {/* FOOTER */}
-      <footer className="footer" style={{borderTop:'1px solid rgba(0,0,0,0.08)',padding:'36px 52px',display:'flex',alignItems:'center',justifyContent:'space-between',background:'#f7f6f2'}}>
-        <div style={{fontSize:'13px',color:'#888',fontWeight:'300'}}>Dinamo — Powered by <a href="https://dccfilm.com" target="_blank" style={{color:'#888',borderBottom:'1px solid #ddd'}}>DCC FILM</a></div>
-        <div style={{fontSize:'12px',color:'#888',fontFamily:'monospace'}}>AI yönetmen ağımıza katılmak için <a href="mailto:dinamo@dccfilm.com" style={{color:'#555'}}>iletişime geçin</a></div>
+      {/* ══════ FOOTER ══════ */}
+      <footer style={{ background: '#0a0a0a', borderTop: '1px solid rgba(255,255,255,0.06)', padding: '36px 48px' }}>
+        <div className="footer-inner" style={{
+          maxWidth: '1200px', margin: '0 auto',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        }}>
+          <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.2)', fontWeight: '300' }}>
+            {c('footer_text', 'Dinamo — Powered by DCC FILM')}
+          </div>
+          <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.2)', display: 'flex', gap: '16px' }}>
+            <a href="/creator-apply" style={{ color: 'rgba(255,255,255,0.35)' }}>Creator Başvurusu</a>
+            <a href="mailto:dinamo@dccfilm.com" style={{ color: 'rgba(255,255,255,0.35)' }}>İletişim</a>
+          </div>
+        </div>
       </footer>
     </div>
   )
