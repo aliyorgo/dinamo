@@ -227,6 +227,51 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ══════ ÖZELLİKLER ══════ */}
+      <section style={{ background: '#0a0a0a' }}>
+        <style>{`
+          @media (max-width: 768px) {
+            .feat-grid-2x4 { grid-template-columns: 1fr !important; }
+          }
+          @media (min-width: 769px) and (max-width: 1024px) {
+            .feat-grid-2x4 { grid-template-columns: repeat(2, 1fr) !important; }
+          }
+        `}</style>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '120px 48px' }}>
+          <div style={{ textAlign: 'center', marginBottom: '64px' }}>
+            <h2 style={{ fontSize: 'clamp(28px, 4.5vw, 44px)', fontWeight: '300', letterSpacing: '-1.5px', marginBottom: '16px', color: '#fff' }}>
+              Sadece video değil, tam bir içerik sistemi
+            </h2>
+            <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.4)', fontWeight: '300' }}>
+              Brief'ten teslimata her adım Dinamo'da.
+            </p>
+          </div>
+          <div className="feat-grid-2x4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+            {[
+              { t: 'AI Destekli Brief', b: "Ne istediğini anlat, sistem brief'i oluştursun. Ya da kendin yaz, AI detaylandırsın." },
+              { t: 'Algoritmayı Besle', b: 'Aynı kampanyadan yeni bir video, yarı krediyle. Taze içerik algoritmanın ilgisini canlı tutar \u2014 aynı mesaj, yeni yüz.' },
+              { t: 'Telif Güvencesi', b: 'Her onaylı videoya otomatik İçerik Lisans Sertifikası. Arşivin her zaman hazır.' },
+              { t: 'Her Şey Tek Yerde', b: "Brief'ler, videolar, sertifikalar, tüm dosyalarınız \u2014 tek panelde, her zaman erişilebilir." },
+              { t: 'İçerik Performans Raporu', b: 'Görüntülenme ve etkileşim verilerini gir, kampanya bazlı raporlar al.' },
+              { t: 'Kendini Geliştiren AI', b: "Genel marka bilgileriyle başlar, her brief'ten öğrenir. Tonunu, dilini, tercihlerini hafızasına alır \u2014 zamanla daha etkili brief yazar." },
+              { t: 'Her Formata, Her Dile Hazır', b: "Kadın veya erkek AI seslendirme, profesyonel dublaj, 7 dil seçeneği, 5 farklı format \u2014 tek brief'ten tüm mecralara." },
+              { t: 'Pikseline Kadar Kontrol', b: 'Videonun istediğin saniyesine not bırak. Creator tam olarak ne, nerede değişecek bilir \u2014 revizyon süreci net ve hızlı.' },
+            ].map((f) => (
+              <div key={f.t} style={{
+                background: 'rgba(255,255,255,0.02)',
+                border: '1px solid #222',
+                borderRadius: '14px',
+                padding: '32px 28px',
+              }}>
+                <div style={{ color: '#1db81d', fontSize: '14px', marginBottom: '14px', lineHeight: 1 }}>{'\u2192'}</div>
+                <div style={{ fontSize: '16px', fontWeight: '500', color: '#fff', marginBottom: '10px', lineHeight: 1.3 }}>{f.t}</div>
+                <p style={{ fontSize: '14px', color: '#888', lineHeight: 1.7, fontWeight: '300', margin: 0 }}>{f.b}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ══════ İŞLERİMİZ ══════ */}
       {mounted && homeVideos.length > 0 && (
         <section id="islerimiz" style={{ background: '#0a0a0a' }}>
@@ -259,38 +304,6 @@ export default function HomePage() {
           </div>
         </section>
       )}
-
-      {/* ══════ ÖZELLİKLER ══════ */}
-      <section style={{ background: '#0f0f0f' }}>
-        <div className="s-pad" style={{ maxWidth: '1200px', margin: '0 auto', padding: '120px 48px' }}>
-          <div>
-            <div style={{ fontSize: '11px', letterSpacing: '3px', color: '#1db81d', textTransform: 'uppercase', marginBottom: '16px', fontWeight: '400' }}>Özellikler</div>
-            <h2 style={{ fontSize: 'clamp(32px, 5vw, 48px)', fontWeight: '300', letterSpacing: '-1.5px', marginBottom: '60px' }}>Neden Dinamo?</h2>
-          </div>
-          <div className="grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
-            {[
-              { t: '24 Saat Teslim', b: "Brief'ten videoya, garantili.", icon: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>' },
-              { t: "Brief'e Sadık", b: 'Her video prodüktör gözetiminde üretilir.', icon: '<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>' },
-              { t: 'Şeffaf Fiyatlandırma', b: 'Kredi bazlı sistem, sürpriz maliyet yok.', icon: '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>' },
-              { t: 'Telif Güvencesi', b: 'Tüm haklar DCC FILM üzerinden temizlenir.', icon: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>' },
-              { t: 'Marka Uyumu', b: 'Logo, font ve görsel kimliğiniz sistemde hazır.', icon: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>' },
-              { t: 'AI Hızı, İnsan Kalitesi', b: 'AI yönetmenler üretir, prodüktörler kontrol eder.', icon: '<circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0112 0v2"/>' },
-            ].map((f) => (
-              <div key={f.t} className="feat-card">
-                <div style={{
-                  width: '40px', height: '40px', borderRadius: '12px',
-                  background: 'rgba(29,184,29,0.1)', border: '1px solid rgba(29,184,29,0.15)',
-                  marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1db81d" strokeWidth="1.5" dangerouslySetInnerHTML={{ __html: f.icon }} />
-                </div>
-                <div style={{ fontSize: '16px', fontWeight: '500', marginBottom: '8px' }}>{f.t}</div>
-                <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.7, fontWeight: '300' }}>{f.b}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ══════ FİYATLANDIRMA ══════ */}
       <section id="fiyatlandirma" style={{ background: '#0a0a0a' }}>
