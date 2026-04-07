@@ -10,6 +10,8 @@ const AGENCY_NAV = [
   { label: 'Musteriler', href: '/dashboard/agency/clients' },
   { label: 'Briefler', href: '/dashboard/agency/studio/briefs' },
   { label: 'Krediler', href: '/dashboard/agency/studio/credits' },
+  { label: 'Uyeler', href: '/dashboard/agency/members' },
+  { label: 'Uretim Raporu', href: '/dashboard/agency/production' },
   { label: 'Kazanclar', href: '/dashboard/agency/earnings' },
 ]
 

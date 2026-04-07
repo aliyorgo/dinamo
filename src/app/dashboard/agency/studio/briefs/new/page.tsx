@@ -28,6 +28,8 @@ function AgencyNewBrief() {
   const [prevMessage, setPrevMessage] = useState<string | null>(null)
   const [aiBriefInput, setAiBriefInput] = useState('')
   const [aiBriefLoading, setAiBriefLoading] = useState(false)
+  const [clients, setClients] = useState<any[]>([])
+  const [selectedClientId, setSelectedClientId] = useState('')
   const filesRef = useRef<HTMLInputElement>(null)
   const scenarioRef = useRef<HTMLInputElement>(null)
 
@@ -56,11 +58,21 @@ function AgencyNewBrief() {
       if (!ud || ud.role !== 'agency' || !ud.agency_id) { router.push('/login'); return }
       setUserName(ud.name)
       setAgencyId(ud.agency_id)
-      const { data: ag } = await supabase.from('agencies').select('id, name, logo_url').eq('id', ud.agency_id).single()
+      const [{ data: ag }, { data: cls }] = await Promise.all([
+        supabase.from('agencies').select('id, name, logo_url').eq('id', ud.agency_id).single(),
+        supabase.from('clients').select('id, company_name').eq('agency_id', ud.agency_id).order('company_name'),
+      ])
       setAgency(ag)
+      setClients(cls || [])
     }
     load()
   }, [router])
+
+  function handleClientSelect(clientId: string) {
+    setSelectedClientId(clientId)
+    const cl = clients.find(c => c.id === clientId)
+    setForm(prev => ({ ...prev, client_name: cl ? cl.company_name : '' }))
+  }
 
   async function handleExpand() {
     if (!form.message.trim() || expandLoading) return
@@ -107,10 +119,17 @@ function AgencyNewBrief() {
     if (!aiBriefInput.trim() || aiBriefLoading) return
     setAiBriefLoading(true)
     try {
+      let context = ''
+      if (selectedClientId) {
+        const { data: pastBriefs } = await supabase.from('briefs').select('campaign_name, message, target_audience, video_type').eq('client_id', selectedClientId).order('created_at', { ascending: false }).limit(5)
+        if (pastBriefs && pastBriefs.length > 0) {
+          context = '\n\nBu musterinin onceki briefleri (context):\n' + pastBriefs.map((b: any) => `- ${b.campaign_name}: ${(b.message || '').substring(0, 200)}`).join('\n')
+        }
+      }
       const res = await fetch('/api/generate-brief', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_input: aiBriefInput, brand_name: form.client_name || agency?.name }),
+        body: JSON.stringify({ user_input: aiBriefInput + context, brand_name: form.client_name || agency?.name }),
       })
       const data = await res.json()
       if (data.campaign_name) setForm(prev => ({ ...prev, campaign_name: data.campaign_name }))
@@ -152,6 +171,7 @@ function AgencyNewBrief() {
     const briefData = {
       campaign_name: form.campaign_name,
       client_name: form.client_name || null,
+      client_id: selectedClientId || null,
       video_type: form.video_type,
       format: form.format,
       platforms: form.platforms.length > 0 ? form.platforms : null,
@@ -344,7 +364,7 @@ function AgencyNewBrief() {
                       <div style={{ fontSize: '20px', fontWeight: '500', color: '#0a0a0a', marginBottom: '8px' }}>Kendim Yazacagim</div>
                       <div style={{ fontSize: '13px', color: '#888', lineHeight: 1.6 }}>Brief alanlarini adim adim kendiniz doldurun.</div>
                     </div>
-                    <div style={{ textAlign: 'right', marginTop: '20px', fontSize: '18px', color: '#ccc' }}>{'\u2192'}</div>
+                    <div style={{ textAlign: 'right', marginTop: '20px', fontSize: '18px', color: '#ccc' }}><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg></div>
                   </div>
                   <div onClick={() => setStep(-1)}
                     style={{ flex: 1, background: '#0a0a0a', border: '2px solid #1db81d', borderRadius: '16px', padding: '40px', cursor: 'pointer', minHeight: '200px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', transition: 'transform 0.2s,border-color 0.2s', textAlign: 'left', position: 'relative' }}
@@ -355,7 +375,7 @@ function AgencyNewBrief() {
                       <div style={{ fontSize: '20px', fontWeight: '500', color: '#fff', marginBottom: '8px' }}>Anlat, Olusturalim</div>
                       <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.6 }}>Ne yapmak istediginizi anlatin, brief'i sizin icin olusturalim.</div>
                     </div>
-                    <div style={{ textAlign: 'right', marginTop: '20px', fontSize: '18px', color: '#1db81d' }}>{'\u2192'}</div>
+                    <div style={{ textAlign: 'right', marginTop: '20px', fontSize: '18px', color: '#1db81d' }}><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg></div>
                   </div>
                 </div>
               </div>
@@ -368,8 +388,11 @@ function AgencyNewBrief() {
               <div style={{ fontSize: '26px', fontWeight: '300', color: '#0a0a0a', letterSpacing: '-0.5px', marginBottom: '8px' }}>Bize anlatin</div>
               <div style={{ fontSize: '14px', color: '#888', marginBottom: '16px', lineHeight: '1.6' }}>Ne aklinızdaysa yazin — gerisini biz halledelim.</div>
               <div style={{ marginBottom: '16px' }}>
-                <div style={{ fontSize: '11px', color: '#888', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '8px' }}>Musteri Adi <span style={{ color: '#ccc', fontWeight: '400' }}>(opsiyonel)</span></div>
-                <input style={inputStyle} value={form.client_name} onChange={e => setForm({ ...form, client_name: e.target.value })} placeholder="orn. Turkcell, Nike, Arcelik..." />
+                <div style={{ fontSize: '11px', color: '#888', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '8px' }}>Musteri</div>
+                <select value={selectedClientId} onChange={e => handleClientSelect(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
+                  <option value="">Genel / Musteri Yok</option>
+                  {clients.map(c => <option key={c.id} value={c.id}>{c.company_name}</option>)}
+                </select>
               </div>
               <textarea
                 value={aiBriefInput}
@@ -380,7 +403,7 @@ function AgencyNewBrief() {
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button onClick={() => setStep(0)}
                   style={{ padding: '11px 20px', background: 'none', border: '0.5px solid rgba(0,0,0,0.15)', borderRadius: '8px', fontSize: '13px', fontFamily: 'Inter,sans-serif', color: '#555', cursor: 'pointer' }}>
-                  {'\u2190'} Geri
+                  Geri
                 </button>
                 <button onClick={generateAiBrief} disabled={aiBriefLoading || !aiBriefInput.trim()}
                   style={{ flex: 1, padding: '11px 24px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', fontFamily: 'Inter,sans-serif', cursor: aiBriefLoading || !aiBriefInput.trim() ? 'not-allowed' : 'pointer', opacity: aiBriefLoading || !aiBriefInput.trim() ? 0.5 : 1 }}>
@@ -397,12 +420,15 @@ function AgencyNewBrief() {
               <div style={{ fontSize: '26px', fontWeight: '300', color: '#0a0a0a', letterSpacing: '-0.5px', marginBottom: '28px' }}>Kampanyanıza bir isim verin</div>
 
               <div style={{ marginBottom: '22px' }}>
-                <div style={{ fontSize: '11px', color: '#888', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '8px' }}>Müşteri Adı <span style={{ color: '#ccc', fontWeight: '400' }}>(opsiyonel)</span></div>
-                <input style={inputStyle} value={form.client_name} onChange={e => setForm({ ...form, client_name: e.target.value })} placeholder="örn. Turkcell, Nike, Arçelik..." />
+                <div style={{ fontSize: '11px', color: '#888', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '8px' }}>Musteri</div>
+                <select value={selectedClientId} onChange={e => handleClientSelect(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
+                  <option value="">Genel / Musteri Yok</option>
+                  {clients.map(c => <option key={c.id} value={c.id}>{c.company_name}</option>)}
+                </select>
               </div>
 
               <div style={{ marginBottom: '22px' }}>
-                <div style={{ fontSize: '11px', color: '#888', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '8px' }}>Kampanya Adı</div>
+                <div style={{ fontSize: '11px', color: '#888', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '8px' }}>Kampanya Adi</div>
                 <input style={inputStyle} value={form.campaign_name} onChange={e => setForm({ ...form, campaign_name: e.target.value })} placeholder="örn. Yaz Kampanyası 2025..." />
               </div>
 
@@ -647,7 +673,7 @@ function AgencyNewBrief() {
         {step > 0 && <div style={{ padding: '16px 40px', background: '#fff', borderTop: '0.5px solid rgba(0,0,0,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
           <button onClick={() => step > 1 ? setStep(step - 1) : setStep(0)}
             style={{ background: 'none', border: '0.5px solid rgba(0,0,0,0.15)', borderRadius: '8px', padding: '9px 20px', fontSize: '13px', fontFamily: 'Inter,sans-serif', color: '#555', cursor: 'pointer' }}>
-            {step === 1 ? '\u2190 Geri' : '\u2190 Geri'}
+            {step === 1 ? 'Geri' : 'Geri'}
           </button>
           {step < 5 ? (
             <button onClick={() => setStep(step + 1)}
@@ -657,7 +683,7 @@ function AgencyNewBrief() {
                 (step === 3 && !form.message)
               }
               style={{ background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', padding: '9px 24px', fontSize: '13px', fontFamily: 'Inter,sans-serif', cursor: 'pointer', fontWeight: '500', opacity: ((step === 1 && (!form.campaign_name || !form.video_type || !form.format)) || (step === 2 && (!form.target_audience || !form.has_cta)) || (step === 3 && !form.message)) ? 0.4 : 1 }}>
-              Devam et →
+              Devam et
             </button>
           ) : (
             <div style={{ display: 'flex', gap: '8px' }}>

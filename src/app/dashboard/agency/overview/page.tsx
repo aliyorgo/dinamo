@@ -10,6 +10,8 @@ const AGENCY_NAV = [
   { label: 'Musteriler', href: '/dashboard/agency/clients' },
   { label: 'Briefler', href: '/dashboard/agency/studio/briefs' },
   { label: 'Krediler', href: '/dashboard/agency/studio/credits' },
+  { label: 'Uyeler', href: '/dashboard/agency/members' },
+  { label: 'Uretim Raporu', href: '/dashboard/agency/production' },
   { label: 'Kazanclar', href: '/dashboard/agency/earnings' },
 ]
 
@@ -22,9 +24,12 @@ export default function AgencyOverviewPage() {
   const [loading, setLoading] = useState(true)
   const [userName, setUserName] = useState('')
   const [agency, setAgency] = useState<any>(null)
+  const [agencyMargin, setAgencyMargin] = useState(0)
   const [clients, setClients] = useState<any[]>([])
   const [invoices, setInvoices] = useState<any[]>([])
   const [paymentRequests, setPaymentRequests] = useState<any[]>([])
+  const [members, setMembers] = useState<any[]>([])
+  const [briefs, setBriefs] = useState<any[]>([])
   const [msg, setMsg] = useState('')
 
   const [reqForm, setReqForm] = useState({ request_type: 'commission', amount: '', credits_requested: '' })
@@ -40,17 +45,24 @@ export default function AgencyOverviewPage() {
 
     setUserName(ud.name)
 
-    const [{ data: ag }, { data: cls }, { data: invs }, { data: reqs }] = await Promise.all([
+    const [{ data: ag }, { data: cls }, { data: invs }, { data: reqs }, { data: mb }, { data: br }] = await Promise.all([
       supabase.from('agencies').select('*').eq('id', ud.agency_id).single(),
       supabase.from('clients').select('id, company_name, status, credit_balance').eq('agency_id', ud.agency_id),
       supabase.from('agency_invoices').select('*').eq('agency_id', ud.agency_id).order('created_at', { ascending: false }),
       supabase.from('agency_payment_requests').select('*').eq('agency_id', ud.agency_id).order('created_at', { ascending: false }),
+      supabase.from('users').select('id, name, email').eq('agency_id', ud.agency_id).eq('role', 'agency_member'),
+      supabase.from('briefs').select('id, campaign_name, client_name, agency_member_id, credit_cost, sale_price, status, created_at').eq('agency_id', ud.agency_id).order('created_at', { ascending: false }),
     ])
 
     setAgency(ag)
     setClients(cls || [])
     setInvoices(invs || [])
     setPaymentRequests(reqs || [])
+    setMembers(mb || [])
+    setBriefs(br || [])
+    const tSales = (br || []).reduce((s: number, b: any) => s + Number(b.sale_price || 0), 0)
+    const tCost = (br || []).reduce((s: number, b: any) => s + Number(b.credit_cost || 0) * 3000, 0)
+    setAgencyMargin(tSales - tCost)
     setLoading(false)
   }
 
@@ -89,6 +101,30 @@ export default function AgencyOverviewPage() {
   const activeClients = clients.filter(c => c.status === 'active')
   const paidInvoices = invoices.filter(i => i.is_paid)
   const pendingInvoices = invoices.filter(i => !i.is_paid)
+
+  // This month stats
+  const now = new Date()
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+  const thisMonthBriefs = briefs.filter(b => b.created_at >= monthStart)
+  const thisMonthCredits = thisMonthBriefs.reduce((s, b) => s + Number(b.credit_cost || 0), 0)
+  const thisMonthSales = thisMonthBriefs.reduce((s, b) => s + Number(b.sale_price || 0), 0)
+
+  // Member map for names
+  const memberMap: Record<string, string> = {}
+  members.forEach(m => { memberMap[m.id] = m.name })
+
+  // Member this-month counts
+  const memberMonthCounts: Record<string, number> = {}
+  thisMonthBriefs.forEach(b => {
+    if (b.agency_member_id) memberMonthCounts[b.agency_member_id] = (memberMonthCounts[b.agency_member_id] || 0) + 1
+  })
+
+  const statusLabel: Record<string, { label: string; color: string }> = {
+    draft: { label: 'Taslak', color: '#f59e0b' }, submitted: { label: 'Gonderildi', color: '#888' },
+    in_production: { label: 'Uretimde', color: '#3b82f6' }, revision: { label: 'Revizyon', color: '#ef4444' },
+    approved: { label: 'Onaylandi', color: '#22c55e' }, delivered: { label: 'Teslim', color: '#22c55e' },
+    cancelled: { label: 'Iptal', color: '#555' },
+  }
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "'Inter',system-ui,sans-serif" }}>
@@ -139,9 +175,13 @@ export default function AgencyOverviewPage() {
             <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)' }}>Kredi</span>
             <span style={{ fontSize: '12px', fontWeight: '500', color: '#22c55e' }}>{agency?.demo_credits || 0} kr</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
             <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)' }}>Kazanc</span>
             <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>{Number(agency?.total_earnings || 0).toLocaleString('tr-TR')} TL</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', fontStyle: 'italic' }}>Marj</span>
+            <span style={{ fontSize: '10px', fontStyle: 'italic', color: agencyMargin >= 0 ? 'rgba(255,255,255,0.4)' : '#ef4444' }}>{agencyMargin.toLocaleString('tr-TR')} TL</span>
           </div>
         </div>
         <div style={{ padding: '10px 8px', borderTop: '0.5px solid rgba(255,255,255,0.07)' }}>
@@ -181,6 +221,84 @@ export default function AgencyOverviewPage() {
                   {card.sub && <div style={{ fontSize: '11px', color: '#aaa', marginTop: '4px' }}>{card.sub}</div>}
                 </div>
               ))}
+            </div>
+
+            {/* MONTHLY STATS */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '12px', marginBottom: '24px' }}>
+              {[
+                { label: 'Ekip Uyeleri', value: String(members.length), link: '/dashboard/agency/members' },
+                { label: 'Bu Ay Uretilen', value: String(thisMonthBriefs.length), sub: 'is' },
+                { label: 'Bu Ay Kredi', value: String(thisMonthCredits), sub: 'kredi' },
+                { label: 'Bu Ay Satis', value: thisMonthSales > 0 ? formatTL(thisMonthSales) : '0', color: thisMonthSales > 0 ? '#22c55e' : '#888' },
+              ].map(card => (
+                <div key={card.label}
+                  onClick={() => card.link && router.push(card.link)}
+                  style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', padding: '16px', cursor: card.link ? 'pointer' : 'default' }}>
+                  <div style={{ fontSize: '10px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>{card.label}</div>
+                  <div style={{ fontSize: '22px', fontWeight: '300', color: card.color || '#0a0a0a', letterSpacing: '-0.5px' }}>
+                    {card.value}
+                    {card.sub && <span style={{ fontSize: '12px', color: '#aaa', marginLeft: '4px', fontWeight: '400' }}>{card.sub}</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* RECENT PRODUCTIONS + TEAM ACTIVITY */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
+
+              {/* SON URETIMLER */}
+              <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', overflow: 'hidden' }}>
+                <div style={{ padding: '14px 20px', borderBottom: '0.5px solid rgba(0,0,0,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>Son Uretimler</span>
+                  <span onClick={() => router.push('/dashboard/agency/production')} style={{ fontSize: '10px', color: '#3b82f6', cursor: 'pointer' }}>Tum Uretimler</span>
+                </div>
+                {briefs.length === 0 ? (
+                  <div style={{ padding: '24px', textAlign: 'center', color: '#aaa', fontSize: '12px' }}>Henuz uretim yok.</div>
+                ) : briefs.slice(0, 5).map((b, i) => {
+                  const sl = statusLabel[b.status] || { label: b.status, color: '#888' }
+                  return (
+                    <div key={b.id} onClick={() => router.push(`/dashboard/agency/studio/briefs/${b.id}`)}
+                      style={{ padding: '10px 20px', borderTop: i > 0 ? '0.5px solid rgba(0,0,0,0.06)' : 'none', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>{b.campaign_name}</div>
+                        <div style={{ fontSize: '10px', color: '#888', marginTop: '2px' }}>
+                          {b.agency_member_id ? memberMap[b.agency_member_id] || '' : 'Ajans'}
+                          {b.client_name ? ` · ${b.client_name}` : ''}
+                          {b.credit_cost ? ` · ${b.credit_cost} kr` : ''}
+                          {b.sale_price ? ` · ${Number(b.sale_price).toLocaleString('tr-TR')} TL` : ''}
+                        </div>
+                      </div>
+                      <span style={{ fontSize: '9px', padding: '2px 7px', borderRadius: '100px', fontWeight: '500', background: `${sl.color}15`, color: sl.color, flexShrink: 0 }}>{sl.label}</span>
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* EKIP AKTIVITESI */}
+              <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', overflow: 'hidden' }}>
+                <div style={{ padding: '14px 20px', borderBottom: '0.5px solid rgba(0,0,0,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>Ekip Aktivitesi</span>
+                  <span onClick={() => router.push('/dashboard/agency/members')} style={{ fontSize: '10px', color: '#3b82f6', cursor: 'pointer' }}>Ekibi Yonet</span>
+                </div>
+                {members.length === 0 ? (
+                  <div style={{ padding: '24px', textAlign: 'center', color: '#aaa', fontSize: '12px' }}>Henuz ekip uyesi yok.</div>
+                ) : members.map((m, i) => (
+                  <div key={m.id} onClick={() => router.push(`/dashboard/agency/members/${m.id}`)}
+                    style={{ padding: '10px 20px', borderTop: i > 0 ? '0.5px solid rgba(0,0,0,0.06)' : 'none', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                    <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: '#a855f7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <span style={{ fontSize: '12px', fontWeight: '500', color: '#fff' }}>{m.name?.charAt(0)?.toUpperCase()}</span>
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>{m.name}</div>
+                      <div style={{ fontSize: '10px', color: '#888', marginTop: '2px' }}>{m.email}</div>
+                    </div>
+                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                      <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a' }}>{memberMonthCounts[m.id] || 0}</div>
+                      <div style={{ fontSize: '9px', color: '#aaa' }}>bu ay</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>

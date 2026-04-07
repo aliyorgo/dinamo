@@ -10,12 +10,12 @@ const AGENCY_NAV = [
   { label: 'Musteriler', href: '/dashboard/agency/clients' },
   { label: 'Briefler', href: '/dashboard/agency/studio/briefs' },
   { label: 'Krediler', href: '/dashboard/agency/studio/credits' },
+  { label: 'Uyeler', href: '/dashboard/agency/members' },
+  { label: 'Uretim Raporu', href: '/dashboard/agency/production' },
   { label: 'Kazanclar', href: '/dashboard/agency/earnings' },
 ]
 
-const AGENCY_DISCOUNT = 0.10
-const CORPORATE_DISCOUNT = 0.20
-const CORPORATE_THRESHOLD = 1_500_000
+// Pricing uses credit_packages.price_tl directly
 
 export default function AgencyCreditsPage() {
   const router = useRouter()
@@ -42,22 +42,20 @@ export default function AgencyCreditsPage() {
       supabase.from('credit_packages').select('*').order('credits'),
     ])
     setAgency(ag)
-    setPackages(pkgs || [])
+    const filtered = (pkgs || []).filter((p: any) => {
+      const name = (p.name || '').toLowerCase()
+      return !name.includes('demo') && !name.includes('kurumsal')
+    })
+    setPackages(filtered)
     setLoading(false)
   }
 
   const availableBalance = Number(agency?.total_earnings || 0) - Number(agency?.invoiced_amount || 0)
-  const isCorporate = availableBalance >= CORPORATE_THRESHOLD
-
-  function agencyPrice(pkg: any) {
-    const discount = isCorporate ? CORPORATE_DISCOUNT : AGENCY_DISCOUNT
-    return Math.round(Number(pkg.price_tl) * (1 - discount))
-  }
 
   async function purchasePackage(pkg: any) {
     if (!agencyId) return
     setPurchasing(pkg.id)
-    const price = agencyPrice(pkg)
+    const price = Number(pkg.price_tl)
 
     const { error } = await supabase.from('agency_payment_requests').insert({
       agency_id: agencyId,
@@ -169,25 +167,19 @@ export default function AgencyCreditsPage() {
 
           {/* PACKAGES */}
           <div style={{ marginBottom: '16px' }}>
-            <div style={{ fontSize: '12px', fontWeight: '500', color: '#0a0a0a', marginBottom: '4px' }}>Kredi Paketleri</div>
-            <div style={{ fontSize: '11px', color: '#888' }}>Ajans ortaklari icin %{Math.round((isCorporate ? CORPORATE_DISCOUNT : AGENCY_DISCOUNT) * 100)} ozel indirim uygulanir.</div>
+            <div style={{ fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>Kredi Paketleri</div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '16px' }}>
             {packages.map(pkg => {
-              const price = agencyPrice(pkg)
+              const price = Number(pkg.price_tl)
               const canAfford = availableBalance >= price
-              const showCorporate = isCorporate
               return (
-                <div key={pkg.id} style={{ background: '#fff', border: showCorporate ? '1.5px solid #22c55e' : '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', padding: '24px', position: 'relative', display: 'flex', flexDirection: 'column' }}>
-                  {showCorporate && (
-                    <div style={{ position: 'absolute', top: '-8px', right: '16px', fontSize: '9px', fontWeight: '600', color: '#22c55e', background: 'rgba(34,197,94,0.1)', padding: '3px 10px', borderRadius: '100px', letterSpacing: '0.5px' }}>Size Ozel</div>
-                  )}
+                <div key={pkg.id} style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', padding: '24px', display: 'flex', flexDirection: 'column' }}>
                   <div style={{ fontSize: '15px', fontWeight: '500', color: '#0a0a0a', marginBottom: '6px' }}>{pkg.name}</div>
                   <div style={{ fontSize: '28px', fontWeight: '300', color: '#0a0a0a', letterSpacing: '-1px', marginBottom: '4px' }}>{pkg.credits} <span style={{ fontSize: '13px', color: '#888', fontWeight: '400' }}>kredi</span></div>
                   <div style={{ marginBottom: '16px' }}>
-                    <span style={{ fontSize: '12px', color: '#aaa', textDecoration: 'line-through', marginRight: '8px' }}>{formatTL(Number(pkg.price_tl))}</span>
-                    <span style={{ fontSize: '14px', fontWeight: '500', color: '#22c55e' }}>{formatTL(price)}</span>
+                    <span style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a' }}>{formatTL(price)}</span>
                   </div>
                   <div style={{ marginTop: 'auto' }}>
                     <button onClick={() => canAfford && purchasePackage(pkg)} disabled={!canAfford || purchasing === pkg.id}

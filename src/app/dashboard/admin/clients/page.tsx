@@ -103,6 +103,8 @@ export default function ClientsPage() {
     e.preventDefault()
     setCreating(true)
     setMsg('')
+    const { data: existing } = await supabase.from('client_users').select('id').eq('client_id', userForm.client_id).eq('user_id', userForm.user_id).maybeSingle()
+    if (existing) { setMsg('Bu kullanici zaten bu musteriye atanmis.'); setCreating(false); return }
     const { error } = await supabase.from('client_users').insert(userForm)
     if (error) { setMsg(error.message); setCreating(false); return }
     setMsg('Kullanici musteriye eklendi.')

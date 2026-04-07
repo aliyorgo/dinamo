@@ -10,6 +10,8 @@ const AGENCY_NAV = [
   { label: 'Musteriler', href: '/dashboard/agency/clients' },
   { label: 'Briefler', href: '/dashboard/agency/studio/briefs' },
   { label: 'Krediler', href: '/dashboard/agency/studio/credits' },
+  { label: 'Uyeler', href: '/dashboard/agency/members' },
+  { label: 'Uretim Raporu', href: '/dashboard/agency/production' },
   { label: 'Kazanclar', href: '/dashboard/agency/earnings' },
 ]
 
@@ -29,6 +31,7 @@ export default function AgencyBriefsPage() {
   const [agency, setAgency] = useState<any>(null)
   const [userName, setUserName] = useState('')
   const [briefs, setBriefs] = useState<any[]>([])
+  const [members, setMembers] = useState<any[]>([])
 
   useEffect(() => { load() }, [])
 
@@ -41,13 +44,15 @@ export default function AgencyBriefsPage() {
 
     setUserName(ud.name)
 
-    const [{ data: ag }, { data: br }] = await Promise.all([
+    const [{ data: ag }, { data: br }, { data: mb }] = await Promise.all([
       supabase.from('agencies').select('id, name, logo_url, demo_credits, total_earnings').eq('id', ud.agency_id).single(),
-      supabase.from('briefs').select('id, campaign_name, client_name, status, video_type, created_at').eq('agency_id', ud.agency_id).order('created_at', { ascending: false }),
+      supabase.from('briefs').select('id, campaign_name, client_name, agency_member_id, credit_cost, status, video_type, format, created_at').eq('agency_id', ud.agency_id).order('created_at', { ascending: false }),
+      supabase.from('users').select('id, name').eq('agency_id', ud.agency_id).eq('role', 'agency_member'),
     ])
 
     setAgency(ag)
     setBriefs(br || [])
+    setMembers(mb || [])
     setLoading(false)
   }
 
@@ -128,42 +133,80 @@ export default function AgencyBriefsPage() {
           </div>
         ) : (
           <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px' }}>
-            <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', overflow: 'hidden' }}>
-              <div style={{ padding: '14px 20px', borderBottom: '0.5px solid rgba(0,0,0,0.08)', fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>
-                Tüm Briefler ({briefs.length})
-              </div>
-              {briefs.length === 0 ? (
+            {briefs.length === 0 ? (
+              <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', overflow: 'hidden' }}>
                 <div style={{ padding: '60px 40px', textAlign: 'center' }}>
                   <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#111113', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round"/></svg>
                   </div>
-                  <div style={{ fontSize: '18px', fontWeight: '400', color: '#0a0a0a', marginBottom: '8px', letterSpacing: '-0.3px' }}>Henuz brief yok</div>
-                  <div style={{ fontSize: '13px', color: '#888', lineHeight: '1.6' }}>Soldaki <strong style={{ color: '#22c55e' }}>+ Brief Olustur</strong> butonuyla baslayın.</div>
+                  <div style={{ fontSize: '18px', fontWeight: '400', color: '#0a0a0a', marginBottom: '8px' }}>Henuz brief yok</div>
+                  <div style={{ fontSize: '13px', color: '#888' }}>Soldaki <strong style={{ color: '#22c55e' }}>+ Brief Olustur</strong> butonuyla baslayin.</div>
                 </div>
-              ) : briefs.map((brief, i) => (
-                <div key={brief.id}
-                  onClick={() => router.push(`/dashboard/agency/studio/briefs/${brief.id}`)}
-                  style={{ padding: '14px 20px', borderTop: i > 0 ? '0.5px solid rgba(0,0,0,0.06)' : 'none', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>
-                      {brief.client_name ? `${brief.client_name} — ${brief.campaign_name}` : brief.campaign_name}
+              </div>
+            ) : (() => {
+              const CREDIT_TL = 3000
+              const memberMap: Record<string, string> = {}
+              members.forEach(m => { memberMap[m.id] = m.name })
+
+              const groups: { id: string; name: string; briefs: any[]; lastDate: string }[] = []
+              const memberIds = new Set<string>()
+              const agencyBriefs: any[] = []
+
+              briefs.forEach(b => {
+                if (b.agency_member_id) memberIds.add(b.agency_member_id)
+                else agencyBriefs.push(b)
+              })
+
+              memberIds.forEach(mid => {
+                const mBriefs = briefs.filter(b => b.agency_member_id === mid)
+                groups.push({ id: mid, name: memberMap[mid] || 'Uye', briefs: mBriefs, lastDate: mBriefs[0]?.created_at || '' })
+              })
+              groups.sort((a, b) => b.lastDate.localeCompare(a.lastDate))
+              if (agencyBriefs.length > 0) groups.push({ id: '_agency', name: 'Ajans', briefs: agencyBriefs, lastDate: agencyBriefs[0]?.created_at || '' })
+
+              return groups.map(group => (
+                <div key={group.id} style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', overflow: 'hidden', marginBottom: '16px' }}>
+                  <div style={{ padding: '12px 20px', background: '#0a0a0a', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: group.id === '_agency' ? '#111' : '#a855f7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: group.id === '_agency' ? '1px solid rgba(255,255,255,0.15)' : 'none' }}>
+                      <span style={{ fontSize: '10px', fontWeight: '500', color: '#fff' }}>{group.name.charAt(0).toUpperCase()}</span>
                     </div>
-                    <div style={{ fontSize: '11px', color: '#888', marginTop: '2px' }}>{brief.video_type || '—'}</div>
+                    <span style={{ fontSize: '12px', fontWeight: '500', color: '#fff', flex: 1 }}>{group.name}</span>
+                    <span style={{ fontSize: '10px', fontWeight: '600', color: '#22c55e', background: 'rgba(34,197,94,0.15)', padding: '2px 8px', borderRadius: '100px' }}>{group.briefs.length}</span>
                   </div>
-                  <span style={{
-                    fontSize: '10px', padding: '2px 8px', borderRadius: '100px', fontWeight: '500',
-                    background: `${statusColor[brief.status] || '#888'}20`,
-                    color: statusColor[brief.status] || '#888',
-                  }}>
-                    {statusLabel[brief.status] || brief.status}
-                  </span>
-                  <div style={{ fontSize: '11px', color: '#aaa', flexShrink: 0 }}>
-                    {new Date(brief.created_at).toLocaleDateString('tr-TR')}
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#ccc' }}>›</div>
+                  {group.briefs.map((brief: any, i: number) => {
+                    const cost = Number(brief.credit_cost || 0) * CREDIT_TL
+                    return (
+                      <div key={brief.id}
+                        onClick={() => router.push(`/dashboard/agency/studio/briefs/${brief.id}`)}
+                        style={{ padding: '12px 20px', borderTop: i > 0 ? '0.5px solid rgba(0,0,0,0.06)' : 'none', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>
+                            {brief.client_name ? `${brief.client_name} — ${brief.campaign_name}` : brief.campaign_name}
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#888', marginTop: '2px' }}>
+                            {brief.video_type || ''}{brief.format ? ` · ${brief.format}` : ''}
+                          </div>
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#0a0a0a', flexShrink: 0, textAlign: 'right', minWidth: '60px' }}>
+                          {brief.credit_cost || 0} kr
+                          <div style={{ fontSize: '10px', color: '#aaa' }}>{cost > 0 ? `${cost.toLocaleString('tr-TR')} TL` : ''}</div>
+                        </div>
+                        <span style={{
+                          fontSize: '10px', padding: '2px 8px', borderRadius: '100px', fontWeight: '500',
+                          background: `${statusColor[brief.status] || '#888'}20`,
+                          color: statusColor[brief.status] || '#888', flexShrink: 0,
+                        }}>
+                          {statusLabel[brief.status] || brief.status}
+                        </span>
+                        <div style={{ fontSize: '11px', color: '#aaa', flexShrink: 0, minWidth: '65px', textAlign: 'right' }}>
+                          {new Date(brief.created_at).toLocaleDateString('tr-TR')}
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
-              ))}
-            </div>
+              ))
+            })()}
           </div>
         )}
       </div>

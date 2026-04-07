@@ -11,6 +11,8 @@ const AGENCY_NAV = [
   { label: 'Musteriler', href: '/dashboard/agency/clients' },
   { label: 'Briefler', href: '/dashboard/agency/studio/briefs' },
   { label: 'Krediler', href: '/dashboard/agency/studio/credits' },
+  { label: 'Uyeler', href: '/dashboard/agency/members' },
+  { label: 'Uretim Raporu', href: '/dashboard/agency/production' },
   { label: 'Kazanclar', href: '/dashboard/agency/earnings' },
 ]
 
@@ -44,7 +46,7 @@ export default function AgencyClientDetailPage() {
     const [{ data: ag }, { data: cl }, { data: br }, { data: tx }] = await Promise.all([
       supabase.from('agencies').select('id, name, logo_url, commission_rate, demo_credits, total_earnings').eq('id', ud.agency_id).single(),
       supabase.from('clients').select('*').eq('id', clientId).eq('agency_id', ud.agency_id).single(),
-      supabase.from('briefs').select('id, campaign_name, status, created_at').eq('client_id', clientId).order('created_at', { ascending: false }),
+      supabase.from('briefs').select('id, campaign_name, video_type, format, status, credit_cost, sale_price, created_at').eq('client_id', clientId).order('created_at', { ascending: false }),
       supabase.from('credit_transactions').select('amount, type, created_at').eq('client_id', clientId).order('created_at', { ascending: true }),
     ])
 
@@ -62,24 +64,43 @@ export default function AgencyClientDetailPage() {
     router.push('/login')
   }
 
-  // Derived stats
-  const completedBriefs = briefs.filter(b => b.status === 'delivered').length
-  const totalSpent = transactions
-    .filter(t => t.type !== 'top_up' && Number(t.amount) < 0)
-    .reduce((s, t) => s + Math.abs(Number(t.amount)), 0)
+  const CREDIT_TL = 3000
+  const completedBriefs = briefs.filter(b => ['approved', 'delivered', 'completed'].includes(b.status)).length
+  const totalSpentCredits = briefs.reduce((s, b) => s + Number(b.credit_cost || 0), 0)
+  const totalSpentTL = totalSpentCredits * CREDIT_TL
+  const commissionRate = Number(agency?.commission_rate || 0)
+  const commissionEarned = totalSpentTL * commissionRate
+  const creditBalance = Number(client?.credit_balance || 0)
 
-  // Monthly spending chart data
+  // Brief status distribution
+  const statusCounts: Record<string, number> = {}
+  briefs.forEach(b => { statusCounts[b.status] = (statusCounts[b.status] || 0) + 1 })
+
+  // Monthly spending (last 6 months from briefs)
+  const now = new Date()
   const monthlyMap: Record<string, number> = {}
-  transactions.forEach(t => {
-    if (t.type === 'top_up') return
-    const month = new Date(t.created_at).toLocaleDateString('tr-TR', { month: 'short', year: '2-digit' })
-    monthlyMap[month] = (monthlyMap[month] || 0) + Math.abs(Number(t.amount))
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    const key = d.toLocaleDateString('tr-TR', { month: 'short', year: '2-digit' })
+    monthlyMap[key] = 0
+  }
+  briefs.forEach(b => {
+    if (!b.created_at) return
+    const key = new Date(b.created_at).toLocaleDateString('tr-TR', { month: 'short', year: '2-digit' })
+    if (key in monthlyMap) monthlyMap[key] = (monthlyMap[key] || 0) + Number(b.credit_cost || 0)
   })
   const chartData = Object.entries(monthlyMap).map(([month, credits]) => ({ month, credits }))
 
-  // Commission for this client: total spent × commission_rate
-  const commissionRate = Number(agency?.commission_rate || 0)
-  const commissionEarned = totalSpent * commissionRate
+  const statusLabel: Record<string, { label: string; color: string }> = {
+    draft: { label: 'Taslak', color: '#6b7280' },
+    submitted: { label: 'Gonderildi', color: '#3b82f6' },
+    in_production: { label: 'Uretimde', color: '#f59e0b' },
+    revision: { label: 'Revizyon', color: '#ef4444' },
+    approved: { label: 'Onaylandi', color: '#22c55e' },
+    delivered: { label: 'Teslim', color: '#22c55e' },
+    completed: { label: 'Tamamlandi', color: '#22c55e' },
+    cancelled: { label: 'Iptal', color: '#888' },
+  }
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "'Inter',system-ui,sans-serif" }}>
@@ -152,13 +173,26 @@ export default function AgencyClientDetailPage() {
         ) : (
           <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px' }}>
 
+            {/* CREDIT WARNING */}
+            {creditBalance === 0 && (
+              <div style={{ padding: '12px 20px', background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '10px', marginBottom: '16px', fontSize: '13px', color: '#b91c1c' }}>
+                Bu musterinin kredisi bitti.
+              </div>
+            )}
+            {creditBalance > 0 && creditBalance < 10 && (
+              <div style={{ padding: '12px 20px', background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: '10px', marginBottom: '16px', fontSize: '13px', color: '#b45309' }}>
+                Bu musterinin kredisi azaliyor ({creditBalance} kredi kaldi).
+              </div>
+            )}
+
             {/* STATS GRID */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '12px', marginBottom: '20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: '12px', marginBottom: '20px' }}>
               {[
-                { label: 'Kredi Bakiyesi', value: String(client?.credit_balance || 0), unit: 'kredi', color: '#0a0a0a' },
-                { label: 'Harcanan Kredi', value: String(totalSpent), unit: 'kredi', color: '#0a0a0a' },
-                { label: 'Tamamlanan İş', value: String(completedBriefs), unit: 'brief', color: completedBriefs > 0 ? '#22c55e' : '#888' },
-                { label: 'Komisyon Kazancı', value: formatTL(commissionEarned), color: commissionEarned > 0 ? '#22c55e' : '#888' },
+                { label: 'Kredi Bakiyesi', value: String(creditBalance), unit: 'kredi', color: creditBalance === 0 ? '#ef4444' : creditBalance < 10 ? '#f59e0b' : '#22c55e' },
+                { label: 'Toplam Brief', value: String(briefs.length), unit: 'brief', color: '#0a0a0a' },
+                { label: 'Tamamlanan Is', value: String(completedBriefs), unit: 'brief', color: completedBriefs > 0 ? '#22c55e' : '#888' },
+                { label: 'Toplam Harcama', value: formatTL(totalSpentTL), color: '#0a0a0a' },
+                { label: 'Ajans Komisyonu', value: formatTL(commissionEarned), color: commissionEarned > 0 ? '#22c55e' : '#888' },
               ].map(card => (
                 <div key={card.label} style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', padding: '16px' }}>
                   <div style={{ fontSize: '10px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>{card.label}</div>
@@ -170,46 +204,74 @@ export default function AgencyClientDetailPage() {
               ))}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
 
               {/* MONTHLY CHART */}
               <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', padding: '20px' }}>
-                <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '16px' }}>Aylık Kredi Harcaması</div>
-                {chartData.length === 0 ? (
-                  <div style={{ height: '140px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#aaa', fontSize: '12px' }}>Veri yok</div>
-                ) : (
-                  <ResponsiveContainer width="100%" height={160}>
-                    <LineChart data={chartData} margin={{ top: 4, right: 8, bottom: 4, left: -20 }}>
-                      <XAxis dataKey="month" tick={{ fontSize: 10, fill: '#aaa' }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fontSize: 10, fill: '#aaa' }} axisLine={false} tickLine={false} />
-                      <Tooltip
-                        contentStyle={{ background: '#111113', border: 'none', borderRadius: '8px', fontSize: '11px', color: '#fff' }}
-                        labelStyle={{ color: '#aaa' }}
-                        formatter={(v: any) => [`${v} kredi`, 'Harcama']}
-                      />
-                      <Line type="monotone" dataKey="credits" stroke="#22c55e" strokeWidth={2} dot={false} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                )}
+                <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '16px' }}>Aylik Harcama (Son 6 Ay)</div>
+                <ResponsiveContainer width="100%" height={160}>
+                  <LineChart data={chartData} margin={{ top: 4, right: 8, bottom: 4, left: -20 }}>
+                    <XAxis dataKey="month" tick={{ fontSize: 10, fill: '#aaa' }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 10, fill: '#aaa' }} axisLine={false} tickLine={false} />
+                    <Tooltip
+                      contentStyle={{ background: '#111113', border: 'none', borderRadius: '8px', fontSize: '11px', color: '#fff' }}
+                      labelStyle={{ color: '#aaa' }}
+                      formatter={(v: any) => [`${v} kredi`, 'Harcama']}
+                    />
+                    <Line type="monotone" dataKey="credits" stroke="#22c55e" strokeWidth={2} dot={false} />
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
 
-              {/* CLIENT INFO */}
+              {/* STATUS DISTRIBUTION */}
               <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', padding: '20px' }}>
-                <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '14px' }}>Müşteri Bilgisi</div>
-                {[
-                  { label: 'Şirket', value: client?.company_name },
-                  { label: 'Durum', value: client?.status === 'active' ? 'Aktif' : 'Beklemede', color: client?.status === 'active' ? '#22c55e' : '#f59e0b' },
-                  { label: 'Toplam Brief', value: String(briefs.length) },
-                  { label: 'Tamamlanan', value: String(completedBriefs) },
-                  { label: 'Aktif Brief', value: String(briefs.filter(b => !['delivered','cancelled'].includes(b.status)).length) },
-                  { label: 'Komisyon Oranı', value: `%${(commissionRate * 100).toFixed(1)}` },
-                ].map(row => (
-                  <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '0.5px solid rgba(0,0,0,0.05)' }}>
-                    <span style={{ fontSize: '12px', color: '#888' }}>{row.label}</span>
-                    <span style={{ fontSize: '12px', fontWeight: '500', color: row.color || '#0a0a0a' }}>{row.value}</span>
+                <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '16px' }}>Brief Dagilimi</div>
+                {Object.keys(statusCounts).length === 0 ? (
+                  <div style={{ height: '140px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#aaa', fontSize: '12px' }}>Brief yok</div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {Object.entries(statusCounts).map(([status, count]) => {
+                      const sl = statusLabel[status] || { label: status, color: '#888' }
+                      const pct = briefs.length > 0 ? (count / briefs.length) * 100 : 0
+                      return (
+                        <div key={status}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
+                            <span style={{ fontSize: '11px', color: '#555' }}>{sl.label}</span>
+                            <span style={{ fontSize: '11px', fontWeight: '500', color: sl.color }}>{count}</span>
+                          </div>
+                          <div style={{ height: '6px', background: 'rgba(0,0,0,0.04)', borderRadius: '3px', overflow: 'hidden' }}>
+                            <div style={{ height: '100%', width: `${pct}%`, background: sl.color, borderRadius: '3px' }} />
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
-                ))}
+                )}
               </div>
+            </div>
+
+            {/* LAST 5 BRIEFS */}
+            <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', overflow: 'hidden' }}>
+              <div style={{ padding: '14px 20px', borderBottom: '0.5px solid rgba(0,0,0,0.08)', fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>
+                Son Briefler ({Math.min(briefs.length, 5)}/{briefs.length})
+              </div>
+              {briefs.length === 0 ? (
+                <div style={{ padding: '24px', textAlign: 'center', color: '#aaa', fontSize: '12px' }}>Brief yok.</div>
+              ) : briefs.slice(0, 5).map((b, i) => {
+                const sl = statusLabel[b.status] || { label: b.status, color: '#888' }
+                return (
+                  <div key={b.id} style={{ padding: '12px 20px', borderTop: i > 0 ? '0.5px solid rgba(0,0,0,0.06)' : 'none', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>{b.campaign_name || 'Isimsiz'}</div>
+                      <div style={{ fontSize: '11px', color: '#888', marginTop: '2px' }}>
+                        {b.video_type || ''}{b.format ? ` \u00b7 ${b.format}` : ''}{b.credit_cost ? ` \u00b7 ${b.credit_cost} kr` : ''}
+                      </div>
+                    </div>
+                    <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '100px', fontWeight: '500', background: `${sl.color}15`, color: sl.color }}>{sl.label}</span>
+                    <div style={{ fontSize: '11px', color: '#aaa', flexShrink: 0 }}>{b.created_at ? new Date(b.created_at).toLocaleDateString('tr-TR') : ''}</div>
+                  </div>
+                )
+              })}
             </div>
           </div>
         )}

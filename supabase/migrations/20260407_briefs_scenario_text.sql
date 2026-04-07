@@ -1,0 +1,1 @@
+ALTER TABLE briefs ADD COLUMN IF NOT EXISTS scenario_text TEXT;

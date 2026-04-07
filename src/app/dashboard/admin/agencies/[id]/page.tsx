@@ -237,25 +237,21 @@ export default function AgencyDetailPage() {
 
   // ── PAYMENT REQUESTS ──────────────────────────────────────────────────────
   async function updateRequestStatus(id: string, status: string) {
-    const req = paymentRequests.find(r => r.id === id)
-    await supabase.from('agency_payment_requests').update({ status }).eq('id', id)
+    const res = await fetch('/api/admin/approve-credit-request', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ requestId: id, status }),
+    })
+    const data = await res.json()
+    if (data.error) { showMsg(data.error, true); return }
 
-    // On approval: load credits + update invoiced amount
-    if (status === 'approved' && req) {
-      const creditsToAdd = req.credits_requested || 0
-      const amountToInvoice = Number(req.amount) || 0
-
-      if (creditsToAdd > 0) {
-        const newCredits = Number(agency?.demo_credits || 0) + creditsToAdd
-        await supabase.from('agencies').update({ demo_credits: newCredits }).eq('id', agencyId)
-        setAgency((prev: any) => ({ ...prev, demo_credits: newCredits }))
-      }
-      if (amountToInvoice > 0) {
-        const newInvoiced = Number(agency?.invoiced_amount || 0) + amountToInvoice
-        await supabase.from('agencies').update({ invoiced_amount: newInvoiced }).eq('id', agencyId)
-        setAgency((prev: any) => ({ ...prev, invoiced_amount: newInvoiced }))
-      }
-      showMsg(`${creditsToAdd} kredi yuklendi, ${formatTL(amountToInvoice)} faturalandi.`)
+    if (status === 'approved' && data.newCredits !== undefined) {
+      setAgency((prev: any) => ({
+        ...prev,
+        demo_credits: data.newCredits ?? prev.demo_credits,
+        invoiced_amount: data.newInvoiced ?? prev.invoiced_amount,
+      }))
+      showMsg(`${data.creditsAdded || 0} kredi yuklendi, ${formatTL(data.amountInvoiced || 0)} faturalandi.`)
     }
 
     setPaymentRequests(prev => prev.map(r => r.id === id ? { ...r, status } : r))

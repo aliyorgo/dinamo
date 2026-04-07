@@ -422,7 +422,7 @@ function NewBriefPage() {
                       <div style={{fontSize:'20px',fontWeight:'500',color:'#0a0a0a',marginBottom:'8px'}}>Kendim Yazacağım</div>
                       <div style={{fontSize:'13px',color:'#888',lineHeight:1.6}}>Brief alanlarını adım adım kendiniz doldurun.</div>
                     </div>
-                    <div style={{textAlign:'right',marginTop:'20px',fontSize:'18px',color:'#ccc'}}>→</div>
+                    <div style={{textAlign:'right',marginTop:'20px'}}><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="#ccc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg></div>
                   </div>
                   {/* SAĞ KART */}
                   <div onClick={()=>setStep(-1)}
@@ -434,7 +434,7 @@ function NewBriefPage() {
                       <div style={{fontSize:'20px',fontWeight:'500',color:'#fff',marginBottom:'8px'}}>Anlat, Oluşturalım</div>
                       <div style={{fontSize:'13px',color:'rgba(255,255,255,0.5)',lineHeight:1.6}}>Ne yapmak istediğinizi anlatın, brief'i sizin için oluşturalım.</div>
                     </div>
-                    <div style={{textAlign:'right',marginTop:'20px',fontSize:'18px',color:'#1db81d'}}>→</div>
+                    <div style={{textAlign:'right',marginTop:'20px'}}><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="#1db81d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg></div>
                   </div>
                 </div>
               </div>
@@ -453,10 +453,10 @@ function NewBriefPage() {
                 rows={8}
                 style={{...inputStyle,resize:'vertical',lineHeight:'1.7',marginBottom:'16px',fontSize:'14px'}} />
               <div style={{display:'flex',gap:'10px'}}>
-                <button onClick={()=>setStep(0)} style={{background:'none',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'8px',padding:'11px 20px',fontSize:'13px',fontFamily:'Inter,sans-serif',color:'#555',cursor:'pointer'}}>← Geri</button>
+                <button onClick={()=>setStep(0)} style={{background:'none',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'8px',padding:'11px 20px',fontSize:'13px',fontFamily:'Inter,sans-serif',color:'#555',cursor:'pointer'}}>Geri</button>
                 <button onClick={handleAiBrief} disabled={aiBriefLoading||!aiBriefInput.trim()}
                   style={{background:'#22c55e',color:'#fff',border:'none',borderRadius:'8px',padding:'11px 24px',fontSize:'13px',fontFamily:'Inter,sans-serif',cursor:'pointer',fontWeight:'500',opacity:aiBriefLoading||!aiBriefInput.trim()?0.5:1,display:'flex',alignItems:'center',gap:'8px'}}>
-                  {aiBriefLoading?'Brief oluşturuluyor...':'Brief Oluştur →'}
+                  {aiBriefLoading?'Brief oluşturuluyor...':'Brief Oluştur'}
                 </button>
               </div>
             </div>
@@ -797,7 +797,7 @@ function NewBriefPage() {
           <div style={{padding:'16px 40px',background:'#fff',borderTop:'0.5px solid rgba(0,0,0,0.08)',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
             <button onClick={()=>step>1?setStep(step-1):router.push('/dashboard/client')}
               style={{background:'none',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'8px',padding:'9px 20px',fontSize:'13px',fontFamily:'Inter,sans-serif',color:'#555',cursor:'pointer'}}>
-              {step===1?'İptal':'← Geri'}
+              {step===1?'İptal':'Geri'}
             </button>
             {step<5?(
               <button onClick={()=>setStep(step+1)}
@@ -807,8 +807,7 @@ function NewBriefPage() {
                   (step===3&&!form.message)
                 }
                 style={{background:'#111113',color:'#fff',border:'none',borderRadius:'8px',padding:'9px 24px',fontSize:'13px',fontFamily:'Inter,sans-serif',cursor:'pointer',fontWeight:'500',opacity:(step===1&&(!form.campaign_name||!form.video_type||!form.format))||(step===2&&(!form.target_audience||!form.has_cta))||(step===3&&!form.message)?0.4:1}}>
-                Devam et →
-              </button>
+                Devam et               </button>
             ):(
               <div style={{display:'flex',gap:'8px'}}>
                 <button onClick={()=>handleSubmit(true)} disabled={submitting}

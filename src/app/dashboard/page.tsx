@@ -31,6 +31,7 @@ export default function DashboardPage() {
         case 'creator': router.push('/dashboard/creator'); break
         case 'client': router.push('/dashboard/client'); break
         case 'agency': router.push('/dashboard/agency/overview'); break
+        case 'agency_member': router.push('/dashboard/agency-member/studio'); break
         default: router.push('/login')
       }
     }

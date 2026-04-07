@@ -10,6 +10,8 @@ const AGENCY_NAV = [
   { label: 'Musteriler', href: '/dashboard/agency/clients' },
   { label: 'Briefler', href: '/dashboard/agency/studio/briefs' },
   { label: 'Krediler', href: '/dashboard/agency/studio/credits' },
+  { label: 'Uyeler', href: '/dashboard/agency/members' },
+  { label: 'Uretim Raporu', href: '/dashboard/agency/production' },
   { label: 'Kazanclar', href: '/dashboard/agency/earnings' },
 ]
 
@@ -46,13 +48,28 @@ export default function AgencyClientsPage() {
 
     setUserName(ud.name)
 
-    const [{ data: ag }, { data: cls }] = await Promise.all([
+    const [{ data: ag }, { data: cls }, { data: allBriefs }] = await Promise.all([
       supabase.from('agencies').select('id, name, logo_url, commission_rate, demo_credits, total_earnings').eq('id', ud.agency_id).single(),
       supabase.from('clients').select('*').eq('agency_id', ud.agency_id).order('created_at', { ascending: false }),
+      supabase.from('briefs').select('id, client_id, status, credit_cost, sale_price, created_at').eq('agency_id', ud.agency_id),
     ])
 
     setAgency(ag)
-    setClients(cls || [])
+    // Enrich clients with brief stats
+    const briefsByClient: Record<string, any[]> = {}
+    ;(allBriefs || []).forEach((b: any) => {
+      if (b.client_id) {
+        if (!briefsByClient[b.client_id]) briefsByClient[b.client_id] = []
+        briefsByClient[b.client_id].push(b)
+      }
+    })
+    const enriched = (cls || []).map((c: any) => {
+      const cb = briefsByClient[c.id] || []
+      const approved = cb.filter((b: any) => b.status === 'approved' || b.status === 'delivered' || b.status === 'completed')
+      const lastBrief = cb.length > 0 ? cb.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0] : null
+      return { ...c, _briefCount: cb.length, _approvedCount: approved.length, _lastActivity: lastBrief?.created_at || null }
+    })
+    setClients(enriched)
     setLoading(false)
   }
 
@@ -290,17 +307,31 @@ export default function AgencyClientsPage() {
                       }}>
                         {st.label}
                       </span>
-                      {Number(client.credit_balance) === DEMO_CREDITS && (
-                        <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '100px', fontWeight: '500', background: 'rgba(59,130,246,0.1)', color: '#3b82f6' }}>
-                          {DEMO_CREDITS} Demo Kredi
+                      {Number(client.credit_balance) === 0 && (
+                        <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '100px', fontWeight: '500', background: 'rgba(239,68,68,0.1)', color: '#ef4444' }}>
+                          Kredi bitti
+                        </span>
+                      )}
+                      {Number(client.credit_balance) > 0 && Number(client.credit_balance) < 10 && (
+                        <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '100px', fontWeight: '500', background: 'rgba(245,158,11,0.1)', color: '#f59e0b' }}>
+                          Kredi azalıyor
                         </span>
                       )}
                     </div>
+                    {client._lastActivity && (
+                      <div style={{ fontSize: '10px', color: '#aaa', marginTop: '3px' }}>
+                        Son aktivite: {new Date(client._lastActivity).toLocaleDateString('tr-TR')}
+                      </div>
+                    )}
                   </div>
-                  <div style={{ display: 'flex', gap: '20px', flexShrink: 0 }}>
+                  <div style={{ display: 'flex', gap: '16px', flexShrink: 0 }}>
                     <div style={{ textAlign: 'right' }}>
                       <div style={{ fontSize: '10px', color: '#aaa' }}>Kredi</div>
-                      <div style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>{client.credit_balance || 0}</div>
+                      <div style={{ fontSize: '13px', fontWeight: '500', color: Number(client.credit_balance) === 0 ? '#ef4444' : Number(client.credit_balance) < 10 ? '#f59e0b' : '#0a0a0a' }}>{client.credit_balance || 0}</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '10px', color: '#aaa' }}>İş</div>
+                      <div style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>{client._approvedCount || 0}</div>
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }} onClick={e => e.stopPropagation()}>

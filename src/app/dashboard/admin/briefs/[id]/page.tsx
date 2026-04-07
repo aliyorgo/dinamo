@@ -72,6 +72,8 @@ export default function AdminBriefDetail() {
   const [sharedFields, setSharedFields] = useState<string[]>(['message','cta','target_audience','voiceover_text','notes'])
   const [voUpload, setVoUpload] = useState(false)
   const voFileRef = useRef<HTMLInputElement>(null)
+  const [deleteStep, setDeleteStep] = useState(0) // 0=hidden, 1=first confirm, 2=second confirm
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => { loadData() }, [id])
 
@@ -265,6 +267,25 @@ export default function AdminBriefDetail() {
     await supabase.from('briefs').update({ status:'cancelled' }).eq('id', id)
     if (clientEmail && brief) { await fetch('/api/notify', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ to: clientEmail, subject: `${brief.campaign_name} — İptal`, html: `<p>Merhaba,</p><p><strong>${brief.campaign_name}</strong> briefi iptal edildi.</p><p>İyi çalışmalar,<br/>Dinamo</p>` }) }).catch(()=>null) }
     router.push('/dashboard/admin/briefs')
+  }
+
+  async function deleteBrief() {
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/briefs/${id}`, { method: 'DELETE' })
+      const data = await res.json()
+      if (!res.ok || data.error) {
+        setMsg(data.error || 'Silme hatasi')
+        setDeleting(false)
+        setDeleteStep(0)
+        return
+      }
+      router.push('/dashboard/admin/briefs')
+    } catch (err: any) {
+      setMsg('Silme hatasi: ' + (err.message || 'Bilinmeyen hata'))
+      setDeleting(false)
+      setDeleteStep(0)
+    }
   }
 
   async function handleLogout() { await supabase.auth.signOut(); router.push('/login') }
@@ -593,10 +614,53 @@ export default function AdminBriefDetail() {
                   </button>
                 </div>
               )}
+              {/* DELETE BRIEF */}
+              <div style={{marginTop:'32px',paddingTop:'20px',borderTop:'0.5px solid rgba(0,0,0,0.08)'}}>
+                <button onClick={()=>setDeleteStep(1)}
+                  style={{padding:'9px 20px',background:'#fff',color:'#ef4444',border:'1px solid rgba(239,68,68,0.3)',borderRadius:'8px',fontSize:'12px',cursor:'pointer',fontFamily:'Inter,sans-serif',fontWeight:'500'}}>
+                  Brief'i Sil
+                </button>
+              </div>
             </>
           )}
         </div>
       </div>
+
+      {/* DELETE CONFIRM — STEP 1 */}
+      {deleteStep === 1 && (
+        <div style={{position:'fixed',inset:0,zIndex:150,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={()=>setDeleteStep(0)}>
+          <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.5)'}} />
+          <div style={{position:'relative',background:'#fff',borderRadius:'16px',padding:'32px',width:'420px',maxWidth:'90vw',boxShadow:'0 20px 60px rgba(0,0,0,0.3)'}} onClick={e=>e.stopPropagation()}>
+            <div style={{fontSize:'16px',fontWeight:'500',color:'#0a0a0a',marginBottom:'12px'}}>Brief'i Sil</div>
+            <div style={{fontSize:'13px',color:'#555',lineHeight:1.7,marginBottom:'24px'}}>Bu brief'i silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.</div>
+            <div style={{display:'flex',gap:'10px'}}>
+              <button onClick={()=>setDeleteStep(0)} style={{flex:1,padding:'12px',background:'#f5f4f0',color:'#555',border:'none',borderRadius:'10px',fontSize:'14px',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>İptal</button>
+              <button onClick={()=>setDeleteStep(2)}
+                style={{flex:1,padding:'12px',background:'#ef4444',color:'#fff',border:'none',borderRadius:'10px',fontSize:'14px',fontWeight:'500',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                Evet, Sil
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE CONFIRM — STEP 2 (final) */}
+      {deleteStep === 2 && (
+        <div style={{position:'fixed',inset:0,zIndex:150,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={()=>setDeleteStep(0)}>
+          <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.5)'}} />
+          <div style={{position:'relative',background:'#fff',borderRadius:'16px',padding:'32px',width:'420px',maxWidth:'90vw',boxShadow:'0 20px 60px rgba(0,0,0,0.3)'}} onClick={e=>e.stopPropagation()}>
+            <div style={{fontSize:'16px',fontWeight:'500',color:'#ef4444',marginBottom:'12px'}}>Son Onay</div>
+            <div style={{fontSize:'13px',color:'#555',lineHeight:1.7,marginBottom:'24px'}}>Son kez soruyoruz — brief ve tüm ilişkili dosyalar kalıcı olarak silinecek. Devam etmek istiyor musunuz?</div>
+            <div style={{display:'flex',gap:'10px'}}>
+              <button onClick={()=>setDeleteStep(0)} style={{flex:1,padding:'12px',background:'#f5f4f0',color:'#555',border:'none',borderRadius:'10px',fontSize:'14px',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Vazgeç</button>
+              <button onClick={deleteBrief} disabled={deleting}
+                style={{flex:1,padding:'12px',background:'#ef4444',color:'#fff',border:'none',borderRadius:'10px',fontSize:'14px',fontWeight:'500',cursor:deleting?'not-allowed':'pointer',fontFamily:'Inter,sans-serif'}}>
+                {deleting ? 'Siliniyor...' : 'Kalıcı Olarak Sil'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* CLIENT APPROVE CONFIRM MODAL */}
       {showClientApproveModal && (

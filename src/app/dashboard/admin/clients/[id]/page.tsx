@@ -66,6 +66,12 @@ export default function ClientDetailPage() {
   const [savingSale, setSavingSale] = useState(false)
   const [sales, setSales] = useState<any[]>([])
 
+  // Client users
+  const [clientUsers, setClientUsers] = useState<any[]>([])
+  const [creditAllocModal, setCreditAllocModal] = useState<any>(null) // { user, direction: 'give' | 'take' }
+  const [allocAmount, setAllocAmount] = useState('')
+  const [allocSaving, setAllocSaving] = useState(false)
+
   // AI notes
   const [aiNotes, setAiNotes] = useState('')
   const [savingNotes, setSavingNotes] = useState(false)
@@ -85,12 +91,13 @@ export default function ClientDetailPage() {
     if (!ud || ud.role !== 'admin') { router.push('/login'); return }
     setUserName(ud.name)
 
-    const [{ data: cl }, { data: br }, { data: tx }, { data: sl }, { data: pkgs }] = await Promise.all([
+    const [{ data: cl }, { data: br }, { data: tx }, { data: sl }, { data: pkgs }, { data: cu }] = await Promise.all([
       supabase.from('clients').select('*').eq('id', clientId).single(),
       supabase.from('briefs').select('id, campaign_name, status, credit_cost, created_at').eq('client_id', clientId).order('created_at', { ascending: false }),
       supabase.from('credit_transactions').select('*').eq('client_id', clientId).order('created_at', { ascending: false }),
       supabase.from('credit_sales').select('*').eq('client_id', clientId).order('created_at', { ascending: false }),
       supabase.from('credit_packages').select('*').order('credits'),
+      supabase.from('client_users').select('*, users(name, email, role)').eq('client_id', clientId),
     ])
 
     if (!cl) { router.push('/dashboard/admin/clients'); return }
@@ -100,6 +107,7 @@ export default function ClientDetailPage() {
     setTransactions(tx || [])
     setSales(sl || [])
     setPackages(pkgs || [])
+    setClientUsers(cu || [])
 
     if (cl.agency_id) {
       const { data: ag } = await supabase.from('agencies').select('id, name, logo_url, commission_rate, total_earnings').eq('id', cl.agency_id).single()
@@ -278,6 +286,43 @@ export default function ClientDetailPage() {
     setTransactions(freshTx || [])
   }
 
+  // -- Credit Allocation --
+  async function allocateCredit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!creditAllocModal) return
+    const amount = parseInt(allocAmount)
+    if (!amount || amount <= 0) return
+    setAllocSaving(true)
+
+    const cu = creditAllocModal.user
+    const isGive = creditAllocModal.direction === 'give'
+    const pool = Number(client?.credit_balance || 0)
+    const current = Number(cu.allocated_credits || 0)
+
+    if (isGive) {
+      if (amount > pool) { showMsg('Havuzda yeterli kredi yok.', true); setAllocSaving(false); return }
+      await supabase.from('client_users').update({ allocated_credits: current + amount }).eq('id', cu.id)
+      await supabase.from('clients').update({ credit_balance: pool - amount }).eq('id', clientId)
+      setClient((prev: any) => ({ ...prev, credit_balance: pool - amount }))
+      setClientUsers(prev => prev.map(u => u.id === cu.id ? { ...u, allocated_credits: current + amount } : u))
+      showMsg(`${amount} kredi atandi.`)
+    } else {
+      const takeAmount = Math.min(amount, current)
+      if (takeAmount <= 0) { showMsg('Geri alinacak kredi yok.', true); setAllocSaving(false); return }
+      await supabase.from('client_users').update({ allocated_credits: current - takeAmount }).eq('id', cu.id)
+      await supabase.from('clients').update({ credit_balance: pool + takeAmount }).eq('id', clientId)
+      setClient((prev: any) => ({ ...prev, credit_balance: pool + takeAmount }))
+      setClientUsers(prev => prev.map(u => u.id === cu.id ? { ...u, allocated_credits: current - takeAmount } : u))
+      showMsg(`${takeAmount} kredi geri alindi.`)
+    }
+
+    setCreditAllocModal(null)
+    setAllocAmount('')
+    setAllocSaving(false)
+  }
+
+  const totalAllocated = clientUsers.reduce((sum, cu) => sum + Number(cu.allocated_credits || 0), 0)
+
   // -- AI Notes --
   async function saveAiNotes() {
     setSavingNotes(true)
@@ -406,7 +451,9 @@ export default function ClientDetailPage() {
                 {[
                   { label: 'Durum', value: st.label, color: st.color },
                   { label: 'E-posta', value: client?.contact_email || '\u2014' },
-                  { label: 'Kredi Bakiyesi', value: `${client?.credit_balance || 0}`, color: '#0a0a0a' },
+                  { label: 'Havuz Kredisi', value: `${client?.credit_balance || 0}`, color: '#22c55e' },
+                  { label: 'Atanmis Kredi', value: `${totalAllocated}` },
+                  { label: 'Toplam Kredi', value: `${(client?.credit_balance || 0) + totalAllocated}`, color: '#0a0a0a' },
                   { label: 'Ajans', value: agency ? agency.name : 'Direkt musteri' },
                   { label: 'Briefler', value: `${briefs.length}` },
                   { label: 'Olusturulma', value: client?.created_at ? new Date(client.created_at).toLocaleDateString('tr-TR') : '\u2014' },
@@ -501,6 +548,39 @@ export default function ClientDetailPage() {
                 })}
               </div>
 
+              {/* CLIENT USERS */}
+              <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', overflow: 'hidden' }}>
+                <div style={{ padding: '14px 20px', borderBottom: '0.5px solid rgba(0,0,0,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>Kullanicilar ({clientUsers.length})</span>
+                  <span style={{ fontSize: '11px', color: '#888' }}>Havuz: {client?.credit_balance || 0} kr</span>
+                </div>
+                {clientUsers.length === 0 ? (
+                  <div style={{ padding: '24px', textAlign: 'center', color: '#aaa', fontSize: '12px' }}>Atanmis kullanici yok.</div>
+                ) : clientUsers.map((cu: any) => (
+                  <div key={cu.id} style={{ padding: '12px 20px', borderTop: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>{cu.users?.name || '\u2014'}</div>
+                      <div style={{ fontSize: '11px', color: '#888', marginTop: '2px' }}>{cu.users?.email || '\u2014'}</div>
+                    </div>
+                    <div style={{ textAlign: 'right', marginRight: '8px' }}>
+                      <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a' }}>{cu.allocated_credits || 0}</div>
+                      <div style={{ fontSize: '9px', color: '#aaa' }}>kredi</div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
+                      <button onClick={() => { setCreditAllocModal({ user: cu, direction: 'give' }); setAllocAmount('') }}
+                        style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '10px', fontWeight: '500', border: '1px solid #22c55e', background: 'rgba(34,197,94,0.1)', color: '#22c55e', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>
+                        + Ver
+                      </button>
+                      <button onClick={() => { setCreditAllocModal({ user: cu, direction: 'take' }); setAllocAmount('') }}
+                        disabled={!cu.allocated_credits}
+                        style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '10px', fontWeight: '500', border: '1px solid rgba(0,0,0,0.15)', background: '#fff', color: cu.allocated_credits ? '#888' : '#ddd', cursor: cu.allocated_credits ? 'pointer' : 'not-allowed', fontFamily: 'Inter,sans-serif' }}>
+                        - Geri Al
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
               {/* CREDIT TRANSACTIONS */}
               <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', overflow: 'hidden' }}>
                 <div style={{ padding: '14px 20px', borderBottom: '0.5px solid rgba(0,0,0,0.08)', fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>
@@ -563,6 +643,46 @@ export default function ClientDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* CREDIT ALLOCATION MODAL */}
+      {creditAllocModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}
+          onClick={() => setCreditAllocModal(null)}>
+          <div style={{ background: '#fff', borderRadius: '14px', padding: '28px', width: '360px', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a', marginBottom: '6px' }}>
+              {creditAllocModal.direction === 'give' ? 'Kredi Ver' : 'Kredi Geri Al'}
+            </div>
+            <div style={{ fontSize: '12px', color: '#888', marginBottom: '20px' }}>
+              {creditAllocModal.user.users?.name || '\u2014'}
+              {creditAllocModal.direction === 'give'
+                ? ` \u00b7 Havuz: ${client?.credit_balance || 0} kr`
+                : ` \u00b7 Mevcut: ${creditAllocModal.user.allocated_credits || 0} kr`
+              }
+            </div>
+            <form onSubmit={allocateCredit}>
+              <label style={labelStyle}>
+                {creditAllocModal.direction === 'give' ? 'Verilecek Kredi' : 'Geri Alinacak Kredi'}
+              </label>
+              <input required type="number" min="1"
+                max={creditAllocModal.direction === 'give' ? (client?.credit_balance || 0) : (creditAllocModal.user.allocated_credits || 0)}
+                value={allocAmount} onChange={e => setAllocAmount(e.target.value)}
+                style={{ ...inputStyle, marginBottom: '16px', fontSize: '18px', fontWeight: '300', letterSpacing: '-0.5px' }}
+                placeholder="0" autoFocus />
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button type="button" onClick={() => setCreditAllocModal(null)}
+                  style={{ flex: 1, padding: '10px', background: '#fff', color: '#888', border: '0.5px solid rgba(0,0,0,0.15)', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>
+                  Iptal
+                </button>
+                <button type="submit" disabled={allocSaving}
+                  style={{ flex: 2, padding: '10px', background: creditAllocModal.direction === 'give' ? '#22c55e' : '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: allocSaving ? 'not-allowed' : 'pointer', fontFamily: 'Inter,sans-serif' }}>
+                  {allocSaving ? 'Isleniyor...' : creditAllocModal.direction === 'give' ? 'Kredi Ver' : 'Geri Al'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* SALE MODAL */}
       {saleModal && (
