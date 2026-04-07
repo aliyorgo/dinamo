@@ -85,7 +85,8 @@ export default function ClientBriefDetail() {
       })
       const data = await res.json()
       if (data.tiktok && data.instagram) setCaptions(data)
-    } catch {}
+      else if (data.error) console.error('[captions]', data.error)
+    } catch (err) { console.error('[captions] fetch error:', err) }
     setCaptionsLoading(false)
   }
 
