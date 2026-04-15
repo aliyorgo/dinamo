@@ -49,7 +49,6 @@ export default function ClientDashboard() {
   const [totalSpent, setTotalSpent] = useState(0)
   const [avgDelivery, setAvgDelivery] = useState(0)
   const [homeVideos, setHomeVideos] = useState<any[]>([])
-  const [featureIdx, setFeatureIdx] = useState(0)
 
   useEffect(() => {
     async function load() {
@@ -97,47 +96,12 @@ export default function ClientDashboard() {
         acts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         setActivities(acts.slice(0, 5))
       }
-      let { data: hvids, error: hvidErr } = await supabase.from('homepage_videos').select('*').eq('is_active', true).order('sort_order', { ascending: true }).limit(6)
-      // Fallback: if is_active filter returns nothing, try without filter
-      if ((!hvids || hvids.length === 0) && !hvidErr) {
-        const fallback = await supabase.from('homepage_videos').select('*').order('sort_order', { ascending: true }).limit(6)
-        hvids = fallback.data
-        hvidErr = fallback.error
-      }
-      if (hvidErr) console.error('[Dashboard] homepage_videos error:', hvidErr.message)
+      const { data: hvids } = await supabase.from('homepage_videos').select('id, title, video_url').eq('is_active', true).order('created_at', { ascending: false }).limit(6)
       setHomeVideos(hvids || [])
       setLoading(false)
     }
     load()
   }, [router])
-
-  const FEATURES = [
-    { title: 'AI Destekli Brief', desc: 'Ne istediğini anlat, sistem oluştursun.' },
-    { title: '24 Saatte Teslim', desc: "Brief'ten videoya tek iş günü." },
-    { title: 'Telif Güvencesi', desc: 'Her onaylı videoya otomatik sertifika.' },
-    { title: 'Pikseline Kadar Revizyon', desc: 'Saniyesine kadar geri bildirim ver.' },
-    { title: 'Çok Dilli İçerik', desc: 'Aynı video, 7 dilde.' },
-    { title: 'Kendini Geliştiren AI', desc: "Her brief'ten öğrenir, her seferinde daha iyi yazar." },
-  ]
-
-  const [featureProgress, setFeatureProgress] = useState(0)
-
-  useEffect(() => {
-    if (briefs.length > 0) return
-    const interval = 3000
-    const step = 50
-    const inc = 100 / (interval / step)
-    const timer = setInterval(() => {
-      setFeatureProgress(prev => {
-        if (prev >= 100) {
-          setFeatureIdx(p => (p + 1) % FEATURES.length)
-          return 0
-        }
-        return prev + inc
-      })
-    }, step)
-    return () => clearInterval(timer)
-  }, [briefs.length])
 
   async function markNotifRead(id: string) {
     await supabase.from('notifications').update({ is_read: true }).eq('id', id)
@@ -179,10 +143,9 @@ export default function ClientDashboard() {
 
   return (
     <div style={{display:'flex',minHeight:'100vh',fontFamily:"var(--font-dm-sans),'DM Sans',system-ui,sans-serif",background:'#f5f4f0'}}>
-      <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }`}</style>
 
       {/* SIDEBAR */}
-      <div style={{width:'220px',background:'#111113',display:'flex',flexDirection:'column',flexShrink:0,height:'100vh',position:'sticky',top:0}}>
+      <div style={{width:'240px',background:'#0A0A0A',display:'flex',flexDirection:'column',flexShrink:0,height:'100vh',position:'sticky',top:0}}>
         <div style={{padding:'18px 16px 14px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
           <div style={{fontSize:'18px',fontWeight:'500',color:'#fff',letterSpacing:'-0.5px',marginBottom:'12px'}}>
             dinam<span style={{display:'inline-block',width:'11px',height:'11px',borderRadius:'50%',border:'2.5px solid #22c55e',position:'relative',top:'1px'}}></span>
@@ -251,86 +214,84 @@ export default function ClientDashboard() {
           </div>
         </div>
 
-        <div style={{flex:1,overflowY:'auto',padding:'24px 28px'}}>
+        <div style={{flex:1,overflow:'hidden'}}>
           {loading ? (
-            <div style={{color:'#888',fontSize:'14px'}}>Yükleniyor...</div>
+            <div style={{padding:'24px 28px',color:'#888',fontSize:'14px'}}>Yükleniyor...</div>
           ) : briefs.length === 0 ? (
-            /* WELCOME SCREEN */
-            <div style={{display:'flex',flexDirection:'column',gap:'24px'}}>
-
-              {/* HERO CARD */}
-              <div style={{background:'#0a0a0a',borderRadius:'20px',padding:'60px 56px',textAlign:'center'}}>
-                <div style={{marginBottom:'28px'}}>
-                  <span style={{fontSize:'18px',fontWeight:'500',color:'#fff',letterSpacing:'-0.5px'}}>
-                    dinam<span style={{display:'inline-block',width:'12px',height:'12px',borderRadius:'50%',border:'2.5px solid #22c55e',position:'relative',top:'1px',marginLeft:'1px'}}></span>
-                  </span>
-                </div>
-                <h1 style={{fontSize:'32px',fontWeight:'300',color:'#fff',letterSpacing:'-1px',marginBottom:'12px',lineHeight:1.2}}>
-                  Hoş geldiniz{companyName ? `, ${companyName}` : ''}.
-                </h1>
-                <p style={{fontSize:'15px',color:'rgba(255,255,255,0.45)',lineHeight:1.7,marginBottom:'36px',fontWeight:'300'}}>
-                  Ilk brief'inizi olusturun, 24 saat icinde videonuz hazir.
-                </p>
-                <div style={{display:'flex',justifyContent:'center',gap:'32px',marginBottom:'40px'}}>
-                  {[
-                    {step:'01',label:'Brief Yaz'},
-                    {step:'02',label:'Produktor Onaylar'},
-                    {step:'03',label:'Video Teslim'},
-                  ].map((s,i)=>(
-                    <div key={s.step} style={{display:'flex',alignItems:'center',gap: i < 2 ? '32px' : '0'}}>
-                      <div style={{textAlign:'center'}}>
-                        <div style={{fontSize:'20px',fontWeight:'600',color:'#22c55e',letterSpacing:'-1px',marginBottom:'4px'}}>{s.step}</div>
-                        <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',whiteSpace:'nowrap'}}>{s.label}</div>
-                      </div>
-                      {i < 2 && <div style={{width:'24px',height:'1px',background:'rgba(255,255,255,0.1)',marginLeft:'0'}}></div>}
-                    </div>
-                  ))}
-                </div>
-                <button onClick={()=>router.push('/dashboard/client/brief/new')}
-                  style={{padding:'14px 36px',background:'#22c55e',color:'#fff',border:'none',borderRadius:'10px',fontSize:'15px',fontWeight:'500',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',letterSpacing:'-0.3px'}}>
-                  Ilk Brief'i Olustur
-                </button>
+            /* WELCOME SCREEN — full black, centered */
+            <div style={{background:'#0A0A0A',minHeight:'100%',display:'flex',flexDirection:'column',position:'relative'}}>
+              {/* Logo top-left */}
+              <div style={{padding:'28px 36px'}}>
+                <img src="/logo.svg" alt="Dinamo" style={{height:'28px'}} />
               </div>
 
-              {/* FEATURE TICKER */}
-              <div onClick={()=>router.push('/dashboard/client/brief/new')}
-                style={{background:'#fff',border:'1px solid #E8E8E4',borderRadius:'14px',cursor:'pointer',overflow:'hidden',boxShadow:'0 1px 3px rgba(0,0,0,0.04)',display:'flex'}}>
-                <div style={{width:'4px',background:'#22c55e',flexShrink:0}}></div>
-                <div style={{padding:'24px 28px',flex:1,position:'relative',minHeight:'100px'}}>
-                  <div style={{fontSize:'10px',color:'#aaa',letterSpacing:'2px',textTransform:'uppercase',marginBottom:'12px'}}>PLATFORM OZELLIKLERI</div>
-                  <div key={featureIdx} style={{animation:'fadeIn 0.4s ease'}}>
-                    <div style={{fontSize:'20px',fontWeight:'600',color:'#0a0a0a',marginBottom:'6px',letterSpacing:'-0.3px'}}>{FEATURES[featureIdx].title}</div>
-                    <div style={{fontSize:'14px',color:'#888',fontWeight:'300',lineHeight:1.6}}>{FEATURES[featureIdx].desc}</div>
-                  </div>
-                  <div style={{marginTop:'16px',height:'3px',background:'#f0f0ee',borderRadius:'2px',overflow:'hidden'}}>
-                    <div style={{height:'100%',background:'#22c55e',borderRadius:'2px',width:`${featureProgress}%`,transition:'width 50ms linear'}}></div>
-                  </div>
-                </div>
-              </div>
+              {/* Main content centered */}
+              <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',padding:'0 48px'}}>
+                <div style={{maxWidth:'520px',width:'100%'}}>
+                  <h1 style={{fontSize:'64px',fontWeight:'300',color:'#fff',letterSpacing:'-0.02em',lineHeight:1.05,margin:0}}>
+                    Hoş geldiniz,
+                  </h1>
+                  {companyName && (
+                    <h1 style={{fontSize:'64px',fontWeight:'700',color:'#fff',letterSpacing:'-0.02em',lineHeight:1.05,margin:0}}>
+                      {companyName}.
+                    </h1>
+                  )}
+                  <div style={{width:'60px',height:'2px',background:'#1DB81D',marginTop:'20px',marginBottom:'28px'}}></div>
+                  <p style={{fontSize:'18px',color:'#888',fontWeight:'300',letterSpacing:'0.01em',lineHeight:1.6,margin:'0 0 40px 0'}}>
+                    Brief'inizi oluşturun, 24 saat içinde videonuz hazır.
+                  </p>
 
-              {/* HIGHLIGHT VIDEOS */}
-              {homeVideos.length > 0 && (
-                <div>
-                  <div style={{fontSize:'13px',fontWeight:'600',color:'#0a0a0a',marginBottom:'12px'}}>Dinamo ile Uretildi</div>
-                  <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px'}}>
-                    {homeVideos.map(v=>(
-                      <div key={v.id} style={{position:'relative',overflow:'hidden',aspectRatio:'9/16',background:'#111',cursor:'pointer'}}
-                        onMouseEnter={e=>{const vid=e.currentTarget.querySelector('video') as HTMLVideoElement;if(vid)vid.play().catch(()=>{});const ov=e.currentTarget.querySelector('[data-overlay]') as HTMLElement;if(ov)ov.style.opacity='0'}}
-                        onMouseLeave={e=>{const vid=e.currentTarget.querySelector('video') as HTMLVideoElement;if(vid){vid.pause();vid.currentTime=0}const ov=e.currentTarget.querySelector('[data-overlay]') as HTMLElement;if(ov)ov.style.opacity='1'}}>
-                        {v.video_url ? (
-                          <video src={v.video_url} muted loop playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'cover'}} />
-                        ) : (
-                          <div style={{width:'100%',height:'100%',background:'#1a1a1a'}} />
-                        )}
-                        <div data-overlay="" style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.55)',display:'flex',alignItems:'flex-end',padding:'16px',transition:'opacity 0.3s'}}>
-                          <span style={{fontSize:'13px',fontWeight:'500',color:'#fff'}}>{v.title || ''}</span>
+                  {/* Steps */}
+                  <div style={{display:'flex',alignItems:'flex-start',gap:'0',marginBottom:'48px'}}>
+                    {[
+                      {n:'01',t:'Brief Yazın'},
+                      {n:'02',t:'Prodüktör Onaylar'},
+                      {n:'03',t:'Video Teslim'},
+                    ].map((s,i)=>(
+                      <div key={s.n} style={{display:'flex',alignItems:'flex-start'}}>
+                        <div>
+                          <div style={{fontSize:'11px',color:'#1DB81D',letterSpacing:'0.15em',marginBottom:'8px'}}>{s.n}</div>
+                          <div style={{fontSize:'14px',color:'#fff',fontWeight:'500'}}>{s.t}</div>
                         </div>
+                        {i < 2 && <div style={{width:'40px',height:'1px',background:'#2A2A2A',margin:'8px 20px 0 20px',flexShrink:0}}></div>}
                       </div>
                     ))}
                   </div>
-                </div>
-              )}
 
+                  {/* CTA */}
+                  <button onClick={()=>router.push('/dashboard/client/brief/new')}
+                    onMouseEnter={e=>{e.currentTarget.style.background='#F0F0F0'}}
+                    onMouseLeave={e=>{e.currentTarget.style.background='#fff'}}
+                    style={{padding:'14px 32px',background:'#fff',color:'#0A0A0A',border:'none',fontSize:'14px',fontWeight:'600',letterSpacing:'0.05em',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'8px',transition:'background 0.2s'}}>
+                    İlk Brief'i Oluştur
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  </button>
+
+                  {/* Video grid */}
+                  {homeVideos.length > 0 && (
+                    <div style={{marginTop:'56px'}}>
+                      <div style={{fontSize:'13px',fontWeight:'700',color:'#fff',marginBottom:'16px'}}>Dinamo ile Üretildi</div>
+                      <div style={{display:'grid',gridTemplateColumns:`repeat(${Math.min(homeVideos.length, 4)},1fr)`,gap:'8px'}}>
+                        {homeVideos.map(v=>(
+                          <div key={v.id} style={{position:'relative',overflow:'hidden',aspectRatio:'16/9',background:'#111',cursor:'pointer'}}
+                            onMouseEnter={e=>{const vid=e.currentTarget.querySelector('video') as HTMLVideoElement;if(vid)vid.play().catch(()=>{});const ov=e.currentTarget.querySelector('[data-ov]') as HTMLElement;if(ov)ov.style.opacity='0'}}
+                            onMouseLeave={e=>{const vid=e.currentTarget.querySelector('video') as HTMLVideoElement;if(vid){vid.pause();vid.currentTime=0}const ov=e.currentTarget.querySelector('[data-ov]') as HTMLElement;if(ov)ov.style.opacity='1'}}>
+                            <video src={v.video_url} loop muted playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'cover'}} />
+                            <div data-ov="" style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.5)',display:'flex',alignItems:'flex-end',padding:'10px',transition:'opacity 0.3s'}}>
+                              <span style={{fontSize:'11px',fontWeight:'500',color:'#fff'}}>{v.title || ''}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Bottom email */}
+              <div style={{padding:'20px',textAlign:'center'}}>
+                <span style={{fontSize:'11px',color:'#444'}}>Sorularınız için hello@dinamo.media</span>
+              </div>
             </div>
           ) : (
             <>
