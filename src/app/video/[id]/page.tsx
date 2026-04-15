@@ -14,8 +14,8 @@ export default async function VideoPage({ params }: { params: { id: string } }) 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a', fontFamily: "'Inter', system-ui, sans-serif" }}>
       <div style={{ textAlign: 'center', padding: '0 24px' }}>
-        <div style={{ fontSize: '28px', fontWeight: '500', color: '#fff', letterSpacing: '-0.5px', marginBottom: '32px' }}>
-          dinam<span style={{ display: 'inline-block', width: '22px', height: '22px', borderRadius: '50%', border: '3.5px solid #22c55e', position: 'relative', top: '4px', marginLeft: '2px' }}></span>
+        <div style={{ marginBottom: '32px' }}>
+          <img src="/dinamo_logo.png" alt="Dinamo" style={{ height: '36px' }} />
         </div>
         <div style={{ fontSize: '20px', fontWeight: '300', color: '#fff', marginBottom: '12px' }}>Bu video bulunamadı.</div>
         <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.4)', marginBottom: '32px' }}>Video henüz yayınlanmamış veya link geçersiz olabilir.</div>

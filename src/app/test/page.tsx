@@ -141,8 +141,8 @@ export default function HomePage() {
         WebkitBackdropFilter: 'blur(24px)',
         borderBottom: '1px solid rgba(255,255,255,0.06)',
       }}>
-        <a href="/test" style={{ fontSize: '24px', fontWeight: '500', letterSpacing: '-0.5px' }}>
-          dinam<span style={{ display: 'inline-block', width: '22px', height: '22px', borderRadius: '50%', border: '3.5px solid #1db81d', position: 'relative', top: '3px', marginLeft: '1px' }}></span>
+        <a href="/test">
+          <img src="/dinamo_logo.png" alt="Dinamo" style={{ height: '32px' }} />
         </a>
         <div className="nav-desk" style={{ display: 'flex', alignItems: 'center', gap: '36px' }}>
           <a href="#nasil-calisir" className="nav-link">Nasıl Çalışır</a>

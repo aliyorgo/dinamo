@@ -50,12 +50,7 @@ export default function LoginPage() {
       <div style={{ width: '100%', maxWidth: '380px', padding: '0 24px' }}>
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-          <div style={{ fontSize: '48px', fontWeight: '500', letterSpacing: '-2px', color: '#fff' }}>
-            dinam<span style={{
-              display: 'inline-block', width: '36px', height: '36px', borderRadius: '50%',
-              border: '5px solid #1db81d', position: 'relative', top: '5px', marginLeft: '2px',
-            }}></span>
-          </div>
+          <img src="/dinamo_logo.png" alt="Dinamo" style={{ height: '48px' }} />
         </div>
 
         {/* Form */}

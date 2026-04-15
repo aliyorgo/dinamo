@@ -55,9 +55,7 @@ export default function DemoRequestPage() {
       <div style={{ width: '100%', maxWidth: '600px', padding: '60px 24px' }}>
         {/* LOGO */}
         <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-          <span style={{ fontSize: '36px', fontWeight: '500', color: '#fff', letterSpacing: '-1px' }}>
-            dinam<span style={{ display: 'inline-block', width: '28px', height: '28px', borderRadius: '50%', border: '4px solid #22c55e', position: 'relative', top: '5px', marginLeft: '2px' }}></span>
-          </span>
+          <img src="/dinamo_logo.png" alt="Dinamo" style={{ height: '40px' }} />
         </div>
 
         {/* TITLE */}
