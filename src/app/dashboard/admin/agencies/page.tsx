@@ -270,7 +270,7 @@ export default function AgenciesPage() {
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '8px 12px', border: '0.5px solid rgba(0,0,0,0.15)',
     borderRadius: '8px', fontSize: '13px', color: '#0a0a0a',
-    fontFamily: 'Inter,sans-serif', outline: 'none', boxSizing: 'border-box', background: '#fff',
+    fontFamily: 'var(--font-dm-sans),sans-serif', outline: 'none', boxSizing: 'border-box', background: '#fff',
   }
   const labelStyle: React.CSSProperties = {
     display: 'block', fontSize: '10px', color: '#888', marginBottom: '5px',
@@ -278,8 +278,7 @@ export default function AgenciesPage() {
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "'Inter',system-ui,sans-serif" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');`}</style>
+    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "var(--font-dm-sans),'DM Sans',system-ui,sans-serif" }}>
 
       {/* SIDEBAR */}
       <div style={{ width: '220px', background: '#111113', display: 'flex', flexDirection: 'column', flexShrink: 0, height: '100vh', position: 'sticky', top: 0 }}>
@@ -300,7 +299,7 @@ export default function AgenciesPage() {
         </nav>
         <div style={{ padding: '10px 8px', borderTop: '0.5px solid rgba(255,255,255,0.07)' }}>
           <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '6px 8px', borderRadius: '7px', cursor: 'pointer', width: '100%', background: 'none', border: 'none' }}>
-            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', fontFamily: 'Inter,sans-serif' }}>Çıkış yap</span>
+            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-dm-sans),sans-serif' }}>Çıkış yap</span>
           </button>
         </div>
       </div>
@@ -361,12 +360,12 @@ export default function AgenciesPage() {
                       <div style={{ display: 'flex', gap: '6px' }}>
                         <input required value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} style={{ ...inputStyle, fontFamily: 'monospace', letterSpacing: '1px', flex: 1 }} placeholder="Şifre" />
                         <button type="button" onClick={generatePassword}
-                          style={{ padding: '8px 10px', background: '#f5f4f0', border: '0.5px solid rgba(0,0,0,0.15)', borderRadius: '8px', fontSize: '11px', cursor: 'pointer', fontFamily: 'Inter,sans-serif', flexShrink: 0, color: '#555' }}>
+                          style={{ padding: '8px 10px', background: '#f5f4f0', border: '0.5px solid rgba(0,0,0,0.15)', borderRadius: '8px', fontSize: '11px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', flexShrink: 0, color: '#555' }}>
                           Oluştur
                         </button>
                         {form.password && (
                           <button type="button" onClick={copyPassword}
-                            style={{ padding: '8px 10px', background: pwCopied ? 'rgba(34,197,94,0.1)' : '#f5f4f0', border: `0.5px solid ${pwCopied ? '#22c55e' : 'rgba(0,0,0,0.15)'}`, borderRadius: '8px', fontSize: '11px', cursor: 'pointer', fontFamily: 'Inter,sans-serif', flexShrink: 0, color: pwCopied ? '#22c55e' : '#555' }}>
+                            style={{ padding: '8px 10px', background: pwCopied ? 'rgba(34,197,94,0.1)' : '#f5f4f0', border: `0.5px solid ${pwCopied ? '#22c55e' : 'rgba(0,0,0,0.15)'}`, borderRadius: '8px', fontSize: '11px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', flexShrink: 0, color: pwCopied ? '#22c55e' : '#555' }}>
                             {pwCopied ? '✓' : 'Kopyala'}
                           </button>
                         )}
@@ -375,7 +374,7 @@ export default function AgenciesPage() {
                   </div>
                   {msg && <div style={{ fontSize: '12px', color: msgColor, marginBottom: '10px' }}>{msg}</div>}
                   <button type="submit" disabled={creating}
-                    style={{ padding: '8px 20px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: creating ? 'not-allowed' : 'pointer', fontFamily: 'Inter,sans-serif', opacity: creating ? 0.7 : 1 }}>
+                    style={{ padding: '8px 20px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: creating ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', opacity: creating ? 0.7 : 1 }}>
                     {creating ? 'Oluşturuluyor...' : 'Ajans Oluştur'}
                   </button>
                 </form>
@@ -432,7 +431,7 @@ export default function AgenciesPage() {
                         </div>
                       </div>
                       <button onClick={e => { e.stopPropagation(); router.push(`/dashboard/admin/agencies/${agency.id}`) }}
-                        style={{ padding: '5px 14px', borderRadius: '100px', fontSize: '10px', fontWeight: '500', cursor: 'pointer', border: '0.5px solid rgba(0,0,0,0.15)', background: '#fff', color: '#555', fontFamily: 'Inter,sans-serif', flexShrink: 0 }}>
+                        style={{ padding: '5px 14px', borderRadius: '100px', fontSize: '10px', fontWeight: '500', cursor: 'pointer', border: '0.5px solid rgba(0,0,0,0.15)', background: '#fff', color: '#555', fontFamily: 'var(--font-dm-sans),sans-serif', flexShrink: 0 }}>
                         Detay
                       </button>
                       <div style={{ fontSize: '16px', color: '#aaa', flexShrink: 0, userSelect: 'none' }}>
@@ -449,7 +448,7 @@ export default function AgenciesPage() {
                               padding: '5px 14px', borderRadius: '100px', fontSize: '10px', fontWeight: '500', cursor: 'pointer',
                               border: agency.status === 'active' ? '1px solid rgba(0,0,0,0.15)' : '1px solid #22c55e',
                               background: agency.status === 'active' ? '#fff' : 'rgba(34,197,94,0.1)',
-                              color: agency.status === 'active' ? '#888' : '#22c55e', fontFamily: 'Inter,sans-serif',
+                              color: agency.status === 'active' ? '#888' : '#22c55e', fontFamily: 'var(--font-dm-sans),sans-serif',
                             }}>
                             {agency.status === 'active' ? 'Pasife Al' : 'Aktife Al'}
                           </button>
@@ -493,7 +492,7 @@ export default function AgenciesPage() {
                                     <option key={k} value={k}>{v.label}</option>
                                   ))}
                                 </select>
-                                <button type="submit" style={{ padding: '7px 16px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '11px', fontWeight: '500', cursor: 'pointer', fontFamily: 'Inter,sans-serif', flexShrink: 0 }}>
+                                <button type="submit" style={{ padding: '7px 16px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '11px', fontWeight: '500', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', flexShrink: 0 }}>
                                   Ekle
                                 </button>
                               </div>
@@ -554,7 +553,7 @@ export default function AgenciesPage() {
                                   <input type="date" value={invoiceForm.invoice_date} onChange={e => setInvoiceForm({ ...invoiceForm, invoice_date: e.target.value })} style={{ ...inputStyle, fontSize: '12px' }} />
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-                                  <button type="submit" style={{ width: '100%', padding: '8px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '11px', fontWeight: '500', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>
+                                  <button type="submit" style={{ width: '100%', padding: '8px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '11px', fontWeight: '500', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
                                     Fatura Ekle
                                   </button>
                                 </div>
@@ -578,7 +577,7 @@ export default function AgenciesPage() {
                                       padding: '4px 12px', borderRadius: '100px', fontSize: '10px', fontWeight: '500', cursor: 'pointer',
                                       border: inv.is_paid ? '1px solid #22c55e' : '1px solid rgba(0,0,0,0.15)',
                                       background: inv.is_paid ? 'rgba(34,197,94,0.1)' : '#fff',
-                                      color: inv.is_paid ? '#22c55e' : '#888', fontFamily: 'Inter,sans-serif',
+                                      color: inv.is_paid ? '#22c55e' : '#888', fontFamily: 'var(--font-dm-sans),sans-serif',
                                     }}>
                                     {inv.is_paid ? '✓ Ödendi' : 'Bekliyor'}
                                   </button>
@@ -609,7 +608,7 @@ export default function AgenciesPage() {
                                               <input value={noteInput} onChange={e => setNoteInput(e.target.value)} placeholder="Admin notu..."
                                                 style={{ ...inputStyle, fontSize: '11px' }} />
                                               <button onClick={() => saveRequestNote(req.id, agency.id)}
-                                                style={{ padding: '5px 10px', background: '#111113', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '10px', cursor: 'pointer', fontFamily: 'Inter,sans-serif', flexShrink: 0 }}>✓</button>
+                                                style={{ padding: '5px 10px', background: '#111113', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '10px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', flexShrink: 0 }}>✓</button>
                                             </div>
                                           ) : (
                                             <div onClick={() => { setEditingNote(req.id); setNoteInput(req.admin_note || '') }}
@@ -622,9 +621,9 @@ export default function AgenciesPage() {
                                           {req.status === 'pending' && (
                                             <>
                                               <button onClick={() => updatePaymentRequestStatus(req.id, agency.id, 'approved')}
-                                                style={{ padding: '4px 8px', borderRadius: '6px', fontSize: '10px', border: '1px solid #22c55e', background: 'rgba(34,197,94,0.1)', color: '#22c55e', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>Onayla</button>
+                                                style={{ padding: '4px 8px', borderRadius: '6px', fontSize: '10px', border: '1px solid #22c55e', background: 'rgba(34,197,94,0.1)', color: '#22c55e', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>Onayla</button>
                                               <button onClick={() => updatePaymentRequestStatus(req.id, agency.id, 'rejected')}
-                                                style={{ padding: '4px 8px', borderRadius: '6px', fontSize: '10px', border: '1px solid rgba(0,0,0,0.15)', background: '#fff', color: '#888', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>Reddet</button>
+                                                style={{ padding: '4px 8px', borderRadius: '6px', fontSize: '10px', border: '1px solid rgba(0,0,0,0.15)', background: '#fff', color: '#888', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>Reddet</button>
                                             </>
                                           )}
                                           {req.status !== 'pending' && (

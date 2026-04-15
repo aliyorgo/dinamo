@@ -84,8 +84,7 @@ export default function BrandPage() {
   }
 
   return (
-    <div style={{display:'flex',minHeight:'100vh',fontFamily:"'Inter',system-ui,sans-serif"}}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');`}</style>
+    <div style={{display:'flex',minHeight:'100vh',fontFamily:"var(--font-dm-sans),'DM Sans',system-ui,sans-serif"}}>
 
       <div style={{width:'220px',background:'#111113',display:'flex',flexDirection:'column',flexShrink:0,height:'100vh',position:'sticky',top:0}}>
         <div style={{padding:'18px 16px 14px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
@@ -117,7 +116,7 @@ export default function BrandPage() {
         <div style={{flex:1}}></div>
         <div style={{padding:'10px 8px',borderTop:'0.5px solid rgba(255,255,255,0.07)'}}>
           <button onClick={handleLogout} style={{display:'flex',alignItems:'center',gap:'7px',padding:'6px 8px',borderRadius:'7px',cursor:'pointer',width:'100%',background:'none',border:'none'}}>
-            <span style={{fontSize:'11px',color:'rgba(255,255,255,0.25)',fontFamily:'Inter,sans-serif'}}>Çıkış yap</span>
+            <span style={{fontSize:'11px',color:'rgba(255,255,255,0.25)',fontFamily:'var(--font-dm-sans),sans-serif'}}>Çıkış yap</span>
           </button>
         </div>
       </div>
@@ -126,7 +125,7 @@ export default function BrandPage() {
         <div style={{padding:'14px 28px',background:'#fff',borderBottom:'0.5px solid rgba(0,0,0,0.08)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
           <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a'}}>Marka Paketi</div>
           <button onClick={()=>setShowModal(true)}
-            style={{background:'#111113',color:'#fff',border:'none',borderRadius:'8px',padding:'8px 18px',fontSize:'12px',fontFamily:'Inter,sans-serif',cursor:'pointer',fontWeight:'500'}}>
+            style={{background:'#111113',color:'#fff',border:'none',borderRadius:'8px',padding:'8px 18px',fontSize:'12px',fontFamily:'var(--font-dm-sans),sans-serif',cursor:'pointer',fontWeight:'500'}}>
             + Dosya Ekle
           </button>
         </div>
@@ -173,19 +172,19 @@ export default function BrandPage() {
             </div>
             <div style={{marginBottom:'16px'}}>
               <div style={{fontSize:'11px',color:'#888',textTransform:'uppercase',marginBottom:'6px'}}>Dosya Adı / Etiketi</div>
-              <input value={fileLabel} onChange={e=>setFileLabel(e.target.value)} placeholder="örn. Ana Logo, Marka Fontu..." style={{width:'100%',padding:'9px 12px',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a',fontFamily:'Inter,sans-serif',boxSizing:'border-box'}} />
+              <input value={fileLabel} onChange={e=>setFileLabel(e.target.value)} placeholder="örn. Ana Logo, Marka Fontu..." style={{width:'100%',padding:'9px 12px',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a',fontFamily:'var(--font-dm-sans),sans-serif',boxSizing:'border-box'}} />
             </div>
             <div style={{marginBottom:'20px'}}>
               <div style={{fontSize:'11px',color:'#888',textTransform:'uppercase',marginBottom:'6px'}}>Kampanya ile Eşleştir (opsiyonel)</div>
-              <select value={selectedBriefId} onChange={e=>setSelectedBriefId(e.target.value)} style={{width:'100%',padding:'9px 12px',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a',background:'#fff',fontFamily:'Inter,sans-serif'}}>
+              <select value={selectedBriefId} onChange={e=>setSelectedBriefId(e.target.value)} style={{width:'100%',padding:'9px 12px',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a',background:'#fff',fontFamily:'var(--font-dm-sans),sans-serif'}}>
                 <option value="">Tüm kampanyalar</option>
                 {briefs.map(b=><option key={b.id} value={b.id}>{b.campaign_name}</option>)}
               </select>
             </div>
             {msg&&<div style={{marginBottom:'12px',fontSize:'13px',color:'#e24b4a'}}>{msg}</div>}
             <div style={{display:'flex',gap:'8px',justifyContent:'flex-end'}}>
-              <button onClick={()=>{setShowModal(false);setMsg('')}} style={{padding:'9px 20px',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'8px',background:'#fff',color:'#555',fontSize:'13px',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>İptal</button>
-              <button onClick={handleUpload} disabled={uploading} style={{padding:'9px 20px',background:'#111113',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontFamily:'Inter,sans-serif',fontWeight:'500'}}>
+              <button onClick={()=>{setShowModal(false);setMsg('')}} style={{padding:'9px 20px',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'8px',background:'#fff',color:'#555',fontSize:'13px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>İptal</button>
+              <button onClick={handleUpload} disabled={uploading} style={{padding:'9px 20px',background:'#111113',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',fontWeight:'500'}}>
                 {uploading?'Yükleniyor...':'Yükle'}
               </button>
             </div>

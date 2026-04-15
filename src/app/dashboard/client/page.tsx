@@ -48,6 +48,8 @@ export default function ClientDashboard() {
   // Stats
   const [totalSpent, setTotalSpent] = useState(0)
   const [avgDelivery, setAvgDelivery] = useState(0)
+  const [homeVideos, setHomeVideos] = useState<any[]>([])
+  const [featureIdx, setFeatureIdx] = useState(0)
 
   useEffect(() => {
     async function load() {
@@ -95,10 +97,47 @@ export default function ClientDashboard() {
         acts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         setActivities(acts.slice(0, 5))
       }
+      let { data: hvids, error: hvidErr } = await supabase.from('homepage_videos').select('*').eq('is_active', true).order('sort_order', { ascending: true }).limit(6)
+      // Fallback: if is_active filter returns nothing, try without filter
+      if ((!hvids || hvids.length === 0) && !hvidErr) {
+        const fallback = await supabase.from('homepage_videos').select('*').order('sort_order', { ascending: true }).limit(6)
+        hvids = fallback.data
+        hvidErr = fallback.error
+      }
+      if (hvidErr) console.error('[Dashboard] homepage_videos error:', hvidErr.message)
+      setHomeVideos(hvids || [])
       setLoading(false)
     }
     load()
   }, [router])
+
+  const FEATURES = [
+    { title: 'AI Destekli Brief', desc: 'Ne istediğini anlat, sistem oluştursun.' },
+    { title: '24 Saatte Teslim', desc: "Brief'ten videoya tek iş günü." },
+    { title: 'Telif Güvencesi', desc: 'Her onaylı videoya otomatik sertifika.' },
+    { title: 'Pikseline Kadar Revizyon', desc: 'Saniyesine kadar geri bildirim ver.' },
+    { title: 'Çok Dilli İçerik', desc: 'Aynı video, 7 dilde.' },
+    { title: 'Kendini Geliştiren AI', desc: "Her brief'ten öğrenir, her seferinde daha iyi yazar." },
+  ]
+
+  const [featureProgress, setFeatureProgress] = useState(0)
+
+  useEffect(() => {
+    if (briefs.length > 0) return
+    const interval = 3000
+    const step = 50
+    const inc = 100 / (interval / step)
+    const timer = setInterval(() => {
+      setFeatureProgress(prev => {
+        if (prev >= 100) {
+          setFeatureIdx(p => (p + 1) % FEATURES.length)
+          return 0
+        }
+        return prev + inc
+      })
+    }, step)
+    return () => clearInterval(timer)
+  }, [briefs.length])
 
   async function markNotifRead(id: string) {
     await supabase.from('notifications').update({ is_read: true }).eq('id', id)
@@ -139,8 +178,8 @@ export default function ClientDashboard() {
   })
 
   return (
-    <div style={{display:'flex',minHeight:'100vh',fontFamily:"'Inter',system-ui,sans-serif",background:'#f5f4f0'}}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');`}</style>
+    <div style={{display:'flex',minHeight:'100vh',fontFamily:"var(--font-dm-sans),'DM Sans',system-ui,sans-serif",background:'#f5f4f0'}}>
+      <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }`}</style>
 
       {/* SIDEBAR */}
       <div style={{width:'220px',background:'#111113',display:'flex',flexDirection:'column',flexShrink:0,height:'100vh',position:'sticky',top:0}}>
@@ -173,7 +212,7 @@ export default function ClientDashboard() {
         <div style={{flex:1}}></div>
         <div style={{padding:'10px 8px',borderTop:'0.5px solid rgba(255,255,255,0.07)'}}>
           <button onClick={handleLogout} style={{display:'flex',alignItems:'center',gap:'7px',padding:'6px 8px',borderRadius:'7px',cursor:'pointer',width:'100%',background:'none',border:'none'}}>
-            <span style={{fontSize:'11px',color:'rgba(255,255,255,0.25)',fontFamily:'Inter,sans-serif'}}>Çıkış yap</span>
+            <span style={{fontSize:'11px',color:'rgba(255,255,255,0.25)',fontFamily:'var(--font-dm-sans),sans-serif'}}>Çıkış yap</span>
           </button>
         </div>
       </div>
@@ -206,7 +245,7 @@ export default function ClientDashboard() {
             )}
           </div>
           <button onClick={()=>router.push('/dashboard/client/brief/new')}
-            style={{background:'#111113',color:'#fff',border:'none',borderRadius:'8px',padding:'8px 18px',fontSize:'12px',fontFamily:'Inter,sans-serif',cursor:'pointer',fontWeight:'500',flexShrink:0}}>
+            style={{background:'#111113',color:'#fff',border:'none',borderRadius:'8px',padding:'8px 18px',fontSize:'12px',fontFamily:'var(--font-dm-sans),sans-serif',cursor:'pointer',fontWeight:'500',flexShrink:0}}>
             + Yeni Brief
           </button>
           </div>
@@ -215,6 +254,84 @@ export default function ClientDashboard() {
         <div style={{flex:1,overflowY:'auto',padding:'24px 28px'}}>
           {loading ? (
             <div style={{color:'#888',fontSize:'14px'}}>Yükleniyor...</div>
+          ) : briefs.length === 0 ? (
+            /* WELCOME SCREEN */
+            <div style={{display:'flex',flexDirection:'column',gap:'24px'}}>
+
+              {/* HERO CARD */}
+              <div style={{background:'#0a0a0a',borderRadius:'20px',padding:'60px 56px',textAlign:'center'}}>
+                <div style={{marginBottom:'28px'}}>
+                  <span style={{fontSize:'18px',fontWeight:'500',color:'#fff',letterSpacing:'-0.5px'}}>
+                    dinam<span style={{display:'inline-block',width:'12px',height:'12px',borderRadius:'50%',border:'2.5px solid #22c55e',position:'relative',top:'1px',marginLeft:'1px'}}></span>
+                  </span>
+                </div>
+                <h1 style={{fontSize:'32px',fontWeight:'300',color:'#fff',letterSpacing:'-1px',marginBottom:'12px',lineHeight:1.2}}>
+                  Hoş geldiniz{companyName ? `, ${companyName}` : ''}.
+                </h1>
+                <p style={{fontSize:'15px',color:'rgba(255,255,255,0.45)',lineHeight:1.7,marginBottom:'36px',fontWeight:'300'}}>
+                  Ilk brief'inizi olusturun, 24 saat icinde videonuz hazir.
+                </p>
+                <div style={{display:'flex',justifyContent:'center',gap:'32px',marginBottom:'40px'}}>
+                  {[
+                    {step:'01',label:'Brief Yaz'},
+                    {step:'02',label:'Produktor Onaylar'},
+                    {step:'03',label:'Video Teslim'},
+                  ].map((s,i)=>(
+                    <div key={s.step} style={{display:'flex',alignItems:'center',gap: i < 2 ? '32px' : '0'}}>
+                      <div style={{textAlign:'center'}}>
+                        <div style={{fontSize:'20px',fontWeight:'600',color:'#22c55e',letterSpacing:'-1px',marginBottom:'4px'}}>{s.step}</div>
+                        <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',whiteSpace:'nowrap'}}>{s.label}</div>
+                      </div>
+                      {i < 2 && <div style={{width:'24px',height:'1px',background:'rgba(255,255,255,0.1)',marginLeft:'0'}}></div>}
+                    </div>
+                  ))}
+                </div>
+                <button onClick={()=>router.push('/dashboard/client/brief/new')}
+                  style={{padding:'14px 36px',background:'#22c55e',color:'#fff',border:'none',borderRadius:'10px',fontSize:'15px',fontWeight:'500',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',letterSpacing:'-0.3px'}}>
+                  Ilk Brief'i Olustur
+                </button>
+              </div>
+
+              {/* FEATURE TICKER */}
+              <div onClick={()=>router.push('/dashboard/client/brief/new')}
+                style={{background:'#fff',border:'1px solid #E8E8E4',borderRadius:'14px',cursor:'pointer',overflow:'hidden',boxShadow:'0 1px 3px rgba(0,0,0,0.04)',display:'flex'}}>
+                <div style={{width:'4px',background:'#22c55e',flexShrink:0}}></div>
+                <div style={{padding:'24px 28px',flex:1,position:'relative',minHeight:'100px'}}>
+                  <div style={{fontSize:'10px',color:'#aaa',letterSpacing:'2px',textTransform:'uppercase',marginBottom:'12px'}}>PLATFORM OZELLIKLERI</div>
+                  <div key={featureIdx} style={{animation:'fadeIn 0.4s ease'}}>
+                    <div style={{fontSize:'20px',fontWeight:'600',color:'#0a0a0a',marginBottom:'6px',letterSpacing:'-0.3px'}}>{FEATURES[featureIdx].title}</div>
+                    <div style={{fontSize:'14px',color:'#888',fontWeight:'300',lineHeight:1.6}}>{FEATURES[featureIdx].desc}</div>
+                  </div>
+                  <div style={{marginTop:'16px',height:'3px',background:'#f0f0ee',borderRadius:'2px',overflow:'hidden'}}>
+                    <div style={{height:'100%',background:'#22c55e',borderRadius:'2px',width:`${featureProgress}%`,transition:'width 50ms linear'}}></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* HIGHLIGHT VIDEOS */}
+              {homeVideos.length > 0 && (
+                <div>
+                  <div style={{fontSize:'13px',fontWeight:'600',color:'#0a0a0a',marginBottom:'12px'}}>Dinamo ile Uretildi</div>
+                  <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px'}}>
+                    {homeVideos.map(v=>(
+                      <div key={v.id} style={{position:'relative',overflow:'hidden',aspectRatio:'9/16',background:'#111',cursor:'pointer'}}
+                        onMouseEnter={e=>{const vid=e.currentTarget.querySelector('video') as HTMLVideoElement;if(vid)vid.play().catch(()=>{});const ov=e.currentTarget.querySelector('[data-overlay]') as HTMLElement;if(ov)ov.style.opacity='0'}}
+                        onMouseLeave={e=>{const vid=e.currentTarget.querySelector('video') as HTMLVideoElement;if(vid){vid.pause();vid.currentTime=0}const ov=e.currentTarget.querySelector('[data-overlay]') as HTMLElement;if(ov)ov.style.opacity='1'}}>
+                        {v.video_url ? (
+                          <video src={v.video_url} muted loop playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'cover'}} />
+                        ) : (
+                          <div style={{width:'100%',height:'100%',background:'#1a1a1a'}} />
+                        )}
+                        <div data-overlay="" style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.55)',display:'flex',alignItems:'flex-end',padding:'16px',transition:'opacity 0.3s'}}>
+                          <span style={{fontSize:'13px',fontWeight:'500',color:'#fff'}}>{v.title || ''}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+            </div>
           ) : (
             <>
               {/* 6. STATS */}
@@ -255,11 +372,11 @@ export default function ClientDashboard() {
                       <div style={{position:'absolute',top:'10px',right:'14px',fontSize:'9px',fontWeight:'600',color:'#f59e0b',background:'rgba(245,158,11,0.1)',padding:'2px 8px',borderRadius:'100px',letterSpacing:'0.5px'}}>TASLAK</div>
                       <div data-actions="" style={{display:'flex',gap:'6px',opacity:0,transition:'opacity 0.15s'}}>
                         <button onClick={()=>router.push(`/dashboard/client/brief/new?draft=${b.id}`)}
-                          style={{padding:'6px 14px',background:'#22c55e',color:'#fff',border:'none',borderRadius:'8px',fontSize:'11px',cursor:'pointer',fontFamily:'Inter,sans-serif',fontWeight:'500'}}>
+                          style={{padding:'6px 14px',background:'#22c55e',color:'#fff',border:'none',borderRadius:'8px',fontSize:'11px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',fontWeight:'500'}}>
                           Düzenle ve Gönder
                         </button>
                         <button onClick={()=>handleDeleteDraft(b.id)}
-                          style={{padding:'6px 14px',background:'none',border:'1px solid rgba(239,68,68,0.3)',color:'#ef4444',borderRadius:'8px',fontSize:'11px',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                          style={{padding:'6px 14px',background:'none',border:'1px solid rgba(239,68,68,0.3)',color:'#ef4444',borderRadius:'8px',fontSize:'11px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
                           Sil
                         </button>
                       </div>
@@ -358,7 +475,7 @@ export default function ClientDashboard() {
                               <span style={{fontSize:'10px',padding:'3px 10px',borderRadius:'100px',background:'rgba(34,197,94,0.1)',color:'#22c55e',fontWeight:'500'}}>Teslim</span>
                               {children.length > 0 && (
                                 <button onClick={e=>{e.stopPropagation();toggleGroup(parentId)}}
-                                  style={{fontSize:'10px',padding:'3px 10px',borderRadius:'100px',background:'rgba(0,0,0,0.05)',color:'#555',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif',fontWeight:'500'}}>
+                                  style={{fontSize:'10px',padding:'3px 10px',borderRadius:'100px',background:'rgba(0,0,0,0.05)',color:'#555',border:'none',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',fontWeight:'500'}}>
                                   {children.length} versiyon {isExpanded?'▲':'▼'}
                                 </button>
                               )}
@@ -396,7 +513,7 @@ export default function ClientDashboard() {
                     <div style={{fontSize:'32px',fontWeight:'300',color:'#0a0a0a',letterSpacing:'-0.5px',marginBottom:'12px'}}>Hoş geldin, {userName.split(' ')[0]}!</div>
                     <div style={{fontSize:'14px',color:'#888',lineHeight:1.6,marginBottom:'28px'}}>İlk brief'ini oluştur, 24 saat içinde vidyon hazır olsun.</div>
                     <button onClick={()=>router.push('/dashboard/client/brief/new')}
-                      style={{background:'#22c55e',color:'#fff',border:'none',borderRadius:'10px',padding:'14px 32px',fontSize:'15px',fontFamily:'Inter,sans-serif',cursor:'pointer',fontWeight:'500'}}>
+                      style={{background:'#22c55e',color:'#fff',border:'none',borderRadius:'10px',padding:'14px 32px',fontSize:'15px',fontFamily:'var(--font-dm-sans),sans-serif',cursor:'pointer',fontWeight:'500'}}>
                       İlk Brief'ini Oluştur
                     </button>
                   </div>

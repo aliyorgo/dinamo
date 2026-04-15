@@ -43,8 +43,7 @@ export default function CertificatesPage() {
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "'Inter',system-ui,sans-serif", background: '#f5f4f0' }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');`}</style>
+    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "var(--font-dm-sans),'DM Sans',system-ui,sans-serif", background: '#f5f4f0' }}>
 
       {/* SIDEBAR */}
       <div style={{ width: '220px', background: '#111113', display: 'flex', flexDirection: 'column', flexShrink: 0, height: '100vh', position: 'sticky', top: 0 }}>
@@ -77,7 +76,7 @@ export default function CertificatesPage() {
         <div style={{ flex: 1 }}></div>
         <div style={{ padding: '10px 8px', borderTop: '0.5px solid rgba(255,255,255,0.07)' }}>
           <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '6px 8px', borderRadius: '7px', cursor: 'pointer', width: '100%', background: 'none', border: 'none' }}>
-            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', fontFamily: 'Inter,sans-serif' }}>Çıkış yap</span>
+            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-dm-sans),sans-serif' }}>Çıkış yap</span>
           </button>
         </div>
       </div>
@@ -109,7 +108,7 @@ export default function CertificatesPage() {
                     </div>
                   </div>
                   <button onClick={() => handleDownload(b)}
-                    style={{ padding: '8px 16px', background: '#fff', border: '0.5px solid rgba(0,0,0,0.12)', borderRadius: '8px', fontSize: '12px', color: '#0a0a0a', cursor: 'pointer', fontFamily: 'Inter,sans-serif', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px', transition: 'border-color 0.2s' }}
+                    style={{ padding: '8px 16px', background: '#fff', border: '0.5px solid rgba(0,0,0,0.12)', borderRadius: '8px', fontSize: '12px', color: '#0a0a0a', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px', transition: 'border-color 0.2s' }}
                     onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(0,0,0,0.3)')}
                     onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(0,0,0,0.12)')}>
                     <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 1h5l4 4v9a1 1 0 01-1 1H4a1 1 0 01-1-1V2a1 1 0 011-1z" stroke="#0a0a0a" strokeWidth="1.2"/><path d="M9 1v4h4" stroke="#0a0a0a" strokeWidth="1.2"/></svg>

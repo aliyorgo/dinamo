@@ -166,7 +166,7 @@ export default function AgencyClientsPage() {
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '8px 12px', border: '0.5px solid rgba(0,0,0,0.15)',
     borderRadius: '8px', fontSize: '13px', color: '#0a0a0a',
-    fontFamily: 'Inter,sans-serif', outline: 'none', boxSizing: 'border-box', background: '#fff',
+    fontFamily: 'var(--font-dm-sans),sans-serif', outline: 'none', boxSizing: 'border-box', background: '#fff',
   }
   const labelStyle: React.CSSProperties = {
     display: 'block', fontSize: '10px', color: '#888', marginBottom: '5px',
@@ -184,8 +184,7 @@ export default function AgencyClientsPage() {
   const pendingClients = clients.filter(c => c.status !== 'active')
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "'Inter',system-ui,sans-serif" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');`}</style>
+    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "var(--font-dm-sans),'DM Sans',system-ui,sans-serif" }}>
 
       {/* SIDEBAR */}
       <div style={{ width: '220px', background: '#111113', display: 'flex', flexDirection: 'column', flexShrink: 0, height: '100vh', position: 'sticky', top: 0 }}>
@@ -215,7 +214,7 @@ export default function AgencyClientsPage() {
         </nav>
         <div style={{ padding: '10px 8px' }}>
           <button onClick={() => router.push('/dashboard/agency/studio/briefs/new')}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', width: '100%', padding: '9px 0', background: '#22c55e', color: '#111113', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', width: '100%', padding: '9px 0', background: '#22c55e', color: '#111113', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
             <span style={{ fontSize: '15px', lineHeight: 1 }}>+</span> Brief Olustur
           </button>
         </div>
@@ -231,7 +230,7 @@ export default function AgencyClientsPage() {
         </div>
         <div style={{ padding: '10px 8px', borderTop: '0.5px solid rgba(255,255,255,0.07)' }}>
           <button onClick={handleLogout} style={{ padding: '6px 8px', borderRadius: '7px', cursor: 'pointer', width: '100%', background: 'none', border: 'none' }}>
-            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', fontFamily: 'Inter,sans-serif' }}>Çıkış yap</span>
+            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-dm-sans),sans-serif' }}>Çıkış yap</span>
           </button>
         </div>
       </div>
@@ -273,7 +272,7 @@ export default function AgencyClientsPage() {
                   <input required value={form.company_name} onChange={e => setForm({ ...form, company_name: e.target.value })} style={inputStyle} placeholder="Şirket adı" />
                 </div>
                 <button type="submit" disabled={adding}
-                  style={{ padding: '8px 20px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: adding ? 'not-allowed' : 'pointer', fontFamily: 'Inter,sans-serif', flexShrink: 0, height: '38px' }}>
+                  style={{ padding: '8px 20px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: adding ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', flexShrink: 0, height: '38px' }}>
                   {adding ? 'Ekleniyor...' : 'Ekle'}
                 </button>
               </form>
@@ -369,11 +368,11 @@ export default function AgencyClientsPage() {
               </div>
               <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
                 <button type="button" onClick={() => setEditClient(null)}
-                  style={{ padding: '8px 16px', background: '#f5f4f0', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontFamily: 'Inter,sans-serif', color: '#666' }}>
+                  style={{ padding: '8px 16px', background: '#f5f4f0', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', color: '#666' }}>
                   İptal
                 </button>
                 <button type="submit" disabled={saving}
-                  style={{ padding: '8px 16px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: saving ? 'not-allowed' : 'pointer', fontFamily: 'Inter,sans-serif' }}>
+                  style={{ padding: '8px 16px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: saving ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
                   {saving ? 'Kaydediliyor...' : 'Kaydet'}
                 </button>
               </div>
@@ -394,7 +393,7 @@ export default function AgencyClientsPage() {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                   <button onClick={() => setDeleteClient(null)}
-                    style={{ padding: '8px 16px', background: '#f5f4f0', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontFamily: 'Inter,sans-serif', color: '#666' }}>
+                    style={{ padding: '8px 16px', background: '#f5f4f0', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', color: '#666' }}>
                     Kapat
                   </button>
                 </div>
@@ -406,11 +405,11 @@ export default function AgencyClientsPage() {
                 </div>
                 <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
                   <button onClick={() => setDeleteClient(null)}
-                    style={{ padding: '8px 16px', background: '#f5f4f0', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontFamily: 'Inter,sans-serif', color: '#666' }}>
+                    style={{ padding: '8px 16px', background: '#f5f4f0', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', color: '#666' }}>
                     İptal
                   </button>
                   <button onClick={confirmDelete} disabled={deleting}
-                    style={{ padding: '8px 16px', background: '#ef4444', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: deleting ? 'not-allowed' : 'pointer', fontFamily: 'Inter,sans-serif' }}>
+                    style={{ padding: '8px 16px', background: '#ef4444', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: deleting ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
                     {deleting ? 'Siliniyor...' : 'Evet, Sil'}
                   </button>
                 </div>

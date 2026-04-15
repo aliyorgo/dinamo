@@ -91,7 +91,7 @@ export default function AgencyOverviewPage() {
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '8px 12px', border: '0.5px solid rgba(0,0,0,0.15)',
     borderRadius: '8px', fontSize: '13px', color: '#0a0a0a',
-    fontFamily: 'Inter,sans-serif', outline: 'none', boxSizing: 'border-box', background: '#fff',
+    fontFamily: 'var(--font-dm-sans),sans-serif', outline: 'none', boxSizing: 'border-box', background: '#fff',
   }
   const labelStyle: React.CSSProperties = {
     display: 'block', fontSize: '10px', color: '#888', marginBottom: '5px',
@@ -127,8 +127,7 @@ export default function AgencyOverviewPage() {
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "'Inter',system-ui,sans-serif" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');`}</style>
+    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "var(--font-dm-sans),'DM Sans',system-ui,sans-serif" }}>
 
       {/* SIDEBAR */}
       <div style={{ width: '220px', background: '#111113', display: 'flex', flexDirection: 'column', flexShrink: 0, height: '100vh', position: 'sticky', top: 0 }}>
@@ -166,7 +165,7 @@ export default function AgencyOverviewPage() {
         </nav>
         <div style={{ padding: '10px 8px' }}>
           <button onClick={() => router.push('/dashboard/agency/studio/briefs/new')}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', width: '100%', padding: '9px 0', background: '#22c55e', color: '#111113', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', width: '100%', padding: '9px 0', background: '#22c55e', color: '#111113', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
             <span style={{ fontSize: '15px', lineHeight: 1 }}>+</span> Brief Olustur
           </button>
         </div>
@@ -186,7 +185,7 @@ export default function AgencyOverviewPage() {
         </div>
         <div style={{ padding: '10px 8px', borderTop: '0.5px solid rgba(255,255,255,0.07)' }}>
           <button onClick={handleLogout} style={{ padding: '6px 8px', borderRadius: '7px', cursor: 'pointer', width: '100%', background: 'none', border: 'none' }}>
-            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', fontFamily: 'Inter,sans-serif' }}>Çıkış yap</span>
+            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-dm-sans),sans-serif' }}>Çıkış yap</span>
           </button>
         </div>
       </div>
@@ -350,7 +349,7 @@ export default function AgencyOverviewPage() {
                       <input type="number" min="0" value={reqForm.credits_requested} onChange={e => setReqForm({ ...reqForm, credits_requested: e.target.value })} style={inputStyle} placeholder="0" />
                     </div>
                   </div>
-                  <button type="submit" style={{ padding: '9px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>
+                  <button type="submit" style={{ padding: '9px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
                     Talep Gönder
                   </button>
                 </form>

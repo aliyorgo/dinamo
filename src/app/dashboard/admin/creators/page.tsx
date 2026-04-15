@@ -135,7 +135,7 @@ export default function AdminCreators() {
   }
 
   return (
-    <div style={{display:'flex',minHeight:'100vh',fontFamily:'system-ui,sans-serif',background:'#f7f6f2'}}>
+    <div style={{display:'flex',minHeight:'100vh',fontFamily:'var(--font-dm-sans),sans-serif',background:'#f7f6f2'}}>
       <div style={{width:'220px',background:'#0a0a0a',padding:'32px 0',display:'flex',flexDirection:'column',flexShrink:0}}>
         <div style={{padding:'0 24px 32px',borderBottom:'1px solid rgba(255,255,255,0.08)'}}>
           <div style={{fontSize:'20px',fontWeight:'500',color:'#fff'}}>dinamo</div>
@@ -172,8 +172,8 @@ export default function AdminCreators() {
                   </div>
                 </div>
                 <div style={{display:'flex',gap:'8px'}}>
-                  <button onClick={() => approveApplicant(u.id)} style={{padding:'8px 18px',background:'#22c55e',color:'#fff',border:'none',borderRadius:'8px',fontSize:'12px',cursor:'pointer',fontWeight:'500',fontFamily:'Inter,sans-serif'}}>Onayla</button>
-                  <button onClick={() => rejectApplicant(u.id)} style={{padding:'8px 18px',background:'#fff',color:'#ef4444',border:'1px solid #ef4444',borderRadius:'8px',fontSize:'12px',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Reddet</button>
+                  <button onClick={() => approveApplicant(u.id)} style={{padding:'8px 18px',background:'#22c55e',color:'#fff',border:'none',borderRadius:'8px',fontSize:'12px',cursor:'pointer',fontWeight:'500',fontFamily:'var(--font-dm-sans),sans-serif'}}>Onayla</button>
+                  <button onClick={() => rejectApplicant(u.id)} style={{padding:'8px 18px',background:'#fff',color:'#ef4444',border:'1px solid #ef4444',borderRadius:'8px',fontSize:'12px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>Reddet</button>
                 </div>
               </div>
             ))}

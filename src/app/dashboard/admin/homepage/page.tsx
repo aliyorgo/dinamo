@@ -126,11 +126,10 @@ export default function HomepageAdmin() {
 
   async function handleLogout() { await supabase.auth.signOut(); router.push('/login') }
 
-  const inputStyle: React.CSSProperties = { width: '100%', boxSizing: 'border-box', padding: '9px 13px', border: '0.5px solid rgba(0,0,0,0.12)', borderRadius: '8px', fontSize: '13px', color: '#0a0a0a', fontFamily: 'Inter,sans-serif', outline: 'none' }
+  const inputStyle: React.CSSProperties = { width: '100%', boxSizing: 'border-box', padding: '9px 13px', border: '0.5px solid rgba(0,0,0,0.12)', borderRadius: '8px', fontSize: '13px', color: '#0a0a0a', fontFamily: 'var(--font-dm-sans),sans-serif', outline: 'none' }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "'Inter',system-ui,sans-serif" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');`}</style>
+    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "var(--font-dm-sans),'DM Sans',system-ui,sans-serif" }}>
 
       <div style={{ width: '220px', background: '#111113', display: 'flex', flexDirection: 'column', flexShrink: 0, height: '100vh', position: 'sticky', top: 0 }}>
         <div style={{ padding: '18px 16px 14px', borderBottom: '0.5px solid rgba(255,255,255,0.07)' }}>
@@ -150,7 +149,7 @@ export default function HomepageAdmin() {
         </nav>
         <div style={{ padding: '10px 8px', borderTop: '0.5px solid rgba(255,255,255,0.07)' }}>
           <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '6px 8px', borderRadius: '7px', cursor: 'pointer', width: '100%', background: 'none', border: 'none' }}>
-            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', fontFamily: 'Inter,sans-serif' }}>Çıkış yap</span>
+            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-dm-sans),sans-serif' }}>Çıkış yap</span>
           </button>
         </div>
       </div>
@@ -172,7 +171,7 @@ export default function HomepageAdmin() {
                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
                     <input value={hvTitle} onChange={e => setHvTitle(e.target.value)} placeholder="Video başlığı" style={{ ...inputStyle, width: '180px' }} />
                     <input ref={hvFileRef} type="file" accept="video/*" style={{ fontSize: '12px', color: '#0a0a0a', flex: 1, minWidth: '150px' }} />
-                    <button onClick={handleHvUpload} disabled={hvUploading || !hvTitle.trim()} style={{ padding: '8px 16px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontFamily: 'Inter,sans-serif', fontWeight: '500', opacity: hvUploading || !hvTitle.trim() ? 0.4 : 1 }}>
+                    <button onClick={handleHvUpload} disabled={hvUploading || !hvTitle.trim()} style={{ padding: '8px 16px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', fontWeight: '500', opacity: hvUploading || !hvTitle.trim() ? 0.4 : 1 }}>
                       {hvUploading ? 'Yükleniyor...' : 'Yükle'}
                     </button>
                   </div>
@@ -189,7 +188,7 @@ export default function HomepageAdmin() {
                     <span onClick={() => toggleHv(v.id, v.is_active)} style={{ fontSize: '10px', padding: '4px 12px', borderRadius: '100px', cursor: 'pointer', background: v.is_active ? 'rgba(34,197,94,0.1)' : 'rgba(0,0,0,0.05)', color: v.is_active ? '#22c55e' : '#888', fontWeight: '500' }}>
                       {v.is_active ? 'Aktif' : 'Pasif'}
                     </span>
-                    <button onClick={() => deleteHv(v.id)} style={{ fontSize: '11px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>Sil</button>
+                    <button onClick={() => deleteHv(v.id)} style={{ fontSize: '11px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>Sil</button>
                   </div>
                 ))}
               </div>
@@ -206,7 +205,7 @@ export default function HomepageAdmin() {
                       ) : (
                         <input value={cmsEdits[field.key] ?? field.default} onChange={e => setCmsEdits({ ...cmsEdits, [field.key]: e.target.value })} style={{ ...inputStyle, flex: 1 }} />
                       )}
-                      <button onClick={() => saveCms(field.key)} style={{ padding: '8px 14px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '11px', cursor: 'pointer', fontFamily: 'Inter,sans-serif', whiteSpace: 'nowrap', marginTop: '1px' }}>Kaydet</button>
+                      <button onClick={() => saveCms(field.key)} style={{ padding: '8px 14px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '11px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', whiteSpace: 'nowrap', marginTop: '1px' }}>Kaydet</button>
                     </div>
                   </div>
                 ))}
@@ -223,7 +222,7 @@ export default function HomepageAdmin() {
                   )}
                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                     <input ref={logoFileRef} type="file" accept="image/svg+xml,image/png" style={{ fontSize: '12px', color: '#0a0a0a' }} />
-                    <button onClick={handleLogoUpload} style={{ padding: '8px 16px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontFamily: 'Inter,sans-serif', fontWeight: '500' }}>Logo Yükle</button>
+                    <button onClick={handleLogoUpload} style={{ padding: '8px 16px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', fontWeight: '500' }}>Logo Yükle</button>
                   </div>
                   <div style={{ fontSize: '10px', color: '#aaa', marginTop: '8px' }}>SVG veya PNG format, şeffaf arka plan önerilir.</div>
                 </div>

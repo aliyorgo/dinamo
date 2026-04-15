@@ -130,7 +130,7 @@ export default function ClientsPage() {
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '8px 12px', border: '0.5px solid rgba(0,0,0,0.15)',
     borderRadius: '8px', fontSize: '13px', color: '#0a0a0a',
-    fontFamily: 'Inter,sans-serif', outline: 'none', boxSizing: 'border-box', background: '#fff',
+    fontFamily: 'var(--font-dm-sans),sans-serif', outline: 'none', boxSizing: 'border-box', background: '#fff',
   }
   const labelStyle: React.CSSProperties = {
     display: 'block', fontSize: '10px', color: '#888', marginBottom: '5px',
@@ -155,13 +155,13 @@ export default function ClientsPage() {
         <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
           <textarea value={aiNotes[client.id]||''} onChange={e=>setAiNotes(prev=>({...prev,[client.id]:e.target.value}))}
             placeholder="AI notlari..." rows={1}
-            style={{ width: '180px', padding: '6px 8px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '6px', fontSize: '11px', color: '#0a0a0a', resize: 'none', fontFamily: 'Inter,sans-serif', outline: 'none' }} />
+            style={{ width: '180px', padding: '6px 8px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '6px', fontSize: '11px', color: '#0a0a0a', resize: 'none', fontFamily: 'var(--font-dm-sans),sans-serif', outline: 'none' }} />
           <button onClick={()=>saveAiNote(client.id)} disabled={aiNoteSaving===client.id}
-            style={{ padding: '6px 10px', background: '#111113', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '10px', cursor: 'pointer', fontFamily: 'Inter,sans-serif', flexShrink: 0 }}>
+            style={{ padding: '6px 10px', background: '#111113', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '10px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', flexShrink: 0 }}>
             {aiNoteSaving===client.id?'...':'Kaydet'}
           </button>
           <button onClick={()=>router.push(`/dashboard/admin/clients/${client.id}`)}
-            style={{ padding: '6px 14px', borderRadius: '100px', fontSize: '10px', fontWeight: '500', cursor: 'pointer', border: '0.5px solid rgba(0,0,0,0.15)', background: '#fff', color: '#555', fontFamily: 'Inter,sans-serif', flexShrink: 0 }}>
+            style={{ padding: '6px 14px', borderRadius: '100px', fontSize: '10px', fontWeight: '500', cursor: 'pointer', border: '0.5px solid rgba(0,0,0,0.15)', background: '#fff', color: '#555', fontFamily: 'var(--font-dm-sans),sans-serif', flexShrink: 0 }}>
             Detay
           </button>
         </div>
@@ -171,15 +171,14 @@ export default function ClientsPage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f4f0', fontFamily: 'Inter,sans-serif' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f4f0', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
         <div style={{ color: '#888', fontSize: '14px' }}>Yukleniyor...</div>
       </div>
     )
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "'Inter',system-ui,sans-serif" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');`}</style>
+    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "var(--font-dm-sans),'DM Sans',system-ui,sans-serif" }}>
 
       {/* SIDEBAR */}
       <div style={{ width: '220px', background: '#111113', display: 'flex', flexDirection: 'column', flexShrink: 0, height: '100vh', position: 'sticky', top: 0 }}>
@@ -199,7 +198,7 @@ export default function ClientsPage() {
         </nav>
         <div style={{ padding: '10px 8px', borderTop: '0.5px solid rgba(255,255,255,0.07)' }}>
           <button onClick={handleLogout} style={{ padding: '6px 8px', borderRadius: '7px', cursor: 'pointer', width: '100%', background: 'none', border: 'none' }}>
-            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', fontFamily: 'Inter,sans-serif' }}>Cikis yap</span>
+            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-dm-sans),sans-serif' }}>Cikis yap</span>
           </button>
         </div>
       </div>
@@ -242,7 +241,7 @@ export default function ClientsPage() {
                   </div>
                 )}
                 <button type="submit" disabled={creating}
-                  style={{ width: '100%', padding: '9px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: creating ? 'not-allowed' : 'pointer', fontFamily: 'Inter,sans-serif' }}>
+                  style={{ width: '100%', padding: '9px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: creating ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
                   {creating ? 'Olusturuluyor...' : 'Musteri Olustur'}
                 </button>
               </form>
@@ -271,7 +270,7 @@ export default function ClientsPage() {
                   <input type="number" value={userForm.credit_balance} onChange={e=>setUserForm({...userForm,credit_balance:parseInt(e.target.value)||0})} style={inputStyle} />
                 </div>
                 <button type="submit" disabled={creating}
-                  style={{ width: '100%', padding: '9px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: creating ? 'not-allowed' : 'pointer', fontFamily: 'Inter,sans-serif' }}>
+                  style={{ width: '100%', padding: '9px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: creating ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
                   {creating ? 'Ekleniyor...' : 'Kullanici Ata'}
                 </button>
               </form>
@@ -316,7 +315,7 @@ export default function ClientsPage() {
                 <span style={{ fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>{ag.name}</span>
                 <span style={{ fontSize: '11px', color: '#888' }}>({ag.clients.length})</span>
                 <button onClick={(e) => { e.stopPropagation(); router.push(`/dashboard/admin/agencies/${ag.id}`) }}
-                  style={{ marginLeft: 'auto', padding: '3px 10px', borderRadius: '100px', fontSize: '10px', border: '0.5px solid rgba(0,0,0,0.12)', background: '#fff', color: '#888', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>
+                  style={{ marginLeft: 'auto', padding: '3px 10px', borderRadius: '100px', fontSize: '10px', border: '0.5px solid rgba(0,0,0,0.12)', background: '#fff', color: '#888', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
                   Ajans Detay
                 </button>
               </div>

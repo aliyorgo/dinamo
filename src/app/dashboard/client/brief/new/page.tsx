@@ -344,7 +344,7 @@ function NewBriefPage() {
         <div style={{padding:'10px 8px',borderTop:'0.5px solid rgba(255,255,255,0.07)'}}>
           <div onClick={()=>router.push('/dashboard/client')} style={{display:'flex',alignItems:'center',gap:'7px',padding:'6px 8px',borderRadius:'7px',cursor:'pointer'}}>
             <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="rgba(255,255,255,0.25)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            <span style={{fontSize:'11px',color:'rgba(255,255,255,0.25)',fontFamily:'Inter,sans-serif'}}>Projelerime dön</span>
+            <span style={{fontSize:'11px',color:'rgba(255,255,255,0.25)',fontFamily:'var(--font-dm-sans),sans-serif'}}>Projelerime dön</span>
           </div>
         </div>
       </div>
@@ -354,20 +354,19 @@ function NewBriefPage() {
   const inputStyle: React.CSSProperties = {
     width:'100%',boxSizing:'border-box',background:'#fff',border:'0.5px solid rgba(0,0,0,0.12)',
     borderRadius:'10px',padding:'10px 14px',fontSize:'14px',color:'#0a0a0a',
-    fontFamily:'Inter,sans-serif',outline:'none'
+    fontFamily:'var(--font-dm-sans),sans-serif',outline:'none'
   }
   const pillStyle = (sel:boolean): React.CSSProperties => ({
     padding:'8px 18px',borderRadius:'100px',border:'0.5px solid',
     borderColor:sel?'#111113':'rgba(0,0,0,0.12)',
     background:sel?'#111113':'#fff',
     color:sel?'#fff':'#555',fontSize:'13px',cursor:'pointer',
-    fontFamily:'Inter,sans-serif',display:'inline-block',margin:'3px'
+    fontFamily:'var(--font-dm-sans),sans-serif',display:'inline-block',margin:'3px'
   })
 
   if (step === 99) {
     return (
-      <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'#0a0a0a',fontFamily:"'Inter',system-ui,sans-serif"}}>
-        <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');`}</style>
+      <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'#0a0a0a',fontFamily:"var(--font-dm-sans),'DM Sans',system-ui,sans-serif"}}>
         <div style={{textAlign:'center',maxWidth:'520px',padding:'0 24px'}}>
           <div style={{fontSize:'28px',fontWeight:'500',color:'#fff',letterSpacing:'-0.5px',marginBottom:'32px'}}>
             dinam<span style={{display:'inline-block',width:'22px',height:'22px',borderRadius:'50%',border:'3.5px solid #22c55e',position:'relative',top:'4px',marginLeft:'2px'}}></span>
@@ -381,8 +380,8 @@ function NewBriefPage() {
             Tahmini teslim süresi: 24 saat
           </div>
           <div style={{display:'flex',gap:'12px',justifyContent:'center'}}>
-            <a href="/dashboard/client" style={{padding:'13px 28px',borderRadius:'10px',border:'1px solid rgba(255,255,255,0.15)',background:'transparent',color:'#fff',fontSize:'14px',fontWeight:'400',textDecoration:'none',fontFamily:'Inter,sans-serif'}}>Tüm Projelerim</a>
-            <a href="/dashboard/client/brief/new" style={{padding:'13px 28px',borderRadius:'10px',background:'#22c55e',color:'#fff',fontSize:'14px',fontWeight:'500',textDecoration:'none',fontFamily:'Inter,sans-serif'}}>Yeni Brief</a>
+            <a href="/dashboard/client" style={{padding:'13px 28px',borderRadius:'10px',border:'1px solid rgba(255,255,255,0.15)',background:'transparent',color:'#fff',fontSize:'14px',fontWeight:'400',textDecoration:'none',fontFamily:'var(--font-dm-sans),sans-serif'}}>Tüm Projelerim</a>
+            <a href="/dashboard/client/brief/new" style={{padding:'13px 28px',borderRadius:'10px',background:'#22c55e',color:'#fff',fontSize:'14px',fontWeight:'500',textDecoration:'none',fontFamily:'var(--font-dm-sans),sans-serif'}}>Yeni Brief</a>
           </div>
         </div>
       </div>
@@ -390,8 +389,7 @@ function NewBriefPage() {
   }
 
   return (
-    <div style={{display:'flex',minHeight:'100vh',fontFamily:"'Inter',system-ui,sans-serif"}}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');`}</style>
+    <div style={{display:'flex',minHeight:'100vh',fontFamily:"var(--font-dm-sans),'DM Sans',system-ui,sans-serif"}}>
       <Sidebar/>
       <div style={{flex:1,display:'flex',flexDirection:'column',background:'#f5f4f0',overflow:'hidden'}}>
         <div style={{padding:'14px 28px',background:'#fff',borderBottom:'0.5px solid rgba(0,0,0,0.08)',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
@@ -453,9 +451,9 @@ function NewBriefPage() {
                 rows={8}
                 style={{...inputStyle,resize:'vertical',lineHeight:'1.7',marginBottom:'16px',fontSize:'14px'}} />
               <div style={{display:'flex',gap:'10px'}}>
-                <button onClick={()=>setStep(0)} style={{background:'none',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'8px',padding:'11px 20px',fontSize:'13px',fontFamily:'Inter,sans-serif',color:'#555',cursor:'pointer'}}>Geri</button>
+                <button onClick={()=>setStep(0)} style={{background:'none',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'8px',padding:'11px 20px',fontSize:'13px',fontFamily:'var(--font-dm-sans),sans-serif',color:'#555',cursor:'pointer'}}>Geri</button>
                 <button onClick={handleAiBrief} disabled={aiBriefLoading||!aiBriefInput.trim()}
-                  style={{background:'#22c55e',color:'#fff',border:'none',borderRadius:'8px',padding:'11px 24px',fontSize:'13px',fontFamily:'Inter,sans-serif',cursor:'pointer',fontWeight:'500',opacity:aiBriefLoading||!aiBriefInput.trim()?0.5:1,display:'flex',alignItems:'center',gap:'8px'}}>
+                  style={{background:'#22c55e',color:'#fff',border:'none',borderRadius:'8px',padding:'11px 24px',fontSize:'13px',fontFamily:'var(--font-dm-sans),sans-serif',cursor:'pointer',fontWeight:'500',opacity:aiBriefLoading||!aiBriefInput.trim()?0.5:1,display:'flex',alignItems:'center',gap:'8px'}}>
                   {aiBriefLoading?'Brief oluşturuluyor...':'Brief Oluştur'}
                 </button>
               </div>
@@ -586,13 +584,13 @@ function NewBriefPage() {
                 <div style={{position:'absolute',top:'8px',right:'8px',display:'flex',gap:'5px',zIndex:2}}>
                   {prevMessage !== null && !expandLoading && (
                     <button onClick={handleUndoExpand}
-                      style={{display:'flex',alignItems:'center',gap:'4px',padding:'3px 8px',borderRadius:'5px',border:'1px solid rgba(0,0,0,0.12)',background:'#fff',fontSize:'10px',color:'#888',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                      style={{display:'flex',alignItems:'center',gap:'4px',padding:'3px 8px',borderRadius:'5px',border:'1px solid rgba(0,0,0,0.12)',background:'#fff',fontSize:'10px',color:'#888',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6.69 3L3 13"/></svg>
                       Geri Al
                     </button>
                   )}
                   <button onClick={handleExpand} disabled={expandLoading || !form.message.trim()}
-                    style={{display:'flex',alignItems:'center',gap:'4px',padding:'3px 8px',borderRadius:'5px',border:'none',background:expandLoading||!form.message.trim()?'rgba(0,0,0,0.04)':'#111113',fontSize:'10px',color:expandLoading||!form.message.trim()?'#ccc':'#fff',cursor:expandLoading||!form.message.trim()?'default':'pointer',fontFamily:'Inter,sans-serif'}}>
+                    style={{display:'flex',alignItems:'center',gap:'4px',padding:'3px 8px',borderRadius:'5px',border:'none',background:expandLoading||!form.message.trim()?'rgba(0,0,0,0.04)':'#111113',fontSize:'10px',color:expandLoading||!form.message.trim()?'#ccc':'#fff',cursor:expandLoading||!form.message.trim()?'default':'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v5m4.5-2.5L14 8m5 4h-5m2.5 4.5L14 14m-2 7v-5m-4.5 2.5L10 16m-7-4h5m-2.5-4.5L8 10"/></svg>
                     {expandLoading ? '...' : 'Detaylandır'}
                   </button>
@@ -632,7 +630,7 @@ function NewBriefPage() {
                 <div>
                   <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}}>
                     <div style={{fontSize:'11px',color:'#888',letterSpacing:'0.5px',textTransform:'uppercase'}}>Seslendirme Metni</div>
-                    <button onClick={generateVoiceover} disabled={aiLoading} style={{fontSize:'11px',padding:'5px 12px',borderRadius:'6px',border:'0.5px solid rgba(0,0,0,0.15)',background:'#111113',color:'#fff',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                    <button onClick={generateVoiceover} disabled={aiLoading} style={{fontSize:'11px',padding:'5px 12px',borderRadius:'6px',border:'0.5px solid rgba(0,0,0,0.15)',background:'#111113',color:'#fff',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
                       {aiLoading?'Yazıyor...':form.voiceover_text?'Yeniden Yaz':'AI ile Yaz'}
                     </button>
                   </div>
@@ -796,7 +794,7 @@ function NewBriefPage() {
         {step >= 1 && (
           <div style={{padding:'16px 40px',background:'#fff',borderTop:'0.5px solid rgba(0,0,0,0.08)',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
             <button onClick={()=>step>1?setStep(step-1):router.push('/dashboard/client')}
-              style={{background:'none',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'8px',padding:'9px 20px',fontSize:'13px',fontFamily:'Inter,sans-serif',color:'#555',cursor:'pointer'}}>
+              style={{background:'none',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'8px',padding:'9px 20px',fontSize:'13px',fontFamily:'var(--font-dm-sans),sans-serif',color:'#555',cursor:'pointer'}}>
               {step===1?'İptal':'Geri'}
             </button>
             {step<5?(
@@ -806,16 +804,16 @@ function NewBriefPage() {
                   (step===2&&(!form.target_audience||!form.has_cta))||
                   (step===3&&!form.message)
                 }
-                style={{background:'#111113',color:'#fff',border:'none',borderRadius:'8px',padding:'9px 24px',fontSize:'13px',fontFamily:'Inter,sans-serif',cursor:'pointer',fontWeight:'500',opacity:(step===1&&(!form.campaign_name||!form.video_type||!form.format))||(step===2&&(!form.target_audience||!form.has_cta))||(step===3&&!form.message)?0.4:1}}>
+                style={{background:'#111113',color:'#fff',border:'none',borderRadius:'8px',padding:'9px 24px',fontSize:'13px',fontFamily:'var(--font-dm-sans),sans-serif',cursor:'pointer',fontWeight:'500',opacity:(step===1&&(!form.campaign_name||!form.video_type||!form.format))||(step===2&&(!form.target_audience||!form.has_cta))||(step===3&&!form.message)?0.4:1}}>
                 Devam et               </button>
             ):(
               <div style={{display:'flex',gap:'8px'}}>
                 <button onClick={()=>handleSubmit(true)} disabled={submitting}
-                  style={{background:'none',border:'1px solid rgba(0,0,0,0.15)',borderRadius:'8px',padding:'9px 20px',fontSize:'13px',fontFamily:'Inter,sans-serif',cursor:'pointer',fontWeight:'400',color:'#555'}}>
+                  style={{background:'none',border:'1px solid rgba(0,0,0,0.15)',borderRadius:'8px',padding:'9px 20px',fontSize:'13px',fontFamily:'var(--font-dm-sans),sans-serif',cursor:'pointer',fontWeight:'400',color:'#555'}}>
                   {submitting?'...':'Taslağa Kaydet'}
                 </button>
                 <button onClick={()=>handleSubmit(false)} disabled={submitting||balance<cost}
-                  style={{background:'#22c55e',color:'#fff',border:'none',borderRadius:'8px',padding:'9px 24px',fontSize:'13px',fontFamily:'Inter,sans-serif',cursor:'pointer',fontWeight:'500',opacity:balance<cost?0.4:1}}>
+                  style={{background:'#22c55e',color:'#fff',border:'none',borderRadius:'8px',padding:'9px 24px',fontSize:'13px',fontFamily:'var(--font-dm-sans),sans-serif',cursor:'pointer',fontWeight:'500',opacity:balance<cost?0.4:1}}>
                   {submitting?'Gönderiliyor...':'Brief Gönder'}
                 </button>
               </div>

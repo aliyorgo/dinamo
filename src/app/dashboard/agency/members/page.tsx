@@ -92,18 +92,17 @@ export default function AgencyMembersPage() {
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '9px 13px', border: '1px solid #e8e7e3', borderRadius: '8px',
-    fontSize: '14px', boxSizing: 'border-box', fontFamily: 'Inter,sans-serif', outline: 'none',
+    fontSize: '14px', boxSizing: 'border-box', fontFamily: 'var(--font-dm-sans),sans-serif', outline: 'none',
   }
   const labelStyle: React.CSSProperties = {
     display: 'block', fontSize: '10px', color: '#888', marginBottom: '5px',
     textTransform: 'uppercase', letterSpacing: '0.5px',
   }
 
-  if (loading) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f4f0', fontFamily: 'Inter,sans-serif' }}><div style={{ color: '#888', fontSize: '14px' }}>Yukleniyor...</div></div>
+  if (loading) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f4f0', fontFamily: 'var(--font-dm-sans),sans-serif' }}><div style={{ color: '#888', fontSize: '14px' }}>Yukleniyor...</div></div>
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "'Inter',system-ui,sans-serif" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');`}</style>
+    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "var(--font-dm-sans),'DM Sans',system-ui,sans-serif" }}>
 
       {/* SIDEBAR */}
       <div style={{ width: '220px', background: '#111113', display: 'flex', flexDirection: 'column', flexShrink: 0, height: '100vh', position: 'sticky', top: 0 }}>
@@ -130,7 +129,7 @@ export default function AgencyMembersPage() {
         </nav>
         <div style={{ padding: '10px 8px', borderTop: '0.5px solid rgba(255,255,255,0.07)' }}>
           <button onClick={handleLogout} style={{ padding: '6px 8px', borderRadius: '7px', cursor: 'pointer', width: '100%', background: 'none', border: 'none' }}>
-            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', fontFamily: 'Inter,sans-serif' }}>Cikis yap</span>
+            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-dm-sans),sans-serif' }}>Cikis yap</span>
           </button>
         </div>
       </div>
@@ -142,7 +141,7 @@ export default function AgencyMembersPage() {
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             {msg && <div style={{ fontSize: '12px', color: '#22c55e' }}>{msg}</div>}
             <button onClick={() => { setCreateForm({ name: '', email: '', password: '' }); setCreateModal(true) }}
-              style={{ padding: '8px 18px', background: '#22c55e', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>
+              style={{ padding: '8px 18px', background: '#22c55e', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
               + Yeni Uye Ekle
             </button>
           </div>
@@ -164,7 +163,7 @@ export default function AgencyMembersPage() {
                 </div>
                 <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }} onClick={e => e.stopPropagation()}>
                   <button onClick={() => setDeleteUser(m)}
-                    style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '10px', fontWeight: '500', border: '1px solid rgba(239,68,68,0.3)', background: '#fff', color: '#ef4444', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>
+                    style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '10px', fontWeight: '500', border: '1px solid rgba(239,68,68,0.3)', background: '#fff', color: '#ef4444', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
                     Sil
                   </button>
                 </div>

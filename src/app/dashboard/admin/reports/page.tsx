@@ -187,14 +187,13 @@ export default function ReportsPage() {
   })
 
   const labelStyle: React.CSSProperties = { display: 'block', fontSize: '10px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }
-  const inputStyle: React.CSSProperties = { width: '100%', padding: '9px 12px', border: '0.5px solid rgba(0,0,0,0.12)', borderRadius: '8px', fontSize: '13px', color: '#0a0a0a', fontFamily: 'Inter,sans-serif', boxSizing: 'border-box', background: '#fff' }
+  const inputStyle: React.CSSProperties = { width: '100%', padding: '9px 12px', border: '0.5px solid rgba(0,0,0,0.12)', borderRadius: '8px', fontSize: '13px', color: '#0a0a0a', fontFamily: 'var(--font-dm-sans),sans-serif', boxSizing: 'border-box', background: '#fff' }
   const sectionTitle: React.CSSProperties = { fontSize: '13px', fontWeight: '500', color: '#0a0a0a', padding: '14px 20px', borderBottom: '0.5px solid rgba(0,0,0,0.08)' }
   const thStyle: React.CSSProperties = { padding: '10px 16px', textAlign: 'left', fontSize: '10px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: '400', whiteSpace: 'nowrap' }
   const tdStyle: React.CSSProperties = { padding: '12px 16px', fontSize: '13px', color: '#0a0a0a', borderTop: '0.5px solid rgba(0,0,0,0.06)' }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "'Inter',system-ui,sans-serif" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');`}</style>
+    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "var(--font-dm-sans),'DM Sans',system-ui,sans-serif" }}>
 
       {/* SIDEBAR */}
       <div style={{ width: '220px', background: '#111113', display: 'flex', flexDirection: 'column', flexShrink: 0, height: '100vh', position: 'sticky', top: 0 }}>
@@ -217,7 +216,7 @@ export default function ReportsPage() {
 
         <div style={{ padding: '10px 8px', borderTop: '0.5px solid rgba(255,255,255,0.07)' }}>
           <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '6px 8px', borderRadius: '7px', cursor: 'pointer', width: '100%', background: 'none', border: 'none' }}>
-            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', fontFamily: 'Inter,sans-serif' }}>Çıkış yap</span>
+            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-dm-sans),sans-serif' }}>Çıkış yap</span>
           </button>
         </div>
       </div>
@@ -323,7 +322,7 @@ export default function ReportsPage() {
                     </div>
                     <button type="submit" disabled={saleLoading} style={{
                       width: '100%', padding: '10px', background: '#22c55e', color: '#fff', border: 'none',
-                      borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer', fontFamily: 'Inter,sans-serif',
+                      borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif',
                     }}>
                       {saleLoading ? 'Kaydediliyor...' : 'Satışı Kaydet'}
                     </button>

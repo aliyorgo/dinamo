@@ -84,11 +84,10 @@ export default function AgencyProductionPage() {
   const clientMap: Record<string, string> = {}
   clients.forEach(c => { clientMap[c.id] = c.company_name })
 
-  if (loading) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f4f0', fontFamily: 'Inter,sans-serif' }}><div style={{ color: '#888', fontSize: '14px' }}>Yukleniyor...</div></div>
+  if (loading) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f4f0', fontFamily: 'var(--font-dm-sans),sans-serif' }}><div style={{ color: '#888', fontSize: '14px' }}>Yukleniyor...</div></div>
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "'Inter',system-ui,sans-serif" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');`}</style>
+    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "var(--font-dm-sans),'DM Sans',system-ui,sans-serif" }}>
 
       {/* SIDEBAR */}
       <div style={{ width: '220px', background: '#111113', display: 'flex', flexDirection: 'column', flexShrink: 0, height: '100vh', position: 'sticky', top: 0 }}>
@@ -106,7 +105,7 @@ export default function AgencyProductionPage() {
         </nav>
         <div style={{ padding: '10px 8px', borderTop: '0.5px solid rgba(255,255,255,0.07)' }}>
           <button onClick={handleLogout} style={{ padding: '6px 8px', borderRadius: '7px', cursor: 'pointer', width: '100%', background: 'none', border: 'none' }}>
-            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', fontFamily: 'Inter,sans-serif' }}>Cikis yap</span>
+            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-dm-sans),sans-serif' }}>Cikis yap</span>
           </button>
         </div>
       </div>
@@ -136,12 +135,12 @@ export default function AgencyProductionPage() {
           {/* FILTERS */}
           <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
             <select value={filterMember} onChange={e => setFilterMember(e.target.value)}
-              style={{ padding: '7px 12px', border: '0.5px solid rgba(0,0,0,0.12)', borderRadius: '8px', fontSize: '12px', background: '#fff', fontFamily: 'Inter,sans-serif', cursor: 'pointer' }}>
+              style={{ padding: '7px 12px', border: '0.5px solid rgba(0,0,0,0.12)', borderRadius: '8px', fontSize: '12px', background: '#fff', fontFamily: 'var(--font-dm-sans),sans-serif', cursor: 'pointer' }}>
               <option value="">Tum Uyeler</option>
               {members.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
             </select>
             <select value={filterClient} onChange={e => setFilterClient(e.target.value)}
-              style={{ padding: '7px 12px', border: '0.5px solid rgba(0,0,0,0.12)', borderRadius: '8px', fontSize: '12px', background: '#fff', fontFamily: 'Inter,sans-serif', cursor: 'pointer' }}>
+              style={{ padding: '7px 12px', border: '0.5px solid rgba(0,0,0,0.12)', borderRadius: '8px', fontSize: '12px', background: '#fff', fontFamily: 'var(--font-dm-sans),sans-serif', cursor: 'pointer' }}>
               <option value="">Tum Musteriler</option>
               {clients.map(c => <option key={c.id} value={c.id}>{c.company_name}</option>)}
             </select>

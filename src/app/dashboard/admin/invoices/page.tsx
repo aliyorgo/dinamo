@@ -84,8 +84,7 @@ export default function InvoicesPage() {
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "'Inter',system-ui,sans-serif" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');`}</style>
+    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "var(--font-dm-sans),'DM Sans',system-ui,sans-serif" }}>
 
       {/* SIDEBAR */}
       <div style={{ width: '220px', background: '#111113', display: 'flex', flexDirection: 'column', flexShrink: 0, height: '100vh', position: 'sticky', top: 0 }}>
@@ -106,7 +105,7 @@ export default function InvoicesPage() {
         </nav>
         <div style={{ padding: '10px 8px', borderTop: '0.5px solid rgba(255,255,255,0.07)' }}>
           <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '6px 8px', borderRadius: '7px', cursor: 'pointer', width: '100%', background: 'none', border: 'none' }}>
-            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', fontFamily: 'Inter,sans-serif' }}>Çıkış yap</span>
+            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-dm-sans),sans-serif' }}>Çıkış yap</span>
           </button>
         </div>
       </div>
@@ -168,9 +167,9 @@ export default function InvoicesPage() {
                       {editingInvoice === s.id ? (
                         <div style={{ display: 'flex', gap: '4px' }}>
                           <input value={invoiceNoInput} onChange={e => setInvoiceNoInput(e.target.value)} placeholder="Fatura no"
-                            style={{ width: '80px', padding: '5px 8px', border: '0.5px solid rgba(0,0,0,0.15)', borderRadius: '6px', fontSize: '11px', color: '#0a0a0a', fontFamily: 'Inter,sans-serif', outline: 'none' }} />
+                            style={{ width: '80px', padding: '5px 8px', border: '0.5px solid rgba(0,0,0,0.15)', borderRadius: '6px', fontSize: '11px', color: '#0a0a0a', fontFamily: 'var(--font-dm-sans),sans-serif', outline: 'none' }} />
                           <button onClick={() => saveInvoiceNo(s.id)}
-                            style={{ padding: '5px 8px', background: '#111113', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '10px', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>✓</button>
+                            style={{ padding: '5px 8px', background: '#111113', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '10px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>✓</button>
                         </div>
                       ) : (
                         <div onClick={() => { setEditingInvoice(s.id); setInvoiceNoInput(s.invoice_no || '') }}
@@ -185,7 +184,7 @@ export default function InvoicesPage() {
                       <button onClick={() => toggleField(s.id, 'invoice_sent', s.invoice_sent)}
                         style={{
                           padding: '5px 12px', borderRadius: '100px', fontSize: '10px', fontWeight: '500', cursor: 'pointer',
-                          fontFamily: 'Inter,sans-serif', transition: 'all 0.2s',
+                          fontFamily: 'var(--font-dm-sans),sans-serif', transition: 'all 0.2s',
                           border: s.invoice_sent ? '1px solid #22c55e' : '1px solid rgba(0,0,0,0.15)',
                           background: s.invoice_sent ? 'rgba(34,197,94,0.1)' : '#fff',
                           color: s.invoice_sent ? '#22c55e' : '#888',
@@ -195,7 +194,7 @@ export default function InvoicesPage() {
                       <button onClick={() => toggleField(s.id, 'payment_received', s.payment_received)}
                         style={{
                           padding: '5px 12px', borderRadius: '100px', fontSize: '10px', fontWeight: '500', cursor: 'pointer',
-                          fontFamily: 'Inter,sans-serif', transition: 'all 0.2s',
+                          fontFamily: 'var(--font-dm-sans),sans-serif', transition: 'all 0.2s',
                           border: s.payment_received ? '1px solid #22c55e' : '1px solid rgba(0,0,0,0.15)',
                           background: s.payment_received ? 'rgba(34,197,94,0.1)' : '#fff',
                           color: s.payment_received ? '#22c55e' : '#888',
