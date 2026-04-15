@@ -392,7 +392,7 @@ function MemberNewBrief() {
               <div style={{ textAlign: 'center', width: '100%', maxWidth: '560px', padding: '0 24px' }}>
                 <div style={{ marginBottom: '24px' }}>
                   <span style={{ fontSize: '20px', fontWeight: '500', color: '#fff', letterSpacing: '-0.5px' }}>
-                    dinam<span style={{ display: 'inline-block', width: '14px', height: '14px', borderRadius: '50%', border: '2.5px solid #22c55e', position: 'relative', top: '2px', marginLeft: '1px' }}></span>
+                    <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} />
                   </span>
                 </div>
                 {form.client_name && <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', marginBottom: '12px' }}>{form.client_name}</div>}

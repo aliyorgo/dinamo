@@ -96,8 +96,9 @@ export default function ClientDashboard() {
         acts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         setActivities(acts.slice(0, 5))
       }
-      const { data: hvids } = await supabase.from('homepage_videos').select('id, title, video_url').eq('is_active', true).order('created_at', { ascending: false }).limit(6)
-      setHomeVideos(hvids || [])
+      const { data: hvids } = await supabase.from('homepage_videos').select('id, title, video_url').eq('is_active', true).order('created_at', { ascending: false }).limit(10)
+      const shuffled = (hvids || []).sort(() => Math.random() - 0.5).slice(0, 3)
+      setHomeVideos(shuffled)
       setLoading(false)
     }
     load()
@@ -147,8 +148,8 @@ export default function ClientDashboard() {
       {/* SIDEBAR */}
       <div style={{width:'240px',background:'#0A0A0A',display:'flex',flexDirection:'column',flexShrink:0,height:'100vh',position:'sticky',top:0}}>
         <div style={{padding:'18px 16px 14px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
-          <div style={{fontSize:'18px',fontWeight:'500',color:'#fff',letterSpacing:'-0.5px',marginBottom:'12px'}}>
-            dinam<span style={{display:'inline-block',width:'11px',height:'11px',borderRadius:'50%',border:'2.5px solid #22c55e',position:'relative',top:'1px'}}></span>
+          <div style={{marginBottom:'12px'}}>
+            <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} />
           </div>
           <div style={{fontSize:'10px',color:'rgba(255,255,255,0.3)',marginBottom:'3px'}}>{companyName}</div>
           <div style={{fontSize:'13px',fontWeight:'500',color:'#fff'}}>{userName}</div>
@@ -220,10 +221,6 @@ export default function ClientDashboard() {
           ) : briefs.length === 0 ? (
             /* WELCOME SCREEN — full black, centered */
             <div style={{background:'#0A0A0A',minHeight:'100%',display:'flex',flexDirection:'column',position:'relative'}}>
-              {/* Logo top-left */}
-              <div style={{padding:'28px 36px'}}>
-                <img src="/logo.svg" alt="Dinamo" style={{height:'28px'}} />
-              </div>
 
               {/* Main content centered */}
               <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',padding:'0 48px'}}>
@@ -270,10 +267,12 @@ export default function ClientDashboard() {
                   {/* Video grid */}
                   {homeVideos.length > 0 && (
                     <div style={{marginTop:'56px'}}>
-                      <div style={{fontSize:'13px',fontWeight:'700',color:'#fff',marginBottom:'16px'}}>Dinamo ile Üretildi</div>
-                      <div style={{display:'grid',gridTemplateColumns:`repeat(${Math.min(homeVideos.length, 4)},1fr)`,gap:'8px'}}>
+                      <div style={{fontSize:'18px',fontWeight:'600',color:'#fff',marginBottom:'16px',display:'flex',alignItems:'center',gap:'6px'}}>
+                        <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'20px'}} /> ile Üretildi
+                      </div>
+                      <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'8px'}}>
                         {homeVideos.map(v=>(
-                          <div key={v.id} style={{position:'relative',overflow:'hidden',aspectRatio:'16/9',background:'#111',cursor:'pointer'}}
+                          <div key={v.id} style={{position:'relative',overflow:'hidden',aspectRatio:'9/16',background:'#111',cursor:'pointer'}}
                             onMouseEnter={e=>{const vid=e.currentTarget.querySelector('video') as HTMLVideoElement;if(vid)vid.play().catch(()=>{});const ov=e.currentTarget.querySelector('[data-ov]') as HTMLElement;if(ov)ov.style.opacity='0'}}
                             onMouseLeave={e=>{const vid=e.currentTarget.querySelector('video') as HTMLVideoElement;if(vid){vid.pause();vid.currentTime=0}const ov=e.currentTarget.querySelector('[data-ov]') as HTMLElement;if(ov)ov.style.opacity='1'}}>
                             <video src={v.video_url} loop muted playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'cover'}} />

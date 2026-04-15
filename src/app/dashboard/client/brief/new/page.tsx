@@ -291,7 +291,7 @@ function NewBriefPage() {
       <div style={{width:'240px',background:'#0A0A0A',display:'flex',flexDirection:'column',flexShrink:0,height:'100vh',position:'sticky',top:0}}>
         <div style={{padding:'18px 16px 14px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
           <div style={{fontSize:'18px',fontWeight:'500',color:'#fff',letterSpacing:'-0.5px',marginBottom:'12px'}}>
-            dinam<span style={{display:'inline-block',width:'11px',height:'11px',borderRadius:'50%',border:'2.5px solid #22c55e',position:'relative',top:'1px'}}></span>
+            <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} />
           </div>
           <div style={{fontSize:'10px',color:'rgba(255,255,255,0.3)',marginBottom:'3px'}}>{companyName}</div>
           <div style={{fontSize:'13px',fontWeight:'500',color:'#fff'}}>{userName}</div>
@@ -369,7 +369,7 @@ function NewBriefPage() {
       <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'#0a0a0a',fontFamily:"var(--font-dm-sans),'DM Sans',system-ui,sans-serif"}}>
         <div style={{textAlign:'center',maxWidth:'520px',padding:'0 24px'}}>
           <div style={{fontSize:'28px',fontWeight:'500',color:'#fff',letterSpacing:'-0.5px',marginBottom:'32px'}}>
-            dinam<span style={{display:'inline-block',width:'22px',height:'22px',borderRadius:'50%',border:'3.5px solid #22c55e',position:'relative',top:'4px',marginLeft:'2px'}}></span>
+            <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} />
           </div>
           <div style={{fontSize:'36px',fontWeight:'300',color:'#fff',letterSpacing:'-1px',marginBottom:'12px'}}>Brief'iniz alındı.</div>
           <div style={{fontSize:'18px',fontWeight:'300',color:'#fff',fontStyle:'italic',marginBottom:'24px'}}>"{form.campaign_name}"</div>
@@ -406,7 +406,7 @@ function NewBriefPage() {
               <div style={{textAlign:'center',width:'100%',maxWidth:'560px',padding:'0 24px'}}>
                 <div style={{marginBottom:'24px'}}>
                   <span style={{fontSize:'20px',fontWeight:'500',color:'#fff',letterSpacing:'-0.5px'}}>
-                    dinam<span style={{display:'inline-block',width:'14px',height:'14px',borderRadius:'50%',border:'2.5px solid #22c55e',position:'relative',top:'2px',marginLeft:'1px'}}></span>
+                    <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} />
                   </span>
                 </div>
                 <div style={{fontSize:'28px',fontWeight:'300',color:'#fff',letterSpacing:'-0.5px',marginBottom:'32px'}}>Nasıl ilerlemek istersiniz?</div>
