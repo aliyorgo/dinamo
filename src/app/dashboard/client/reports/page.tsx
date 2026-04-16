@@ -33,20 +33,27 @@ export default function ClientReportsPage() {
       const { data: userData } = await supabase.from('users').select('name, role').eq('id', user.id).single()
       if (!userData || userData.role !== 'client') { router.push('/login'); return }
       setUserName(userData.name)
-      const { data: cu, error: cuErr } = await supabase.from('client_users').select('credit_balance, client_id, clients(company_name, credit_package)').eq('user_id', user.id).single()
-      console.log('[Reports] Auth user:', user.id, '| client_users result:', cu, '| error:', cuErr)
+      // Try client_users — use limit(1) instead of single/maybeSingle to avoid multi-row error
+      const { data: cuList, error: cuErr } = await supabase.from('client_users').select('credit_balance, client_id, clients(company_name, credit_package)').eq('user_id', user.id).limit(1)
+      const cu = cuList?.[0] || null
+      let clientId: string | null = cu?.client_id || null
+
+      console.log('[Reports] user:', user.id, '| cu:', cu, '| cuErr:', cuErr?.message, '| clientId:', clientId)
+
       if (cu) {
-        console.log('[Reports] client_id:', cu.client_id)
         setCredits(cu.credit_balance)
         setCompanyName((cu as any).clients?.company_name || '')
         setClientPackageName((cu as any).clients?.credit_package || '')
-        const { data: b, error: bErr } = await supabase.from('briefs').select('*').eq('client_id', cu.client_id).order('created_at', { ascending: false })
-        console.log('[Reports] Briefs fetched:', b?.length, '| Delivered:', b?.filter(x => x.status === 'delivered').length, '| Statuses:', Array.from(new Set(b?.map(x => x.status))), '| Error:', bErr)
+      }
+
+      if (clientId) {
+        const { data: b, error: bErr } = await supabase.from('briefs').select('*').eq('client_id', clientId).order('created_at', { ascending: false })
+        console.log('[Reports] Briefs:', b?.length, '| Error:', bErr?.message)
         setBriefs(b || [])
-        const { data: t } = await supabase.from('credit_transactions').select('*').eq('client_id', cu.client_id).order('created_at', { ascending: false }).limit(200)
+        const { data: t } = await supabase.from('credit_transactions').select('*').eq('client_id', clientId).order('created_at', { ascending: false }).limit(200)
         setTransactions(t || [])
       } else {
-        console.log('[Reports] client_users NULL — no client match for user')
+        console.log('[Reports] No clientId found')
         setBriefs([])
       }
       const { data: pkgs } = await supabase.from('credit_packages').select('*').order('credits')
