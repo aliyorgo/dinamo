@@ -102,7 +102,7 @@ export default function SettingsPage() {
           ))}
         </nav>
       </div>
-      <div style={{flex:1,padding:'48px'}}>
+      <div className="dinamo-main-content" style={{flex:1,padding:'48px'}}>
         <h1 style={{fontSize:'28px',fontWeight:'300',letterSpacing:'-1px',margin:'0 0 40px',color:'#0a0a0a'}}>Ayarlar</h1>
         {msg && <div style={{marginBottom:'20px',padding:'12px 16px',background:'#e8f7e8',borderRadius:'8px',fontSize:'13px',color:'#1db81d'}}>{msg}</div>}
         <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',overflow:'hidden'}}>

@@ -146,7 +146,7 @@ export default function AdminCreators() {
         </nav>
       </div>
 
-      <div style={{flex:1,padding:'48px'}}>
+      <div className="dinamo-main-content" style={{flex:1,padding:'48px'}}>
         <h1 style={{fontSize:'28px',fontWeight:'300',letterSpacing:'-1px',margin:'0 0 32px',color:'#0a0a0a'}}>Creator Ödemeleri</h1>
 
         {msg && <div style={{padding:'12px 16px',background:msg.includes('Hata')?'#fef2f2':'#e8f7e8',borderRadius:'8px',fontSize:'13px',color:msg.includes('Hata')?'#e24b4a':'#1db81d',marginBottom:'24px'}}>{msg}</div>}

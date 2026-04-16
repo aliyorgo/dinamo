@@ -104,12 +104,12 @@ export default function AdminDashboard() {
         <button onClick={handleLogout} className="dinamo-signout">Çıkış Yap</button>
       </div>
 
-      <div style={{flex:1,display:'flex',flexDirection:'column',background:'#f5f4f0',overflow:'hidden'}}>
+      <div className="dinamo-main-content" style={{flex:1,display:'flex',flexDirection:'column',background:'#f5f4f0',overflow:'hidden'}}>
         <div style={{padding:'14px 28px',background:'#fff',borderBottom:'0.5px solid rgba(0,0,0,0.08)',flexShrink:0}}>
           <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a'}}>Genel Bakış</div>
         </div>
 
-        <div style={{flex:1,overflowY:'auto',padding:'24px 28px'}}>
+        <div className="dinamo-main-content" style={{flex:1,overflowY:'auto',padding:'24px 28px'}}>
           {loading ? <div style={{color:'rgba(255,255,255,0.4)',fontSize:'14px'}}>Yükleniyor...</div> : (
             <>
               {/* BUGÜN YAPILACAKLAR */}

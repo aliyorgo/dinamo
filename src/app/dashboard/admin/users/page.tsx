@@ -153,7 +153,7 @@ export default function UsersPage() {
         </nav>
       </div>
 
-      <div style={{flex:1,padding:'48px'}}>
+      <div className="dinamo-main-content" style={{flex:1,padding:'48px'}}>
         <div style={{display:'flex',alignItems:'center',gap:'16px',marginBottom:'32px'}}>
           <h1 style={{fontSize:'28px',fontWeight:'300',letterSpacing:'-1px',margin:0}}>Kullanıcılar</h1>
           {msg && <div style={{fontSize:'12px',color:msg.includes('silindi') || msg.includes('Hata') || msg.includes('error') ? '#ef4444' : '#22c55e',marginLeft:'12px'}}>{msg}</div>}
@@ -204,7 +204,7 @@ export default function UsersPage() {
                 </div>
                 {group.users.map((user: any, i: number) => (
                   <div key={user.id} style={{padding:'12px 20px',borderTop: i > 0 ? '1px solid #f0f0ee' : 'none',display:'flex',alignItems:'center',gap:'12px'}}>
-                    <div style={{flex:1,minWidth:0}}>
+                    <div className="dinamo-main-content" style={{flex:1,minWidth:0}}>
                       <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{user.name}</div>
                       <div style={{fontSize:'12px',color:'rgba(255,255,255,0.4)',marginTop:'2px'}}>{user.email}</div>
                     </div>

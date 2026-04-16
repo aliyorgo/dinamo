@@ -100,7 +100,7 @@ export default function BriefsPage() {
           ))}
         </nav>
       </div>
-      <div style={{flex:1,padding:'48px'}}>
+      <div className="dinamo-main-content" style={{flex:1,padding:'48px'}}>
         <h1 style={{fontSize:'28px',fontWeight:'300',letterSpacing:'-1px',margin:'0 0 20px'}}>Briefler</h1>
 
         {/* SEARCH + FILTERS */}

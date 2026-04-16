@@ -139,7 +139,7 @@ export default function ClientsPage() {
     const st = STATUS_MAP[client.status] || STATUS_MAP.pending
     return (
       <div style={{ padding: '14px 20px', borderTop: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div className="dinamo-main-content" style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
             <span style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>{client.company_name}</span>
             <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '100px', fontWeight: '500', background: st.bg, color: st.color }}>

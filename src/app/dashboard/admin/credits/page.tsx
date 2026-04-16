@@ -321,7 +321,7 @@ export default function CreditsPage() {
         )}
 
         {/* Client list */}
-        <div style={{ flex: 1, overflowY: 'auto' }}>
+        <div className="dinamo-main-content" style={{ flex: 1, overflowY: 'auto' }}>
           {filtered.length === 0 ? (
             <div style={{ padding: '32px', textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontSize: '12px' }}>Henüz müşteri yok.</div>
           ) : filtered.map(c => (
