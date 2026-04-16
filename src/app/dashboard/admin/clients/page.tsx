@@ -23,13 +23,12 @@ export default function ClientsPage() {
   const [creating, setCreating] = useState(false)
   const [aiNotes, setAiNotes] = useState<Record<string,string>>({})
   const [aiNoteSaving, setAiNoteSaving] = useState<string|null>(null)
-  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
 
   useEffect(() => { loadData() }, [])
 
   async function loadData() {
     const [{ data: c }, { data: u }, { data: ag }] = await Promise.all([
-      supabase.from('clients').select('*, client_users(count)').order('created_at', { ascending: false }),
+      supabase.from('clients').select('*, client_users(count)').order('company_name', { ascending: true }),
       supabase.from('users').select('id, name, email').eq('role', 'client'),
       supabase.from('agencies').select('id, name, logo_url').order('name'),
     ])
@@ -100,15 +99,6 @@ export default function ClientsPage() {
     setCreating(false)
   }
 
-  function toggleGroup(groupId: string) {
-    setCollapsed(prev => ({ ...prev, [groupId]: !prev[groupId] }))
-  }
-
-
-  const directClients = clients.filter(c => !c.agency_id)
-  const agencyGroups = agencies
-    .map(ag => ({ ...ag, clients: clients.filter(c => c.agency_id === ag.id) }))
-    .filter(ag => ag.clients.length > 0)
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '8px 12px', border: '0.5px solid rgba(0,0,0,0.15)',
@@ -234,59 +224,17 @@ export default function ClientsPage() {
             </div>
           </div>
 
-          {/* DIRECT CLIENTS */}
-          <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', overflow: 'hidden', marginBottom: '16px' }}>
-            <div onClick={() => toggleGroup('direct')}
-              style={{ padding: '14px 20px', borderBottom: collapsed['direct'] ? 'none' : '0.5px solid rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', userSelect: 'none' }}>
-              <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.25)', transition: 'transform 0.2s', transform: collapsed['direct'] ? 'rotate(-90deg)' : 'rotate(0deg)' }}>&#9660;</span>
-              <div style={{ width: '22px', height: '22px', borderRadius: '5px', background: '#111113', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <span style={{ fontSize: '10px', fontWeight: '600', color: '#fff' }}>D</span>
-              </div>
-              <span style={{ fontSize: '12px', fontWeight: '500', color: '#0a0a0a', letterSpacing: '0.5px' }}>DINAMO</span>
-              <span style={{ fontSize: '11px', color: '#888' }}>({directClients.length})</span>
+          {/* CLIENT LIST */}
+          <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', overflow: 'hidden' }}>
+            <div style={{ padding: '14px 20px', borderBottom: '0.5px solid rgba(0,0,0,0.08)', fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>
+              Müşteriler ({clients.length})
             </div>
-            {!collapsed['direct'] && (
-              directClients.length === 0 ? (
-                <div style={{ padding: '20px', textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontSize: '12px' }}>Dogrudan musteri yok.</div>
-              ) : directClients.map(client => (
-                <ClientRow key={client.id} client={client} />
-              ))
-            )}
+            {clients.length === 0 ? (
+              <div style={{ padding: '20px', textAlign: 'center', color: '#aaa', fontSize: '12px' }}>Henüz müşteri yok.</div>
+            ) : clients.map(client => (
+              <ClientRow key={client.id} client={client} />
+            ))}
           </div>
-
-          {/* AGENCY GROUPS */}
-          {agencyGroups.map(ag => (
-            <div key={ag.id} style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', overflow: 'hidden', marginBottom: '16px' }}>
-              <div onClick={() => toggleGroup(ag.id)}
-                style={{ padding: '14px 20px', borderBottom: collapsed[ag.id] ? 'none' : '0.5px solid rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', userSelect: 'none' }}>
-                <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.25)', transition: 'transform 0.2s', transform: collapsed[ag.id] ? 'rotate(-90deg)' : 'rotate(0deg)' }}>&#9660;</span>
-                {ag.logo_url ? (
-                  <div style={{ width: '22px', height: '22px', borderRadius: '5px', overflow: 'hidden', background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', flexShrink: 0 }}>
-                    <img src={ag.logo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '2px' }} />
-                  </div>
-                ) : (
-                  <div style={{ width: '22px', height: '22px', borderRadius: '5px', background: '#111113', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <span style={{ fontSize: '10px', fontWeight: '500', color: '#fff' }}>{ag.name?.charAt(0)?.toUpperCase()}</span>
-                  </div>
-                )}
-                <span style={{ fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>{ag.name}</span>
-                <span style={{ fontSize: '11px', color: '#888' }}>({ag.clients.length})</span>
-                <button onClick={(e) => { e.stopPropagation(); router.push(`/dashboard/admin/agencies/${ag.id}`) }}
-                  style={{ marginLeft: 'auto', padding: '3px 10px', borderRadius: '100px', fontSize: '10px', border: '0.5px solid rgba(0,0,0,0.12)', background: '#fff', color: '#888', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
-                  Ajans Detay
-                </button>
-              </div>
-              {!collapsed[ag.id] && (
-                ag.clients.length === 0 ? (
-                  <div style={{ padding: '20px', textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontSize: '12px' }}>Musteri yok.</div>
-                ) : ag.clients.map((client: any) => (
-                  <div key={client.id} style={{ paddingLeft: '12px' }}>
-                    <ClientRow client={client} />
-                  </div>
-                ))
-              )}
-            </div>
-          ))}
         </div>
     </div>
   )
