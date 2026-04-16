@@ -298,8 +298,8 @@ function NewBriefPage() {
         </div>
 
         <div style={{padding:'12px 16px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
-          <div style={{fontSize:'10px',color:'#999',letterSpacing:'0.5px',textTransform:'uppercase',marginBottom:'4px'}}>Kredi Bakiyesi</div>
-          <div style={{fontSize:'22px',fontWeight:'300',color:'#fff',letterSpacing:'-1px',marginBottom:'8px'}}>{balance}</div>
+          <div style={{fontSize:'10px',color:'#AAA',letterSpacing:'0.5px',textTransform:'uppercase',marginBottom:'4px'}}>Kredi Bakiyesi</div>
+          <div style={{fontSize:'22px',fontWeight:'700',color:'#fff',letterSpacing:'-1px',marginBottom:'8px'}}>{balance}</div>
           {cost > 0 && (
             <div style={{background:'rgba(34,197,94,0.1)',border:'0.5px solid rgba(34,197,94,0.2)',borderRadius:'8px',padding:'8px 10px'}}>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
@@ -313,7 +313,7 @@ function NewBriefPage() {
         </div>
 
         <div style={{padding:'10px 8px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
-          <div style={{fontSize:'9px',letterSpacing:'1.5px',color:'rgba(255,255,255,0.2)',padding:'0 6px',marginBottom:'6px',textTransform:'uppercase'}}>Adımlar</div>
+          <div style={{fontSize:'9px',letterSpacing:'1.5px',color:'#AAA',padding:'0 6px',marginBottom:'6px',textTransform:'uppercase'}}>Adımlar</div>
           {steps.map((s,i)=>{
             const n = i+1
             const isDone = n < step
@@ -323,18 +323,18 @@ function NewBriefPage() {
                 <div onClick={()=>{ if(isDone) setStep(n) }}
                   style={{display:'flex',alignItems:'flex-start',gap:'8px',padding:'5px 6px',borderRadius:'7px',cursor:isDone?'pointer':'default',background:isCur?'rgba(255,255,255,0.06)':'transparent',marginBottom:'1px'}}>
                   <div style={{width:'17px',height:'17px',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'9px',fontWeight:'500',flexShrink:0,marginTop:'1px',
-                    background:isDone?'#22c55e':isCur?'#fff':'rgba(255,255,255,0.07)',
-                    color:isDone?'#fff':isCur?'#111':'rgba(255,255,255,0.25)'}}>
+                    background:isDone?'#22c55e':isCur?'#1DB81D':'#444',
+                    color:isDone?'#fff':isCur?'#fff':'#888'}}>
                     {isDone?'✓':n}
                   </div>
                   <div style={{marginTop:'1px'}}>
-                    <div style={{fontSize:'11px',color:isDone?'rgba(255,255,255,0.45)':isCur?'#fff':'rgba(255,255,255,0.3)',fontWeight:isCur?'500':'400'}}>
+                    <div style={{fontSize:'11px',color:isDone?'#888':isCur?'#fff':'#666',fontWeight:isCur?'500':'400'}}>
                       {n===1&&form.campaign_name?form.campaign_name.substring(0,18)+(form.campaign_name.length>18?'…':''):s}
                     </div>
                     {isDone&&n===1&&form.video_type&&<div style={{fontSize:'9px',color:'rgba(255,255,255,0.2)',marginTop:'1px'}}>{form.video_type} · {form.format}</div>}
                   </div>
                 </div>
-                {n<5&&<div style={{width:'1px',height:'8px',background:'rgba(255,255,255,0.07)',marginLeft:'14px'}}></div>}
+                {n<5&&<div style={{width:'1px',height:'8px',background:'#2A2A2A',marginLeft:'14px'}}></div>}
               </div>
             )
           })}
