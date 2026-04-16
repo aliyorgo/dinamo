@@ -131,29 +131,7 @@ export default function UsersPage() {
     .filter(g => g.users.length > 0)
 
   return (
-    <div>
-      <div className="dinamo-sidebar">
-        <div style={{padding:'0 24px 32px',borderBottom:'1px solid rgba(255,255,255,0.08)'}}>
-          <img src="/dinamo_logo.png" alt="Dinamo" style={{height:"28px"}} />
-          <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',marginTop:'4px',letterSpacing:'1px',fontFamily:'monospace'}}>ADMIN</div>
-        </div>
-        <nav style={{flex:1,padding:'24px 0'}}>
-          {[
-            {label:'Genel Bakış',href:'/dashboard/admin'},
-            {label:'Briefler',href:'/dashboard/admin/briefs'},
-            {label:'Kredi Yönetimi',href:'/dashboard/admin/credits'},
-            {label:'Müşteriler',href:'/dashboard/admin/clients'},
-            {label:'Kullanıcılar',href:'/dashboard/admin/users'},
-            {label:"Creator'lar",href:'/dashboard/admin/creators'},
-            {label:'Raporlar',href:'/dashboard/admin/reports'},
-            {label:'Ayarlar',href:'/dashboard/admin/settings'},
-          ].map(item => (
-            <a key={item.href} href={item.href} className={`dinamo-nav-link${item.href==='/dashboard/admin/users'?' active':''}`}>{item.label}</a>
-          ))}
-        </nav>
-      </div>
-
-      <div className="dinamo-main-content" style={{flex:1,padding:'48px'}}>
+    <div style={{padding:'48px'}}>
         <div style={{display:'flex',alignItems:'center',gap:'16px',marginBottom:'32px'}}>
           <h1 style={{fontSize:'28px',fontWeight:'300',letterSpacing:'-1px',margin:0}}>Kullanıcılar</h1>
           {msg && <div style={{fontSize:'12px',color:msg.includes('silindi') || msg.includes('Hata') || msg.includes('error') ? '#ef4444' : '#22c55e',marginLeft:'12px'}}>{msg}</div>}
@@ -227,7 +205,6 @@ export default function UsersPage() {
             ))}
           </div>
         )}
-      </div>
 
       {/* CREATE MODAL */}
       {createModal && (
