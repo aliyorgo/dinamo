@@ -181,6 +181,7 @@ export default function ClientDashboard() {
             style={{display:'flex',alignItems:'center',gap:'7px',padding:'6px 8px',cursor:'pointer',width:'100%',background:'none',border:'none',transition:'all 0.15s ease'}}>
             <span style={{fontSize:'11px',color:'#aaa',fontFamily:'var(--font-dm-sans),sans-serif',transition:'color 0.15s ease'}}>Çıkış yap</span>
           </button>
+          <img src="/powered_by_dcc.png" alt="Powered by DCC" style={{height:'20px',width:'auto',opacity:0.6,display:'block',margin:'16px 24px',cursor:'pointer'}} onClick={()=>window.open('https://dirtycheapcreative.com','_blank')} />
         </div>
       </div>
 
