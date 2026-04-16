@@ -5,17 +5,6 @@ import { useRouter } from 'next/navigation'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
-const NAV = [
-  { label: 'Genel Bakış', href: '/dashboard/admin' },
-  { label: 'Briefler', href: '/dashboard/admin/briefs' },
-  { label: 'Kredi Yönetimi', href: '/dashboard/admin/credits' },
-  { label: 'Müşteriler', href: '/dashboard/admin/clients' },
-  { label: 'Kullanıcılar', href: '/dashboard/admin/users' },
-  { label: 'Ajanslar', href: '/dashboard/admin/agencies' },
-  { label: "Creator'lar", href: '/dashboard/admin/creators' },
-  { label: 'Raporlar', href: '/dashboard/admin/reports' },
-  { label: 'Ayarlar', href: '/dashboard/admin/settings' },
-]
 
 export default function AdminCreators() {
   const router = useRouter()
@@ -133,20 +122,7 @@ export default function AdminCreators() {
   }
 
   return (
-    <div>
-      <div className="dinamo-sidebar">
-        <div style={{padding:'0 24px 32px',borderBottom:'1px solid rgba(255,255,255,0.08)'}}>
-          <img src="/dinamo_logo.png" alt="Dinamo" style={{height:"28px"}} />
-          <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',marginTop:'4px',letterSpacing:'1px',fontFamily:'monospace'}}>ADMIN</div>
-        </div>
-        <nav style={{flex:1,padding:'24px 0'}}>
-          {NAV.map(item=>(
-            <a key={item.href} href={item.href} className={`dinamo-nav-link${item.href==='/dashboard/admin/creators'?' active':''}`}>{item.label}</a>
-          ))}
-        </nav>
-      </div>
-
-      <div className="dinamo-main-content" style={{flex:1,padding:'48px'}}>
+    <div style={{padding:'48px'}}>
         <h1 style={{fontSize:'28px',fontWeight:'300',letterSpacing:'-1px',margin:'0 0 32px',color:'#0a0a0a'}}>Creator Ödemeleri</h1>
 
         {msg && <div style={{padding:'12px 16px',background:msg.includes('Hata')?'#fef2f2':'#e8f7e8',borderRadius:'8px',fontSize:'13px',color:msg.includes('Hata')?'#e24b4a':'#1db81d',marginBottom:'24px'}}>{msg}</div>}
@@ -326,7 +302,6 @@ export default function AdminCreators() {
             )
           })}
         </div>
-      </div>
     </div>
   )
 }
