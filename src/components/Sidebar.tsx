@@ -70,7 +70,7 @@ export default function Sidebar({ role, userName, companyName, credits, extra }:
   const pathname = usePathname()
   const links = navLinks[role] || []
 
-  const isLight = role === 'client'
+  const isLight = false // all sidebars dark
   const bgColor = isLight ? '#FFFFFF' : '#0A0A0A'
   const textColor = isLight ? '#666' : 'rgba(255,255,255,0.4)'
   const activeTextColor = isLight ? '#0A0A0A' : '#FFFFFF'

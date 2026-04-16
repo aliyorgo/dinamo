@@ -288,16 +288,16 @@ function NewBriefPage() {
 
   function Sidebar() {
     return (
-      <div style={{width:'240px',background:'#fff',borderRight:'1px solid #E8E8E4',display:'flex',flexDirection:'column',flexShrink:0,height:'100vh',position:'sticky',top:0}}>
-        <div style={{padding:'18px 16px 14px',borderBottom:'1px solid #E8E8E4'}}>
+      <div style={{width:'240px',background:'#0A0A0A',display:'flex',flexDirection:'column',flexShrink:0,height:'100vh',position:'sticky',top:0}}>
+        <div style={{padding:'18px 16px 14px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
           <div style={{fontSize:'18px',fontWeight:'500',color:'#fff',letterSpacing:'-0.5px',marginBottom:'12px'}}>
-            <img src="/dinamo_logo_siyah.png" alt="Dinamo" style={{height:'28px'}} />
+            <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} />
           </div>
           <div style={{fontSize:'10px',color:'#999',marginBottom:'3px'}}>{companyName}</div>
           <div style={{fontSize:'13px',fontWeight:'500',color:'#fff'}}>{userName}</div>
         </div>
 
-        <div style={{padding:'12px 16px',borderBottom:'1px solid #E8E8E4'}}>
+        <div style={{padding:'12px 16px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
           <div style={{fontSize:'10px',color:'#999',letterSpacing:'0.5px',textTransform:'uppercase',marginBottom:'4px'}}>Kredi Bakiyesi</div>
           <div style={{fontSize:'22px',fontWeight:'300',color:'#fff',letterSpacing:'-1px',marginBottom:'8px'}}>{balance}</div>
           {cost > 0 && (
@@ -312,7 +312,7 @@ function NewBriefPage() {
           )}
         </div>
 
-        <div style={{padding:'10px 8px',borderBottom:'1px solid #E8E8E4'}}>
+        <div style={{padding:'10px 8px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
           <div style={{fontSize:'9px',letterSpacing:'1.5px',color:'rgba(255,255,255,0.2)',padding:'0 6px',marginBottom:'6px',textTransform:'uppercase'}}>Adımlar</div>
           {steps.map((s,i)=>{
             const n = i+1
@@ -341,7 +341,7 @@ function NewBriefPage() {
         </div>
 
         <div style={{flex:1}}></div>
-        <div style={{padding:'10px 8px',borderTop:'1px solid #E8E8E4'}}>
+        <div style={{padding:'10px 8px',borderTop:'0.5px solid rgba(255,255,255,0.07)'}}>
           <div onClick={()=>router.push('/dashboard/client')} style={{display:'flex',alignItems:'center',gap:'7px',padding:'6px 8px',borderRadius:'7px',cursor:'pointer'}}>
             <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="rgba(255,255,255,0.25)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
             <span style={{fontSize:'11px',color:'#aaa',fontFamily:'var(--font-dm-sans),sans-serif'}}>Projelerime dön</span>
@@ -369,7 +369,7 @@ function NewBriefPage() {
       <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'#0a0a0a',fontFamily:"var(--font-dm-sans),'DM Sans',system-ui,sans-serif"}}>
         <div style={{textAlign:'center',maxWidth:'520px',padding:'0 24px'}}>
           <div style={{fontSize:'28px',fontWeight:'500',color:'#fff',letterSpacing:'-0.5px',marginBottom:'32px'}}>
-            <img src="/dinamo_logo_siyah.png" alt="Dinamo" style={{height:'28px'}} />
+            <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} />
           </div>
           <div style={{fontSize:'36px',fontWeight:'300',color:'#fff',letterSpacing:'-1px',marginBottom:'12px'}}>Brief'iniz alındı.</div>
           <div style={{fontSize:'18px',fontWeight:'300',color:'#fff',fontStyle:'italic',marginBottom:'24px'}}>"{form.campaign_name}"</div>

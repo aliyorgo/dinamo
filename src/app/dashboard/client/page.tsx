@@ -146,17 +146,17 @@ export default function ClientDashboard() {
     <div style={{display:'flex',minHeight:'100vh',fontFamily:"var(--font-dm-sans),'DM Sans',system-ui,sans-serif",background:'#f5f4f0'}}>
 
       {/* SIDEBAR */}
-      <div style={{width:'240px',background:'#fff',borderRight:'1px solid #E8E8E4',display:'flex',flexDirection:'column',flexShrink:0,height:'100vh',position:'sticky',top:0}}>
-        <div style={{padding:'18px 16px 14px',borderBottom:'1px solid #E8E8E4'}}>
-          <img src="/dinamo_logo_siyah.png" alt="Dinamo" style={{height:'28px'}} />
+      <div style={{width:'240px',background:'#0A0A0A',display:'flex',flexDirection:'column',flexShrink:0,height:'100vh',position:'sticky',top:0}}>
+        <div style={{padding:'18px 16px 14px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
+          <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} />
         </div>
-        <div style={{margin:'12px 12px',padding:'16px 20px',background:'#F0F7F0',borderLeft:'3px solid #1DB81D'}}>
+        <div style={{margin:'12px 12px',padding:'16px 20px',background:'rgba(29,184,29,0.06)',borderLeft:'3px solid #1DB81D'}}>
           <div style={{fontSize:'18px',fontWeight:'700',color:'#0A0A0A',marginBottom:'2px'}}>{companyName || 'Dinamo'}</div>
           <div style={{fontSize:'13px',fontWeight:'400',color:'#888',marginBottom:'12px'}}>{userName}</div>
           <div style={{fontSize:'10px',color:'#AAA',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:'8px'}}>KREDİ BAKİYESİ</div>
           <div style={{fontSize:'28px',fontWeight:'700',color:'#1DB81D',letterSpacing:'-1px'}}>{credits}</div>
         </div>
-        <nav style={{padding:'10px 8px',borderBottom:'1px solid #E8E8E4'}}>
+        <nav style={{padding:'10px 8px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
           {[
             {label:'Projelerim', href:'/dashboard/client', active:true},
             {label:'Yeni Brief', href:'/dashboard/client/brief/new', active:false},
@@ -174,7 +174,7 @@ export default function ClientDashboard() {
           ))}
         </nav>
         <div style={{flex:1}}></div>
-        <div style={{padding:'10px 8px',borderTop:'1px solid #E8E8E4'}}>
+        <div style={{padding:'10px 8px',borderTop:'0.5px solid rgba(255,255,255,0.07)'}}>
           <button onClick={handleLogout}
             onMouseEnter={e=>{(e.currentTarget.firstChild as HTMLElement).style.color='#FF4444'}}
             onMouseLeave={e=>{(e.currentTarget.firstChild as HTMLElement).style.color='rgba(255,255,255,0.25)'}}
@@ -239,7 +239,7 @@ export default function ClientDashboard() {
                     </h1>
                   )}
                   <div style={{width:'60px',height:'2px',background:'#1DB81D',marginTop:'20px',marginBottom:'28px'}}></div>
-                  <p style={{fontSize:'18px',color:'#666',fontWeight:'300',letterSpacing:'0.01em',lineHeight:1.6,margin:'0 0 40px 0'}}>
+                  <p style={{fontSize:'18px',color:'rgba(255,255,255,0.4)',fontWeight:'300',letterSpacing:'0.01em',lineHeight:1.6,margin:'0 0 40px 0'}}>
                     Brief'inizi oluşturun, 24 saat içinde videonuz hazır.
                   </p>
 
@@ -273,7 +273,7 @@ export default function ClientDashboard() {
                   {homeVideos.length > 0 && (
                     <div style={{marginTop:'56px'}}>
                       <div style={{fontSize:'18px',fontWeight:'600',color:'#0A0A0A',marginBottom:'16px',display:'flex',alignItems:'center',gap:'6px'}}>
-                        <img src="/dinamo_logo_siyah.png" alt="Dinamo" style={{height:'20px'}} /> ile Üretildi
+                        <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'20px'}} /> ile Üretildi
                       </div>
                       <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'8px'}}>
                         {homeVideos.map(v=>(
