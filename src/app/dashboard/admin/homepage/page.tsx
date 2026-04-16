@@ -5,17 +5,6 @@ import { useRouter } from 'next/navigation'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
-const NAV = [
-  { label: 'Genel Bakış', href: '/dashboard/admin' },
-  { label: 'Briefler', href: '/dashboard/admin/briefs' },
-  { label: 'Kredi Yönetimi', href: '/dashboard/admin/credits' },
-  { label: 'Müşteriler', href: '/dashboard/admin/clients' },
-  { label: 'Kullanıcılar', href: '/dashboard/admin/users' },
-  { label: 'Ajanslar', href: '/dashboard/admin/agencies' },
-  { label: "Creator'lar", href: '/dashboard/admin/creators' },
-  { label: 'Raporlar', href: '/dashboard/admin/reports' },
-  { label: 'Ayarlar', href: '/dashboard/admin/settings' },
-]
 
 const CMS_FIELDS = [
   { key: 'hero_title', label: 'Hero Başlık', type: 'text', default: 'Brief yaz. 24 saatte video.' },
@@ -122,32 +111,11 @@ export default function HomepageAdmin() {
     setTimeout(() => setMsg(''), 2000)
   }
 
-  async function handleLogout() { await supabase.auth.signOut(); router.push('/login') }
 
   const inputStyle: React.CSSProperties = { width: '100%', boxSizing: 'border-box', padding: '9px 13px', border: '0.5px solid rgba(0,0,0,0.12)', borderRadius: '8px', fontSize: '13px', color: '#0a0a0a', fontFamily: 'var(--font-dm-sans),sans-serif', outline: 'none' }
 
   return (
-    <div>
-
-      <div className="dinamo-sidebar">
-        <div style={{ padding: '18px 16px 14px', borderBottom: '0.5px solid rgba(255,255,255,0.07)' }}>
-          <div style={{ fontSize: '18px', fontWeight: '500', color: '#fff', letterSpacing: '-0.5px', marginBottom: '12px' }}>
-            <img src="/dinamo_logo.png" alt="Dinamo" style={{ height: '28px' }} />
-          </div>
-          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', marginBottom: '3px' }}>Admin</div>
-          <div style={{ fontSize: '13px', fontWeight: '500', color: '#fff' }}>{userName}</div>
-        </div>
-        <nav style={{ padding: '10px 8px', flex: 1 }}>
-          {NAV.map(item => (
-            <div key={item.href} onClick={()=>router.push(item.href)} className={`dinamo-nav-link${item.href==='/dashboard/admin/homepage'?' active':''}`}>{item.label}</div>
-          ))}
-        </nav>
-        <div style={{ padding: '10px 8px', borderTop: '0.5px solid rgba(255,255,255,0.07)' }}>
-          <button onClick={handleLogout} className="dinamo-signout">Çıkış Yap</button>
-        </div>
-      </div>
-
-      <div className="dinamo-main-content" style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#f5f4f0', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <div style={{ padding: '14px 28px', background: '#fff', borderBottom: '0.5px solid rgba(0,0,0,0.08)', flexShrink: 0 }}>
           <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a' }}>Ana Sayfa Yönetimi</div>
         </div>
@@ -223,7 +191,6 @@ export default function HomepageAdmin() {
             </>
           )}
         </div>
-      </div>
     </div>
   )
 }

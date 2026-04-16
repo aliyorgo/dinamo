@@ -6,17 +6,6 @@ import { useParams, useRouter } from 'next/navigation'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
-const NAV = [
-  { label: 'Genel Bakış', href: '/dashboard/admin' },
-  { label: 'Briefler', href: '/dashboard/admin/briefs' },
-  { label: 'Kredi Yönetimi', href: '/dashboard/admin/credits' },
-  { label: 'Müşteriler', href: '/dashboard/admin/clients' },
-  { label: 'Kullanıcılar', href: '/dashboard/admin/users' },
-  { label: 'Ajanslar', href: '/dashboard/admin/agencies' },
-  { label: "Creator'lar", href: '/dashboard/admin/creators' },
-  { label: 'Raporlar', href: '/dashboard/admin/reports' },
-  { label: 'Ayarlar', href: '/dashboard/admin/settings' },
-]
 
 interface Submission { id:string; version:number; status:string; video_url:string; submitted_at:string; producer_notes:string|null }
 
@@ -286,7 +275,6 @@ export default function AdminBriefDetail() {
     }
   }
 
-  async function handleLogout() { await supabase.auth.signOut(); router.push('/login') }
 
   const videoRef = useRef<HTMLVideoElement>(null)
   function parseTimecode(text: string): { tc: number|null, clean: string } {
@@ -307,29 +295,7 @@ export default function AdminBriefDetail() {
     color: s==='pending'?'#888':s==='producer_approved'||s==='admin_approved'?'#22c55e':s==='revision_requested'?'#ef4444':'#888' })
 
   return (
-    <div>
-
-      {/* SIDEBAR */}
-      <div className="dinamo-sidebar">
-        <div style={{padding:'18px 16px 14px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
-          <div style={{fontSize:'18px',fontWeight:'500',color:'#fff',letterSpacing:'-0.5px',marginBottom:'12px'}}>
-            <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} />
-          </div>
-          <div style={{fontSize:'10px',color:'rgba(255,255,255,0.3)',marginBottom:'3px'}}>Admin</div>
-          <div style={{fontSize:'13px',fontWeight:'500',color:'#fff'}}>{userName}</div>
-        </div>
-        <nav style={{padding:'10px 8px',flex:1}}>
-          {NAV.map(item=>(
-            <div key={item.href} onClick={()=>router.push(item.href)} className={`dinamo-nav-link${item.href==='/dashboard/admin/briefs'?' active':''}`}>{item.label}</div>
-          ))}
-        </nav>
-        <div style={{padding:'10px 8px',borderTop:'0.5px solid rgba(255,255,255,0.07)'}}>
-          <button onClick={handleLogout} className="dinamo-signout">Çıkış Yap</button>
-        </div>
-      </div>
-
-      {/* MAIN */}
-      <div className="dinamo-main-content" style={{flex:1,display:'flex',flexDirection:'column',background:'#f5f4f0',overflow:'hidden'}}>
+    <>
         {/* HEADER */}
         <div style={{padding:'14px 28px',background:'#fff',borderBottom:'0.5px solid rgba(0,0,0,0.08)',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
           <div>
@@ -617,7 +583,6 @@ export default function AdminBriefDetail() {
             </>
           )}
         </div>
-      </div>
 
       {/* DELETE CONFIRM — STEP 1 */}
       {deleteStep === 1 && (
@@ -675,6 +640,6 @@ export default function AdminBriefDetail() {
           </div>
         </div>
       )}
-    </div>
+    </>
   )
 }

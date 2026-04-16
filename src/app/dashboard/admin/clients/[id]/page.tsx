@@ -5,17 +5,6 @@ import { useRouter, useParams } from 'next/navigation'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
-const NAV = [
-  { label: 'Genel Bakış', href: '/dashboard/admin' },
-  { label: 'Briefler', href: '/dashboard/admin/briefs' },
-  { label: 'Kredi Yönetimi', href: '/dashboard/admin/credits' },
-  { label: 'Müşteriler', href: '/dashboard/admin/clients' },
-  { label: 'Kullanıcılar', href: '/dashboard/admin/users' },
-  { label: 'Ajanslar', href: '/dashboard/admin/agencies' },
-  { label: "Creator'lar", href: '/dashboard/admin/creators' },
-  { label: 'Raporlar', href: '/dashboard/admin/reports' },
-  { label: 'Ayarlar', href: '/dashboard/admin/settings' },
-]
 
 const STATUS_MAP: Record<string, { label: string; bg: string; color: string }> = {
   demo: { label: 'Demo', bg: 'rgba(245,158,11,0.1)', color: '#f59e0b' },
@@ -344,10 +333,6 @@ export default function ClientDetailPage() {
     showMsg('AI notlari kaydedildi.')
   }
 
-  async function handleLogout() {
-    await supabase.auth.signOut()
-    router.push('/login')
-  }
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '8px 12px', border: '0.5px solid rgba(0,0,0,0.15)',
@@ -379,31 +364,7 @@ export default function ClientDetailPage() {
   const st = STATUS_MAP[client?.status] || STATUS_MAP.pending
 
   return (
-    <div>
-
-      {/* SIDEBAR */}
-      <div className="dinamo-sidebar">
-        <div style={{ padding: '18px 16px 14px', borderBottom: '0.5px solid rgba(255,255,255,0.07)' }}>
-          <div style={{ fontSize: '18px', fontWeight: '500', color: '#fff', letterSpacing: '-0.5px', marginBottom: '12px' }}>
-            <img src="/dinamo_logo.png" alt="Dinamo" style={{ height: '28px' }} />
-          </div>
-          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', marginBottom: '3px' }}>Admin</div>
-          <div style={{ fontSize: '13px', fontWeight: '500', color: '#fff' }}>{userName}</div>
-        </div>
-        <nav style={{ padding: '10px 8px', flex: 1 }}>
-          {NAV.map(item => (
-            <div key={item.href} onClick={()=>router.push(item.href)} className={`dinamo-nav-link${item.href==='/dashboard/admin/clients'?' active':''}`}>{item.label}</div>
-          ))}
-        </nav>
-        <div style={{ padding: '10px 8px', borderTop: '0.5px solid rgba(255,255,255,0.07)' }}>
-          <button onClick={handleLogout} style={{ padding: '6px 8px', borderRadius: '7px', cursor: 'pointer', width: '100%', background: 'none', border: 'none' }}>
-            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-dm-sans),sans-serif' }}>Cikis yap</span>
-          </button>
-        </div>
-      </div>
-
-      {/* MAIN */}
-      <div className="dinamo-main-content" style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#f5f4f0', overflow: 'hidden' }}>
+    <>
         {/* HEADER */}
         <div style={{ padding: '14px 28px', background: '#fff', borderBottom: '0.5px solid rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
           <button onClick={() => router.push('/dashboard/admin/clients')}
@@ -651,7 +612,6 @@ export default function ClientDetailPage() {
             </div>
           </div>
         </div>
-      </div>
 
       {/* CREDIT ALLOCATION MODAL */}
       {creditAllocModal && (
@@ -857,6 +817,6 @@ export default function ClientDetailPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   )
 }
