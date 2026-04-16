@@ -3,17 +3,6 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
-const NAV = [
-  { label: 'Genel Bakış', href: '/dashboard/admin' },
-  { label: 'Briefler', href: '/dashboard/admin/briefs' },
-  { label: 'Kredi Yönetimi', href: '/dashboard/admin/credits' },
-  { label: 'Müşteriler', href: '/dashboard/admin/clients' },
-  { label: 'Kullanıcılar', href: '/dashboard/admin/users' },
-  { label: 'Ajanslar', href: '/dashboard/admin/agencies' },
-  { label: "Creator'lar", href: '/dashboard/admin/creators' },
-  { label: 'Raporlar', href: '/dashboard/admin/reports' },
-  { label: 'Ayarlar', href: '/dashboard/admin/settings' },
-]
 const statusLabel: Record<string,string> = {submitted:'Yeni',read:'Okundu',in_production:'Üretimde',revision:'Revizyon',approved:'Onaylandı',delivered:'Teslim Edildi',cancelled:'İptal'}
 const statusColor: Record<string,string> = {submitted:'#1db81d',read:'#888',in_production:'#f59e0b',revision:'#e24b4a',approved:'#1db81d',delivered:'#888',cancelled:'#555'}
 
@@ -88,19 +77,7 @@ export default function BriefsPage() {
   function clearFilters() { setFilter('all'); setSearch(''); setDateFrom(''); setDateTo(''); setCreatorFilter('') }
 
   return (
-    <div>
-      <div className="dinamo-sidebar">
-        <div style={{padding:'0 24px 32px',borderBottom:'1px solid rgba(255,255,255,0.08)'}}>
-          <img src="/dinamo_logo.png" alt="Dinamo" style={{height:"28px"}} />
-          <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',marginTop:'4px',letterSpacing:'1px',fontFamily:'monospace'}}>ADMIN</div>
-        </div>
-        <nav style={{flex:1,padding:'24px 0'}}>
-          {NAV.map(item=>(
-            <a key={item.href} href={item.href} className={`dinamo-nav-link${item.href==='/dashboard/admin/briefs'?' active':''}`}>{item.label}</a>
-          ))}
-        </nav>
-      </div>
-      <div className="dinamo-main-content" style={{flex:1,padding:'48px'}}>
+    <div style={{padding:'48px'}}>
         <h1 style={{fontSize:'28px',fontWeight:'300',letterSpacing:'-1px',margin:'0 0 20px'}}>Briefler</h1>
 
         {/* SEARCH + FILTERS */}
@@ -186,7 +163,6 @@ export default function BriefsPage() {
             </table>
           )}
         </div>
-      </div>
     </div>
   )
 }
