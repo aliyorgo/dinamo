@@ -26,9 +26,9 @@ export default function BrandPage() {
       if (!user) { router.push('/login'); return }
       const { data: userData } = await supabase.from('users').select('name').eq('id', user.id).single()
       setUserName(userData?.name || '')
-      const { data: cu } = await supabase.from('client_users').select('credit_balance, client_id, clients(company_name)').eq('user_id', user.id).single()
+      const { data: cu } = await supabase.from('client_users').select('allocated_credits, client_id, clients(company_name)').eq('user_id', user.id).single()
       if (cu) {
-        setCredits(cu.credit_balance)
+        setCredits(cu.allocated_credits)
         setClientId(cu.client_id)
         setCompanyName((cu as any).clients?.company_name || '')
         const { data: f } = await supabase.from('brief_files').select('*').eq('client_id', cu.client_id).order('created_at', { ascending: false })

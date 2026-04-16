@@ -105,13 +105,13 @@ export default function ClientBriefDetail() {
     setReordering(true)
     const fullCost = BASE_COSTS[reorderType] || 12
     const halfCost = Math.ceil(fullCost / 2)
-    if (clientUser.credit_balance < halfCost) { setReordering(false); return }
+    if (clientUser.allocated_credits < halfCost) { setReordering(false); return }
     const originalId = brief.parent_brief_id || brief.id
     const { count } = await supabase.from('briefs').select('id', { count: 'exact', head: true }).eq('parent_brief_id', originalId)
     const copyNum = (count || 0) + 2
     const baseName = brief.campaign_name.replace(/\s*—\s*\d+$/, '')
     const newName = `${baseName} — ${copyNum}`
-    await supabase.from('client_users').update({ credit_balance: clientUser.credit_balance - halfCost }).eq('id', clientUser.id)
+    await supabase.from('client_users').update({ credit_balance: clientUser.allocated_credits - halfCost }).eq('id', clientUser.id)
     await supabase.from('credit_transactions').insert({ client_id: brief.client_id, client_user_id: clientUser.id, amount: -halfCost, type: 'deduct', description: `${newName} (tekrar sipariş)` })
     await supabase.from('briefs').insert({
       client_id: brief.client_id, client_user_id: brief.client_user_id,
@@ -149,8 +149,8 @@ export default function ClientBriefDetail() {
     setLoading(true)
     setMsg('')
     if (revisionCount >= 1) {
-      if (clientUser.credit_balance < REVISION_COST) { setMsg(`Yetersiz kredi. Bu revizyon için ${REVISION_COST} kredi gerekiyor.`); setLoading(false); return }
-      await supabase.from('client_users').update({ credit_balance: clientUser.credit_balance - REVISION_COST }).eq('id', clientUser.id)
+      if (clientUser.allocated_credits < REVISION_COST) { setMsg(`Yetersiz kredi. Bu revizyon için ${REVISION_COST} kredi gerekiyor.`); setLoading(false); return }
+      await supabase.from('client_users').update({ credit_balance: clientUser.allocated_credits - REVISION_COST }).eq('id', clientUser.id)
       await supabase.from('credit_transactions').insert({ client_id: brief.client_id, client_user_id: clientUser.id, brief_id: id, amount: -REVISION_COST, type: 'deduct', description: `${brief.campaign_name} — ${revisionCount+1}. revizyon` })
     }
     // Delete unpaid earnings for this brief
@@ -173,7 +173,7 @@ export default function ClientBriefDetail() {
   async function handleApprove() {
     if (!brief || !clientUser) return
     setLoading(true)
-    const newBalance = Math.max(0, clientUser.credit_balance - (brief.credit_cost || 0))
+    const newBalance = Math.max(0, clientUser.allocated_credits - (brief.credit_cost || 0))
     await supabase.from('client_users').update({ credit_balance: newBalance }).eq('id', clientUser.id)
     await supabase.from('credit_transactions').insert({ client_id: brief.client_id, client_user_id: clientUser.id, brief_id: id, amount: -(brief.credit_cost||0), type: 'deduct', description: `${brief.campaign_name} — müşteri onayı` })
     const { data: pb } = await supabase.from('producer_briefs').select('assigned_creator_id').eq('brief_id', id).maybeSingle()
@@ -726,7 +726,7 @@ export default function ClientBriefDetail() {
         const currentCost = BASE_COSTS[brief.video_type] || 12
         const selectedCost = BASE_COSTS[reorderType] || 12
         const halfCost = Math.ceil(selectedCost / 2)
-        const canAfford = clientUser && clientUser.credit_balance >= halfCost
+        const canAfford = clientUser && clientUser.allocated_credits >= halfCost
         return (
           <div style={{position:'fixed',inset:0,zIndex:150,display:'flex',alignItems:'center',justifyContent:'center',animation:'fadeIn 0.2s ease'}}
             onClick={()=>setShowReorderModal(false)}>

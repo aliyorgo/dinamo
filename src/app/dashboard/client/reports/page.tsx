@@ -34,14 +34,14 @@ export default function ClientReportsPage() {
       if (!userData || userData.role !== 'client') { router.push('/login'); return }
       setUserName(userData.name)
       // Try client_users — use limit(1) instead of single/maybeSingle to avoid multi-row error
-      const { data: cuList, error: cuErr } = await supabase.from('client_users').select('credit_balance, client_id, clients(company_name, credit_package)').eq('user_id', user.id).limit(1)
+      const { data: cuList, error: cuErr } = await supabase.from('client_users').select('allocated_credits, client_id, clients(company_name, credit_package)').eq('user_id', user.id).limit(1)
       const cu = cuList?.[0] || null
       let clientId: string | null = cu?.client_id || null
 
       console.log('[Reports] user:', user.id, '| cu:', cu, '| cuErr:', cuErr?.message, '| clientId:', clientId)
 
       if (cu) {
-        setCredits(cu.credit_balance)
+        setCredits(cu.allocated_credits)
         setCompanyName((cu as any).clients?.company_name || '')
         setClientPackageName((cu as any).clients?.credit_package || '')
       }

@@ -210,7 +210,7 @@ function NewBriefPage() {
   async function handleSubmit(asDraft = false) {
     if (!clientUser) return
     const cost = calcCost()
-    if (!asDraft && clientUser.credit_balance < cost) return
+    if (!asDraft && clientUser.allocated_credits < cost) return
     setSubmitting(true)
     const noteParts = [form.notes, form.extra_topic].filter(Boolean)
     const combinedNotes = noteParts.length > 0 ? noteParts.join('\n\n---\n\n') : null

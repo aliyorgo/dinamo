@@ -57,9 +57,9 @@ export default function ClientDashboard() {
       const { data: userData } = await supabase.from('users').select('name, role').eq('id', user.id).single()
       if (!userData || userData.role !== 'client') { router.push('/login'); return }
       setUserName(userData.name)
-      const { data: cu } = await supabase.from('client_users').select('id, credit_balance, client_id, clients(company_name)').eq('user_id', user.id).single()
+      const { data: cu } = await supabase.from('client_users').select('id, allocated_credits, client_id, clients(company_name)').eq('user_id', user.id).single()
       if (cu) {
-        setCredits(cu.credit_balance)
+        setCredits(cu.allocated_credits)
         setClientUserId(cu.id)
         setCompanyName((cu as any).clients?.company_name || '')
         const { data: b } = await supabase.from('briefs').select('*').eq('client_id', cu.client_id).neq('status','cancelled').order('created_at', { ascending: false })

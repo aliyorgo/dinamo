@@ -18,8 +18,8 @@ export default function GuaranteePage() {
       const { data: ud } = await supabase.from('users').select('name, role').eq('id', user.id).single()
       if (!ud || ud.role !== 'client') { router.push('/login'); return }
       setUserName(ud.name)
-      const { data: cu } = await supabase.from('client_users').select('credit_balance, clients(company_name)').eq('user_id', user.id).single()
-      if (cu) { setCredits(cu.credit_balance); setCompanyName((cu as any).clients?.company_name || '') }
+      const { data: cu } = await supabase.from('client_users').select('allocated_credits, clients(company_name)').eq('user_id', user.id).single()
+      if (cu) { setCredits(cu.allocated_credits); setCompanyName((cu as any).clients?.company_name || '') }
     }
     load()
   }, [router])
