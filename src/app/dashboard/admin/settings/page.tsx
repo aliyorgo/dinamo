@@ -5,17 +5,15 @@ import { createClient } from '@supabase/supabase-js'
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
 const NAV = [
-  {label:'GENEL BAKIŞ',href:'/dashboard/admin'},
-  {label:'KULLANICILAR',href:'/dashboard/admin/users'},
-  {label:'MÜŞTERİLER',href:'/dashboard/admin/clients'},
-  {label:'BRİEFLER',href:'/dashboard/admin/briefs'},
-  {label:'CREATOR\'LAR',href:'/dashboard/admin/creators'},
-  {label:'Kredi Yönetimi',href:'/dashboard/admin/credits'},
-  {label:'RAPORLAR',href:'/dashboard/admin/reports'},
-  {label:'FATURALAR',href:'/dashboard/admin/invoices'},
-  {label:'AJANSLAR',href:'/dashboard/admin/agencies'},
-  {label:'ANA SAYFA',href:'/dashboard/admin/homepage'},
-  {label:'AYARLAR',href:'/dashboard/admin/settings'},
+  { label: 'Genel Bakış', href: '/dashboard/admin' },
+  { label: 'Briefler', href: '/dashboard/admin/briefs' },
+  { label: 'Kredi Yönetimi', href: '/dashboard/admin/credits' },
+  { label: 'Müşteriler', href: '/dashboard/admin/clients' },
+  { label: 'Kullanıcılar', href: '/dashboard/admin/users' },
+  { label: 'Ajanslar', href: '/dashboard/admin/agencies' },
+  { label: "Creator'lar", href: '/dashboard/admin/creators' },
+  { label: 'Raporlar', href: '/dashboard/admin/reports' },
+  { label: 'Ayarlar', href: '/dashboard/admin/settings' },
 ]
 
 export default function SettingsPage() {

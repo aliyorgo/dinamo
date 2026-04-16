@@ -7,15 +7,13 @@ const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env
 
 const NAV = [
   { label: 'Genel Bakış', href: '/dashboard/admin' },
-  { label: 'Kullanıcılar', href: '/dashboard/admin/users' },
-  { label: 'Müşteriler', href: '/dashboard/admin/clients' },
   { label: 'Briefler', href: '/dashboard/admin/briefs' },
-  { label: "Creator'lar", href: '/dashboard/admin/creators' },
   { label: 'Kredi Yönetimi', href: '/dashboard/admin/credits' },
-  { label: 'Raporlar', href: '/dashboard/admin/reports' },
-  { label: 'Faturalar', href: '/dashboard/admin/invoices' },
+  { label: 'Müşteriler', href: '/dashboard/admin/clients' },
+  { label: 'Kullanıcılar', href: '/dashboard/admin/users' },
   { label: 'Ajanslar', href: '/dashboard/admin/agencies' },
-  { label: 'Ana Sayfa', href: '/dashboard/admin/homepage' },
+  { label: "Creator'lar", href: '/dashboard/admin/creators' },
+  { label: 'Raporlar', href: '/dashboard/admin/reports' },
   { label: 'Ayarlar', href: '/dashboard/admin/settings' },
 ]
 

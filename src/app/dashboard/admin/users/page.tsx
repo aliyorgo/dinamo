@@ -139,16 +139,14 @@ export default function UsersPage() {
         </div>
         <nav style={{flex:1,padding:'24px 0'}}>
           {[
-            {label:'GENEL BAKIŞ',href:'/dashboard/admin'},
-            {label:'KULLANICILAR',href:'/dashboard/admin/users'},
-            {label:'MÜŞTERİLER',href:'/dashboard/admin/clients'},
-            {label:'BRİEFLER',href:'/dashboard/admin/briefs'},
+            {label:'Genel Bakış',href:'/dashboard/admin'},
+            {label:'Briefler',href:'/dashboard/admin/briefs'},
             {label:'Kredi Yönetimi',href:'/dashboard/admin/credits'},
-            {label:'RAPORLAR',href:'/dashboard/admin/reports'},
-            {label:'FATURALAR',href:'/dashboard/admin/invoices'},
-            {label:'AJANSLAR',href:'/dashboard/admin/agencies'},
-            {label:'ANA SAYFA',href:'/dashboard/admin/homepage'},
-            {label:'AYARLAR',href:'/dashboard/admin/settings'},
+            {label:'Müşteriler',href:'/dashboard/admin/clients'},
+            {label:'Kullanıcılar',href:'/dashboard/admin/users'},
+            {label:"Creator'lar",href:'/dashboard/admin/creators'},
+            {label:'Raporlar',href:'/dashboard/admin/reports'},
+            {label:'Ayarlar',href:'/dashboard/admin/settings'},
           ].map(item => (
             <a key={item.href} href={item.href} className={`dinamo-nav-link${item.href==='/dashboard/admin/users'?' active':''}`}>{item.label}</a>
           ))}

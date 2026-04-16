@@ -15,17 +15,15 @@ const statusColor: Record<string,string> = {
 }
 
 const NAV = [
-  {label:'Genel Bakış',href:'/dashboard/admin'},
-  {label:'Kullanıcılar',href:'/dashboard/admin/users'},
-  {label:'Müşteriler',href:'/dashboard/admin/clients'},
-  {label:'Briefler',href:'/dashboard/admin/briefs'},
-  {label:"Creator'lar",href:'/dashboard/admin/creators'},
-  {label:'Kredi Yönetimi',href:'/dashboard/admin/credits'},
-  {label:'Raporlar',href:'/dashboard/admin/reports'},
-  {label:'Faturalar',href:'/dashboard/admin/invoices'},
-  {label:'Ajanslar',href:'/dashboard/admin/agencies'},
-  {label:'Ana Sayfa',href:'/dashboard/admin/homepage'},
-  {label:'Ayarlar',href:'/dashboard/admin/settings'},
+  { label: 'Genel Bakış', href: '/dashboard/admin' },
+  { label: 'Briefler', href: '/dashboard/admin/briefs' },
+  { label: 'Kredi Yönetimi', href: '/dashboard/admin/credits' },
+  { label: 'Müşteriler', href: '/dashboard/admin/clients' },
+  { label: 'Kullanıcılar', href: '/dashboard/admin/users' },
+  { label: 'Ajanslar', href: '/dashboard/admin/agencies' },
+  { label: "Creator'lar", href: '/dashboard/admin/creators' },
+  { label: 'Raporlar', href: '/dashboard/admin/reports' },
+  { label: 'Ayarlar', href: '/dashboard/admin/settings' },
 ]
 
 export default function AdminDashboard() {

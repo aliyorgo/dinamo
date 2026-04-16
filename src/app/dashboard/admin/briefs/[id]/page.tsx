@@ -7,17 +7,15 @@ import { useParams, useRouter } from 'next/navigation'
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
 const NAV = [
-  {label:'Genel Bakış',href:'/dashboard/admin'},
-  {label:'Kullanıcılar',href:'/dashboard/admin/users'},
-  {label:'Müşteriler',href:'/dashboard/admin/clients'},
-  {label:'Briefler',href:'/dashboard/admin/briefs'},
-  {label:"Creator'lar",href:'/dashboard/admin/creators'},
-  {label:'Kredi Yönetimi',href:'/dashboard/admin/credits'},
-  {label:'Raporlar',href:'/dashboard/admin/reports'},
-  {label:'Faturalar',href:'/dashboard/admin/invoices'},
-  {label:'Ajanslar',href:'/dashboard/admin/agencies'},
-  {label:'Ana Sayfa',href:'/dashboard/admin/homepage'},
-  {label:'Ayarlar',href:'/dashboard/admin/settings'},
+  { label: 'Genel Bakış', href: '/dashboard/admin' },
+  { label: 'Briefler', href: '/dashboard/admin/briefs' },
+  { label: 'Kredi Yönetimi', href: '/dashboard/admin/credits' },
+  { label: 'Müşteriler', href: '/dashboard/admin/clients' },
+  { label: 'Kullanıcılar', href: '/dashboard/admin/users' },
+  { label: 'Ajanslar', href: '/dashboard/admin/agencies' },
+  { label: "Creator'lar", href: '/dashboard/admin/creators' },
+  { label: 'Raporlar', href: '/dashboard/admin/reports' },
+  { label: 'Ayarlar', href: '/dashboard/admin/settings' },
 ]
 
 interface Submission { id:string; version:number; status:string; video_url:string; submitted_at:string; producer_notes:string|null }
