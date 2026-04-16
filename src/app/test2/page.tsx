@@ -457,20 +457,15 @@ export default function HomePage() {
           maxWidth: '1200px', margin: '0 auto',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }}>
-          <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.2)', fontWeight: '300' }}>
-            {c('footer_text', 'Dinamo — Powered by DCC FILM')}
-          </div>
+          <a href="https://dirtycheapcreative.com" target="_blank" rel="noopener noreferrer">
+            <img src="/powered_by_dcc.png" alt="Powered by DCC" style={{ height: '20px', width: 'auto', opacity: 0.5 }} />
+          </a>
           <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.2)', display: 'flex', gap: '16px' }}>
             <a href="/creator-apply" style={{ color: 'rgba(255,255,255,0.35)' }}>Creator Başvurusu</a>
             <a href="mailto:dinamo@dccfilm.com" style={{ color: 'rgba(255,255,255,0.35)' }}>İletişim</a>
           </div>
         </div>
       </footer>
-      <div style={{ padding: '24px 40px', borderTop: '1px solid #1A1A1A', background: '#0a0a0a', display: 'flex', alignItems: 'center' }}>
-        <a href="https://dirtycheapcreative.com" target="_blank" rel="noopener noreferrer">
-          <img src="/powered_by_dcc.png" alt="Powered by DCC" style={{ height: '24px', width: 'auto', opacity: 0.7 }} />
-        </a>
-      </div>
     </div>
   )
 }
