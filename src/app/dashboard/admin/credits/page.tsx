@@ -5,17 +5,6 @@ import { useRouter } from 'next/navigation'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
-const NAV = [
-  { label: 'Genel Bakış', href: '/dashboard/admin' },
-  { label: 'Briefler', href: '/dashboard/admin/briefs' },
-  { label: 'Kredi Yönetimi', href: '/dashboard/admin/credits' },
-  { label: 'Müşteriler', href: '/dashboard/admin/clients' },
-  { label: 'Kullanıcılar', href: '/dashboard/admin/users' },
-  { label: 'Ajanslar', href: '/dashboard/admin/agencies' },
-  { label: "Creator'lar", href: '/dashboard/admin/creators' },
-  { label: 'Raporlar', href: '/dashboard/admin/reports' },
-  { label: 'Ayarlar', href: '/dashboard/admin/settings' },
-]
 
 export default function CreditsPage() {
   const router = useRouter()
@@ -252,7 +241,6 @@ export default function CreditsPage() {
     setExistingUsers(data || [])
   }
 
-  async function handleLogout() { await supabase.auth.signOut(); router.push('/login') }
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '8px 12px', border: '1px solid #E8E8E4', fontSize: '13px', color: '#0a0a0a',
@@ -275,22 +263,6 @@ export default function CreditsPage() {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
-
-      {/* SIDEBAR */}
-      <div className="dinamo-sidebar">
-        <div style={{ padding: '18px 16px 14px', borderBottom: '0.5px solid rgba(255,255,255,0.07)' }}>
-          <img src="/dinamo_logo.png" alt="Dinamo" style={{ height: '28px' }} />
-          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', marginTop: '8px' }}>Admin</div>
-        </div>
-        <nav style={{ flex: 1, padding: '10px 0', overflowY: 'auto' }}>
-          {NAV.map(item => (
-            <a key={item.href} href={item.href} className={`dinamo-nav-link${item.href==='/dashboard/admin/credits'?' active':''}`}>{item.label}</a>
-          ))}
-        </nav>
-        <div style={{ padding: '12px 16px', borderTop: '0.5px solid rgba(255,255,255,0.07)' }}>
-          <button onClick={handleLogout} className="dinamo-signout">Çıkış Yap</button>
-        </div>
-      </div>
 
       {/* LEFT PANEL — Client List */}
       <div style={{ width: '320px', background: '#fff', borderRight: '1px solid #E8E8E4', display: 'flex', flexDirection: 'column', height: '100vh', position: 'sticky', top: 0 }}>

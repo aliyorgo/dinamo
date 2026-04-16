@@ -49,11 +49,7 @@ body {
   font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
 }
 
-.dinamo-sidebar img {
-  display: block;
-  height: 28px;
-  width: auto;
-  margin: 24px 24px 16px;
+.dinamo-sidebar > img {
   flex-shrink: 0;
 }
 

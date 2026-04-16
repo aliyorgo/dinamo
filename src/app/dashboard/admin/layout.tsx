@@ -65,7 +65,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </nav>
         <button onClick={handleLogout} className="dinamo-signout">Çıkış Yap</button>
       </div>
-      <div className="dinamo-main-content" style={{ flex: 1, marginLeft: '240px', minWidth: 0 }}>
+      <div className="dinamo-main-content" style={{ flex: 1, marginLeft: '240px', minWidth: 0, width: '100%' }}>
         {children}
       </div>
     </div>
