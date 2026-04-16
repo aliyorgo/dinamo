@@ -14,17 +14,6 @@ const statusColor: Record<string,string> = {
   revision:'#ef4444', approved:'#f59e0b', delivered:'#888', cancelled:'#555'
 }
 
-const NAV = [
-  { label: 'Genel Bakış', href: '/dashboard/admin' },
-  { label: 'Briefler', href: '/dashboard/admin/briefs' },
-  { label: 'Kredi Yönetimi', href: '/dashboard/admin/credits' },
-  { label: 'Müşteriler', href: '/dashboard/admin/clients' },
-  { label: 'Kullanıcılar', href: '/dashboard/admin/users' },
-  { label: 'Ajanslar', href: '/dashboard/admin/agencies' },
-  { label: "Creator'lar", href: '/dashboard/admin/creators' },
-  { label: 'Raporlar', href: '/dashboard/admin/reports' },
-  { label: 'Ayarlar', href: '/dashboard/admin/settings' },
-]
 
 export default function AdminDashboard() {
   const router = useRouter()
@@ -75,36 +64,9 @@ export default function AdminDashboard() {
     load()
   }, [router])
 
-  async function handleLogout() {
-    await supabase.auth.signOut()
-    router.push('/login')
-  }
 
   return (
-    <div>
-
-      <div className="dinamo-sidebar">
-        <div style={{padding:'20px 24px 16px'}}>
-          <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} />
-        </div>
-        <div className="dinamo-user-block">
-          <div className="dinamo-user-company">Admin</div>
-          <div className="dinamo-user-name">{userName}</div>
-        </div>
-
-        <nav style={{flex:1}}>
-          {NAV.map(item=>(
-            <div key={item.href} onClick={()=>router.push(item.href)}
-              className={`dinamo-nav-link${item.href==='/dashboard/admin'?' active':''}`}>
-              {item.label}
-            </div>
-          ))}
-        </nav>
-
-        <button onClick={handleLogout} className="dinamo-signout">Çıkış Yap</button>
-      </div>
-
-      <div className="dinamo-main-content" style={{flex:1,display:'flex',flexDirection:'column',background:'#f5f4f0',overflow:'hidden'}}>
+    <div style={{display:'flex',flexDirection:'column',overflow:'hidden'}}>
         <div style={{padding:'14px 28px',background:'#fff',borderBottom:'0.5px solid rgba(0,0,0,0.08)',flexShrink:0}}>
           <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a'}}>Genel Bakış</div>
         </div>
@@ -196,7 +158,6 @@ export default function AdminDashboard() {
             </>
           )}
         </div>
-      </div>
     </div>
   )
 }
