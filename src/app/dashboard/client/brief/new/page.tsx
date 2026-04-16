@@ -290,16 +290,13 @@ function NewBriefPage() {
     return (
       <div style={{width:'240px',background:'#0A0A0A',display:'flex',flexDirection:'column',flexShrink:0,height:'100vh',position:'sticky',top:0}}>
         <div style={{padding:'18px 16px 14px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
-          <div style={{fontSize:'18px',fontWeight:'500',color:'#fff',letterSpacing:'-0.5px',marginBottom:'12px'}}>
-            <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} />
-          </div>
-          <div style={{fontSize:'10px',color:'#999',marginBottom:'3px'}}>{companyName}</div>
-          <div style={{fontSize:'13px',fontWeight:'500',color:'#fff'}}>{userName}</div>
+          <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} />
         </div>
-
-        <div style={{padding:'12px 16px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
-          <div style={{fontSize:'10px',color:'#AAA',letterSpacing:'0.5px',textTransform:'uppercase',marginBottom:'4px'}}>Kredi Bakiyesi</div>
-          <div style={{fontSize:'22px',fontWeight:'700',color:'#fff',letterSpacing:'-1px',marginBottom:'8px'}}>{balance}</div>
+        <div style={{margin:'12px 12px',padding:'16px 20px',background:'#111',borderLeft:'3px solid #1DB81D'}}>
+          <div style={{fontSize:'18px',fontWeight:'700',color:'#fff',marginBottom:'2px'}}>{companyName || 'Dinamo'}</div>
+          <div style={{fontSize:'13px',fontWeight:'400',color:'#888',marginBottom:'12px'}}>{userName}</div>
+          <div style={{fontSize:'10px',color:'#AAA',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:'8px'}}>KREDİ BAKİYESİ</div>
+          <div style={{fontSize:'28px',fontWeight:'700',color:'#fff',letterSpacing:'-1px',marginBottom:'8px'}}>{balance}</div>
           {cost > 0 && (
             <div style={{background:'rgba(34,197,94,0.1)',border:'0.5px solid rgba(34,197,94,0.2)',borderRadius:'8px',padding:'8px 10px'}}>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
