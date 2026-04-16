@@ -50,7 +50,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       <div className="dinamo-sidebar">
-        <img src="/dinamo_logo.png" alt="Dinamo" />
+        <img src="/dinamo_logo.png" alt="Dinamo" style={{ height: '28px', width: 'auto', objectFit: 'contain', margin: '24px 24px 16px', display: 'block' }} />
         <div className="dinamo-user-block">
           <div className="dinamo-user-company">{userName}</div>
           <div className="dinamo-user-name">Admin</div>
