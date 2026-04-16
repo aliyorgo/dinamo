@@ -151,7 +151,7 @@ export default function ClientDashboard() {
           <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} />
         </div>
         <div style={{margin:'12px 12px',padding:'16px 20px',background:'rgba(29,184,29,0.06)',borderLeft:'3px solid #1DB81D'}}>
-          <div style={{fontSize:'18px',fontWeight:'700',color:'#0A0A0A',marginBottom:'2px'}}>{companyName || 'Dinamo'}</div>
+          <div style={{fontSize:'18px',fontWeight:'700',color:'#fff',marginBottom:'2px'}}>{companyName || 'Dinamo'}</div>
           <div style={{fontSize:'13px',fontWeight:'400',color:'#888',marginBottom:'12px'}}>{userName}</div>
           <div style={{fontSize:'10px',color:'#AAA',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:'8px'}}>KREDİ BAKİYESİ</div>
           <div style={{fontSize:'28px',fontWeight:'700',color:'#1DB81D',letterSpacing:'-1px'}}>{credits}</div>
