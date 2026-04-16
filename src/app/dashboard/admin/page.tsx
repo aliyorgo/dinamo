@@ -71,7 +71,7 @@ export default function AdminDashboard() {
           <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a'}}>Genel Bakış</div>
         </div>
 
-        <div className="dinamo-main-content" style={{flex:1,overflowY:'auto',padding:'24px 28px'}}>
+        <div style={{flex:1,overflowY:'auto',padding:'24px 28px'}}>
           {loading ? <div style={{color:'rgba(255,255,255,0.4)',fontSize:'14px'}}>Yükleniyor...</div> : (
             <>
               {/* BUGÜN YAPILACAKLAR */}
