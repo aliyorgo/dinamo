@@ -273,7 +273,7 @@ export default function ClientDashboard() {
                   {homeVideos.length > 0 && (
                     <div style={{marginTop:'56px'}}>
                       <div style={{fontSize:'18px',fontWeight:'600',color:'#0A0A0A',marginBottom:'16px',display:'flex',alignItems:'center',gap:'6px'}}>
-                        <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'20px'}} /> ile Üretildi
+                        <img src="/dinamo_logo_siyah.png" alt="Dinamo" style={{height:'20px'}} /> ile Üretildi
                       </div>
                       <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'8px'}}>
                         {homeVideos.map(v=>(
