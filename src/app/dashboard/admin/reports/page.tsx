@@ -191,7 +191,7 @@ export default function ReportsPage() {
   const tdStyle: React.CSSProperties = { padding: '12px 16px', fontSize: '13px', color: '#0a0a0a', borderTop: '0.5px solid rgba(0,0,0,0.06)' }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "var(--font-dm-sans),'DM Sans',system-ui,sans-serif" }}>
+    <div>
 
       {/* SIDEBAR */}
       <div className="dinamo-sidebar">

@@ -81,7 +81,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div style={{display:'flex',minHeight:'100vh',fontFamily:"var(--font-dm-sans),'DM Sans',system-ui,sans-serif"}}>
+    <div>
 
       <div className="dinamo-sidebar">
         <div style={{padding:'20px 24px 16px'}}>

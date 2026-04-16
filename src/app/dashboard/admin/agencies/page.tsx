@@ -276,7 +276,7 @@ export default function AgenciesPage() {
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "var(--font-dm-sans),'DM Sans',system-ui,sans-serif" }}>
+    <div>
 
       {/* SIDEBAR */}
       <div className="dinamo-sidebar">

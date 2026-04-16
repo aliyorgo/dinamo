@@ -307,7 +307,7 @@ export default function AdminBriefDetail() {
     color: s==='pending'?'#888':s==='producer_approved'||s==='admin_approved'?'#22c55e':s==='revision_requested'?'#ef4444':'#888' })
 
   return (
-    <div style={{display:'flex',minHeight:'100vh',fontFamily:"var(--font-dm-sans),'DM Sans',system-ui,sans-serif"}}>
+    <div>
 
       {/* SIDEBAR */}
       <div className="dinamo-sidebar">

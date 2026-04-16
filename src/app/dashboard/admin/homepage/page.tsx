@@ -127,7 +127,7 @@ export default function HomepageAdmin() {
   const inputStyle: React.CSSProperties = { width: '100%', boxSizing: 'border-box', padding: '9px 13px', border: '0.5px solid rgba(0,0,0,0.12)', borderRadius: '8px', fontSize: '13px', color: '#0a0a0a', fontFamily: 'var(--font-dm-sans),sans-serif', outline: 'none' }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "var(--font-dm-sans),'DM Sans',system-ui,sans-serif" }}>
+    <div>
 
       <div className="dinamo-sidebar">
         <div style={{ padding: '18px 16px 14px', borderBottom: '0.5px solid rgba(255,255,255,0.07)' }}>
