@@ -12,7 +12,7 @@ const NAV = [
   {label:'Müşteriler',href:'/dashboard/admin/clients'},
   {label:'Briefler',href:'/dashboard/admin/briefs'},
   {label:"Creator'lar",href:'/dashboard/admin/creators'},
-  {label:'Krediler',href:'/dashboard/admin/credits'},
+  {label:'Kredi Yönetimi',href:'/dashboard/admin/credits'},
   {label:'Raporlar',href:'/dashboard/admin/reports'},
   {label:'Faturalar',href:'/dashboard/admin/invoices'},
   {label:'Ajanslar',href:'/dashboard/admin/agencies'},

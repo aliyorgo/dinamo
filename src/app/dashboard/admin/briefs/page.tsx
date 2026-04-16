@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
-const NAV = [{label:'GENEL BAKIŞ',href:'/dashboard/admin'},{label:'KULLANICILAR',href:'/dashboard/admin/users'},{label:'MÜŞTERİLER',href:'/dashboard/admin/clients'},{label:'BRİEFLER',href:'/dashboard/admin/briefs'},{label:'KREDİLER',href:'/dashboard/admin/credits'},{label:'RAPORLAR',href:'/dashboard/admin/reports'},{label:'FATURALAR',href:'/dashboard/admin/invoices'},{label:'AJANSLAR',href:'/dashboard/admin/agencies'},{label:'ANA SAYFA',href:'/dashboard/admin/homepage'},{label:'AYARLAR',href:'/dashboard/admin/settings'}]
+const NAV = [{label:'GENEL BAKIŞ',href:'/dashboard/admin'},{label:'KULLANICILAR',href:'/dashboard/admin/users'},{label:'MÜŞTERİLER',href:'/dashboard/admin/clients'},{label:'BRİEFLER',href:'/dashboard/admin/briefs'},{label:'Kredi Yönetimi',href:'/dashboard/admin/credits'},{label:'RAPORLAR',href:'/dashboard/admin/reports'},{label:'FATURALAR',href:'/dashboard/admin/invoices'},{label:'AJANSLAR',href:'/dashboard/admin/agencies'},{label:'ANA SAYFA',href:'/dashboard/admin/homepage'},{label:'AYARLAR',href:'/dashboard/admin/settings'}]
 const statusLabel: Record<string,string> = {submitted:'Yeni',read:'Okundu',in_production:'Üretimde',revision:'Revizyon',approved:'Onaylandı',delivered:'Teslim Edildi',cancelled:'İptal'}
 const statusColor: Record<string,string> = {submitted:'#1db81d',read:'#888',in_production:'#f59e0b',revision:'#e24b4a',approved:'#1db81d',delivered:'#888',cancelled:'#555'}
 

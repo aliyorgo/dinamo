@@ -143,7 +143,7 @@ export default function UsersPage() {
             {label:'KULLANICILAR',href:'/dashboard/admin/users'},
             {label:'MÜŞTERİLER',href:'/dashboard/admin/clients'},
             {label:'BRİEFLER',href:'/dashboard/admin/briefs'},
-            {label:'KREDİLER',href:'/dashboard/admin/credits'},
+            {label:'Kredi Yönetimi',href:'/dashboard/admin/credits'},
             {label:'RAPORLAR',href:'/dashboard/admin/reports'},
             {label:'FATURALAR',href:'/dashboard/admin/invoices'},
             {label:'AJANSLAR',href:'/dashboard/admin/agencies'},
