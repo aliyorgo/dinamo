@@ -66,6 +66,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           ))}
         </nav>
         <button onClick={handleLogout} className="dinamo-signout">Çıkış Yap</button>
+        <a href="https://dirtycheapcreative.com" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '16px 24px' }}>
+          <img src="/powered_by_dcc.png" alt="Powered by DCC" style={{ height: '20px', width: 'auto', opacity: 0.5 }} />
+        </a>
       </div>
       <div className="dinamo-main-content" style={{ flex: 1, marginLeft: '240px', minWidth: 0, width: '100%' }}>
         {children}

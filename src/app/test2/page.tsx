@@ -466,6 +466,11 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+      <div style={{ padding: '24px 40px', borderTop: '1px solid #1A1A1A', background: '#0a0a0a', display: 'flex', alignItems: 'center' }}>
+        <a href="https://dirtycheapcreative.com" target="_blank" rel="noopener noreferrer">
+          <img src="/powered_by_dcc.png" alt="Powered by DCC" style={{ height: '24px', width: 'auto', opacity: 0.7 }} />
+        </a>
+      </div>
     </div>
   )
 }
