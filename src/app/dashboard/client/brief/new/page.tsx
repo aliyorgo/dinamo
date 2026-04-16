@@ -401,38 +401,56 @@ function NewBriefPage() {
 
           {/* ADIM 0 — Mod Seçimi */}
           {step===0&&(
-            <div style={{position:'fixed',inset:0,left:'220px',background:'#0a0a0a',display:'flex',alignItems:'center',justifyContent:'center',zIndex:10}}>
+            <div style={{position:'fixed',inset:0,left:'240px',background:'#0a0a0a',display:'flex',flexDirection:'column',zIndex:10}}>
               <style>{`@media (max-width: 768px) { .step0-cards { flex-direction: column !important; } }`}</style>
-              <div style={{textAlign:'center',width:'100%',maxWidth:'560px',padding:'0 24px'}}>
-                <div style={{marginBottom:'24px'}}>
-                  <span style={{fontSize:'20px',fontWeight:'500',color:'#fff',letterSpacing:'-0.5px'}}>
-                    <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} />
-                  </span>
-                </div>
-                <div style={{fontSize:'28px',fontWeight:'300',color:'#fff',letterSpacing:'-0.5px',marginBottom:'32px'}}>Nasıl ilerlemek istersiniz?</div>
-                <div className="step0-cards" style={{display:'flex',gap:'16px'}}>
-                  {/* SOL KART */}
-                  <div onClick={()=>setStep(1)}
-                    style={{flex:1,background:'#fff',borderRadius:'16px',padding:'40px',cursor:'pointer',minHeight:'200px',display:'flex',flexDirection:'column',justifyContent:'space-between',transition:'transform 0.2s,box-shadow 0.2s',textAlign:'left'}}
-                    onMouseEnter={e=>{e.currentTarget.style.transform='scale(1.02)';e.currentTarget.style.boxShadow='0 8px 32px rgba(0,0,0,0.2)'}}
-                    onMouseLeave={e=>{e.currentTarget.style.transform='scale(1)';e.currentTarget.style.boxShadow='none'}}>
-                    <div>
-                      <div style={{fontSize:'20px',fontWeight:'500',color:'#0a0a0a',marginBottom:'8px'}}>Kendim Yazacağım</div>
-                      <div style={{fontSize:'13px',color:'#888',lineHeight:1.6}}>Brief alanlarını adım adım kendiniz doldurun.</div>
+              {/* Back link */}
+              <div style={{padding:'24px 36px'}}>
+                <span onClick={()=>router.push('/dashboard/client')}
+                  onMouseEnter={e=>{e.currentTarget.style.color='#fff'}}
+                  onMouseLeave={e=>{e.currentTarget.style.color='#AAA'}}
+                  style={{fontSize:'13px',color:'#AAA',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',transition:'color 0.15s ease',background:'none',border:'none',padding:0}}>
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  Projelerim
+                </span>
+              </div>
+              {/* Centered content */}
+              <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                <div style={{textAlign:'center',width:'100%',maxWidth:'560px',padding:'0 24px'}}>
+                  <div style={{fontSize:'28px',fontWeight:'300',color:'#fff',letterSpacing:'-0.5px',marginBottom:'32px'}}>Nasıl ilerlemek istersiniz?</div>
+                  <div className="step0-cards" style={{display:'flex',gap:'16px'}}>
+                    {/* SOL KART */}
+                    <div onClick={()=>setStep(1)}
+                      style={{flex:1,background:'#fff',padding:'40px',cursor:'pointer',minHeight:'200px',display:'flex',flexDirection:'column',justifyContent:'space-between',transition:'transform 0.2s,box-shadow 0.2s',textAlign:'left'}}
+                      onMouseEnter={e=>{e.currentTarget.style.transform='scale(1.02)';e.currentTarget.style.boxShadow='0 8px 32px rgba(0,0,0,0.2)'}}
+                      onMouseLeave={e=>{e.currentTarget.style.transform='scale(1)';e.currentTarget.style.boxShadow='none'}}>
+                      <div>
+                        <div style={{fontSize:'20px',fontWeight:'500',color:'#0a0a0a',marginBottom:'8px'}}>Kendim Yazacağım</div>
+                        <div style={{fontSize:'13px',color:'#888',lineHeight:1.6}}>Brief alanlarını adım adım kendiniz doldurun.</div>
+                      </div>
+                      <div style={{textAlign:'right',marginTop:'20px'}}><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="#ccc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg></div>
                     </div>
-                    <div style={{textAlign:'right',marginTop:'20px'}}><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="#ccc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg></div>
+                    {/* SAĞ KART */}
+                    <div onClick={()=>setStep(-1)}
+                      style={{flex:1,background:'#0a0a0a',border:'2px solid #1db81d',padding:'40px',cursor:'pointer',minHeight:'200px',display:'flex',flexDirection:'column',justifyContent:'space-between',transition:'transform 0.2s,border-color 0.2s',textAlign:'left',position:'relative'}}
+                      onMouseEnter={e=>{e.currentTarget.style.transform='scale(1.02)';e.currentTarget.style.borderColor='#22c55e'}}
+                      onMouseLeave={e=>{e.currentTarget.style.transform='scale(1)';e.currentTarget.style.borderColor='#1db81d'}}>
+                      <div style={{position:'absolute',top:'16px',left:'16px',fontSize:'10px',color:'#1db81d',fontWeight:'500',background:'rgba(29,184,29,0.1)',padding:'3px 10px',letterSpacing:'0.5px'}}>AI</div>
+                      <div style={{marginTop:'16px'}}>
+                        <div style={{fontSize:'20px',fontWeight:'500',color:'#fff',marginBottom:'8px'}}>Anlat, Oluşturalım</div>
+                        <div style={{fontSize:'13px',color:'rgba(255,255,255,0.5)',lineHeight:1.6}}>Ne yapmak istediğinizi anlatın, brief'i sizin için oluşturalım.</div>
+                      </div>
+                      <div style={{textAlign:'right',marginTop:'20px'}}><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="#1db81d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg></div>
+                    </div>
                   </div>
-                  {/* SAĞ KART */}
-                  <div onClick={()=>setStep(-1)}
-                    style={{flex:1,background:'#0a0a0a',border:'2px solid #1db81d',borderRadius:'16px',padding:'40px',cursor:'pointer',minHeight:'200px',display:'flex',flexDirection:'column',justifyContent:'space-between',transition:'transform 0.2s,border-color 0.2s',textAlign:'left',position:'relative'}}
-                    onMouseEnter={e=>{e.currentTarget.style.transform='scale(1.02)';e.currentTarget.style.borderColor='#22c55e'}}
-                    onMouseLeave={e=>{e.currentTarget.style.transform='scale(1)';e.currentTarget.style.borderColor='#1db81d'}}>
-                    <div style={{position:'absolute',top:'16px',left:'16px',fontSize:'10px',color:'#1db81d',fontWeight:'500',background:'rgba(29,184,29,0.1)',padding:'3px 10px',borderRadius:'100px',letterSpacing:'0.5px'}}>AI</div>
-                    <div style={{marginTop:'16px'}}>
-                      <div style={{fontSize:'20px',fontWeight:'500',color:'#fff',marginBottom:'8px'}}>Anlat, Oluşturalım</div>
-                      <div style={{fontSize:'13px',color:'rgba(255,255,255,0.5)',lineHeight:1.6}}>Ne yapmak istediğinizi anlatın, brief'i sizin için oluşturalım.</div>
-                    </div>
-                    <div style={{textAlign:'right',marginTop:'20px'}}><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="#1db81d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg></div>
+                  {/* Bottom return link */}
+                  <div style={{marginTop:'32px'}}>
+                    <span onClick={()=>router.push('/dashboard/client')}
+                      onMouseEnter={e=>{e.currentTarget.style.color='#fff'}}
+                      onMouseLeave={e=>{e.currentTarget.style.color='#AAA'}}
+                      style={{fontSize:'13px',color:'#AAA',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',transition:'color 0.15s ease'}}>
+                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      Projelerim
+                    </span>
                   </div>
                 </div>
               </div>

@@ -148,15 +148,13 @@ export default function ClientDashboard() {
       {/* SIDEBAR */}
       <div style={{width:'240px',background:'#0A0A0A',display:'flex',flexDirection:'column',flexShrink:0,height:'100vh',position:'sticky',top:0}}>
         <div style={{padding:'18px 16px 14px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
-          <div style={{marginBottom:'12px'}}>
-            <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} />
-          </div>
-          <div style={{fontSize:'10px',color:'rgba(255,255,255,0.3)',marginBottom:'3px'}}>{companyName}</div>
-          <div style={{fontSize:'13px',fontWeight:'500',color:'#fff'}}>{userName}</div>
+          <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} />
         </div>
-        <div style={{padding:'12px 16px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
-          <div style={{fontSize:'10px',color:'rgba(255,255,255,0.3)',textTransform:'uppercase',marginBottom:'4px'}}>Kredi Bakiyesi</div>
-          <div style={{fontSize:'24px',fontWeight:'300',color:'#fff',letterSpacing:'-1px'}}>{credits}</div>
+        <div style={{margin:'12px 12px',padding:'16px 20px',background:'#F0F7F0',borderLeft:'3px solid #1DB81D'}}>
+          <div style={{fontSize:'18px',fontWeight:'700',color:'#0A0A0A',marginBottom:'2px'}}>{companyName || 'Dinamo'}</div>
+          <div style={{fontSize:'13px',fontWeight:'400',color:'#888',marginBottom:'12px'}}>{userName}</div>
+          <div style={{fontSize:'10px',color:'#AAA',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:'8px'}}>KREDİ BAKİYESİ</div>
+          <div style={{fontSize:'28px',fontWeight:'700',color:'#1DB81D',letterSpacing:'-1px'}}>{credits}</div>
         </div>
         <nav style={{padding:'10px 8px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
           {[
@@ -168,15 +166,20 @@ export default function ClientDashboard() {
             {label:'İçerik Güvencesi', href:'/dashboard/client/guarantee', active:false},
           ].map(item=>(
             <div key={item.href} onClick={()=>router.push(item.href)}
-              style={{display:'flex',alignItems:'center',gap:'8px',padding:'7px 8px',borderRadius:'8px',cursor:'pointer',background:item.active?'rgba(255,255,255,0.08)':'transparent',marginBottom:'1px'}}>
-              <span style={{fontSize:'12px',color:item.active?'#fff':'rgba(255,255,255,0.4)',fontWeight:item.active?'500':'400'}}>{item.label}</span>
+              onMouseEnter={e=>{if(!item.active){e.currentTarget.style.background='rgba(255,255,255,0.06)';e.currentTarget.style.borderLeft='2px solid #1DB81D';(e.currentTarget.firstChild as HTMLElement).style.color='#fff'}}}
+              onMouseLeave={e=>{if(!item.active){e.currentTarget.style.background='transparent';e.currentTarget.style.borderLeft='2px solid transparent';(e.currentTarget.firstChild as HTMLElement).style.color='rgba(255,255,255,0.4)'}}}
+              style={{display:'flex',alignItems:'center',gap:'8px',padding:'7px 8px',cursor:'pointer',background:item.active?'rgba(255,255,255,0.08)':'transparent',borderLeft:item.active?'2px solid #1DB81D':'2px solid transparent',marginBottom:'1px',transition:'all 0.15s ease'}}>
+              <span style={{fontSize:'12px',color:item.active?'#fff':'rgba(255,255,255,0.4)',fontWeight:item.active?'500':'400',transition:'color 0.15s ease'}}>{item.label}</span>
             </div>
           ))}
         </nav>
         <div style={{flex:1}}></div>
         <div style={{padding:'10px 8px',borderTop:'0.5px solid rgba(255,255,255,0.07)'}}>
-          <button onClick={handleLogout} style={{display:'flex',alignItems:'center',gap:'7px',padding:'6px 8px',borderRadius:'7px',cursor:'pointer',width:'100%',background:'none',border:'none'}}>
-            <span style={{fontSize:'11px',color:'rgba(255,255,255,0.25)',fontFamily:'var(--font-dm-sans),sans-serif'}}>Çıkış yap</span>
+          <button onClick={handleLogout}
+            onMouseEnter={e=>{(e.currentTarget.firstChild as HTMLElement).style.color='#FF4444'}}
+            onMouseLeave={e=>{(e.currentTarget.firstChild as HTMLElement).style.color='rgba(255,255,255,0.25)'}}
+            style={{display:'flex',alignItems:'center',gap:'7px',padding:'6px 8px',cursor:'pointer',width:'100%',background:'none',border:'none',transition:'all 0.15s ease'}}>
+            <span style={{fontSize:'11px',color:'rgba(255,255,255,0.25)',fontFamily:'var(--font-dm-sans),sans-serif',transition:'color 0.15s ease'}}>Çıkış yap</span>
           </button>
         </div>
       </div>
@@ -209,7 +212,9 @@ export default function ClientDashboard() {
             )}
           </div>
           <button onClick={()=>router.push('/dashboard/client/brief/new')}
-            style={{background:'#111113',color:'#fff',border:'none',borderRadius:'8px',padding:'8px 18px',fontSize:'12px',fontFamily:'var(--font-dm-sans),sans-serif',cursor:'pointer',fontWeight:'500',flexShrink:0}}>
+            onMouseEnter={e=>{e.currentTarget.style.opacity='0.85';e.currentTarget.style.transform='scale(0.98)'}}
+            onMouseLeave={e=>{e.currentTarget.style.opacity='1';e.currentTarget.style.transform='scale(1)'}}
+            style={{background:'#111113',color:'#fff',border:'none',padding:'8px 18px',fontSize:'12px',fontFamily:'var(--font-dm-sans),sans-serif',cursor:'pointer',fontWeight:'500',flexShrink:0,transition:'all 0.15s ease'}}>
             + Yeni Brief
           </button>
           </div>
@@ -219,22 +224,22 @@ export default function ClientDashboard() {
           {loading ? (
             <div style={{padding:'24px 28px',color:'#888',fontSize:'14px'}}>Yükleniyor...</div>
           ) : briefs.length === 0 ? (
-            /* WELCOME SCREEN — full black, centered */
-            <div style={{background:'#0A0A0A',minHeight:'100%',display:'flex',flexDirection:'column',position:'relative'}}>
+            /* WELCOME SCREEN — white background */
+            <div style={{background:'#FFFFFF',minHeight:'100%',display:'flex',flexDirection:'column',position:'relative'}}>
 
               {/* Main content centered */}
               <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',padding:'0 48px'}}>
                 <div style={{maxWidth:'520px',width:'100%'}}>
-                  <h1 style={{fontSize:'64px',fontWeight:'300',color:'#fff',letterSpacing:'-0.02em',lineHeight:1.05,margin:0}}>
+                  <h1 style={{fontSize:'64px',fontWeight:'300',color:'#888',letterSpacing:'-0.02em',lineHeight:1.05,margin:0}}>
                     Hoş geldiniz,
                   </h1>
                   {companyName && (
-                    <h1 style={{fontSize:'64px',fontWeight:'700',color:'#fff',letterSpacing:'-0.02em',lineHeight:1.05,margin:0}}>
+                    <h1 style={{fontSize:'64px',fontWeight:'700',color:'#0A0A0A',letterSpacing:'-0.02em',lineHeight:1.05,margin:0}}>
                       {companyName}.
                     </h1>
                   )}
                   <div style={{width:'60px',height:'2px',background:'#1DB81D',marginTop:'20px',marginBottom:'28px'}}></div>
-                  <p style={{fontSize:'18px',color:'#888',fontWeight:'300',letterSpacing:'0.01em',lineHeight:1.6,margin:'0 0 40px 0'}}>
+                  <p style={{fontSize:'18px',color:'#666',fontWeight:'300',letterSpacing:'0.01em',lineHeight:1.6,margin:'0 0 40px 0'}}>
                     Brief'inizi oluşturun, 24 saat içinde videonuz hazır.
                   </p>
 
@@ -247,28 +252,28 @@ export default function ClientDashboard() {
                     ].map((s,i)=>(
                       <div key={s.n} style={{display:'flex',alignItems:'flex-start'}}>
                         <div>
-                          <div style={{fontSize:'11px',color:'#1DB81D',letterSpacing:'0.15em',marginBottom:'8px'}}>{s.n}</div>
-                          <div style={{fontSize:'14px',color:'#fff',fontWeight:'500'}}>{s.t}</div>
+                          <div style={{fontSize:'48px',fontWeight:'700',color:'#1DB81D',letterSpacing:'-0.02em',lineHeight:1,marginBottom:'8px'}}>{s.n}</div>
+                          <div style={{fontSize:'16px',color:'#0A0A0A',fontWeight:'500'}}>{s.t}</div>
                         </div>
-                        {i < 2 && <div style={{width:'40px',height:'1px',background:'#2A2A2A',margin:'8px 20px 0 20px',flexShrink:0}}></div>}
+                        {i < 2 && <div style={{width:'40px',height:'1px',background:'#E0E0E0',margin:'8px 20px 0 20px',flexShrink:0}}></div>}
                       </div>
                     ))}
                   </div>
 
                   {/* CTA */}
                   <button onClick={()=>router.push('/dashboard/client/brief/new')}
-                    onMouseEnter={e=>{e.currentTarget.style.background='#F0F0F0'}}
-                    onMouseLeave={e=>{e.currentTarget.style.background='#fff'}}
-                    style={{padding:'14px 32px',background:'#fff',color:'#0A0A0A',border:'none',fontSize:'14px',fontWeight:'600',letterSpacing:'0.05em',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'8px',transition:'background 0.2s'}}>
+                    onMouseEnter={e=>{e.currentTarget.style.background='#1DB81D';e.currentTarget.style.color='#0A0A0A';const arrow=e.currentTarget.querySelector('svg');if(arrow)(arrow as unknown as HTMLElement).style.transform='translateX(4px)'}}
+                    onMouseLeave={e=>{e.currentTarget.style.background='#0A0A0A';e.currentTarget.style.color='#fff';const arrow=e.currentTarget.querySelector('svg');if(arrow)(arrow as unknown as HTMLElement).style.transform='translateX(0)'}}
+                    style={{padding:'14px 32px',background:'#0A0A0A',color:'#fff',border:'none',fontSize:'14px',fontWeight:'600',letterSpacing:'0.05em',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'8px',transition:'all 0.2s ease'}}>
                     İlk Brief'i Oluştur
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{transition:'transform 0.2s ease'}}><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                   </button>
 
                   {/* Video grid */}
                   {homeVideos.length > 0 && (
                     <div style={{marginTop:'56px'}}>
-                      <div style={{fontSize:'18px',fontWeight:'600',color:'#fff',marginBottom:'16px',display:'flex',alignItems:'center',gap:'6px'}}>
-                        <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'20px'}} /> ile Üretildi
+                      <div style={{fontSize:'18px',fontWeight:'600',color:'#0A0A0A',marginBottom:'16px',display:'flex',alignItems:'center',gap:'6px'}}>
+                        <img src="/dinamo_logo_siyah.png" alt="Dinamo" style={{height:'20px'}} /> ile Üretildi
                       </div>
                       <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'8px'}}>
                         {homeVideos.map(v=>(
@@ -289,7 +294,7 @@ export default function ClientDashboard() {
 
               {/* Bottom email */}
               <div style={{padding:'20px',textAlign:'center'}}>
-                <span style={{fontSize:'11px',color:'#444'}}>Sorularınız için hello@dinamo.media</span>
+                <span style={{fontSize:'11px',color:'#999'}}>Sorularınız için hello@dinamo.media</span>
               </div>
             </div>
           ) : (
