@@ -302,15 +302,13 @@ export default function ClientBriefDetail() {
       {/* SIDEBAR */}
       <div style={{width:'240px',background:'#0A0A0A',display:'flex',flexDirection:'column',flexShrink:0,height:'100vh',position:'sticky',top:0}}>
         <div style={{padding:'18px 16px 14px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
-          <div style={{fontSize:'18px',fontWeight:'500',color:'#fff',letterSpacing:'-0.5px',marginBottom:'12px'}}>
-            <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} />
-          </div>
-          <div style={{fontSize:'10px',color:'#999',marginBottom:'3px'}}>{companyName}</div>
-          <div style={{fontSize:'13px',fontWeight:'500',color:'#fff'}}>{userName}</div>
+          <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} />
         </div>
-        <div style={{padding:'12px 16px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
-          <div style={{fontSize:'10px',color:'#999',textTransform:'uppercase',marginBottom:'4px'}}>Kredi Bakiyesi</div>
-          <div style={{fontSize:'22px',fontWeight:'300',color:'#fff',letterSpacing:'-1px'}}>{clientUser?.credit_balance||0}</div>
+        <div style={{margin:'12px 12px',padding:'16px 20px',background:'rgba(29,184,29,0.06)',borderLeft:'3px solid #1DB81D'}}>
+          <div style={{fontSize:'18px',fontWeight:'700',color:'#fff',marginBottom:'2px'}}>{companyName || 'Dinamo'}</div>
+          <div style={{fontSize:'13px',fontWeight:'400',color:'#888',marginBottom:'12px'}}>{userName}</div>
+          <div style={{fontSize:'10px',color:'#AAA',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:'8px'}}>KREDİ BAKİYESİ</div>
+          <div style={{fontSize:'28px',fontWeight:'700',color:'#1DB81D',letterSpacing:'-1px'}}>{clientUser?.allocated_credits||0}</div>
         </div>
         <nav style={{padding:'10px 8px',flex:1}}>
           <div onClick={()=>router.push('/dashboard/client')} style={{display:'flex',alignItems:'center',gap:'8px',padding:'7px 8px',borderRadius:'8px',cursor:'pointer',marginBottom:'1px'}}>
