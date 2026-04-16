@@ -286,7 +286,7 @@ export default function CreditsPage() {
         </div>
         <nav style={{ flex: 1, padding: '10px 0', overflowY: 'auto' }}>
           {NAV.map(item => (
-            <a key={item.href} href={item.href} style={{ display: 'block', padding: '8px 20px', fontSize: '11px', color: item.href === '/dashboard/admin/credits' ? '#fff' : '#666', textDecoration: 'none', letterSpacing: '0.5px', fontWeight: item.href === '/dashboard/admin/credits' ? '600' : '400', borderLeft: item.href === '/dashboard/admin/credits' ? '2px solid #1DB81D' : '2px solid transparent' }}>{item.label}</a>
+            <a key={item.href} href={item.href} className={`dinamo-nav-link${item.href==='/dashboard/admin/credits'?' active':''}`}>{item.label}</a>
           ))}
         </nav>
         <div style={{ padding: '12px 16px', borderTop: '0.5px solid rgba(255,255,255,0.07)' }}>

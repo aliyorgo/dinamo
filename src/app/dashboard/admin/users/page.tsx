@@ -150,8 +150,7 @@ export default function UsersPage() {
             {label:'ANA SAYFA',href:'/dashboard/admin/homepage'},
             {label:'AYARLAR',href:'/dashboard/admin/settings'},
           ].map(item => (
-            <a key={item.href} href={item.href} style={{display:'block',padding:'10px 24px',fontSize:'11px',color:'rgba(255,255,255,0.4)',textDecoration:'none',letterSpacing:'0.05em',fontFamily:'monospace'}}
-              onMouseEnter={e=>(e.currentTarget.style.color='#fff')} onMouseLeave={e=>(e.currentTarget.style.color='#888')}>{item.label}</a>
+            <a key={item.href} href={item.href} className={`dinamo-nav-link${item.href==='/dashboard/admin/users'?' active':''}`}>{item.label}</a>
           ))}
         </nav>
       </div>

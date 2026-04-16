@@ -499,10 +499,7 @@ export default function AgencyDetailPage() {
         </div>
         <nav style={{ padding: '10px 8px', flex: 1 }}>
           {NAV.map(item => (
-            <div key={item.href} onClick={() => router.push(item.href)}
-              style={{ display: 'flex', alignItems: 'center', padding: '7px 8px', borderRadius: '8px', cursor: 'pointer', background: item.href === '/dashboard/admin/agencies' ? 'rgba(255,255,255,0.08)' : 'transparent', marginBottom: '1px' }}>
-              <span style={{ fontSize: '12px', color: item.href === '/dashboard/admin/agencies' ? '#fff' : 'rgba(255,255,255,0.4)', fontWeight: item.href === '/dashboard/admin/agencies' ? '500' : '400' }}>{item.label}</span>
-            </div>
+            <div key={item.href} onClick={()=>router.push(item.href)} className={`dinamo-nav-link${item.href==='/dashboard/admin/agencies'?' active':''}`}>{item.label}</div>
           ))}
         </nav>
         <div style={{ padding: '10px 8px', borderTop: '0.5px solid rgba(255,255,255,0.07)' }}>

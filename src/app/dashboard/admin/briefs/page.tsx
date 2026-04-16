@@ -86,7 +86,7 @@ export default function BriefsPage() {
         </div>
         <nav style={{flex:1,padding:'24px 0'}}>
           {NAV.map(item=>(
-            <a key={item.href} href={item.href} style={{display:'block',padding:'10px 24px',fontSize:'11px',color:item.href==='/dashboard/admin/briefs'?'#fff':'#888',textDecoration:'none',letterSpacing:'1px',fontFamily:'monospace'}}>{item.label}</a>
+            <a key={item.href} href={item.href} className={`dinamo-nav-link${item.href==='/dashboard/admin/briefs'?' active':''}`}>{item.label}</a>
           ))}
         </nav>
       </div>

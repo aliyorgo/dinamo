@@ -143,8 +143,7 @@ export default function AdminCreators() {
         </div>
         <nav style={{flex:1,padding:'24px 0'}}>
           {NAV.map(item=>(
-            <a key={item.href} href={item.href} style={{display:'block',padding:'10px 24px',fontSize:'11px',color:item.href==='/dashboard/admin/creators'?'#fff':'#888',textDecoration:'none',letterSpacing:'1px',fontFamily:'monospace'}}
-              onMouseEnter={e=>(e.currentTarget.style.color='#fff')} onMouseLeave={e=>(e.currentTarget.style.color=item.href==='/dashboard/admin/creators'?'#fff':'#888')}>{item.label}</a>
+            <a key={item.href} href={item.href} className={`dinamo-nav-link${item.href==='/dashboard/admin/creators'?' active':''}`}>{item.label}</a>
           ))}
         </nav>
       </div>
