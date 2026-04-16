@@ -279,7 +279,7 @@ export default function CreditsPage() {
     <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "var(--font-dm-sans),'DM Sans',system-ui,sans-serif" }}>
 
       {/* SIDEBAR */}
-      <div style={{ width: '240px', background: '#0A0A0A', display: 'flex', flexDirection: 'column', flexShrink: 0, height: '100vh', position: 'sticky', top: 0 }}>
+      <div className="dinamo-sidebar" style={{ width: '240px', background: '#0A0A0A', display: 'flex', flexDirection: 'column', flexShrink: 0, height: '100vh', position: 'sticky', top: 0 }}>
         <div style={{ padding: '18px 16px 14px', borderBottom: '0.5px solid rgba(255,255,255,0.07)' }}>
           <img src="/dinamo_logo.png" alt="Dinamo" style={{ height: '28px' }} />
           <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', marginTop: '8px' }}>Admin</div>
@@ -290,7 +290,7 @@ export default function CreditsPage() {
           ))}
         </nav>
         <div style={{ padding: '12px 16px', borderTop: '0.5px solid rgba(255,255,255,0.07)' }}>
-          <button onClick={handleLogout} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '11px', color: 'rgba(255,255,255,0.25)' }}>Çıkış yap</button>
+          <button onClick={handleLogout} className="dinamo-signout">Çıkış Yap</button>
         </div>
       </div>
 
