@@ -3,17 +3,6 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
-const NAV = [
-  { label: 'Genel Bakış', href: '/dashboard/admin' },
-  { label: 'Briefler', href: '/dashboard/admin/briefs' },
-  { label: 'Kredi Yönetimi', href: '/dashboard/admin/credits' },
-  { label: 'Müşteriler', href: '/dashboard/admin/clients' },
-  { label: 'Kullanıcılar', href: '/dashboard/admin/users' },
-  { label: 'Ajanslar', href: '/dashboard/admin/agencies' },
-  { label: "Creator'lar", href: '/dashboard/admin/creators' },
-  { label: 'Raporlar', href: '/dashboard/admin/reports' },
-  { label: 'Ayarlar', href: '/dashboard/admin/settings' },
-]
 
 const STATUS_MAP: Record<string, { label: string; bg: string; color: string }> = {
   demo: { label: 'Demo', bg: 'rgba(245,158,11,0.1)', color: '#f59e0b' },
@@ -115,10 +104,6 @@ export default function ClientsPage() {
     setCollapsed(prev => ({ ...prev, [groupId]: !prev[groupId] }))
   }
 
-  async function handleLogout() {
-    await supabase.auth.signOut()
-    router.push('/login')
-  }
 
   const directClients = clients.filter(c => !c.agency_id)
   const agencyGroups = agencies
@@ -139,7 +124,7 @@ export default function ClientsPage() {
     const st = STATUS_MAP[client.status] || STATUS_MAP.pending
     return (
       <div style={{ padding: '14px 20px', borderTop: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <div className="dinamo-main-content" style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
             <span style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>{client.company_name}</span>
             <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '100px', fontWeight: '500', background: st.bg, color: st.color }}>
@@ -176,30 +161,7 @@ export default function ClientsPage() {
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "var(--font-dm-sans),'DM Sans',system-ui,sans-serif" }}>
-
-      {/* SIDEBAR */}
-      <div className="dinamo-sidebar">
-        <div style={{ padding: '18px 16px 14px', borderBottom: '0.5px solid rgba(255,255,255,0.07)' }}>
-          <div style={{ fontSize: '18px', fontWeight: '500', color: '#fff', letterSpacing: '-0.5px', marginBottom: '12px' }}>
-            <img src="/dinamo_logo.png" alt="Dinamo" style={{ height: '28px' }} />
-          </div>
-          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', marginBottom: '3px' }}>Admin</div>
-        </div>
-        <nav style={{ padding: '10px 8px', flex: 1 }}>
-          {NAV.map(item => (
-            <div key={item.href} onClick={()=>router.push(item.href)} className={`dinamo-nav-link${item.href==='/dashboard/admin/clients'?' active':''}`}>{item.label}</div>
-          ))}
-        </nav>
-        <div style={{ padding: '10px 8px', borderTop: '0.5px solid rgba(255,255,255,0.07)' }}>
-          <button onClick={handleLogout} style={{ padding: '6px 8px', borderRadius: '7px', cursor: 'pointer', width: '100%', background: 'none', border: 'none' }}>
-            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-dm-sans),sans-serif' }}>Cikis yap</span>
-          </button>
-        </div>
-      </div>
-
-      {/* MAIN */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#f5f4f0', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
         <div style={{ padding: '14px 28px', background: '#fff', borderBottom: '0.5px solid rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a' }}>Musteriler ({clients.length})</div>
           {msg && <div style={{ fontSize: '12px', color: msg.includes('Hata') || msg.includes('error') ? '#ef4444' : '#22c55e' }}>{msg}</div>}
@@ -326,7 +288,6 @@ export default function ClientsPage() {
             </div>
           ))}
         </div>
-      </div>
     </div>
   )
 }
