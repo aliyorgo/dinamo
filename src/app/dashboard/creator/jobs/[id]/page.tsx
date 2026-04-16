@@ -173,7 +173,7 @@ export default function CreatorJobDetail() {
 
       <div style={{flex:1,display:'flex',flexDirection:'column',background:'#f5f4f0',overflow:'hidden'}}>
         <div style={{padding:'14px 28px',background:'#fff',borderBottom:'0.5px solid rgba(0,0,0,0.08)',flexShrink:0}}>
-          <div style={{fontSize:'12px',color:'#888'}}>İşlerim / <span style={{color:'#0a0a0a',fontWeight:'500'}}>{brief?.campaign_name}</span></div>
+          <div style={{fontSize:'12px',color:'rgba(255,255,255,0.4)'}}>İşlerim / <span style={{color:'#0a0a0a',fontWeight:'500'}}>{brief?.campaign_name}</span></div>
         </div>
 
         <div style={{flex:1,overflowY:'auto',padding:'24px 28px'}}>
@@ -184,7 +184,7 @@ export default function CreatorJobDetail() {
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><path d="M12 19v4M8 23h8"/></svg>
                   <div>
                     <div style={{fontSize:'13px',color:'#0a0a0a',fontWeight:'500'}}>Bu brief için gerçek seslendirme bekleniyor.</div>
-                    <div style={{fontSize:'11px',color:'#888',marginTop:'2px'}}>Prodüktör dosyayı yükleyince burada görünecek.</div>
+                    <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',marginTop:'2px'}}>Prodüktör dosyayı yükleyince burada görünecek.</div>
                   </div>
                 </div>
               )}
@@ -224,7 +224,7 @@ export default function CreatorJobDetail() {
 
               {/* 1. VIDEO SUBMISSIONS */}
               <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'20px 24px',marginBottom:'16px'}}>
-                <div style={{fontSize:'11px',color:'#888',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'14px'}}>Video Yükle</div>
+                <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'14px'}}>Video Yükle</div>
                 <div style={{display:'flex',gap:'10px',alignItems:'center',flexWrap:'wrap'}}>
                   <input ref={fileRef} type="file" accept="video/*" style={{flex:1,fontSize:'13px',color:'#0a0a0a',minWidth:'200px'}} />
                   <button onClick={handleUpload} disabled={uploading} style={{padding:'9px 20px',background:'#111113',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',fontWeight:'500',whiteSpace:'nowrap'}}>
@@ -236,12 +236,12 @@ export default function CreatorJobDetail() {
 
               {submissions.length > 0 && (
                 <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'20px 24px',marginBottom:'16px'}}>
-                  <div style={{fontSize:'11px',color:'#888',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'14px'}}>Yüklediklerim</div>
+                  <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'14px'}}>Yüklediklerim</div>
                   {submissions.map((s,i)=>(
                     <div key={s.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0',borderBottom:i<submissions.length-1?'0.5px solid rgba(0,0,0,0.06)':'none'}}>
                       <div>
                         <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>Versiyon {s.version}</div>
-                        <div style={{fontSize:'11px',color:'#888',marginTop:'2px'}}>{new Date(s.submitted_at).toLocaleDateString('tr-TR')}</div>
+                        <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',marginTop:'2px'}}>{new Date(s.submitted_at).toLocaleDateString('tr-TR')}</div>
                         {s.producer_notes&&<div style={{fontSize:'11px',color:'#ef4444',marginTop:'3px'}}>Not: {s.producer_notes}</div>}
                       </div>
                       <div style={{display:'flex',gap:'8px',alignItems:'center'}}>
@@ -260,7 +260,7 @@ export default function CreatorJobDetail() {
               {/* 2. BRIEF INFO */}
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px',marginBottom:'16px'}}>
                 <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'20px 24px'}}>
-                  <div style={{fontSize:'11px',color:'#888',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'14px'}}>Brief</div>
+                  <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'14px'}}>Brief</div>
                   {(() => {
                     const sf: string[] = producerBrief?.shared_fields || ['message','cta','target_audience','voiceover_text','notes']
                     return [
@@ -275,7 +275,7 @@ export default function CreatorJobDetail() {
                       {label:'Notlar', field:'notes', value: brief.notes, always:false},
                     ].filter(f => f.value && (f.always || sf.includes(f.field))).map(f=>(
                       <div key={f.label} style={{marginBottom:'10px'}}>
-                        <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'3px'}}>{f.label}</div>
+                        <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'3px'}}>{f.label}</div>
                         <div style={{fontSize:'13px',color:'#0a0a0a',lineHeight:'1.5'}}>{f.value}</div>
                       </div>
                     ))
@@ -285,13 +285,13 @@ export default function CreatorJobDetail() {
                 <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
                   {producerBrief?.producer_note && (
                     <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'16px 20px'}}>
-                      <div style={{fontSize:'11px',color:'#888',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'10px'}}>Prodüktör Notu</div>
+                      <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'10px'}}>Prodüktör Notu</div>
                       <div style={{fontSize:'13px',color:'#0a0a0a',lineHeight:'1.6'}}>{producerBrief.producer_note}</div>
                     </div>
                   )}
                   {brief.voiceover_type==='real'&&(
                     <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'16px 20px',marginBottom:'12px'}}>
-                      <div style={{fontSize:'11px',color:'#888',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'10px'}}>Seslendirme</div>
+                      <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'10px'}}>Seslendirme</div>
                       {brief.voiceover_file_url ? (
                         <div>
                           <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'8px'}}>
@@ -311,7 +311,7 @@ export default function CreatorJobDetail() {
                   )}
 
                   <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'16px 20px',marginBottom:'12px'}}>
-                    <div style={{fontSize:'11px',color:'#888',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'10px'}}>Marka Dosyaları</div>
+                    <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'10px'}}>Marka Dosyaları</div>
                     {brief.clients?.logo_url&&(
                       <a href={brief.clients.logo_url} target="_blank" style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'8px',textDecoration:'none'}}>
                         <img src={brief.clients.logo_url} style={{width:'80px',height:'80px',objectFit:'contain',borderRadius:'6px',background:'#f5f5f5',padding:'6px'}} />
@@ -320,7 +320,7 @@ export default function CreatorJobDetail() {
                     )}
                     {brief.clients?.font_url&&(
                       <a href={brief.clients.font_url} target="_blank" style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'8px',textDecoration:'none'}}>
-                        <div style={{width:'80px',height:'80px',borderRadius:'6px',background:'#f5f5f5',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><span style={{fontSize:'11px',fontWeight:'600',color:'#888'}}>FONT</span></div>
+                        <div style={{width:'80px',height:'80px',borderRadius:'6px',background:'#f5f5f5',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><span style={{fontSize:'11px',fontWeight:'600',color:'rgba(255,255,255,0.4)'}}>FONT</span></div>
                         <span style={{fontSize:'12px',color:'#22c55e'}}>Font ↓</span>
                       </a>
                     )}
@@ -331,16 +331,16 @@ export default function CreatorJobDetail() {
                         ) : f.file_type?.includes('video') ? (
                           <div style={{width:'80px',height:'80px',borderRadius:'6px',background:'#111',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><span style={{fontSize:'16px',color:'rgba(255,255,255,0.5)'}}>▶</span></div>
                         ) : f.file_type?.includes('pdf') ? (
-                          <div style={{width:'80px',height:'80px',borderRadius:'6px',background:'#f5f5f5',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><span style={{fontSize:'11px',fontWeight:'600',color:'#888'}}>PDF</span></div>
+                          <div style={{width:'80px',height:'80px',borderRadius:'6px',background:'#f5f5f5',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><span style={{fontSize:'11px',fontWeight:'600',color:'rgba(255,255,255,0.4)'}}>PDF</span></div>
                         ) : null}
                         <span style={{fontSize:'12px',color:'#22c55e'}}>{f.file_name} ↓</span>
                       </a>
                     ))}
-                    {!brief.clients?.logo_url&&!brief.clients?.font_url&&brandFiles.length===0&&<div style={{fontSize:'12px',color:'#888'}}>Marka dosyası yüklenmemiş.</div>}
+                    {!brief.clients?.logo_url&&!brief.clients?.font_url&&brandFiles.length===0&&<div style={{fontSize:'12px',color:'rgba(255,255,255,0.4)'}}>Marka dosyası yüklenmemiş.</div>}
                   </div>
                   {projectFiles.length > 0 && (
                     <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'16px 20px'}}>
-                      <div style={{fontSize:'11px',color:'#888',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'10px'}}>Bu Proje Dosyaları</div>
+                      <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'10px'}}>Bu Proje Dosyaları</div>
                       {projectFiles.map(f=>(
                         <a key={f.id} href={f.file_url} target="_blank" style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'8px',textDecoration:'none'}}>
                           {f.file_type?.includes('image') ? (
@@ -348,7 +348,7 @@ export default function CreatorJobDetail() {
                           ) : f.file_type?.includes('video') ? (
                             <div style={{width:'80px',height:'80px',borderRadius:'6px',background:'#111',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><span style={{fontSize:'16px',color:'rgba(255,255,255,0.5)'}}>▶</span></div>
                           ) : f.file_type?.includes('pdf') ? (
-                            <div style={{width:'80px',height:'80px',borderRadius:'6px',background:'#f5f5f5',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><span style={{fontSize:'11px',fontWeight:'600',color:'#888'}}>PDF</span></div>
+                            <div style={{width:'80px',height:'80px',borderRadius:'6px',background:'#f5f5f5',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><span style={{fontSize:'11px',fontWeight:'600',color:'rgba(255,255,255,0.4)'}}>PDF</span></div>
                           ) : null}
                           <span style={{fontSize:'12px',color:'#22c55e'}}>{f.file_name} ↓</span>
                         </a>
@@ -367,7 +367,7 @@ export default function CreatorJobDetail() {
                   })()}
                   <div>
                     <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>Bu video <span style={{color:'#22c55e'}}>{brief.format}</span> formatında üretilmeli</div>
-                    <div style={{fontSize:'11px',color:'#888',marginTop:'2px'}}>{brief.video_type}</div>
+                    <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',marginTop:'2px'}}>{brief.video_type}</div>
                   </div>
                 </div>
               )}
@@ -401,14 +401,14 @@ export default function CreatorJobDetail() {
                     }
                     return (
                       <div style={{border:'0.5px solid rgba(0,0,0,0.08)',borderRadius:'10px',padding:'14px 16px',background:'#fafaf8'}}>
-                        <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'10px'}}>Onaylanan Senaryo</div>
+                        <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'10px'}}>Onaylanan Senaryo</div>
                         {Array.isArray(parsed) ? parsed.map((sc: any, i: number) => (
                           <div key={i} style={{display:'flex',gap:'10px',marginBottom:'10px',paddingBottom:'10px',borderBottom:i<parsed.length-1?'0.5px solid rgba(0,0,0,0.04)':'none'}}>
                             <div style={{fontSize:'20px',fontWeight:'300',color:'#ddd',flexShrink:0,width:'24px'}}>{sc.scene}</div>
                             <div style={{flex:1}}>
                               {sc.duration&&<div style={{fontSize:'10px',color:'#22c55e',fontWeight:'500',marginBottom:'3px'}}>{sc.duration}</div>}
                               <div style={{fontSize:'13px',color:'#0a0a0a',lineHeight:1.7}}>{sc.visual}</div>
-                              {sc.audio&&<div style={{fontSize:'11px',color:'#888',marginTop:'2px'}}>🎵 {sc.audio}</div>}
+                              {sc.audio&&<div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',marginTop:'2px'}}>🎵 {sc.audio}</div>}
                               {sc.dialogue&&<div style={{fontSize:'11px',color:'#3b82f6',fontStyle:'italic',marginTop:'2px'}}>💬 {sc.dialogue}</div>}
                             </div>
                           </div>

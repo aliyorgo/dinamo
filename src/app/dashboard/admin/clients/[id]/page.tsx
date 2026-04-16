@@ -535,7 +535,7 @@ export default function ClientDetailPage() {
                   Briefler ({briefs.length})
                 </div>
                 {briefs.length === 0 ? (
-                  <div style={{ padding: '24px', textAlign: 'center', color: '#aaa', fontSize: '12px' }}>Bu musteriye ait brief yok.</div>
+                  <div style={{ padding: '24px', textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontSize: '12px' }}>Bu musteriye ait brief yok.</div>
                 ) : briefs.map(brief => {
                   const bs = BRIEF_STATUS[brief.status] || { label: brief.status, color: '#888' }
                   return (
@@ -569,7 +569,7 @@ export default function ClientDetailPage() {
                   <span style={{ fontSize: '11px', color: '#888' }}>Havuz: {client?.credit_balance || 0} kr</span>
                 </div>
                 {clientUsers.length === 0 ? (
-                  <div style={{ padding: '24px', textAlign: 'center', color: '#aaa', fontSize: '12px' }}>Atanmis kullanici yok. Once Musteriler sayfasindan kullanici atayin.</div>
+                  <div style={{ padding: '24px', textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontSize: '12px' }}>Atanmis kullanici yok. Once Musteriler sayfasindan kullanici atayin.</div>
                 ) : clientUsers.map((cu: any) => (
                   <div key={cu.id} style={{ padding: '12px 20px', borderTop: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -578,7 +578,7 @@ export default function ClientDetailPage() {
                     </div>
                     <div style={{ textAlign: 'right', marginRight: '8px' }}>
                       <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a' }}>{cu.allocated_credits || 0}</div>
-                      <div style={{ fontSize: '9px', color: '#aaa' }}>kredi</div>
+                      <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.25)' }}>kredi</div>
                     </div>
                     <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
                       <button onClick={() => { openAllocModal(cu, 'give') }}
@@ -601,7 +601,7 @@ export default function ClientDetailPage() {
                   Kredi Gecmisi ({transactions.length})
                 </div>
                 {transactions.length === 0 ? (
-                  <div style={{ padding: '24px', textAlign: 'center', color: '#aaa', fontSize: '12px' }}>Kredi islemi yok.</div>
+                  <div style={{ padding: '24px', textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontSize: '12px' }}>Kredi islemi yok.</div>
                 ) : transactions.map(tx => {
                   const isPositive = Number(tx.amount) > 0
                   return (
@@ -611,7 +611,7 @@ export default function ClientDetailPage() {
                     }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: '12px', color: '#0a0a0a' }}>{tx.description || tx.type}</div>
-                        <div style={{ fontSize: '11px', color: '#aaa', marginTop: '2px' }}>
+                        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', marginTop: '2px' }}>
                           {tx.created_at && new Date(tx.created_at).toLocaleString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                         </div>
                       </div>
@@ -634,7 +634,7 @@ export default function ClientDetailPage() {
                   Kredi Satislari ({sales.length})
                 </div>
                 {sales.length === 0 ? (
-                  <div style={{ padding: '24px', textAlign: 'center', color: '#aaa', fontSize: '12px' }}>Kredi satisi yok.</div>
+                  <div style={{ padding: '24px', textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontSize: '12px' }}>Kredi satisi yok.</div>
                 ) : sales.map((sale: any) => (
                   <div key={sale.id} style={{ padding: '12px 20px', borderTop: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -646,7 +646,7 @@ export default function ClientDetailPage() {
                     </div>
                     <div style={{ textAlign: 'right', flexShrink: 0 }}>
                       <div style={{ fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>{Number(sale.total_amount || 0).toLocaleString('tr-TR')} TL</div>
-                      {sale.invoice_number && <div style={{ fontSize: '10px', color: '#aaa' }}>{sale.invoice_number}</div>}
+                      {sale.invoice_number && <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)' }}>{sale.invoice_number}</div>}
                     </div>
                   </div>
                 ))}
@@ -791,7 +791,7 @@ export default function ClientDetailPage() {
               </div>
               <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
                 <button type="button" onClick={() => setEditModal(false)}
-                  style={{ padding: '8px 16px', background: '#f5f4f0', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', color: '#666' }}>
+                  style={{ padding: '8px 16px', background: '#f5f4f0', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', color: 'rgba(255,255,255,0.4)' }}>
                   Iptal
                 </button>
                 <button type="submit" disabled={saving}
@@ -821,7 +821,7 @@ export default function ClientDetailPage() {
             )}
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
               <button onClick={() => setDeleteModal(false)}
-                style={{ padding: '8px 16px', background: '#f5f4f0', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', color: '#666' }}>
+                style={{ padding: '8px 16px', background: '#f5f4f0', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', color: 'rgba(255,255,255,0.4)' }}>
                 Iptal
               </button>
               <button onClick={confirmDelete} disabled={deleting}

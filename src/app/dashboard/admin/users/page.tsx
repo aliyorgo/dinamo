@@ -135,7 +135,7 @@ export default function UsersPage() {
       <div style={{width:'240px',background:'#0A0A0A',padding:'32px 0',display:'flex',flexDirection:'column',flexShrink:0}}>
         <div style={{padding:'0 24px 32px',borderBottom:'1px solid rgba(255,255,255,0.08)'}}>
           <img src="/dinamo_logo.png" alt="Dinamo" style={{height:"28px"}} />
-          <div style={{fontSize:'11px',color:'#666',marginTop:'4px',letterSpacing:'1px',fontFamily:'monospace'}}>ADMIN</div>
+          <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',marginTop:'4px',letterSpacing:'1px',fontFamily:'monospace'}}>ADMIN</div>
         </div>
         <nav style={{flex:1,padding:'24px 0'}}>
           {[
@@ -150,7 +150,7 @@ export default function UsersPage() {
             {label:'ANA SAYFA',href:'/dashboard/admin/homepage'},
             {label:'AYARLAR',href:'/dashboard/admin/settings'},
           ].map(item => (
-            <a key={item.href} href={item.href} style={{display:'block',padding:'10px 24px',fontSize:'11px',color:'#888',textDecoration:'none',letterSpacing:'1px',fontFamily:'monospace'}}
+            <a key={item.href} href={item.href} style={{display:'block',padding:'10px 24px',fontSize:'11px',color:'rgba(255,255,255,0.4)',textDecoration:'none',letterSpacing:'0.05em',fontFamily:'monospace'}}
               onMouseEnter={e=>(e.currentTarget.style.color='#fff')} onMouseLeave={e=>(e.currentTarget.style.color='#888')}>{item.label}</a>
           ))}
         </nav>
@@ -177,22 +177,22 @@ export default function UsersPage() {
 
         {activeTab === 'demos' ? (
           <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',overflow:'hidden'}}>
-            <div style={{padding:'16px 24px',borderBottom:'1px solid #e8e7e3',fontSize:'12px',color:'#888',letterSpacing:'1px',fontFamily:'monospace'}}>
+            <div style={{padding:'16px 24px',borderBottom:'1px solid #e8e7e3',fontSize:'12px',color:'rgba(255,255,255,0.4)',letterSpacing:'1px',fontFamily:'monospace'}}>
               DEMO TALEPLERİ ({demoRequests.length})
             </div>
             {demoRequests.length === 0 ? (
-              <div style={{padding:'32px',textAlign:'center',color:'#888',fontSize:'14px'}}>Henüz demo talebi yok.</div>
+              <div style={{padding:'32px',textAlign:'center',color:'rgba(255,255,255,0.4)',fontSize:'14px'}}>Henüz demo talebi yok.</div>
             ) : demoRequests.map((d, i) => (
               <div key={d.id} style={{padding:'14px 24px',borderBottom:i<demoRequests.length-1?'1px solid #f0f0ee':'none',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                 <div>
                   <div style={{fontSize:'14px',fontWeight:'500'}}>{d.name}</div>
-                  <div style={{fontSize:'12px',color:'#888',marginTop:'2px'}}>
+                  <div style={{fontSize:'12px',color:'rgba(255,255,255,0.4)',marginTop:'2px'}}>
                     {d.company && <span>{d.company} · </span>}
                     {d.email}
                     {d.phone && <span> · {d.phone}</span>}
                   </div>
                 </div>
-                <div style={{fontSize:'11px',color:'#888'}}>{new Date(d.created_at).toLocaleDateString('tr-TR')}</div>
+                <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)'}}>{new Date(d.created_at).toLocaleDateString('tr-TR')}</div>
               </div>
             ))}
           </div>
@@ -209,9 +209,9 @@ export default function UsersPage() {
                   <div key={user.id} style={{padding:'12px 20px',borderTop: i > 0 ? '1px solid #f0f0ee' : 'none',display:'flex',alignItems:'center',gap:'12px'}}>
                     <div style={{flex:1,minWidth:0}}>
                       <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{user.name}</div>
-                      <div style={{fontSize:'12px',color:'#888',marginTop:'2px'}}>{user.email}</div>
+                      <div style={{fontSize:'12px',color:'rgba(255,255,255,0.4)',marginTop:'2px'}}>{user.email}</div>
                     </div>
-                    <div style={{fontSize:'11px',color:'#aaa',flexShrink:0,textAlign:'right',minWidth:'140px'}}>
+                    <div style={{fontSize:'11px',color:'rgba(255,255,255,0.25)',flexShrink:0,textAlign:'right',minWidth:'140px'}}>
                       {formatLastLogin(authInfo[user.id]?.last_sign_in_at ?? null)}
                     </div>
                     <div style={{display:'flex',gap:'4px',flexShrink:0}}>
@@ -282,7 +282,7 @@ export default function UsersPage() {
                 <input required type="email" value={editForm.email} onChange={e=>setEditForm({...editForm,email:e.target.value})} style={inputStyle} />
               </div>
               <div style={{marginBottom:'14px'}}>
-                <label style={labelStyle}>Yeni Şifre <span style={{color:'#aaa',fontWeight:'400',textTransform:'none'}}>(boş bırakırsa değişmez)</span></label>
+                <label style={labelStyle}>Yeni Şifre <span style={{color:'rgba(255,255,255,0.25)',fontWeight:'400',textTransform:'none'}}>(boş bırakırsa değişmez)</span></label>
                 <input type="password" value={editForm.password} onChange={e=>setEditForm({...editForm,password:e.target.value})} style={inputStyle} placeholder="••••••••" />
               </div>
               <div style={{marginBottom:'20px'}}>

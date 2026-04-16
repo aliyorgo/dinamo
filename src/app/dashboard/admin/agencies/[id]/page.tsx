@@ -631,7 +631,7 @@ export default function AgencyDetailPage() {
 
                   {agencyUserId === null ? (
                     <div style={{ textAlign: 'center', padding: '8px 0' }}>
-                      <div style={{ fontSize: '12px', color: '#aaa', marginBottom: '12px' }}>Bu ajans için henüz kullanıcı oluşturulmamış.</div>
+                      <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.25)', marginBottom: '12px' }}>Bu ajans için henüz kullanıcı oluşturulmamış.</div>
                       <button onClick={() => setCreateUserModal(true)}
                         style={{ padding: '8px 18px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
                         Kullanıcı Oluştur
@@ -641,7 +641,7 @@ export default function AgencyDetailPage() {
                     <>
                       {/* Email */}
                       <div style={{ marginBottom: '12px' }}>
-                        <div style={{ fontSize: '10px', color: '#aaa', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>E-posta</div>
+                        <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>E-posta</div>
                         {editingEmail ? (
                           <form onSubmit={saveEmail} style={{ display: 'flex', gap: '6px' }}>
                             <input required type="email" value={newEmailInput} onChange={e => setNewEmailInput(e.target.value)}
@@ -663,7 +663,7 @@ export default function AgencyDetailPage() {
 
                       {/* Password reset */}
                       <div style={{ marginBottom: '12px' }}>
-                        <div style={{ fontSize: '10px', color: '#aaa', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Şifre</div>
+                        <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Şifre</div>
                         <button onClick={resetPassword} disabled={resetLoading}
                           style={{ padding: '7px 16px', background: '#fff', color: '#0a0a0a', border: '0.5px solid rgba(0,0,0,0.2)', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: resetLoading ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
                           {resetLoading ? 'Sıfırlanıyor...' : 'Şifre Sıfırla'}
@@ -722,7 +722,7 @@ export default function AgencyDetailPage() {
                   Müşteriler ({clients.length}) · {activeClients.length} aktif · {pendingClients.length} beklemede
                 </div>
                 {clients.length === 0 ? (
-                  <div style={{ padding: '24px', textAlign: 'center', color: '#aaa', fontSize: '12px' }}>Bu ajansa bağlı müşteri yok.</div>
+                  <div style={{ padding: '24px', textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontSize: '12px' }}>Bu ajansa bağlı müşteri yok.</div>
                 ) : clients.map(client => {
                   const st = STATUS_MAP[client.status] || STATUS_MAP.pending
                   return (
@@ -754,7 +754,7 @@ export default function AgencyDetailPage() {
                       Kredi Yükle
                     </button>
                     <button onClick={() => openEditClientModal(client)} title="Düzenle"
-                      style={{ width: '28px', height: '28px', borderRadius: '7px', border: '0.5px solid rgba(0,0,0,0.1)', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', color: '#666', flexShrink: 0 }}>
+                      style={{ width: '28px', height: '28px', borderRadius: '7px', border: '0.5px solid rgba(0,0,0,0.1)', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', color: 'rgba(255,255,255,0.4)', flexShrink: 0 }}>
                       ✎
                     </button>
                     <button onClick={() => openDeleteClientModal(client)} title="Sil"
@@ -798,7 +798,7 @@ export default function AgencyDetailPage() {
                   <div key={inv.id} style={{ padding: '12px 20px', borderTop: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: '12px', borderLeft: `3px solid ${inv.is_paid ? '#22c55e' : '#f59e0b'}` }}>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>{formatTL(Number(inv.amount))}</div>
-                      <div style={{ fontSize: '11px', color: '#aaa', marginTop: '2px' }}>
+                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', marginTop: '2px' }}>
                         {inv.invoice_number && <span style={{ marginRight: '8px' }}>{inv.invoice_number}</span>}
                         {inv.invoice_date && new Date(inv.invoice_date).toLocaleDateString('tr-TR')}
                       </div>
@@ -874,7 +874,7 @@ export default function AgencyDetailPage() {
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 90px 70px 90px', gap: '6px', padding: '8px 20px', borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
                     {['Musteri', 'Kredi', 'Satis', 'Oran', 'Kazanc'].map(h => (
-                      <div key={h} style={{ fontSize: '9px', color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{h}</div>
+                      <div key={h} style={{ fontSize: '9px', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{h}</div>
                     ))}
                   </div>
                   {agencySales.map((sale: any) => {
@@ -885,7 +885,7 @@ export default function AgencyDetailPage() {
                       <div key={sale.id} style={{ display: 'grid', gridTemplateColumns: '1fr 80px 90px 70px 90px', gap: '6px', padding: '10px 20px', borderTop: '0.5px solid rgba(0,0,0,0.04)', alignItems: 'center' }}>
                         <div>
                           <div style={{ fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>{(sale.clients as any)?.company_name || '\u2014'}</div>
-                          <div style={{ fontSize: '10px', color: '#aaa' }}>{sale.created_at && new Date(sale.created_at).toLocaleDateString('tr-TR')}</div>
+                          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)' }}>{sale.created_at && new Date(sale.created_at).toLocaleDateString('tr-TR')}</div>
                         </div>
                         <div style={{ fontSize: '11px', color: '#0a0a0a' }}>{sale.credits} kr</div>
                         <div style={{ fontSize: '11px', color: '#0a0a0a' }}>{formatTL(saleAmount)}</div>
@@ -936,14 +936,14 @@ export default function AgencyDetailPage() {
             <div style={{ fontSize: '12px', color: '#888', marginBottom: '20px' }}>{agency?.name} için giriş bilgileri</div>
             <form onSubmit={createAgencyUser}>
               <div style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', fontSize: '10px', color: '#aaa', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>E-posta</label>
+                <label style={{ display: 'block', fontSize: '10px', color: 'rgba(255,255,255,0.25)', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>E-posta</label>
                 <input required type="email" value={createUserForm.email}
                   onChange={e => setCreateUserForm({ ...createUserForm, email: e.target.value })}
                   style={{ width: '100%', padding: '8px 12px', border: '0.5px solid rgba(0,0,0,0.2)', borderRadius: '8px', fontSize: '13px', fontFamily: 'var(--font-dm-sans),sans-serif', outline: 'none', boxSizing: 'border-box' }}
                   placeholder="ajans@example.com" autoFocus />
               </div>
               <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', fontSize: '10px', color: '#aaa', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Şifre</label>
+                <label style={{ display: 'block', fontSize: '10px', color: 'rgba(255,255,255,0.25)', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Şifre</label>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <input required value={createUserForm.password}
                     onChange={e => setCreateUserForm({ ...createUserForm, password: e.target.value })}
@@ -1023,7 +1023,7 @@ export default function AgencyDetailPage() {
               </div>
               <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
                 <button type="button" onClick={() => setEditClient(null)}
-                  style={{ padding: '8px 16px', background: '#f5f4f0', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', color: '#666' }}>
+                  style={{ padding: '8px 16px', background: '#f5f4f0', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', color: 'rgba(255,255,255,0.4)' }}>
                   İptal
                 </button>
                 <button type="submit" disabled={savingClient}
@@ -1053,7 +1053,7 @@ export default function AgencyDetailPage() {
             )}
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
               <button onClick={() => setDeleteClient(null)}
-                style={{ padding: '8px 16px', background: '#f5f4f0', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', color: '#666' }}>
+                style={{ padding: '8px 16px', background: '#f5f4f0', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', color: 'rgba(255,255,255,0.4)' }}>
                 İptal
               </button>
               <button onClick={confirmDeleteClient} disabled={deletingClient}

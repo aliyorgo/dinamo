@@ -139,12 +139,12 @@ export default function AgencyClientDetailPage() {
         </div>
         <div onClick={() => router.push('/dashboard/agency/studio/credits')} style={{ padding: '10px 12px', margin: '0 8px', borderRadius: '8px', background: 'rgba(255,255,255,0.04)', cursor: 'pointer' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)' }}>Kredi</span>
+            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>Kredi</span>
             <span style={{ fontSize: '12px', fontWeight: '500', color: '#22c55e' }}>{agency?.demo_credits || 0} kr</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)' }}>Kazanc</span>
-            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>{Number(agency?.total_earnings || 0).toLocaleString('tr-TR')} TL</span>
+            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>Kazanc</span>
+            <span style={{ fontSize: '11px', color: '#888' }}>{Number(agency?.total_earnings || 0).toLocaleString('tr-TR')} TL</span>
           </div>
         </div>
         <div style={{ padding: '10px 8px', borderTop: '0.5px solid rgba(255,255,255,0.07)' }}>
@@ -197,7 +197,7 @@ export default function AgencyClientDetailPage() {
                   <div style={{ fontSize: '10px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>{card.label}</div>
                   <div style={{ fontSize: '22px', fontWeight: '300', color: card.color, letterSpacing: '-0.5px' }}>
                     {card.value}
-                    {card.unit && <span style={{ fontSize: '12px', color: '#aaa', marginLeft: '4px', fontWeight: '400' }}>{card.unit}</span>}
+                    {card.unit && <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.25)', marginLeft: '4px', fontWeight: '400' }}>{card.unit}</span>}
                   </div>
                 </div>
               ))}
@@ -214,7 +214,7 @@ export default function AgencyClientDetailPage() {
                     <YAxis tick={{ fontSize: 10, fill: '#aaa' }} axisLine={false} tickLine={false} />
                     <Tooltip
                       contentStyle={{ background: '#111113', border: 'none', borderRadius: '8px', fontSize: '11px', color: '#fff' }}
-                      labelStyle={{ color: '#aaa' }}
+                      labelStyle={{ color: 'rgba(255,255,255,0.25)' }}
                       formatter={(v: any) => [`${v} kredi`, 'Harcama']}
                     />
                     <Line type="monotone" dataKey="credits" stroke="#22c55e" strokeWidth={2} dot={false} />
@@ -226,7 +226,7 @@ export default function AgencyClientDetailPage() {
               <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', padding: '20px' }}>
                 <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '16px' }}>Brief Dagilimi</div>
                 {Object.keys(statusCounts).length === 0 ? (
-                  <div style={{ height: '140px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#aaa', fontSize: '12px' }}>Brief yok</div>
+                  <div style={{ height: '140px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.25)', fontSize: '12px' }}>Brief yok</div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {Object.entries(statusCounts).map(([status, count]) => {
@@ -255,7 +255,7 @@ export default function AgencyClientDetailPage() {
                 Son Briefler ({Math.min(briefs.length, 5)}/{briefs.length})
               </div>
               {briefs.length === 0 ? (
-                <div style={{ padding: '24px', textAlign: 'center', color: '#aaa', fontSize: '12px' }}>Brief yok.</div>
+                <div style={{ padding: '24px', textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontSize: '12px' }}>Brief yok.</div>
               ) : briefs.slice(0, 5).map((b, i) => {
                 const sl = statusLabel[b.status] || { label: b.status, color: '#888' }
                 return (
@@ -267,7 +267,7 @@ export default function AgencyClientDetailPage() {
                       </div>
                     </div>
                     <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '100px', fontWeight: '500', background: `${sl.color}15`, color: sl.color }}>{sl.label}</span>
-                    <div style={{ fontSize: '11px', color: '#aaa', flexShrink: 0 }}>{b.created_at ? new Date(b.created_at).toLocaleDateString('tr-TR') : ''}</div>
+                    <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', flexShrink: 0 }}>{b.created_at ? new Date(b.created_at).toLocaleDateString('tr-TR') : ''}</div>
                   </div>
                 )
               })}

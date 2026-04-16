@@ -99,12 +99,12 @@ export default function AgencyEarningsPage() {
         </div>
         <div onClick={() => router.push('/dashboard/agency/studio/credits')} style={{ padding: '10px 12px', margin: '0 8px', borderRadius: '8px', background: 'rgba(255,255,255,0.04)', cursor: 'pointer' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)' }}>Kredi</span>
+            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>Kredi</span>
             <span style={{ fontSize: '12px', fontWeight: '500', color: '#22c55e' }}>{agency?.demo_credits || 0} kr</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)' }}>Kazanc</span>
-            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>{formatTL(totalEarnings)}</span>
+            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>Kazanc</span>
+            <span style={{ fontSize: '11px', color: '#888' }}>{formatTL(totalEarnings)}</span>
           </div>
         </div>
         <div style={{ padding: '10px 8px', borderTop: '0.5px solid rgba(255,255,255,0.07)' }}>
@@ -143,7 +143,7 @@ export default function AgencyEarningsPage() {
               Satis Gecmisi ({sales.length})
             </div>
             {sales.length === 0 ? (
-              <div style={{ padding: '40px', textAlign: 'center', color: '#aaa', fontSize: '12px' }}>Henuz kazanc hareketi yok.</div>
+              <div style={{ padding: '40px', textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontSize: '12px' }}>Henuz kazanc hareketi yok.</div>
             ) : (
               <>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px 100px 80px 100px', gap: '8px', padding: '10px 20px', borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
@@ -158,7 +158,7 @@ export default function AgencyEarningsPage() {
                     <div key={sale.id} style={{ display: 'grid', gridTemplateColumns: '1fr 100px 100px 80px 100px', gap: '8px', padding: '12px 20px', borderTop: '0.5px solid rgba(0,0,0,0.04)', alignItems: 'center' }}>
                       <div>
                         <div style={{ fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>{(sale.clients as any)?.company_name || '—'}</div>
-                        <div style={{ fontSize: '10px', color: '#aaa', marginTop: '2px' }}>{sale.created_at && new Date(sale.created_at).toLocaleDateString('tr-TR')}</div>
+                        <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)', marginTop: '2px' }}>{sale.created_at && new Date(sale.created_at).toLocaleDateString('tr-TR')}</div>
                       </div>
                       <div style={{ fontSize: '12px', color: '#0a0a0a' }}>{sale.credits} kr</div>
                       <div style={{ fontSize: '12px', color: '#0a0a0a' }}>{formatTL(saleAmount)}</div>

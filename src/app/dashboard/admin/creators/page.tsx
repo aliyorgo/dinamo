@@ -139,7 +139,7 @@ export default function AdminCreators() {
       <div style={{width:'240px',background:'#0A0A0A',padding:'32px 0',display:'flex',flexDirection:'column',flexShrink:0}}>
         <div style={{padding:'0 24px 32px',borderBottom:'1px solid rgba(255,255,255,0.08)'}}>
           <img src="/dinamo_logo.png" alt="Dinamo" style={{height:"28px"}} />
-          <div style={{fontSize:'11px',color:'#666',marginTop:'4px',letterSpacing:'1px',fontFamily:'monospace'}}>ADMIN</div>
+          <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',marginTop:'4px',letterSpacing:'1px',fontFamily:'monospace'}}>ADMIN</div>
         </div>
         <nav style={{flex:1,padding:'24px 0'}}>
           {NAV.map(item=>(
@@ -164,11 +164,11 @@ export default function AdminCreators() {
               <div key={u.id} style={{padding:'16px 24px',borderBottom:i<pendingApplicants.length-1?'1px solid #f0f0ee':'none',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                 <div>
                   <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a'}}>{u.name}</div>
-                  <div style={{fontSize:'12px',color:'#888',marginTop:'3px',display:'flex',gap:'10px',flexWrap:'wrap'}}>
+                  <div style={{fontSize:'12px',color:'rgba(255,255,255,0.4)',marginTop:'3px',display:'flex',gap:'10px',flexWrap:'wrap'}}>
                     <span>{u.email}</span>
                     {u.creator?.phone && <span>· {u.creator.phone}</span>}
                     {u.creator?.website && <a href={u.creator.website.startsWith('http')?u.creator.website:`https://${u.creator.website}`} target="_blank" style={{color:'#3b82f6',textDecoration:'none'}}>· {u.creator.website}</a>}
-                    <span style={{color:'#aaa'}}>· Son Giriş: {formatLastLogin(authInfo[u.id]?.last_sign_in_at ?? null)}</span>
+                    <span style={{color:'rgba(255,255,255,0.25)'}}>· Son Giriş: {formatLastLogin(authInfo[u.id]?.last_sign_in_at ?? null)}</span>
                   </div>
                 </div>
                 <div style={{display:'flex',gap:'8px'}}>
@@ -206,10 +206,10 @@ export default function AdminCreators() {
                     </div>
                     <div>
                       <div style={{fontSize:'15px',fontWeight:'500',color:'#0a0a0a'}}>{creator.users?.name}</div>
-                      <div style={{fontSize:'12px',color:'#888',marginTop:'2px',display:'flex',gap:'10px',flexWrap:'wrap'}}>
+                      <div style={{fontSize:'12px',color:'rgba(255,255,255,0.4)',marginTop:'2px',display:'flex',gap:'10px',flexWrap:'wrap'}}>
                         <span>{creator.users?.email}</span>
                         {creator.phone&&<span>· {creator.phone}</span>}
-                        <span style={{color:'#aaa'}}>· Son Giriş: {formatLastLogin(authInfo[creator.user_id]?.last_sign_in_at ?? null)}</span>
+                        <span style={{color:'rgba(255,255,255,0.25)'}}>· Son Giriş: {formatLastLogin(authInfo[creator.user_id]?.last_sign_in_at ?? null)}</span>
                         {creator.entity_type==='company'&&<span style={{color:'#3b82f6'}}>· Şirket</span>}
                         <span style={{fontSize:'10px',padding:'2px 8px',borderRadius:'100px',marginLeft:'4px',background:creator.agreement_accepted?'rgba(34,197,94,0.1)':'rgba(245,158,11,0.1)',color:creator.agreement_accepted?'#22c55e':'#f59e0b'}}>{creator.agreement_accepted?'Taahhüt ✓':'Taahhüt Bekleniyor'}</span>
                         {totalJobs > 0 && <span style={{fontSize:'10px',padding:'2px 8px',borderRadius:'100px',marginLeft:'4px',background:`${perfColor}15`,color:perfColor}}>{perfLabel} · %{revisionRate} rev.</span>}
@@ -218,18 +218,18 @@ export default function AdminCreators() {
                   </div>
                   <div style={{display:'flex',gap:'24px',alignItems:'center'}}>
                     <div style={{textAlign:'right'}}>
-                      <div style={{fontSize:'11px',color:'#888',fontFamily:'monospace',marginBottom:'2px'}}>TOPLAM KREDİ</div>
+                      <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',fontFamily:'monospace',marginBottom:'2px'}}>TOPLAM KREDİ</div>
                       <div style={{fontSize:'16px',fontWeight:'300',color:'#0a0a0a'}}>{lifetimeCredits}</div>
                     </div>
                     <div style={{textAlign:'right'}}>
-                      <div style={{fontSize:'11px',color:'#888',fontFamily:'monospace',marginBottom:'2px'}}>TOPLAM KAZANÇ</div>
+                      <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',fontFamily:'monospace',marginBottom:'2px'}}>TOPLAM KAZANÇ</div>
                       <div style={{fontSize:'16px',fontWeight:'300',color:'#0a0a0a'}}>{totalEarned.toLocaleString('tr-TR')} ₺</div>
                     </div>
                     <div style={{textAlign:'right'}}>
-                      <div style={{fontSize:'11px',color:'#888',fontFamily:'monospace',marginBottom:'2px'}}>BEKLEYEN</div>
+                      <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',fontFamily:'monospace',marginBottom:'2px'}}>BEKLEYEN</div>
                       <div style={{fontSize:'16px',fontWeight:'300',color:pendingAmount>0?'#f59e0b':'#888'}}>{pendingAmount.toLocaleString('tr-TR')} ₺</div>
                     </div>
-                    <div style={{fontSize:'18px',color:'#888'}}>{isSelected?'↑':'↓'}</div>
+                    <div style={{fontSize:'18px',color:'rgba(255,255,255,0.4)'}}>{isSelected?'↑':'↓'}</div>
                   </div>
                 </div>
 
@@ -237,10 +237,10 @@ export default function AdminCreators() {
                   <div style={{borderTop:'1px solid #f0f0ee',padding:'24px'}}>
                     {/* Creator profile info */}
                     <div style={{display:'flex',gap:'24px',marginBottom:'20px',flexWrap:'wrap'}}>
-                      {creator.phone&&<div><div style={{fontSize:'10px',color:'#888',letterSpacing:'0.5px',marginBottom:'2px'}}>TELEFON</div><a href={`tel:${creator.phone}`} style={{fontSize:'13px',color:'#0a0a0a',textDecoration:'none'}}>{creator.phone}</a></div>}
-                      {creator.iban&&<div><div style={{fontSize:'10px',color:'#888',letterSpacing:'0.5px',marginBottom:'2px'}}>IBAN</div><div style={{fontSize:'13px',color:'#0a0a0a',fontFamily:'monospace'}}>{creator.iban}</div></div>}
-                      {creator.entity_type&&<div><div style={{fontSize:'10px',color:'#888',letterSpacing:'0.5px',marginBottom:'2px'}}>TİP</div><div style={{fontSize:'13px',color:'#0a0a0a'}}>{creator.entity_type==='company'?`Şirket${creator.tax_no?' · VN: '+creator.tax_no:''}`:'Şahıs'}</div></div>}
-                      {creator.address&&<div><div style={{fontSize:'10px',color:'#888',letterSpacing:'0.5px',marginBottom:'2px'}}>ADRES</div><div style={{fontSize:'13px',color:'#0a0a0a'}}>{creator.address}</div></div>}
+                      {creator.phone&&<div><div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',letterSpacing:'0.5px',marginBottom:'2px'}}>TELEFON</div><a href={`tel:${creator.phone}`} style={{fontSize:'13px',color:'#0a0a0a',textDecoration:'none'}}>{creator.phone}</a></div>}
+                      {creator.iban&&<div><div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',letterSpacing:'0.5px',marginBottom:'2px'}}>IBAN</div><div style={{fontSize:'13px',color:'#0a0a0a',fontFamily:'monospace'}}>{creator.iban}</div></div>}
+                      {creator.entity_type&&<div><div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',letterSpacing:'0.5px',marginBottom:'2px'}}>TİP</div><div style={{fontSize:'13px',color:'#0a0a0a'}}>{creator.entity_type==='company'?`Şirket${creator.tax_no?' · VN: '+creator.tax_no:''}`:'Şahıs'}</div></div>}
+                      {creator.address&&<div><div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',letterSpacing:'0.5px',marginBottom:'2px'}}>ADRES</div><div style={{fontSize:'13px',color:'#0a0a0a'}}>{creator.address}</div></div>}
                     </div>
 
                     {pendingAmount > 0 && (() => {
@@ -250,7 +250,7 @@ export default function AdminCreators() {
                       const netAmount = grossInput - taxAmount
                       return (
                         <div style={{background:'#f7f6f2',borderRadius:'10px',padding:'20px',marginBottom:'20px'}}>
-                          <div style={{fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'16px'}}>ÖDEME YAP</div>
+                          <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'16px'}}>ÖDEME YAP</div>
                           <div style={{fontSize:'14px',color:'#555',marginBottom:'16px'}}>
                             Bekleyen: <strong style={{color:'#0a0a0a'}}>{pendingCredits} kredi = {pendingAmount.toLocaleString('tr-TR')} ₺</strong>
                             {isPersonal && <span style={{fontSize:'12px',color:'#f59e0b',marginLeft:'8px'}}>(Şahıs — %25 stopaj)</span>}
@@ -293,15 +293,15 @@ export default function AdminCreators() {
                       )
                     })()}
 
-                    <div style={{fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'12px'}}>KAZANÇ DETAYI</div>
+                    <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'12px'}}>KAZANÇ DETAYI</div>
                     {creatorEarnings.length === 0 ? (
-                      <div style={{fontSize:'13px',color:'#888'}}>Henüz kazanç yok.</div>
+                      <div style={{fontSize:'13px',color:'rgba(255,255,255,0.4)'}}>Henüz kazanç yok.</div>
                     ) : (
                       <table style={{width:'100%',borderCollapse:'collapse'}}>
                         <thead>
                           <tr style={{borderBottom:'1px solid #e8e7e3'}}>
                             {['Kampanya','Kredi','TL','Fiyat/Kredi','Durum','Tarih'].map(h=>(
-                              <th key={h} style={{padding:'8px 12px',textAlign:'left',fontSize:'11px',color:'#888',letterSpacing:'0.5px',fontFamily:'monospace',fontWeight:'400'}}>{h}</th>
+                              <th key={h} style={{padding:'8px 12px',textAlign:'left',fontSize:'11px',color:'rgba(255,255,255,0.4)',letterSpacing:'0.5px',fontFamily:'monospace',fontWeight:'400'}}>{h}</th>
                             ))}
                           </tr>
                         </thead>
@@ -311,13 +311,13 @@ export default function AdminCreators() {
                               <td style={{padding:'10px 12px',fontSize:'13px',color:'#0a0a0a'}}>{e.briefs?.campaign_name||'—'}</td>
                               <td style={{padding:'10px 12px',fontSize:'13px',color:'#555'}}>{e.credits}</td>
                               <td style={{padding:'10px 12px',fontSize:'13px',color:'#0a0a0a',fontWeight:'500'}}>{Number(e.tl_amount).toLocaleString('tr-TR')} ₺</td>
-                              <td style={{padding:'10px 12px',fontSize:'12px',color:'#888'}}>{Number(e.tl_rate).toLocaleString('tr-TR')} ₺</td>
+                              <td style={{padding:'10px 12px',fontSize:'12px',color:'rgba(255,255,255,0.4)'}}>{Number(e.tl_rate).toLocaleString('tr-TR')} ₺</td>
                               <td style={{padding:'10px 12px'}}>
                                 <span style={{fontSize:'11px',padding:'3px 8px',borderRadius:'100px',background:e.paid?'#e8f7e8':'#fff7e6',color:e.paid?'#1db81d':'#f59e0b',fontFamily:'monospace'}}>
                                   {e.paid?'Ödendi':'Bekliyor'}
                                 </span>
                               </td>
-                              <td style={{padding:'10px 12px',fontSize:'12px',color:'#888'}}>{new Date(e.created_at).toLocaleDateString('tr-TR')}</td>
+                              <td style={{padding:'10px 12px',fontSize:'12px',color:'rgba(255,255,255,0.4)'}}>{new Date(e.created_at).toLocaleDateString('tr-TR')}</td>
                             </tr>
                           ))}
                         </tbody>

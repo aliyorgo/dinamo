@@ -337,7 +337,7 @@ function AgencyNewBrief() {
         {step > 0 && (
           <div style={{ padding: '14px 28px', background: '#fff', borderBottom: '0.5px solid rgba(0,0,0,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
             <div style={{ fontSize: '12px', color: '#888' }}>Yeni Brief / <span style={{ color: '#0a0a0a', fontWeight: '500' }}>{steps[step - 1]}</span></div>
-            <div style={{ fontSize: '11px', color: '#aaa' }}>Adim {step} / 5</div>
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)' }}>Adim {step} / 5</div>
           </div>
         )}
 
@@ -371,7 +371,7 @@ function AgencyNewBrief() {
                     <div style={{ position: 'absolute', top: '16px', left: '16px', fontSize: '10px', color: '#1db81d', fontWeight: '500', background: 'rgba(29,184,29,0.1)', padding: '3px 10px', borderRadius: '100px', letterSpacing: '0.5px' }}>AI</div>
                     <div style={{ marginTop: '16px' }}>
                       <div style={{ fontSize: '20px', fontWeight: '500', color: '#fff', marginBottom: '8px' }}>Anlat, Olusturalim</div>
-                      <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.6 }}>Ne yapmak istediginizi anlatin, brief'i sizin icin olusturalim.</div>
+                      <div style={{ fontSize: '13px', color: '#888', lineHeight: 1.6 }}>Ne yapmak istediginizi anlatin, brief'i sizin icin olusturalim.</div>
                     </div>
                     <div style={{ textAlign: 'right', marginTop: '20px', fontSize: '18px', color: '#1db81d' }}><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg></div>
                   </div>
@@ -479,7 +479,7 @@ function AgencyNewBrief() {
 
               <div style={{ marginTop: '22px' }}>
                 <div style={{ fontSize: '11px', color: '#888', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '4px' }}>Yabancı Dil Versiyonu</div>
-                <div style={{ fontSize: '11px', color: '#aaa', marginBottom: '10px' }}>Her dil için +2 kredi uygulanır</div>
+                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', marginBottom: '10px' }}>Her dil için +2 kredi uygulanır</div>
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                   {[
                     { id: 'en', label: 'İngilizce', flag: '🇬🇧' }, { id: 'de', label: 'Almanca', flag: '🇩🇪' },
@@ -653,7 +653,7 @@ function AgencyNewBrief() {
                   <div style={{ background: '#f5f4f0', borderRadius: '10px', padding: '16px' }}>
                     <input ref={filesRef} type="file" multiple style={{ fontSize: '12px', color: '#0a0a0a', width: '100%' }} />
                   </div>
-                  <div style={{ fontSize: '10px', color: '#aaa', marginTop: '6px' }}>Opsiyonel. Logo, referans video, moodboard vb.</div>
+                  <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)', marginTop: '6px' }}>Opsiyonel. Logo, referans video, moodboard vb.</div>
                 </div>
 
                 <div style={{ marginBottom: '22px' }}>
@@ -661,7 +661,7 @@ function AgencyNewBrief() {
                   <div style={{ background: '#f5f4f0', borderRadius: '10px', padding: '16px' }}>
                     <input ref={scenarioRef} type="file" accept=".pdf,.doc,.docx,.txt" style={{ fontSize: '12px', color: '#0a0a0a', width: '100%' }} />
                   </div>
-                  <div style={{ fontSize: '10px', color: '#aaa', marginTop: '6px' }}>Opsiyonel. Hazir senaryo dosyaniz varsa buraya yukleyebilirsiniz.</div>
+                  <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)', marginTop: '6px' }}>Opsiyonel. Hazir senaryo dosyaniz varsa buraya yukleyebilirsiniz.</div>
                 </div>
               </div>
             )

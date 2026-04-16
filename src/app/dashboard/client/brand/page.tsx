@@ -86,19 +86,19 @@ export default function BrandPage() {
   return (
     <div style={{display:'flex',minHeight:'100vh',fontFamily:"var(--font-dm-sans),'DM Sans',system-ui,sans-serif"}}>
 
-      <div style={{width:'240px',background:'#0A0A0A',display:'flex',flexDirection:'column',flexShrink:0,height:'100vh',position:'sticky',top:0}}>
-        <div style={{padding:'18px 16px 14px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
+      <div style={{width:'240px',background:'#fff',borderRight:'1px solid #E8E8E4',display:'flex',flexDirection:'column',flexShrink:0,height:'100vh',position:'sticky',top:0}}>
+        <div style={{padding:'18px 16px 14px',borderBottom:'1px solid #E8E8E4'}}>
           <div style={{fontSize:'18px',fontWeight:'500',color:'#fff',letterSpacing:'-0.5px',marginBottom:'12px'}}>
-            <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} />
+            <img src="/dinamo_logo_siyah.png" alt="Dinamo" style={{height:'28px'}} />
           </div>
-          <div style={{fontSize:'10px',color:'rgba(255,255,255,0.3)',marginBottom:'3px'}}>{companyName}</div>
+          <div style={{fontSize:'10px',color:'#999',marginBottom:'3px'}}>{companyName}</div>
           <div style={{fontSize:'13px',fontWeight:'500',color:'#fff'}}>{userName}</div>
         </div>
-        <div style={{padding:'12px 16px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
-          <div style={{fontSize:'10px',color:'rgba(255,255,255,0.3)',textTransform:'uppercase',marginBottom:'4px'}}>Kredi Bakiyesi</div>
+        <div style={{padding:'12px 16px',borderBottom:'1px solid #E8E8E4'}}>
+          <div style={{fontSize:'10px',color:'#999',textTransform:'uppercase',marginBottom:'4px'}}>Kredi Bakiyesi</div>
           <div style={{fontSize:'22px',fontWeight:'300',color:'#fff',letterSpacing:'-1px'}}>{credits}</div>
         </div>
-        <nav style={{padding:'10px 8px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
+        <nav style={{padding:'10px 8px',borderBottom:'1px solid #E8E8E4'}}>
           {[
             {label:'Projelerim',href:'/dashboard/client',active:false},
             {label:'Yeni Brief',href:'/dashboard/client/brief/new',active:false},
@@ -114,9 +114,9 @@ export default function BrandPage() {
           ))}
         </nav>
         <div style={{flex:1}}></div>
-        <div style={{padding:'10px 8px',borderTop:'0.5px solid rgba(255,255,255,0.07)'}}>
+        <div style={{padding:'10px 8px',borderTop:'1px solid #E8E8E4'}}>
           <button onClick={handleLogout} style={{display:'flex',alignItems:'center',gap:'7px',padding:'6px 8px',borderRadius:'7px',cursor:'pointer',width:'100%',background:'none',border:'none'}}>
-            <span style={{fontSize:'11px',color:'rgba(255,255,255,0.25)',fontFamily:'var(--font-dm-sans),sans-serif'}}>Çıkış yap</span>
+            <span style={{fontSize:'11px',color:'#aaa',fontFamily:'var(--font-dm-sans),sans-serif'}}>Çıkış yap</span>
           </button>
         </div>
       </div>

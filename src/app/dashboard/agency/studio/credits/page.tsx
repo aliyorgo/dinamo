@@ -126,12 +126,12 @@ export default function AgencyCreditsPage() {
         </div>
         <div style={{ padding: '10px 12px', margin: '0 8px', borderRadius: '8px', background: 'rgba(255,255,255,0.04)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)' }}>Kredi</span>
+            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>Kredi</span>
             <span style={{ fontSize: '12px', fontWeight: '500', color: '#22c55e' }}>{agency?.demo_credits || 0} kr</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)' }}>Kazanc</span>
-            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>{formatTL(Number(agency?.total_earnings || 0))}</span>
+            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>Kazanc</span>
+            <span style={{ fontSize: '11px', color: '#888' }}>{formatTL(Number(agency?.total_earnings || 0))}</span>
           </div>
         </div>
         <div style={{ padding: '10px 8px', borderTop: '0.5px solid rgba(255,255,255,0.07)' }}>
@@ -155,12 +155,12 @@ export default function AgencyCreditsPage() {
             <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', padding: '24px' }}>
               <div style={{ fontSize: '10px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Kredi Bakiyesi</div>
               <div style={{ fontSize: '36px', fontWeight: '300', color: '#22c55e', letterSpacing: '-1px' }}>{agency?.demo_credits || 0}</div>
-              <div style={{ fontSize: '11px', color: '#aaa', marginTop: '4px' }}>kullanilabilir kredi</div>
+              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', marginTop: '4px' }}>kullanilabilir kredi</div>
             </div>
             <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', padding: '24px' }}>
               <div style={{ fontSize: '10px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Kullanilabilir Bakiye</div>
               <div style={{ fontSize: '36px', fontWeight: '300', color: '#0a0a0a', letterSpacing: '-1px' }}>{formatTL(availableBalance)}</div>
-              <div style={{ fontSize: '11px', color: '#aaa', marginTop: '4px' }}>toplam kazanc - faturalanan</div>
+              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', marginTop: '4px' }}>toplam kazanc - faturalanan</div>
             </div>
           </div>
 

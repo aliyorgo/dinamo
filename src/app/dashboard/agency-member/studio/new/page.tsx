@@ -356,7 +356,7 @@ function MemberNewBrief() {
         {step > 0 && step <= 5 && (
           <div style={{ padding: '14px 28px', background: '#fff', borderBottom: '0.5px solid rgba(0,0,0,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
             <div style={{ fontSize: '12px', color: '#888' }}>Yeni Is / <span style={{ color: '#0a0a0a', fontWeight: '500' }}>{steps[step - 1]}</span></div>
-            <div style={{ fontSize: '11px', color: '#aaa' }}>Adim {step} / 5</div>
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)' }}>Adim {step} / 5</div>
           </div>
         )}
 
@@ -593,7 +593,7 @@ function MemberNewBrief() {
                 <div style={{ background: '#f5f4f0', borderRadius: '10px', padding: '16px' }}>
                   <input ref={scenarioRef} type="file" accept=".pdf,.doc,.docx,.txt" style={{ fontSize: '12px', color: '#0a0a0a', width: '100%' }} />
                 </div>
-                <div style={{ fontSize: '10px', color: '#aaa', marginTop: '6px' }}>Opsiyonel. Hazir senaryo dosyaniz varsa yukleyebilirsiniz.</div>
+                <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)', marginTop: '6px' }}>Opsiyonel. Hazir senaryo dosyaniz varsa yukleyebilirsiniz.</div>
               </div>
             </div>
           )}
@@ -731,7 +731,7 @@ function MemberNewBrief() {
                     <div style={{ marginTop: '10px' }}>
                       <input ref={scenarioRef} type="file" accept=".txt,.doc,.docx"
                         style={{ fontSize: '12px', color: '#888' }} />
-                      <div style={{ fontSize: '10px', color: '#aaa', marginTop: '4px' }}>.txt, .doc, .docx dosya yukleyebilirsiniz</div>
+                      <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)', marginTop: '4px' }}>.txt, .doc, .docx dosya yukleyebilirsiniz</div>
                     </div>
                   )}
                   <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>

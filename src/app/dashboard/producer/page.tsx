@@ -120,7 +120,7 @@ export default function ProducerDashboard() {
       <div style={{flex:1,display:'flex',flexDirection:'column',background:'#f5f4f0',overflow:'hidden'}}>
         <div style={{padding:'14px 28px',background:'#fff',borderBottom:'0.5px solid rgba(0,0,0,0.08)',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
           <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a'}}>Briefler</div>
-          <div style={{fontSize:'12px',color:'#888'}}>{filtered.length} proje</div>
+          <div style={{fontSize:'12px',color:'rgba(255,255,255,0.4)'}}>{filtered.length} proje</div>
         </div>
 
         <div style={{flex:1,overflowY:'auto',padding:'20px 28px'}}>
@@ -134,7 +134,7 @@ export default function ProducerDashboard() {
                   onMouseEnter={e=>(e.currentTarget.style.background='#fef2f2')} onMouseLeave={e=>(e.currentTarget.style.background='transparent')}>
                   <div>
                     <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name}</div>
-                    <div style={{fontSize:'11px',color:'#888'}}>{b.clients?.company_name} · {statusLabel[b.status]}</div>
+                    <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)'}}>{b.clients?.company_name} · {statusLabel[b.status]}</div>
                   </div>
                   <div style={{fontSize:'11px',color:'#ef4444',fontWeight:'500'}}>{Math.floor((now - new Date(b.created_at).getTime()) / 86400000)} gün gecikmiş</div>
                 </div>
@@ -145,7 +145,7 @@ export default function ProducerDashboard() {
                   onMouseEnter={e=>(e.currentTarget.style.background='#fffbeb')} onMouseLeave={e=>(e.currentTarget.style.background='transparent')}>
                   <div>
                     <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name}</div>
-                    <div style={{fontSize:'11px',color:'#888'}}>{b.clients?.company_name}</div>
+                    <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)'}}>{b.clients?.company_name}</div>
                   </div>
                   <div style={{fontSize:'11px',color:'#f59e0b',fontWeight:'500'}}>Onay bekliyor</div>
                 </div>
@@ -156,7 +156,7 @@ export default function ProducerDashboard() {
                   onMouseEnter={e=>(e.currentTarget.style.background='#f0fdf4')} onMouseLeave={e=>(e.currentTarget.style.background='transparent')}>
                   <div>
                     <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name}</div>
-                    <div style={{fontSize:'11px',color:'#888'}}>{b.clients?.company_name} · {b.video_type}</div>
+                    <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)'}}>{b.clients?.company_name} · {b.video_type}</div>
                   </div>
                   <div style={{fontSize:'11px',color:'#22c55e',fontWeight:'500'}}>Yeni</div>
                 </div>
@@ -174,8 +174,8 @@ export default function ProducerDashboard() {
             </div>
           )}
 
-          {loading ? <div style={{color:'#888',fontSize:'14px'}}>Yükleniyor...</div> : filtered.length === 0 ? (
-            <div style={{textAlign:'center',padding:'60px 0',color:'#888',fontSize:'14px'}}>Proje yok.</div>
+          {loading ? <div style={{color:'rgba(255,255,255,0.4)',fontSize:'14px'}}>Yükleniyor...</div> : filtered.length === 0 ? (
+            <div style={{textAlign:'center',padding:'60px 0',color:'rgba(255,255,255,0.4)',fontSize:'14px'}}>Proje yok.</div>
           ) : filtered.map(b=>{
             const badge = uploadBadge(b.id, b.status)
             return (
@@ -187,7 +187,7 @@ export default function ProducerDashboard() {
                   <div style={{width:'8px',height:'8px',borderRadius:'50%',background:statusColor[b.status],flexShrink:0}}></div>
                   <div style={{minWidth:0}}>
                     <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name}</div>
-                    <div style={{fontSize:'12px',color:'#888',marginTop:'3px'}}>
+                    <div style={{fontSize:'12px',color:'rgba(255,255,255,0.4)',marginTop:'3px'}}>
                       {b.clients?.company_name} · {b.video_type} · {new Date(b.created_at).toLocaleDateString('tr-TR')}
                       {badge && <span style={{marginLeft:'8px',fontSize:'10px',color:badge.color}}>· {badge.text}</span>}
                     </div>

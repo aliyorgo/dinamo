@@ -130,7 +130,7 @@ export default function InvoicesPage() {
                   <div key={card.label} style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', padding: '16px' }}>
                     <div style={{ fontSize: '10px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>{card.label}</div>
                     <div style={{ fontSize: '24px', fontWeight: '300', color: card.color, letterSpacing: '-1px' }}>{card.value}</div>
-                    {card.sub && <div style={{ fontSize: '11px', color: '#aaa', marginTop: '4px' }}>{card.sub}</div>}
+                    {card.sub && <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', marginTop: '4px' }}>{card.sub}</div>}
                   </div>
                 ))}
               </div>
@@ -156,7 +156,7 @@ export default function InvoicesPage() {
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>{s.clients?.company_name || '—'}</div>
                           <div style={{ fontSize: '11px', color: '#888', marginTop: '2px' }}>
-                            {s.credits} kredi · {formatTL(amt)} <span style={{color:'#aaa'}}>+KDV {formatTL(vat)}</span> = <strong style={{color:'#0a0a0a'}}>{formatTL(amt + vat)}</strong> · {new Date(s.created_at).toLocaleDateString('tr-TR')}
+                            {s.credits} kredi · {formatTL(amt)} <span style={{color:'rgba(255,255,255,0.25)'}}>+KDV {formatTL(vat)}</span> = <strong style={{color:'#0a0a0a'}}>{formatTL(amt + vat)}</strong> · {new Date(s.created_at).toLocaleDateString('tr-TR')}
                           </div>
                         </div>
                       )

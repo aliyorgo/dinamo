@@ -45,7 +45,7 @@ export default function ProducerActive() {
       <div style={{width:'240px',background:'#0A0A0A',padding:'32px 0',display:'flex',flexDirection:'column',flexShrink:0}}>
         <div style={{padding:'0 24px 32px',borderBottom:'1px solid rgba(255,255,255,0.08)'}}>
           <img src="/dinamo_logo.png" alt="Dinamo" style={{height:"28px"}} />
-          <div style={{fontSize:'11px',color:'#666',marginTop:'4px',letterSpacing:'1px',fontFamily:'monospace'}}>PRODÜKTÖR</div>
+          <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',marginTop:'4px',letterSpacing:'1px',fontFamily:'monospace'}}>PRODÜKTÖR</div>
         </div>
         <nav style={{flex:1,padding:'24px 0'}}>
           {NAV.map(item=>(
@@ -53,21 +53,21 @@ export default function ProducerActive() {
           ))}
         </nav>
         <div style={{padding:'24px',borderTop:'1px solid rgba(255,255,255,0.08)'}}>
-          <div style={{fontSize:'13px',color:'#666',marginBottom:'12px'}}>{userName}</div>
-          <button onClick={handleLogout} style={{fontSize:'11px',color:'#666',background:'none',border:'none',cursor:'pointer',letterSpacing:'1px',fontFamily:'monospace',padding:0}}>ÇIKIŞ YAP</button>
+          <div style={{fontSize:'13px',color:'rgba(255,255,255,0.4)',marginBottom:'12px'}}>{userName}</div>
+          <button onClick={handleLogout} style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',background:'none',border:'none',cursor:'pointer',letterSpacing:'1px',fontFamily:'monospace',padding:0}}>ÇIKIŞ YAP</button>
         </div>
       </div>
       <div style={{flex:1,padding:'48px'}}>
         <h1 style={{fontSize:'28px',fontWeight:'300',letterSpacing:'-1px',margin:'0 0 40px',color:'#0a0a0a'}}>Devam Edenler</h1>
         <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',overflow:'hidden'}}>
           {briefs.length === 0 ? (
-            <div style={{padding:'48px',textAlign:'center',color:'#888',fontSize:'14px'}}>Devam eden proje yok.</div>
+            <div style={{padding:'48px',textAlign:'center',color:'rgba(255,255,255,0.4)',fontSize:'14px'}}>Devam eden proje yok.</div>
           ) : (
             <table style={{width:'100%',borderCollapse:'collapse'}}>
               <thead>
                 <tr style={{borderBottom:'1px solid #e8e7e3'}}>
                   {['Kampanya','Marka','Video Tipi','Durum','Tarih'].map(h=>(
-                    <th key={h} style={{padding:'12px 20px',textAlign:'left',fontSize:'11px',color:'#888',letterSpacing:'1px',fontFamily:'monospace',fontWeight:'400'}}>{h}</th>
+                    <th key={h} style={{padding:'12px 20px',textAlign:'left',fontSize:'11px',color:'rgba(255,255,255,0.4)',letterSpacing:'1px',fontFamily:'monospace',fontWeight:'400'}}>{h}</th>
                   ))}
                 </tr>
               </thead>

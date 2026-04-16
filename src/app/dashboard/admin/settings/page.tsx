@@ -96,7 +96,7 @@ export default function SettingsPage() {
       <div style={{width:'240px',background:'#0A0A0A',padding:'32px 0',display:'flex',flexDirection:'column',flexShrink:0}}>
         <div style={{padding:'0 24px 32px',borderBottom:'1px solid rgba(255,255,255,0.08)'}}>
           <img src="/dinamo_logo.png" alt="Dinamo" style={{height:"28px"}} />
-          <div style={{fontSize:'11px',color:'#666',marginTop:'4px',letterSpacing:'1px',fontFamily:'monospace'}}>ADMIN</div>
+          <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',marginTop:'4px',letterSpacing:'1px',fontFamily:'monospace'}}>ADMIN</div>
         </div>
         <nav style={{flex:1,padding:'24px 0'}}>
           {NAV.map(item=>(
@@ -109,13 +109,13 @@ export default function SettingsPage() {
         <h1 style={{fontSize:'28px',fontWeight:'300',letterSpacing:'-1px',margin:'0 0 40px',color:'#0a0a0a'}}>Ayarlar</h1>
         {msg && <div style={{marginBottom:'20px',padding:'12px 16px',background:'#e8f7e8',borderRadius:'8px',fontSize:'13px',color:'#1db81d'}}>{msg}</div>}
         <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',overflow:'hidden'}}>
-          <div style={{padding:'16px 24px',borderBottom:'1px solid #e8e7e3',fontSize:'12px',color:'#888',letterSpacing:'1px',fontFamily:'monospace'}}>SİSTEM AYARLARI</div>
+          <div style={{padding:'16px 24px',borderBottom:'1px solid #e8e7e3',fontSize:'12px',color:'rgba(255,255,255,0.4)',letterSpacing:'1px',fontFamily:'monospace'}}>SİSTEM AYARLARI</div>
           {fields.map((field, i) => (
             <div key={field.key} style={{padding:'20px 24px',borderBottom:i<fields.length-1?'1px solid #f0f0ee':'none',display:'flex',justifyContent:'space-between',alignItems:'center',gap:'24px'}}>
               <div style={{fontSize:'14px',color:'#0a0a0a'}}>{field.label}</div>
               {field.type === 'toggle' ? (
                 <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
-                  <span style={{fontSize:'13px',color:'#888'}}>{settings[field.key]==='true'?'Açık':'Kapalı'}</span>
+                  <span style={{fontSize:'13px',color:'rgba(255,255,255,0.4)'}}>{settings[field.key]==='true'?'Açık':'Kapalı'}</span>
                   <button onClick={()=>{const newVal=settings[field.key]==='true'?'false':'true'; setSettings({...settings,[field.key]:newVal}); saveSetting(field.key,newVal)}}
                     style={{width:'44px',height:'24px',borderRadius:'100px',border:'none',cursor:'pointer',background:settings[field.key]==='true'?'#1db81d':'#ddd',position:'relative',transition:'background 0.2s'}}>
                     <span style={{position:'absolute',top:'3px',left:settings[field.key]==='true'?'23px':'3px',width:'18px',height:'18px',borderRadius:'50%',background:'#fff',transition:'left 0.2s'}}></span>
@@ -125,7 +125,7 @@ export default function SettingsPage() {
                 <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
                   <input type="number" defaultValue={settings[field.key]} onBlur={e=>saveSetting(field.key, e.target.value)}
                     style={{width:'100px',padding:'7px 10px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'14px',textAlign:'right',color:'#0a0a0a'}} />
-                  {field.unit && <span style={{fontSize:'13px',color:'#888'}}>{field.unit}</span>}
+                  {field.unit && <span style={{fontSize:'13px',color:'rgba(255,255,255,0.4)'}}>{field.unit}</span>}
                 </div>
               )}
             </div>
@@ -134,26 +134,26 @@ export default function SettingsPage() {
 
         {/* KREDİ PAKETLERİ */}
         <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',overflow:'hidden',marginTop:'32px'}}>
-          <div style={{padding:'16px 24px',borderBottom:'1px solid #e8e7e3',fontSize:'12px',color:'#888',letterSpacing:'1px',fontFamily:'monospace'}}>KREDİ PAKETLERİ</div>
+          <div style={{padding:'16px 24px',borderBottom:'1px solid #e8e7e3',fontSize:'12px',color:'rgba(255,255,255,0.4)',letterSpacing:'1px',fontFamily:'monospace'}}>KREDİ PAKETLERİ</div>
           {packages.map((p, i) => {
             const e = pkgEdits[p.id] || { name: p.name, credits: String(p.credits), price_tl: String(p.price_tl || 0) }
             const isKurumsal = p.name === 'Kurumsal' || e.name === 'Kurumsal'
             return (
               <div key={p.id} style={{padding:'16px 24px',borderBottom:i<packages.length-1?'1px solid #f0f0ee':'none',display:'flex',alignItems:'center',gap:'12px'}}>
                 <div>
-                  <div style={{fontSize:'10px',color:'#888',marginBottom:'4px'}}>İsim</div>
+                  <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',marginBottom:'4px'}}>İsim</div>
                   <input value={e.name} onChange={ev=>setPkgEdits({...pkgEdits,[p.id]:{...e,name:ev.target.value}})}
                     style={{width:'120px',padding:'7px 10px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a'}} />
                 </div>
                 <div>
-                  <div style={{fontSize:'10px',color:'#888',marginBottom:'4px'}}>Kredi</div>
+                  <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',marginBottom:'4px'}}>Kredi</div>
                   <input type="number" value={e.credits} onChange={ev=>setPkgEdits({...pkgEdits,[p.id]:{...e,credits:ev.target.value}})}
                     style={{width:'80px',padding:'7px 10px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a',textAlign:'right'}} />
                 </div>
                 <div>
-                  <div style={{fontSize:'10px',color:'#888',marginBottom:'4px'}}>Fiyat (TL)</div>
+                  <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',marginBottom:'4px'}}>Fiyat (TL)</div>
                   {isKurumsal ? (
-                    <div style={{padding:'7px 10px',fontSize:'12px',color:'#888',fontStyle:'italic'}}>İletişime Geçin</div>
+                    <div style={{padding:'7px 10px',fontSize:'12px',color:'rgba(255,255,255,0.4)',fontStyle:'italic'}}>İletişime Geçin</div>
                   ) : (
                     <input type="number" value={e.price_tl} onChange={ev=>setPkgEdits({...pkgEdits,[p.id]:{...e,price_tl:ev.target.value}})}
                       style={{width:'120px',padding:'7px 10px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a',textAlign:'right'}} />
@@ -169,17 +169,17 @@ export default function SettingsPage() {
           {/* New package form */}
           <div style={{padding:'16px 24px',borderTop:'1px solid #e8e7e3',background:'#fafaf8',display:'flex',alignItems:'center',gap:'12px'}}>
             <div>
-              <div style={{fontSize:'10px',color:'#888',marginBottom:'4px'}}>İsim</div>
+              <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',marginBottom:'4px'}}>İsim</div>
               <input value={newPkg.name} onChange={e=>setNewPkg({...newPkg,name:e.target.value})} placeholder="Paket adı"
                 style={{width:'120px',padding:'7px 10px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a'}} />
             </div>
             <div>
-              <div style={{fontSize:'10px',color:'#888',marginBottom:'4px'}}>Kredi</div>
+              <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',marginBottom:'4px'}}>Kredi</div>
               <input type="number" value={newPkg.credits} onChange={e=>setNewPkg({...newPkg,credits:e.target.value})} placeholder="0"
                 style={{width:'80px',padding:'7px 10px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a',textAlign:'right'}} />
             </div>
             <div>
-              <div style={{fontSize:'10px',color:'#888',marginBottom:'4px'}}>Fiyat (TL)</div>
+              <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',marginBottom:'4px'}}>Fiyat (TL)</div>
               <input type="number" value={newPkg.price_tl} onChange={e=>setNewPkg({...newPkg,price_tl:e.target.value})} placeholder="0"
                 style={{width:'120px',padding:'7px 10px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a',textAlign:'right'}} />
             </div>

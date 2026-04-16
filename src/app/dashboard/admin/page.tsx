@@ -116,7 +116,7 @@ export default function AdminDashboard() {
         </div>
 
         <div style={{flex:1,overflowY:'auto',padding:'24px 28px'}}>
-          {loading ? <div style={{color:'#888',fontSize:'14px'}}>Yükleniyor...</div> : (
+          {loading ? <div style={{color:'rgba(255,255,255,0.4)',fontSize:'14px'}}>Yükleniyor...</div> : (
             <>
               {/* BUGÜN YAPILACAKLAR */}
               {(approvalCount > 0 || unansweredCount > 0 || pendingCount > 0 || demoCount > 0) && (
@@ -167,10 +167,10 @@ export default function AdminDashboard() {
                   {label:'Yeni Brief',value:stats.new,color:'#22c55e'},
                   {label:'Üretimde',value:stats.inProd,color:'#3b82f6'},
                   {label:'Revizyon',value:stats.revision,color:'#ef4444'},
-                  {label:'Tamamlanan',value:stats.delivered,color:'#888'},
+                  {label:'Tamamlanan',value:stats.delivered,color:'rgba(255,255,255,0.4)'},
                 ].map(card=>(
                   <div key={card.label} style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'16px'}}>
-                    <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'8px'}}>{card.label}</div>
+                    <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'8px'}}>{card.label}</div>
                     <div style={{fontSize:'28px',fontWeight:'300',color:card.color||'#0a0a0a',letterSpacing:'-1px'}}>{card.value}</div>
                   </div>
                 ))}
@@ -190,7 +190,7 @@ export default function AdminDashboard() {
                       <div style={{width:'7px',height:'7px',borderRadius:'50%',background:statusColor[b.status],flexShrink:0}}></div>
                       <div>
                         <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name}</div>
-                        <div style={{fontSize:'11px',color:'#888',marginTop:'2px'}}>{b.clients?.company_name} · {b.video_type} · {new Date(b.created_at).toLocaleDateString('tr-TR')}</div>
+                        <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',marginTop:'2px'}}>{b.clients?.company_name} · {b.video_type} · {new Date(b.created_at).toLocaleDateString('tr-TR')}</div>
                       </div>
                     </div>
                     <div style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:`${statusColor[b.status]}15`,color:statusColor[b.status]}}>

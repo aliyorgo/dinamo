@@ -121,7 +121,7 @@ export default function AgencyMemberStudio() {
                 }}>
                   {statusLabel[brief.status] || brief.status}
                 </span>
-                <div style={{ fontSize: '11px', color: '#aaa', flexShrink: 0 }}>
+                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', flexShrink: 0 }}>
                   {new Date(brief.created_at).toLocaleDateString('tr-TR')}
                 </div>
               </div>

@@ -98,12 +98,12 @@ export default function AgencyBriefsPage() {
         </div>
         <div onClick={() => router.push('/dashboard/agency/studio/credits')} style={{ padding: '10px 12px', margin: '0 8px', borderRadius: '8px', background: 'rgba(255,255,255,0.04)', cursor: 'pointer' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)' }}>Kredi</span>
+            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>Kredi</span>
             <span style={{ fontSize: '12px', fontWeight: '500', color: '#22c55e' }}>{agency?.demo_credits || 0} kr</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)' }}>Kazanc</span>
-            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>{Number(agency?.total_earnings || 0).toLocaleString('tr-TR')} TL</span>
+            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>Kazanc</span>
+            <span style={{ fontSize: '11px', color: '#888' }}>{Number(agency?.total_earnings || 0).toLocaleString('tr-TR')} TL</span>
           </div>
         </div>
         <div style={{ padding: '10px 8px', borderTop: '0.5px solid rgba(255,255,255,0.07)' }}>
@@ -188,7 +188,7 @@ export default function AgencyBriefsPage() {
                         </div>
                         <div style={{ fontSize: '11px', color: '#0a0a0a', flexShrink: 0, textAlign: 'right', minWidth: '60px' }}>
                           {brief.credit_cost || 0} kr
-                          <div style={{ fontSize: '10px', color: '#aaa' }}>{cost > 0 ? `${cost.toLocaleString('tr-TR')} TL` : ''}</div>
+                          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)' }}>{cost > 0 ? `${cost.toLocaleString('tr-TR')} TL` : ''}</div>
                         </div>
                         <span style={{
                           fontSize: '10px', padding: '2px 8px', borderRadius: '100px', fontWeight: '500',
@@ -197,7 +197,7 @@ export default function AgencyBriefsPage() {
                         }}>
                           {statusLabel[brief.status] || brief.status}
                         </span>
-                        <div style={{ fontSize: '11px', color: '#aaa', flexShrink: 0, minWidth: '65px', textAlign: 'right' }}>
+                        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', flexShrink: 0, minWidth: '65px', textAlign: 'right' }}>
                           {new Date(brief.created_at).toLocaleDateString('tr-TR')}
                         </div>
                       </div>

@@ -296,7 +296,7 @@ export default function CreditsPage() {
 
       {/* LEFT PANEL — Client List */}
       <div style={{ width: '320px', background: '#fff', borderRight: '1px solid #E8E8E4', display: 'flex', flexDirection: 'column', height: '100vh', position: 'sticky', top: 0 }}>
-        <div style={{ padding: '16px', borderBottom: '1px solid #E8E8E4' }}>
+        <div style={{ padding: '16px', borderBottom: '0.5px solid rgba(255,255,255,0.07)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
             <span style={{ fontSize: '14px', fontWeight: '600', color: '#0a0a0a' }}>Müşteriler</span>
             <button onClick={() => setShowCreateClient(!showCreateClient)} style={{ ...btnPrimary, padding: '5px 12px', fontSize: '11px' }}>+ Yeni</button>
@@ -306,7 +306,7 @@ export default function CreditsPage() {
 
         {/* Create client inline form */}
         {showCreateClient && (
-          <div style={{ padding: '12px 16px', borderBottom: '1px solid #E8E8E4', background: '#FAFAF8' }}>
+          <div style={{ padding: '12px 16px', borderBottom: '0.5px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.04)' }}>
             <form onSubmit={createClientFn}>
               <div style={{ marginBottom: '8px' }}><label style={labelStyle}>Şirket Adı *</label><input required value={newClient.company_name} onChange={e => setNewClient({ ...newClient, company_name: e.target.value })} style={inputStyle} /></div>
               <div style={{ marginBottom: '8px' }}><label style={labelStyle}>Email</label><input type="email" value={newClient.contact_email} onChange={e => setNewClient({ ...newClient, contact_email: e.target.value })} style={inputStyle} /></div>
@@ -325,7 +325,7 @@ export default function CreditsPage() {
         {/* Client list */}
         <div style={{ flex: 1, overflowY: 'auto' }}>
           {filtered.length === 0 ? (
-            <div style={{ padding: '32px', textAlign: 'center', color: '#aaa', fontSize: '12px' }}>Henüz müşteri yok.</div>
+            <div style={{ padding: '32px', textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontSize: '12px' }}>Henüz müşteri yok.</div>
           ) : filtered.map(c => (
             <div key={c.id} onClick={() => selectClient(c.id)}
               style={{ padding: '12px 16px', borderBottom: '1px solid #F0F0EE', cursor: 'pointer', borderLeft: selectedId === c.id ? '3px solid #1DB81D' : '3px solid transparent', background: selectedId === c.id ? '#F8FFF8' : 'transparent', transition: 'all 0.1s' }}>
@@ -333,18 +333,18 @@ export default function CreditsPage() {
                 <span style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>{c.company_name}</span>
                 <span style={{ fontSize: '11px', fontWeight: '600', color: '#1DB81D' }}>{c.credit_balance || 0}</span>
               </div>
-              <div style={{ fontSize: '11px', color: '#aaa', marginTop: '2px' }}>{c.client_users?.[0]?.count || 0} kullanıcı</div>
+              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', marginTop: '2px' }}>{c.client_users?.[0]?.count || 0} kullanıcı</div>
             </div>
           ))}
         </div>
-        {msg && <div style={{ padding: '10px 16px', background: '#F0F7F0', fontSize: '12px', color: '#166534', borderTop: '1px solid #E8E8E4' }}>{msg}</div>}
+        {msg && <div style={{ padding: '10px 16px', background: '#F0F7F0', fontSize: '12px', color: '#166534', borderTop: '0.5px solid rgba(255,255,255,0.07)' }}>{msg}</div>}
       </div>
 
       {/* RIGHT PANEL — Client Detail */}
       <div style={{ flex: 1, background: '#f5f4f0', overflowY: 'auto', height: '100vh' }}>
         {!selectedId ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-            <div style={{ textAlign: 'center', color: '#aaa' }}>
+            <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.25)' }}>
               <div style={{ fontSize: '16px', marginBottom: '8px' }}>Soldan bir müşteri seçin</div>
               <div style={{ fontSize: '12px' }}>veya yeni müşteri oluşturun</div>
             </div>
@@ -439,7 +439,7 @@ export default function CreditsPage() {
                     </div>
                     {!existingUserId && (
                       <>
-                        <div style={{ fontSize: '10px', color: '#aaa', marginBottom: '8px' }}>veya yeni oluştur:</div>
+                        <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)', marginBottom: '8px' }}>veya yeni oluştur:</div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '10px' }}>
                           <div><label style={labelStyle}>Ad Soyad</label><input value={userForm.name} onChange={e => setUserForm({ ...userForm, name: e.target.value })} style={inputStyle} /></div>
                           <div><label style={labelStyle}>Email</label><input type="email" value={userForm.email} onChange={e => setUserForm({ ...userForm, email: e.target.value })} style={inputStyle} /></div>
@@ -458,7 +458,7 @@ export default function CreditsPage() {
               {/* User list */}
               <div style={{ background: '#fff', border: '1px solid #E8E8E4' }}>
                 {clientUsers.length === 0 ? (
-                  <div style={{ padding: '20px', textAlign: 'center', color: '#aaa', fontSize: '12px' }}>Atanmış kullanıcı yok.</div>
+                  <div style={{ padding: '20px', textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontSize: '12px' }}>Atanmış kullanıcı yok.</div>
                 ) : clientUsers.map((cu, i) => (
                   <div key={cu.id} style={{ padding: '12px 16px', borderTop: i > 0 ? '1px solid #F0F0EE' : 'none', display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{ width: '32px', height: '32px', background: '#E8E8E4', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -497,7 +497,7 @@ export default function CreditsPage() {
               <div style={{ fontSize: '14px', fontWeight: '600', color: '#0a0a0a', marginBottom: '12px' }}>Geçmiş</div>
               <div style={{ background: '#fff', border: '1px solid #E8E8E4' }}>
                 {history.length === 0 ? (
-                  <div style={{ padding: '20px', textAlign: 'center', color: '#aaa', fontSize: '12px' }}>İşlem yok.</div>
+                  <div style={{ padding: '20px', textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontSize: '12px' }}>İşlem yok.</div>
                 ) : history.map((tx, i) => {
                   const dotColor = tx.type === 'top_up' || tx.type === 'demo' ? '#1DB81D' : tx.type === 'allocate' ? '#3b82f6' : tx.type === 'deallocate' ? '#f59e0b' : '#888'
                   return (
@@ -505,7 +505,7 @@ export default function CreditsPage() {
                       <div style={{ width: '8px', height: '8px', background: dotColor, marginTop: '5px', flexShrink: 0 }}></div>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontSize: '12px', color: '#0a0a0a' }}>{tx.description || tx.type}</div>
-                        <div style={{ fontSize: '10px', color: '#aaa', marginTop: '2px' }}>{tx.created_at ? new Date(tx.created_at).toLocaleString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}</div>
+                        <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)', marginTop: '2px' }}>{tx.created_at ? new Date(tx.created_at).toLocaleString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}</div>
                       </div>
                       <span style={{ fontSize: '13px', fontWeight: '600', color: Number(tx.amount) > 0 ? '#1DB81D' : '#ef4444' }}>{Number(tx.amount) > 0 ? '+' : ''}{tx.amount}</span>
                     </div>

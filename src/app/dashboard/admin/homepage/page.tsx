@@ -224,7 +224,7 @@ export default function HomepageAdmin() {
                     <input ref={logoFileRef} type="file" accept="image/svg+xml,image/png" style={{ fontSize: '12px', color: '#0a0a0a' }} />
                     <button onClick={handleLogoUpload} style={{ padding: '8px 16px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', fontWeight: '500' }}>Logo Yükle</button>
                   </div>
-                  <div style={{ fontSize: '10px', color: '#aaa', marginTop: '8px' }}>SVG veya PNG format, şeffaf arka plan önerilir.</div>
+                  <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)', marginTop: '8px' }}>SVG veya PNG format, şeffaf arka plan önerilir.</div>
                 </div>
               </div>
             </>

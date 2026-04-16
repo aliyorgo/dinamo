@@ -175,7 +175,7 @@ export default function AgencyProductionPage() {
               groups.push({ id: '_agency', name: 'Ajans', briefs: agencyBriefs, lastDate: agencyBriefs[0]?.created_at || '' })
             }
 
-            if (groups.length === 0) return <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', padding: '40px', textAlign: 'center', color: '#aaa', fontSize: '12px' }}>Kayit yok.</div>
+            if (groups.length === 0) return <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', padding: '40px', textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontSize: '12px' }}>Kayit yok.</div>
 
             return groups.map(group => {
               const groupCredits = group.briefs.reduce((s: number, b: any) => s + Number(b.credit_cost || 0), 0)

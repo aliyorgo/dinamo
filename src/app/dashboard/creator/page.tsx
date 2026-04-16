@@ -149,9 +149,9 @@ export default function CreatorDashboard() {
         </div>
 
         <div style={{flex:1,overflowY:'auto',padding:'20px 28px'}}>
-          {loading ? <div style={{color:'#888',fontSize:'14px'}}>Yükleniyor...</div> : tab==='jobs' ? (
+          {loading ? <div style={{color:'rgba(255,255,255,0.4)',fontSize:'14px'}}>Yükleniyor...</div> : tab==='jobs' ? (
             jobs.length === 0 ? (
-              <div style={{textAlign:'center',padding:'60px 0',color:'#888',fontSize:'14px'}}>Atanmış iş yok.</div>
+              <div style={{textAlign:'center',padding:'60px 0',color:'rgba(255,255,255,0.4)',fontSize:'14px'}}>Atanmış iş yok.</div>
             ) : jobs.map(job=>(
               <div key={job.id} onClick={()=>router.push(`/dashboard/creator/jobs/${job.id}`)}
                 style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'16px 20px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'8px'}}
@@ -161,7 +161,7 @@ export default function CreatorDashboard() {
                   <div style={{width:'8px',height:'8px',borderRadius:'50%',background:statusColor[job.status],flexShrink:0}}></div>
                   <div>
                     <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a'}}>{job.campaign_name}</div>
-                    <div style={{fontSize:'12px',color:'#888',marginTop:'3px'}}>{job.clients?.company_name} · {job.video_type}</div>
+                    <div style={{fontSize:'12px',color:'rgba(255,255,255,0.4)',marginTop:'3px'}}>{job.clients?.company_name} · {job.video_type}</div>
                   </div>
                 </div>
                 <div style={{fontSize:'11px',padding:'4px 12px',borderRadius:'100px',background:`${statusColor[job.status]}15`,color:statusColor[job.status],fontWeight:'500'}}>
@@ -185,7 +185,7 @@ export default function CreatorDashboard() {
                   {label:'Bekleyen',value:(isIndividual?pendingNet:pendingGross).toLocaleString('tr-TR')+' ₺',color:pendingGross>0?'#f59e0b':'#888'},
                 ].map(card=>(
                   <div key={card.label} style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'16px'}}>
-                    <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'8px'}}>{card.label}</div>
+                    <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'8px'}}>{card.label}</div>
                     <div style={{fontSize:'20px',fontWeight:'300',color:card.color,letterSpacing:'-0.5px'}}>{card.value}</div>
                   </div>
                 ))}
@@ -194,12 +194,12 @@ export default function CreatorDashboard() {
               <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',overflow:'hidden',marginBottom:'20px'}}>
                 <div style={{padding:'14px 20px',borderBottom:'0.5px solid rgba(0,0,0,0.08)',fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>Kazanç Geçmişi</div>
                 {earnings.length===0 ? (
-                  <div style={{padding:'32px',textAlign:'center',color:'#888',fontSize:'14px'}}>Henüz kazanç yok.</div>
+                  <div style={{padding:'32px',textAlign:'center',color:'rgba(255,255,255,0.4)',fontSize:'14px'}}>Henüz kazanç yok.</div>
                 ) : earnings.map((e,i)=>(
                   <div key={e.id} style={{padding:'14px 20px',borderBottom:i<earnings.length-1?'0.5px solid rgba(0,0,0,0.06)':'none',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                     <div>
                       <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{e.briefs?.campaign_name||'—'}</div>
-                      <div style={{fontSize:'11px',color:'#888',marginTop:'2px'}}>{e.credits} kredi · {Number(e.tl_rate).toLocaleString('tr-TR')} ₺/kredi · {new Date(e.created_at).toLocaleDateString('tr-TR')}</div>
+                      <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',marginTop:'2px'}}>{e.credits} kredi · {Number(e.tl_rate).toLocaleString('tr-TR')} ₺/kredi · {new Date(e.created_at).toLocaleDateString('tr-TR')}</div>
                     </div>
                     <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
                       <div style={{textAlign:'right'}}>
@@ -222,9 +222,9 @@ export default function CreatorDashboard() {
                           <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{Number(p.amount_tl).toLocaleString('tr-TR')} ₺</div>
                           {p.vat_included&&<span style={{fontSize:'9px',padding:'2px 6px',borderRadius:'100px',background:'rgba(59,130,246,0.1)',color:'#3b82f6',fontWeight:'500'}}>KDV dahil</span>}
                         </div>
-                        {p.note&&<div style={{fontSize:'11px',color:'#888',marginTop:'2px'}}>{p.note}</div>}
+                        {p.note&&<div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',marginTop:'2px'}}>{p.note}</div>}
                       </div>
-                      <div style={{fontSize:'12px',color:'#888'}}>{new Date(p.paid_at).toLocaleDateString('tr-TR')}</div>
+                      <div style={{fontSize:'12px',color:'rgba(255,255,255,0.4)'}}>{new Date(p.paid_at).toLocaleDateString('tr-TR')}</div>
                     </div>
                   ))}
                 </div>
@@ -234,23 +234,23 @@ export default function CreatorDashboard() {
             /* PROFILE TAB */
             <div style={{maxWidth:'480px'}}>
               <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'24px',marginBottom:'16px'}}>
-                <div style={{fontSize:'11px',color:'#888',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'20px'}}>Kişisel Bilgiler</div>
+                <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'20px'}}>Kişisel Bilgiler</div>
                 <div style={{marginBottom:'16px'}}>
-                  <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'6px'}}>Ad Soyad</div>
+                  <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'6px'}}>Ad Soyad</div>
                   <div style={{fontSize:'14px',color:'#0a0a0a',fontWeight:'500'}}>{userName}</div>
                 </div>
                 <div style={{marginBottom:'16px'}}>
-                  <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'6px'}}>Telefon</div>
+                  <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'6px'}}>Telefon</div>
                   <input value={profile.phone} onChange={e=>setProfile({...profile,phone:e.target.value})} placeholder="05XX XXX XXXX"
                     style={{width:'100%',boxSizing:'border-box',padding:'9px 13px',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a',fontFamily:'var(--font-dm-sans),sans-serif',outline:'none'}} />
                 </div>
                 <div style={{marginBottom:'16px'}}>
-                  <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'6px'}}>IBAN</div>
+                  <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'6px'}}>IBAN</div>
                   <input value={profile.iban} onChange={e=>setProfile({...profile,iban:e.target.value})} placeholder="TR..."
                     style={{width:'100%',boxSizing:'border-box',padding:'9px 13px',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a',fontFamily:'var(--font-dm-sans),sans-serif',outline:'none'}} />
                 </div>
                 <div style={{marginBottom:'16px'}}>
-                  <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'8px'}}>Fatura Tipi</div>
+                  <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'8px'}}>Fatura Tipi</div>
                   <div style={{display:'flex',gap:'8px'}}>
                     {([['personal','Şahıs'],['company','Şirket']] as const).map(([val,label])=>(
                       <button key={val} onClick={()=>setProfile({...profile,entity_type:val})}
@@ -262,13 +262,13 @@ export default function CreatorDashboard() {
                 </div>
                 {profile.entity_type==='company'&&(
                   <div style={{marginBottom:'16px'}}>
-                    <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'6px'}}>Vergi No</div>
+                    <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'6px'}}>Vergi No</div>
                     <input value={profile.tax_no} onChange={e=>setProfile({...profile,tax_no:e.target.value})} placeholder="Vergi numarası"
                       style={{width:'100%',boxSizing:'border-box',padding:'9px 13px',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a',fontFamily:'var(--font-dm-sans),sans-serif',outline:'none'}} />
                   </div>
                 )}
                 <div style={{marginBottom:'20px'}}>
-                  <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'6px'}}>Adres</div>
+                  <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'6px'}}>Adres</div>
                   <textarea value={profile.address} onChange={e=>setProfile({...profile,address:e.target.value})} placeholder="Açık adres" rows={3}
                     style={{width:'100%',boxSizing:'border-box',padding:'9px 13px',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a',fontFamily:'var(--font-dm-sans),sans-serif',outline:'none',resize:'vertical'}} />
                 </div>
@@ -280,11 +280,11 @@ export default function CreatorDashboard() {
               </div>
               {/* Agreement Status */}
               <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'20px 24px'}}>
-                <div style={{fontSize:'11px',color:'#888',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'12px'}}>Taahhütname</div>
+                <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'12px'}}>Taahhütname</div>
                 {agreementAccepted ? (
                   <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
                     <span style={{fontSize:'10px',padding:'4px 12px',borderRadius:'100px',background:'rgba(34,197,94,0.1)',color:'#22c55e',fontWeight:'500'}}>Onaylandı ✓</span>
-                    {agreementDate && <span style={{fontSize:'11px',color:'#888'}}>{new Date(agreementDate).toLocaleDateString('tr-TR',{day:'numeric',month:'long',year:'numeric'})}</span>}
+                    {agreementDate && <span style={{fontSize:'11px',color:'rgba(255,255,255,0.4)'}}>{new Date(agreementDate).toLocaleDateString('tr-TR',{day:'numeric',month:'long',year:'numeric'})}</span>}
                   </div>
                 ) : (
                   <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>

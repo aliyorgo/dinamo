@@ -171,15 +171,15 @@ export default function AgencyOverviewPage() {
         </div>
         <div onClick={() => router.push('/dashboard/agency/studio/credits')} style={{ padding: '10px 12px', margin: '0 8px', borderRadius: '8px', background: 'rgba(255,255,255,0.04)', cursor: 'pointer' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)' }}>Kredi</span>
+            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>Kredi</span>
             <span style={{ fontSize: '12px', fontWeight: '500', color: '#22c55e' }}>{agency?.demo_credits || 0} kr</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)' }}>Kazanc</span>
-            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>{Number(agency?.total_earnings || 0).toLocaleString('tr-TR')} TL</span>
+            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>Kazanc</span>
+            <span style={{ fontSize: '11px', color: '#888' }}>{Number(agency?.total_earnings || 0).toLocaleString('tr-TR')} TL</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', fontStyle: 'italic' }}>Marj</span>
+            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', fontStyle: 'italic' }}>Marj</span>
             <span style={{ fontSize: '10px', fontStyle: 'italic', color: agencyMargin >= 0 ? 'rgba(255,255,255,0.4)' : '#ef4444' }}>{agencyMargin.toLocaleString('tr-TR')} TL</span>
           </div>
         </div>
@@ -217,7 +217,7 @@ export default function AgencyOverviewPage() {
                   style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', padding: '16px', cursor: card.link ? 'pointer' : 'default' }}>
                   <div style={{ fontSize: '10px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>{card.label}</div>
                   <div style={{ fontSize: '22px', fontWeight: '300', color: card.color || '#0a0a0a', letterSpacing: '-0.5px' }}>{card.value}</div>
-                  {card.sub && <div style={{ fontSize: '11px', color: '#aaa', marginTop: '4px' }}>{card.sub}</div>}
+                  {card.sub && <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', marginTop: '4px' }}>{card.sub}</div>}
                 </div>
               ))}
             </div>
@@ -236,7 +236,7 @@ export default function AgencyOverviewPage() {
                   <div style={{ fontSize: '10px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>{card.label}</div>
                   <div style={{ fontSize: '22px', fontWeight: '300', color: card.color || '#0a0a0a', letterSpacing: '-0.5px' }}>
                     {card.value}
-                    {card.sub && <span style={{ fontSize: '12px', color: '#aaa', marginLeft: '4px', fontWeight: '400' }}>{card.sub}</span>}
+                    {card.sub && <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.25)', marginLeft: '4px', fontWeight: '400' }}>{card.sub}</span>}
                   </div>
                 </div>
               ))}
@@ -252,7 +252,7 @@ export default function AgencyOverviewPage() {
                   <span onClick={() => router.push('/dashboard/agency/production')} style={{ fontSize: '10px', color: '#3b82f6', cursor: 'pointer' }}>Tum Uretimler</span>
                 </div>
                 {briefs.length === 0 ? (
-                  <div style={{ padding: '24px', textAlign: 'center', color: '#aaa', fontSize: '12px' }}>Henuz uretim yok.</div>
+                  <div style={{ padding: '24px', textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontSize: '12px' }}>Henuz uretim yok.</div>
                 ) : briefs.slice(0, 5).map((b, i) => {
                   const sl = statusLabel[b.status] || { label: b.status, color: '#888' }
                   return (
@@ -280,7 +280,7 @@ export default function AgencyOverviewPage() {
                   <span onClick={() => router.push('/dashboard/agency/members')} style={{ fontSize: '10px', color: '#3b82f6', cursor: 'pointer' }}>Ekibi Yonet</span>
                 </div>
                 {members.length === 0 ? (
-                  <div style={{ padding: '24px', textAlign: 'center', color: '#aaa', fontSize: '12px' }}>Henuz ekip uyesi yok.</div>
+                  <div style={{ padding: '24px', textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontSize: '12px' }}>Henuz ekip uyesi yok.</div>
                 ) : members.map((m, i) => (
                   <div key={m.id} onClick={() => router.push(`/dashboard/agency/members/${m.id}`)}
                     style={{ padding: '10px 20px', borderTop: i > 0 ? '0.5px solid rgba(0,0,0,0.06)' : 'none', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
@@ -293,7 +293,7 @@ export default function AgencyOverviewPage() {
                     </div>
                     <div style={{ textAlign: 'right', flexShrink: 0 }}>
                       <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a' }}>{memberMonthCounts[m.id] || 0}</div>
-                      <div style={{ fontSize: '9px', color: '#aaa' }}>bu ay</div>
+                      <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.25)' }}>bu ay</div>
                     </div>
                   </div>
                 ))}
@@ -308,12 +308,12 @@ export default function AgencyOverviewPage() {
                   Faturalar ({invoices.length})
                 </div>
                 {invoices.length === 0 ? (
-                  <div style={{ padding: '32px', textAlign: 'center', color: '#aaa', fontSize: '12px' }}>Henüz fatura yok.</div>
+                  <div style={{ padding: '32px', textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontSize: '12px' }}>Henüz fatura yok.</div>
                 ) : invoices.map((inv, i) => (
                   <div key={inv.id} style={{ padding: '10px 20px', borderTop: i > 0 ? '0.5px solid rgba(0,0,0,0.06)' : 'none', display: 'flex', alignItems: 'center', gap: '10px', borderLeft: `3px solid ${inv.is_paid ? '#22c55e' : '#f59e0b'}` }}>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>{formatTL(Number(inv.amount))}</div>
-                      <div style={{ fontSize: '11px', color: '#aaa', marginTop: '2px' }}>
+                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', marginTop: '2px' }}>
                         {inv.invoice_number && <span style={{ marginRight: '8px' }}>{inv.invoice_number}</span>}
                         {inv.invoice_date && new Date(inv.invoice_date).toLocaleDateString('tr-TR')}
                       </div>
@@ -356,12 +356,12 @@ export default function AgencyOverviewPage() {
 
                 {paymentRequests.length > 0 && (
                   <div style={{ borderTop: '0.5px solid rgba(0,0,0,0.06)', paddingTop: '14px' }}>
-                    <div style={{ fontSize: '10px', color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Geçmiş</div>
+                    <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Geçmiş</div>
                     {paymentRequests.map((req, i) => (
                       <div key={req.id} style={{ padding: '7px 0', borderBottom: i < paymentRequests.length - 1 ? '0.5px solid rgba(0,0,0,0.04)' : 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div>
                           <div style={{ fontSize: '11px', color: '#0a0a0a' }}>{req.request_type}</div>
-                          <div style={{ fontSize: '10px', color: '#aaa' }}>
+                          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)' }}>
                             {req.amount && formatTL(Number(req.amount))}
                             {req.credits_requested && ` · ${req.credits_requested} kredi`}
                             {req.admin_note && <span style={{ marginLeft: '8px', fontStyle: 'italic' }}>{req.admin_note}</span>}

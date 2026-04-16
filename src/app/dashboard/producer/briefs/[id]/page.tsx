@@ -307,7 +307,7 @@ export default function ProducerBriefDetail() {
         <div style={{padding:'14px 28px',background:'#fff',borderBottom:'0.5px solid rgba(0,0,0,0.08)',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
           <div>
             <div style={{fontSize:'16px',fontWeight:'500',color:'#0a0a0a',letterSpacing:'-0.3px'}}>{brief?.campaign_name}</div>
-            {brief && <div style={{fontSize:'11px',color:'#888',marginTop:'2px'}}>{brief.clients?.company_name} · {brief.video_type} · {brief.format} · {brief.credit_cost} kredi</div>}
+            {brief && <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',marginTop:'2px'}}>{brief.clients?.company_name} · {brief.video_type} · {brief.format} · {brief.credit_cost} kredi</div>}
           </div>
           {brief && (
             <div style={{display:'flex',gap:'6px'}}>
@@ -357,7 +357,7 @@ export default function ProducerBriefDetail() {
                   {/* Brief header */}
                   <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'24px',marginBottom:'12px'}}>
                     <div style={{fontSize:'26px',fontWeight:'600',color:'#0a0a0a',marginBottom:'4px'}}>{brief.campaign_name}</div>
-                    <div style={{fontSize:'14px',color:'#888',marginBottom:'16px'}}>{brief.clients?.company_name} · {brief.credit_cost} kredi</div>
+                    <div style={{fontSize:'14px',color:'rgba(255,255,255,0.4)',marginBottom:'16px'}}>{brief.clients?.company_name} · {brief.credit_cost} kredi</div>
 
                     {/* Info rows with icons */}
                     <div style={{borderTop:'0.5px solid rgba(0,0,0,0.06)'}}>
@@ -384,25 +384,25 @@ export default function ProducerBriefDetail() {
                     {/* Brief text */}
                     {brief.message&&(
                       <div style={{marginTop:'20px'}}>
-                        <div style={{fontSize:'11px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'6px'}}>Brief</div>
+                        <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'6px'}}>Brief</div>
                         <div style={{fontSize:'15px',color:'#0a0a0a',lineHeight:1.8}}>{brief.message}</div>
                       </div>
                     )}
                     {brief.cta&&(
                       <div style={{marginTop:'14px'}}>
-                        <div style={{fontSize:'11px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>CTA</div>
+                        <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>CTA</div>
                         <div style={{fontSize:'15px',color:'#0a0a0a',lineHeight:1.8}}>{brief.cta}</div>
                       </div>
                     )}
                     {brief.voiceover_text&&(
                       <div style={{marginTop:'14px'}}>
-                        <div style={{fontSize:'11px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>Seslendirme Metni</div>
+                        <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>Seslendirme Metni</div>
                         <div style={{fontSize:'15px',color:'#0a0a0a',lineHeight:1.8}}>{brief.voiceover_text}</div>
                       </div>
                     )}
                     {brief.voiceover_type==='real'&&(
                       <div style={{marginTop:'14px',padding:'14px',background:'#fafaf8',borderRadius:'10px'}}>
-                        <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'8px'}}>{brief.voiceover_gender==='male'?'Erkek':'Kadın'} Seslendirme Dosyası</div>
+                        <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'8px'}}>{brief.voiceover_gender==='male'?'Erkek':'Kadın'} Seslendirme Dosyası</div>
                         {brief.voiceover_file_url ? (
                           <div>
                             <audio controls src={brief.voiceover_file_url} style={{width:'100%',marginBottom:'8px'}} />
@@ -418,14 +418,14 @@ export default function ProducerBriefDetail() {
                               style={{padding:'7px 16px',background:'#111113',color:'#fff',border:'none',borderRadius:'8px',fontSize:'11px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',fontWeight:'500'}}>
                               {voUpload?'Yükleniyor...':'Yükle'}
                             </button>
-                            <div style={{fontSize:'10px',color:'#aaa',marginTop:'6px'}}>mp3, wav, m4a — maks 50MB</div>
+                            <div style={{fontSize:'10px',color:'rgba(255,255,255,0.25)',marginTop:'6px'}}>mp3, wav, m4a — maks 50MB</div>
                           </div>
                         )}
                       </div>
                     )}
                     {brief.notes&&(
                       <div style={{marginTop:'14px'}}>
-                        <div style={{fontSize:'11px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>Notlar</div>
+                        <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>Notlar</div>
                         <div style={{fontSize:'15px',color:'#0a0a0a',lineHeight:1.8}}>{brief.notes}</div>
                       </div>
                     )}
@@ -438,11 +438,11 @@ export default function ProducerBriefDetail() {
                   {/* Previous briefs */}
                   {prevBriefs.length > 0 && (
                     <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'16px 20px',marginBottom:'12px'}}>
-                      <div style={{fontSize:'11px',color:'#888',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'10px'}}>Önceki İşler</div>
+                      <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'10px'}}>Önceki İşler</div>
                       {prevBriefs.map(pb=>(
                         <div key={pb.id} onClick={()=>router.push(`/dashboard/producer/briefs/${pb.id}`)} style={{padding:'6px 0',borderBottom:'0.5px solid rgba(0,0,0,0.04)',cursor:'pointer'}}>
                           <div style={{fontSize:'13px',color:'#0a0a0a',fontWeight:'500'}}>{pb.campaign_name}</div>
-                          <div style={{fontSize:'11px',color:'#888',marginTop:'2px'}}>{pb.video_type} · {new Date(pb.created_at).toLocaleDateString('tr-TR')}</div>
+                          <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',marginTop:'2px'}}>{pb.video_type} · {new Date(pb.created_at).toLocaleDateString('tr-TR')}</div>
                         </div>
                       ))}
                     </div>
@@ -469,8 +469,8 @@ export default function ProducerBriefDetail() {
                               <span style={{fontSize:'10px',padding:'3px 10px',borderRadius:'100px',background:'rgba(34,197,94,0.1)',color:'#22c55e',fontWeight:'500'}}>Atandı</span>
                             </div>
                             <div style={{marginTop:'4px',display:'flex',flexDirection:'column',gap:'2px'}}>
-                              {assigned.users?.email&&<a href={`mailto:${assigned.users.email}`} style={{fontSize:'12px',color:'#888',textDecoration:'none'}}>{assigned.users.email}</a>}
-                              {assigned.phone&&<a href={`tel:${assigned.phone}`} style={{fontSize:'12px',color:'#888',textDecoration:'none'}}>{assigned.phone}</a>}
+                              {assigned.users?.email&&<a href={`mailto:${assigned.users.email}`} style={{fontSize:'12px',color:'rgba(255,255,255,0.4)',textDecoration:'none'}}>{assigned.users.email}</a>}
+                              {assigned.phone&&<a href={`tel:${assigned.phone}`} style={{fontSize:'12px',color:'rgba(255,255,255,0.4)',textDecoration:'none'}}>{assigned.phone}</a>}
                             </div>
                           </div>
                         </div>
@@ -487,7 +487,7 @@ export default function ProducerBriefDetail() {
                     {(showAssignForm||!assigned)&&(
                       <form onSubmit={handleForward} style={{marginTop:'10px'}}>
                         <div style={{marginBottom:'8px'}}>
-                          <div style={{fontSize:'11px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>Creator</div>
+                          <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>Creator</div>
                           <select value={form.assigned_creator_id} onChange={e=>setForm({...form,assigned_creator_id:e.target.value})} style={{...selectStyle,fontSize:'13px',padding:'9px 10px'}}>
                             <option value="">Seçin</option>
                             {creators.map(c=>{const jobs=creatorJobs[c.id]||0;return <option key={c.id} value={c.id}>{c.users?.name} ({jobs} aktif iş)</option>})}
@@ -495,7 +495,7 @@ export default function ProducerBriefDetail() {
                         </div>
                         {brief.voiceover_type==='real'&&(
                           <div style={{marginBottom:'8px'}}>
-                            <div style={{fontSize:'11px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>Seslendirme</div>
+                            <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>Seslendirme</div>
                             <select value={form.assigned_voice_artist_id} onChange={e=>setForm({...form,assigned_voice_artist_id:e.target.value})} style={{...selectStyle,fontSize:'13px',padding:'9px 10px'}}>
                               <option value="">Seçin</option>
                               {voiceArtists.map(va=><option key={va.id} value={va.id}>{va.users?.name}</option>)}
@@ -503,17 +503,17 @@ export default function ProducerBriefDetail() {
                           </div>
                         )}
                         <div style={{marginBottom:'10px'}}>
-                          <div style={{fontSize:'11px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'6px'}}>Creator'a İletilecek Alanlar</div>
+                          <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'6px'}}>Creator'a İletilecek Alanlar</div>
                           {[{field:'message',label:'Mesaj'},{field:'cta',label:'CTA'},{field:'target_audience',label:'Hedef Kitle'},{field:'voiceover_text',label:'Seslendirme Metni'},{field:'notes',label:'Notlar'}].filter(f=>brief[f.field]).map(f=>(
                             <label key={f.field} style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'4px',cursor:'pointer',fontSize:'13px',color:'#0a0a0a'}}>
                               <input type="checkbox" checked={sharedFields.includes(f.field)} onChange={()=>toggleSharedField(f.field)} style={{accentColor:'#22c55e'}} />
                               {f.label}
                             </label>
                           ))}
-                          <div style={{fontSize:'10px',color:'#aaa',marginTop:'4px'}}>Format ve prodüktör notu her zaman iletilir.</div>
+                          <div style={{fontSize:'10px',color:'rgba(255,255,255,0.25)',marginTop:'4px'}}>Format ve prodüktör notu her zaman iletilir.</div>
                         </div>
                         <div style={{marginBottom:'8px'}}>
-                          <div style={{fontSize:'11px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>Prodüktör Notu</div>
+                          <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>Prodüktör Notu</div>
                           <textarea value={form.producer_note} onChange={e=>setForm({...form,producer_note:e.target.value})} rows={2} style={{...inputStyle,resize:'vertical',padding:'9px 10px'}} />
                         </div>
                         <button type="submit" disabled={loading} style={{width:'100%',padding:'9px',background:'#111113',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',fontWeight:'500'}}>
@@ -530,7 +530,7 @@ export default function ProducerBriefDetail() {
                         <div style={{padding:'12px 16px',borderBottom:'0.5px solid rgba(0,0,0,0.06)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                           <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
                             <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a'}}>V{s.version}</div>
-                            <div style={{fontSize:'12px',color:'#888'}}>{new Date(s.submitted_at).toLocaleDateString('tr-TR',{day:'numeric',month:'short'})}</div>
+                            <div style={{fontSize:'12px',color:'rgba(255,255,255,0.4)'}}>{new Date(s.submitted_at).toLocaleDateString('tr-TR',{day:'numeric',month:'short'})}</div>
                           </div>
                           <span style={statusBadge(s.status)}>{s.status==='pending'?'Bekliyor':s.status==='producer_approved'?'Onaylandı':s.status==='revision_requested'?'Revizyon':s.status}</span>
                         </div>
@@ -556,13 +556,13 @@ export default function ProducerBriefDetail() {
                       </div>
                     ))
                   ):(
-                    <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'24px',textAlign:'center',color:'#888',fontSize:'13px',marginBottom:'12px'}}>Henüz video yüklenmedi.</div>
+                    <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'24px',textAlign:'center',color:'rgba(255,255,255,0.4)',fontSize:'13px',marginBottom:'12px'}}>Henüz video yüklenmedi.</div>
                   )}
 
                   {/* QUESTIONS */}
                   <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'16px'}}>
-                    <div style={{fontSize:'11px',color:'#888',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'10px'}}>Sorular</div>
-                    {visibleQ.length===0&&<div style={{fontSize:'12px',color:'#888',marginBottom:'10px'}}>Henüz soru yok.</div>}
+                    <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'10px'}}>Sorular</div>
+                    {visibleQ.length===0&&<div style={{fontSize:'12px',color:'rgba(255,255,255,0.4)',marginBottom:'10px'}}>Henüz soru yok.</div>}
                     {visibleQ.map(q=>(
                       <div key={q.id} style={{marginBottom:'6px',padding:'8px 10px',background:'#f5f4f0',borderRadius:'8px'}}>
                         <div style={{fontSize:'13px',color:'#0a0a0a',marginBottom:'2px'}}>{q.question}</div>
@@ -576,7 +576,7 @@ export default function ProducerBriefDetail() {
                           </div>
                         ) : (
                           <div style={{display:'flex',alignItems:'center',gap:'8px',marginTop:'2px'}}>
-                            <div style={{fontSize:'11px',color:'#888'}}>Cevap bekleniyor</div>
+                            <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)'}}>Cevap bekleniyor</div>
                             <button onClick={()=>{setAnswerEditing(q.id);setAnswerText('')}} style={{fontSize:'10px',color:'#3b82f6',background:'none',border:'none',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>Cevabı Gir</button>
                           </div>
                         )}
@@ -622,7 +622,7 @@ export default function ProducerBriefDetail() {
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round"><path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
             </div>
             <div style={{fontSize:'18px',fontWeight:'500',color:'#0a0a0a',marginBottom:'10px'}}>Dikkat</div>
-            <div style={{fontSize:'13px',color:'#888',lineHeight:1.7,marginBottom:'24px'}}>Bu butonu yalnızca iş platform dışında ilerledi ve müşteri onay vermeden yayına girdi ya da platform dışından onay bildirdi ise kullanın. Devam etmek istiyor musunuz?</div>
+            <div style={{fontSize:'13px',color:'rgba(255,255,255,0.4)',lineHeight:1.7,marginBottom:'24px'}}>Bu butonu yalnızca iş platform dışında ilerledi ve müşteri onay vermeden yayına girdi ya da platform dışından onay bildirdi ise kullanın. Devam etmek istiyor musunuz?</div>
             <div style={{display:'flex',gap:'10px'}}>
               <button onClick={()=>setShowClientApproveModal(false)} style={{flex:1,padding:'12px',background:'#f5f4f0',color:'#555',border:'none',borderRadius:'10px',fontSize:'14px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>İptal</button>
               <button onClick={()=>{setShowClientApproveModal(false);handleClientApprove()}} disabled={loading}

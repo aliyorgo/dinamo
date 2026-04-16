@@ -99,7 +99,7 @@ export default function AgencyMemberDetailPage() {
               Isler ({briefs.length})
             </div>
             {briefs.length === 0 ? (
-              <div style={{ padding: '24px', textAlign: 'center', color: '#aaa', fontSize: '12px' }}>Is yok.</div>
+              <div style={{ padding: '24px', textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontSize: '12px' }}>Is yok.</div>
             ) : briefs.map((b, i) => {
               const sc = statusColor[b.status] || '#888'
               return (
@@ -114,7 +114,7 @@ export default function AgencyMemberDetailPage() {
                   <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '100px', fontWeight: '500', background: `${sc}15`, color: sc }}>
                     {statusLabel[b.status] || b.status}
                   </span>
-                  <div style={{ fontSize: '11px', color: '#aaa', flexShrink: 0 }}>{b.created_at ? new Date(b.created_at).toLocaleDateString('tr-TR') : ''}</div>
+                  <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', flexShrink: 0 }}>{b.created_at ? new Date(b.created_at).toLocaleDateString('tr-TR') : ''}</div>
                 </div>
               )
             })}

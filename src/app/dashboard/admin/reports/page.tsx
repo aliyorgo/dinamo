@@ -271,7 +271,7 @@ export default function ReportsPage() {
                         <tr key={row.label} style={{ borderBottom: i < 5 ? '0.5px solid rgba(0,0,0,0.06)' : 'none' }}>
                           <td style={{ padding: '14px 16px', fontSize: '13px', color: row.highlight ? '#0a0a0a' : '#555', fontWeight: row.highlight ? '500' : '300' }}>
                             {row.label}
-                            <div style={{ fontSize: '11px', color: '#aaa', marginTop: '2px', fontWeight: '300' }}>{row.detail}</div>
+                            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', marginTop: '2px', fontWeight: '300' }}>{row.detail}</div>
                           </td>
                           <td style={{ padding: '14px 16px', fontSize: row.highlight ? '20px' : '16px', fontWeight: row.highlight ? '500' : '300', color: row.highlight ? '#22c55e' : '#0a0a0a', textAlign: 'right', letterSpacing: '-0.5px' }}>
                             {row.value}

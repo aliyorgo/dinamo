@@ -340,7 +340,7 @@ export default function AdminBriefDetail() {
         <div style={{padding:'14px 28px',background:'#fff',borderBottom:'0.5px solid rgba(0,0,0,0.08)',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
           <div>
             <div style={{fontSize:'16px',fontWeight:'500',color:'#0a0a0a',letterSpacing:'-0.3px'}}>{brief?.campaign_name}</div>
-            {brief && <div style={{fontSize:'11px',color:'#888',marginTop:'2px'}}>{brief.clients?.company_name} · {brief.video_type} · {brief.format} · {brief.credit_cost} kredi</div>}
+            {brief && <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',marginTop:'2px'}}>{brief.clients?.company_name} · {brief.video_type} · {brief.format} · {brief.credit_cost} kredi</div>}
           </div>
           <div style={{display:'flex',gap:'8px'}}>
             <button onClick={()=>setEditMode(!editMode)} style={{padding:'6px 14px',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'8px',background:'#fff',color:'#555',fontSize:'11px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>{editMode?'İptal':'Düzenle'}</button>
@@ -378,7 +378,7 @@ export default function AdminBriefDetail() {
                   <div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a',marginBottom:'16px'}}>Brief Düzenle</div>
                   {[{key:'campaign_name',label:'Kampanya Adı',type:'text'},{key:'video_type',label:'Video Tipi',type:'text'},{key:'message',label:'Mesaj',type:'textarea'},{key:'cta',label:'CTA',type:'text'},{key:'target_audience',label:'Hedef Kitle',type:'text'},{key:'notes',label:'Notlar',type:'textarea'},{key:'credit_cost',label:'Kredi',type:'number'}].map(f=>(
                     <div key={f.key} style={{marginBottom:'14px'}}>
-                      <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'6px'}}>{f.label}</div>
+                      <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'6px'}}>{f.label}</div>
                       {f.type==='textarea'?<textarea value={editForm[f.key]||''} onChange={e=>setEditForm({...editForm,[f.key]:e.target.value})} rows={3} style={{...inputStyle,resize:'vertical'}} />:<input type={f.type} value={editForm[f.key]||''} onChange={e=>setEditForm({...editForm,[f.key]:e.target.value})} style={inputStyle} />}
                     </div>
                   ))}
@@ -392,13 +392,13 @@ export default function AdminBriefDetail() {
                   {/* LEFT — VIDEOS */}
                   <div>
                     {submissions.length === 0 ? (
-                      <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'32px',textAlign:'center',color:'#888',fontSize:'13px'}}>Henüz video yüklenmedi.</div>
+                      <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'32px',textAlign:'center',color:'rgba(255,255,255,0.4)',fontSize:'13px'}}>Henüz video yüklenmedi.</div>
                     ) : submissions.map((s) => (
                       <div key={s.id} style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',overflow:'hidden',marginBottom:'12px'}}>
                         <div style={{padding:'12px 16px',borderBottom:'0.5px solid rgba(0,0,0,0.06)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                           <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
                             <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>Versiyon {s.version}</div>
-                            <div style={{fontSize:'11px',color:'#888'}}>{new Date(s.submitted_at).toLocaleDateString('tr-TR',{day:'numeric',month:'short'})}</div>
+                            <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)'}}>{new Date(s.submitted_at).toLocaleDateString('tr-TR',{day:'numeric',month:'short'})}</div>
                           </div>
                           <span style={statusBadge(s.status)}>{s.status==='pending'?'Bekliyor':s.status==='producer_approved'?'Prodüktör Onayı':s.status==='admin_approved'?'Onaylandı':s.status==='revision_requested'?'Revizyon':s.status}</span>
                         </div>
@@ -454,8 +454,8 @@ export default function AdminBriefDetail() {
                                 <span style={{fontSize:'9px',padding:'3px 10px',borderRadius:'100px',background:'rgba(34,197,94,0.1)',color:'#22c55e',fontWeight:'500'}}>Atandı</span>
                               </div>
                               <div style={{marginTop:'4px',display:'flex',flexDirection:'column',gap:'2px'}}>
-                                {assigned.users?.email && <a href={`mailto:${assigned.users.email}`} style={{fontSize:'11px',color:'#888',textDecoration:'none'}}>{assigned.users.email}</a>}
-                                {assigned.phone && <a href={`tel:${assigned.phone}`} style={{fontSize:'11px',color:'#888',textDecoration:'none'}}>{assigned.phone}</a>}
+                                {assigned.users?.email && <a href={`mailto:${assigned.users.email}`} style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',textDecoration:'none'}}>{assigned.users.email}</a>}
+                                {assigned.phone && <a href={`tel:${assigned.phone}`} style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',textDecoration:'none'}}>{assigned.phone}</a>}
                               </div>
                             </div>
                           </div>
@@ -472,7 +472,7 @@ export default function AdminBriefDetail() {
                       {(showAssignForm || !assigned) && (
                         <form onSubmit={handleForward} style={{marginTop:'10px'}}>
                           <div style={{marginBottom:'8px'}}>
-                            <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>Creator</div>
+                            <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>Creator</div>
                             <select value={forwardForm.assigned_creator_id} onChange={e=>setForwardForm({...forwardForm,assigned_creator_id:e.target.value})} style={{...inputStyle,fontSize:'12px',padding:'8px 10px'}}>
                               <option value="">Seçin</option>
                               {creators.map(c=><option key={c.id} value={c.id}>{c.users?.name}</option>)}
@@ -480,7 +480,7 @@ export default function AdminBriefDetail() {
                           </div>
                           {brief.voiceover_type==='real'&&(
                             <div style={{marginBottom:'8px'}}>
-                              <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>Seslendirme</div>
+                              <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>Seslendirme</div>
                               <select value={forwardForm.assigned_voice_artist_id} onChange={e=>setForwardForm({...forwardForm,assigned_voice_artist_id:e.target.value})} style={{...inputStyle,fontSize:'12px',padding:'8px 10px'}}>
                                 <option value="">Seçin</option>
                                 {voiceArtists.map(va=><option key={va.id} value={va.id}>{va.users?.name}</option>)}
@@ -488,7 +488,7 @@ export default function AdminBriefDetail() {
                             </div>
                           )}
                           <div style={{marginBottom:'10px'}}>
-                            <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'6px'}}>Creator'a İletilecek Alanlar</div>
+                            <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'6px'}}>Creator'a İletilecek Alanlar</div>
                             {[
                               {field:'message',label:'Mesaj'},
                               {field:'cta',label:'CTA'},
@@ -501,10 +501,10 @@ export default function AdminBriefDetail() {
                                 {f.label}
                               </label>
                             ))}
-                            <div style={{fontSize:'10px',color:'#aaa',marginTop:'4px'}}>Format ve prodüktör notu her zaman iletilir.</div>
+                            <div style={{fontSize:'10px',color:'rgba(255,255,255,0.25)',marginTop:'4px'}}>Format ve prodüktör notu her zaman iletilir.</div>
                           </div>
                           <div style={{marginBottom:'8px'}}>
-                            <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>Not</div>
+                            <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>Not</div>
                             <textarea value={forwardForm.producer_note} onChange={e=>setForwardForm({...forwardForm,producer_note:e.target.value})} rows={2} style={{...inputStyle,resize:'vertical',fontSize:'12px',padding:'8px 10px'}} />
                           </div>
                           <button type="submit" disabled={loading} style={{width:'100%',padding:'8px',background:'#111113',color:'#fff',border:'none',borderRadius:'8px',fontSize:'12px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',fontWeight:'500'}}>
@@ -516,10 +516,10 @@ export default function AdminBriefDetail() {
 
                     {/* BRIEF INFO */}
                     <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'16px',marginBottom:'12px'}}>
-                      <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'12px'}}>Brief</div>
+                      <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'12px'}}>Brief</div>
                       {[{label:'Müşteri',value:brief.client_users?.users?.name},{label:'Email',value:clientEmail},{label:'Mecralar',value:brief.platforms&&Array.isArray(brief.platforms)&&brief.platforms.length>0?brief.platforms.join(', '):null},{label:'Mesaj',value:brief.message},{label:'CTA',value:brief.cta},{label:'Hedef Kitle',value:brief.target_audience},{label:'Seslendirme',value:brief.voiceover_type==='real'?`Gerçek Seslendirme${brief.voiceover_gender==='male'?' · Erkek':brief.voiceover_gender==='female'?' · Kadın':''}`:brief.voiceover_type==='ai'?`AI Seslendirme${brief.voiceover_gender==='male'?' · Erkek':brief.voiceover_gender==='female'?' · Kadın':''}`:null},{label:'Seslendirme Metni',value:brief.voiceover_text},{label:'Notlar',value:brief.notes}].filter(f=>f.value).map(f=>(
                         <div key={f.label} style={{marginBottom:'10px',paddingBottom:'10px',borderBottom:'0.5px solid rgba(0,0,0,0.06)'}}>
-                          <div style={{fontSize:'9px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'3px'}}>{f.label}</div>
+                          <div style={{fontSize:'9px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'3px'}}>{f.label}</div>
                           <div style={{fontSize:'12px',color:'#0a0a0a',lineHeight:'1.5'}}>{f.value}</div>
                         </div>
                       ))}
@@ -532,7 +532,7 @@ export default function AdminBriefDetail() {
                     {/* VOICEOVER UPLOAD */}
                     {brief.voiceover_type==='real'&&(
                       <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'16px',marginBottom:'12px'}}>
-                        <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'10px'}}>{brief.voiceover_gender==='male'?'Erkek':'Kadın'} Seslendirme Dosyası</div>
+                        <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'10px'}}>{brief.voiceover_gender==='male'?'Erkek':'Kadın'} Seslendirme Dosyası</div>
                         {brief.voiceover_file_url ? (
                           <div>
                             <audio controls src={brief.voiceover_file_url} style={{width:'100%',marginBottom:'8px',borderRadius:'8px'}} />
@@ -548,7 +548,7 @@ export default function AdminBriefDetail() {
                               style={{padding:'7px 16px',background:'#111113',color:'#fff',border:'none',borderRadius:'8px',fontSize:'11px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',fontWeight:'500'}}>
                               {voUpload?'Yükleniyor...':'Yükle'}
                             </button>
-                            <div style={{fontSize:'10px',color:'#aaa',marginTop:'6px'}}>mp3, wav, m4a — maks 50MB</div>
+                            <div style={{fontSize:'10px',color:'rgba(255,255,255,0.25)',marginTop:'6px'}}>mp3, wav, m4a — maks 50MB</div>
                           </div>
                         )}
                       </div>
@@ -556,8 +556,8 @@ export default function AdminBriefDetail() {
 
                     {/* QUESTIONS */}
                     <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'16px'}}>
-                      <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'10px'}}>Sorular</div>
-                      {visibleQ.length===0&&<div style={{fontSize:'11px',color:'#888',marginBottom:'10px'}}>Henüz soru yok.</div>}
+                      <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'10px'}}>Sorular</div>
+                      {visibleQ.length===0&&<div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',marginBottom:'10px'}}>Henüz soru yok.</div>}
                       {visibleQ.map(q=>(
                         <div key={q.id} style={{marginBottom:'6px',padding:'8px 10px',background:'#f5f4f0',borderRadius:'8px'}}>
                           <div style={{fontSize:'12px',color:'#0a0a0a',marginBottom:'2px'}}>{q.question}</div>
@@ -571,7 +571,7 @@ export default function AdminBriefDetail() {
                             </div>
                           ) : (
                             <div style={{display:'flex',alignItems:'center',gap:'8px',marginTop:'2px'}}>
-                              <div style={{fontSize:'10px',color:'#888'}}>Cevap bekleniyor</div>
+                              <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)'}}>Cevap bekleniyor</div>
                               <button onClick={()=>{setAnswerEditing(q.id);setAnswerText('')}} style={{fontSize:'10px',color:'#3b82f6',background:'none',border:'none',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>Cevabı Gir</button>
                             </div>
                           )}
@@ -588,7 +588,7 @@ export default function AdminBriefDetail() {
                       {adminNotes.map(n=>(
                         <div key={n.id} style={{marginBottom:'6px',padding:'8px 10px',background:'rgba(245,158,11,0.04)',borderRadius:'8px',border:'0.5px solid rgba(245,158,11,0.1)'}}>
                           <div style={{fontSize:'12px',color:'#0a0a0a'}}>{n.note}</div>
-                          <div style={{fontSize:'10px',color:'#aaa',marginTop:'3px'}}>{n.users?.name} · {new Date(n.created_at).toLocaleDateString('tr-TR')}</div>
+                          <div style={{fontSize:'10px',color:'rgba(255,255,255,0.25)',marginTop:'3px'}}>{n.users?.name} · {new Date(n.created_at).toLocaleDateString('tr-TR')}</div>
                         </div>
                       ))}
                       <div style={{display:'flex',gap:'6px',marginTop:'8px'}}>
@@ -670,7 +670,7 @@ export default function AdminBriefDetail() {
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round"><path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
             </div>
             <div style={{fontSize:'18px',fontWeight:'500',color:'#0a0a0a',marginBottom:'10px'}}>Dikkat</div>
-            <div style={{fontSize:'13px',color:'#888',lineHeight:1.7,marginBottom:'24px'}}>Bu butonu yalnızca iş platform dışında ilerledi ve müşteri onay vermeden yayına girdi ya da platform dışından onay bildirdi ise kullanın. Devam etmek istiyor musunuz?</div>
+            <div style={{fontSize:'13px',color:'rgba(255,255,255,0.4)',lineHeight:1.7,marginBottom:'24px'}}>Bu butonu yalnızca iş platform dışında ilerledi ve müşteri onay vermeden yayına girdi ya da platform dışından onay bildirdi ise kullanın. Devam etmek istiyor musunuz?</div>
             <div style={{display:'flex',gap:'10px'}}>
               <button onClick={()=>setShowClientApproveModal(false)} style={{flex:1,padding:'12px',background:'#f5f4f0',color:'#555',border:'none',borderRadius:'10px',fontSize:'14px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>İptal</button>
               <button onClick={()=>{setShowClientApproveModal(false);handleClientApprove()}} disabled={loading}

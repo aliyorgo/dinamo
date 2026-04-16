@@ -82,7 +82,7 @@ export default function BriefsPage() {
       <div style={{width:'240px',background:'#0A0A0A',padding:'32px 0',display:'flex',flexDirection:'column',flexShrink:0}}>
         <div style={{padding:'0 24px 32px',borderBottom:'1px solid rgba(255,255,255,0.08)'}}>
           <img src="/dinamo_logo.png" alt="Dinamo" style={{height:"28px"}} />
-          <div style={{fontSize:'11px',color:'#666',marginTop:'4px',letterSpacing:'1px',fontFamily:'monospace'}}>ADMIN</div>
+          <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',marginTop:'4px',letterSpacing:'1px',fontFamily:'monospace'}}>ADMIN</div>
         </div>
         <nav style={{flex:1,padding:'24px 0'}}>
           {NAV.map(item=>(
@@ -98,14 +98,14 @@ export default function BriefsPage() {
           <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Kampanya veya marka ara..."
             style={{padding:'8px 14px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'13px',width:'220px',color:'#0a0a0a'}} />
           <input type="date" value={dateFrom} onChange={e=>setDateFrom(e.target.value)} style={{padding:'8px 10px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'12px',color:'#0a0a0a'}} />
-          <span style={{fontSize:'11px',color:'#888'}}>—</span>
+          <span style={{fontSize:'11px',color:'rgba(255,255,255,0.4)'}}>—</span>
           <input type="date" value={dateTo} onChange={e=>setDateTo(e.target.value)} style={{padding:'8px 10px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'12px',color:'#0a0a0a'}} />
           <select value={creatorFilter} onChange={e=>setCreatorFilter(e.target.value)} style={{padding:'8px 10px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'12px',color:'#0a0a0a',background:'#fff'}}>
             <option value="">Tüm Creator'lar</option>
             {creators.map(c=><option key={c.id} value={c.id}>{c.users?.name}</option>)}
           </select>
           {(search||dateFrom||dateTo||creatorFilter||filter!=='all') && (
-            <button onClick={clearFilters} style={{padding:'8px 14px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'11px',color:'#888',background:'#fff',cursor:'pointer'}}>Filtreleri Temizle</button>
+            <button onClick={clearFilters} style={{padding:'8px 14px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'11px',color:'rgba(255,255,255,0.4)',background:'#fff',cursor:'pointer'}}>Filtreleri Temizle</button>
           )}
         </div>
 
@@ -140,7 +140,7 @@ export default function BriefsPage() {
         {/* TABLE */}
         <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',overflow:'hidden'}}>
           {filtered.length === 0 ? (
-            <div style={{padding:'48px',textAlign:'center',color:'#888',fontSize:'14px'}}>Brief yok.</div>
+            <div style={{padding:'48px',textAlign:'center',color:'rgba(255,255,255,0.4)',fontSize:'14px'}}>Brief yok.</div>
           ) : (
             <table style={{width:'100%',borderCollapse:'collapse'}}>
               <thead>
@@ -149,7 +149,7 @@ export default function BriefsPage() {
                     <input type="checkbox" checked={selected.size===filtered.length&&filtered.length>0} onChange={toggleAll} style={{accentColor:'#22c55e'}} />
                   </th>
                   {['Kampanya','Marka','Video Tipi','Durum','Tarih'].map(h=>(
-                    <th key={h} style={{padding:'12px 16px',textAlign:'left',fontSize:'11px',color:'#888',letterSpacing:'0.5px',fontWeight:'400'}}>{h}</th>
+                    <th key={h} style={{padding:'12px 16px',textAlign:'left',fontSize:'11px',color:'rgba(255,255,255,0.4)',letterSpacing:'0.5px',fontWeight:'400'}}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -162,14 +162,14 @@ export default function BriefsPage() {
                       <input type="checkbox" checked={selected.has(brief.id)} onChange={()=>toggleSelect(brief.id)} style={{accentColor:'#22c55e'}} />
                     </td>
                     <td onClick={()=>router.push(`/dashboard/admin/briefs/${brief.id}`)} style={{padding:'12px 16px',fontSize:'14px',fontWeight:'500'}}>{brief.campaign_name}</td>
-                    <td onClick={()=>router.push(`/dashboard/admin/briefs/${brief.id}`)} style={{padding:'12px 16px',fontSize:'13px',color:'#888'}}>{brief.clients?.company_name||'—'}</td>
-                    <td onClick={()=>router.push(`/dashboard/admin/briefs/${brief.id}`)} style={{padding:'12px 16px',fontSize:'13px',color:'#888'}}>{brief.video_type}</td>
+                    <td onClick={()=>router.push(`/dashboard/admin/briefs/${brief.id}`)} style={{padding:'12px 16px',fontSize:'13px',color:'rgba(255,255,255,0.4)'}}>{brief.clients?.company_name||'—'}</td>
+                    <td onClick={()=>router.push(`/dashboard/admin/briefs/${brief.id}`)} style={{padding:'12px 16px',fontSize:'13px',color:'rgba(255,255,255,0.4)'}}>{brief.video_type}</td>
                     <td onClick={()=>router.push(`/dashboard/admin/briefs/${brief.id}`)} style={{padding:'12px 16px'}}>
                       <span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:`${statusColor[brief.status]||'#888'}15`,color:statusColor[brief.status]||'#888'}}>
                         {statusLabel[brief.status]||brief.status}
                       </span>
                     </td>
-                    <td onClick={()=>router.push(`/dashboard/admin/briefs/${brief.id}`)} style={{padding:'12px 16px',fontSize:'13px',color:'#888'}}>{new Date(brief.created_at).toLocaleDateString('tr-TR')}</td>
+                    <td onClick={()=>router.push(`/dashboard/admin/briefs/${brief.id}`)} style={{padding:'12px 16px',fontSize:'13px',color:'rgba(255,255,255,0.4)'}}>{new Date(brief.created_at).toLocaleDateString('tr-TR')}</td>
                   </tr>
                 ))}
               </tbody>

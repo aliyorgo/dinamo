@@ -220,12 +220,12 @@ export default function AgencyClientsPage() {
         </div>
         <div onClick={() => router.push('/dashboard/agency/studio/credits')} style={{ padding: '10px 12px', margin: '0 8px', borderRadius: '8px', background: 'rgba(255,255,255,0.04)', cursor: 'pointer' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)' }}>Kredi</span>
+            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>Kredi</span>
             <span style={{ fontSize: '12px', fontWeight: '500', color: '#22c55e' }}>{agency?.demo_credits || 0} kr</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)' }}>Kazanc</span>
-            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>{Number(agency?.total_earnings || 0).toLocaleString('tr-TR')} TL</span>
+            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>Kazanc</span>
+            <span style={{ fontSize: '11px', color: '#888' }}>{Number(agency?.total_earnings || 0).toLocaleString('tr-TR')} TL</span>
           </div>
         </div>
         <div style={{ padding: '10px 8px', borderTop: '0.5px solid rgba(255,255,255,0.07)' }}>
@@ -276,7 +276,7 @@ export default function AgencyClientsPage() {
                   {adding ? 'Ekleniyor...' : 'Ekle'}
                 </button>
               </form>
-              <div style={{ marginTop: '10px', fontSize: '11px', color: '#aaa' }}>
+              <div style={{ marginTop: '10px', fontSize: '11px', color: 'rgba(255,255,255,0.25)' }}>
                 Eklenen her müşteriye otomatik olarak {DEMO_CREDITS} demo kredi yüklenir.
               </div>
             </div>
@@ -287,7 +287,7 @@ export default function AgencyClientsPage() {
                 Müşteri Listesi ({clients.length})
               </div>
               {clients.length === 0 ? (
-                <div style={{ padding: '40px', textAlign: 'center', color: '#aaa', fontSize: '13px' }}>Henüz müşteri eklenmemiş.</div>
+                <div style={{ padding: '40px', textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontSize: '13px' }}>Henüz müşteri eklenmemiş.</div>
               ) : clients.map((client, i) => {
                 const st = STATUS_MAP[client.status] || STATUS_MAP.pending
                 return (
@@ -318,24 +318,24 @@ export default function AgencyClientsPage() {
                       )}
                     </div>
                     {client._lastActivity && (
-                      <div style={{ fontSize: '10px', color: '#aaa', marginTop: '3px' }}>
+                      <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)', marginTop: '3px' }}>
                         Son aktivite: {new Date(client._lastActivity).toLocaleDateString('tr-TR')}
                       </div>
                     )}
                   </div>
                   <div style={{ display: 'flex', gap: '16px', flexShrink: 0 }}>
                     <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontSize: '10px', color: '#aaa' }}>Kredi</div>
+                      <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)' }}>Kredi</div>
                       <div style={{ fontSize: '13px', fontWeight: '500', color: Number(client.credit_balance) === 0 ? '#ef4444' : Number(client.credit_balance) < 10 ? '#f59e0b' : '#0a0a0a' }}>{client.credit_balance || 0}</div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontSize: '10px', color: '#aaa' }}>İş</div>
+                      <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)' }}>İş</div>
                       <div style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>{client._approvedCount || 0}</div>
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }} onClick={e => e.stopPropagation()}>
                     <button onClick={() => openEditModal(client)} title="Düzenle"
-                      style={{ width: '30px', height: '30px', borderRadius: '7px', border: '0.5px solid rgba(0,0,0,0.1)', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', color: '#666' }}>
+                      style={{ width: '30px', height: '30px', borderRadius: '7px', border: '0.5px solid rgba(0,0,0,0.1)', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', color: 'rgba(255,255,255,0.4)' }}>
                       ✎
                     </button>
                     <button onClick={() => openDeleteModal(client)} title="Sil"
@@ -368,7 +368,7 @@ export default function AgencyClientsPage() {
               </div>
               <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
                 <button type="button" onClick={() => setEditClient(null)}
-                  style={{ padding: '8px 16px', background: '#f5f4f0', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', color: '#666' }}>
+                  style={{ padding: '8px 16px', background: '#f5f4f0', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', color: 'rgba(255,255,255,0.4)' }}>
                   İptal
                 </button>
                 <button type="submit" disabled={saving}
@@ -393,7 +393,7 @@ export default function AgencyClientsPage() {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                   <button onClick={() => setDeleteClient(null)}
-                    style={{ padding: '8px 16px', background: '#f5f4f0', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', color: '#666' }}>
+                    style={{ padding: '8px 16px', background: '#f5f4f0', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', color: 'rgba(255,255,255,0.4)' }}>
                     Kapat
                   </button>
                 </div>
@@ -405,7 +405,7 @@ export default function AgencyClientsPage() {
                 </div>
                 <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
                   <button onClick={() => setDeleteClient(null)}
-                    style={{ padding: '8px 16px', background: '#f5f4f0', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', color: '#666' }}>
+                    style={{ padding: '8px 16px', background: '#f5f4f0', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', color: 'rgba(255,255,255,0.4)' }}>
                     İptal
                   </button>
                   <button onClick={confirmDelete} disabled={deleting}

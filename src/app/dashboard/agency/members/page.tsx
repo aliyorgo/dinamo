@@ -150,7 +150,7 @@ export default function AgencyMembersPage() {
         <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px' }}>
           <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', overflow: 'hidden' }}>
             {members.length === 0 ? (
-              <div style={{ padding: '40px', textAlign: 'center', color: '#aaa', fontSize: '13px' }}>Henuz ekip uyesi yok.</div>
+              <div style={{ padding: '40px', textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontSize: '13px' }}>Henuz ekip uyesi yok.</div>
             ) : members.map((m, i) => (
               <div key={m.id} style={{ padding: '14px 20px', borderTop: i > 0 ? '0.5px solid rgba(0,0,0,0.06)' : 'none', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}
                 onClick={() => router.push(`/dashboard/agency/members/${m.id}`)}>

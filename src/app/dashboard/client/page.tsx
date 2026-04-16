@@ -146,9 +146,9 @@ export default function ClientDashboard() {
     <div style={{display:'flex',minHeight:'100vh',fontFamily:"var(--font-dm-sans),'DM Sans',system-ui,sans-serif",background:'#f5f4f0'}}>
 
       {/* SIDEBAR */}
-      <div style={{width:'240px',background:'#0A0A0A',display:'flex',flexDirection:'column',flexShrink:0,height:'100vh',position:'sticky',top:0}}>
-        <div style={{padding:'18px 16px 14px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
-          <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} />
+      <div style={{width:'240px',background:'#fff',borderRight:'1px solid #E8E8E4',display:'flex',flexDirection:'column',flexShrink:0,height:'100vh',position:'sticky',top:0}}>
+        <div style={{padding:'18px 16px 14px',borderBottom:'1px solid #E8E8E4'}}>
+          <img src="/dinamo_logo_siyah.png" alt="Dinamo" style={{height:'28px'}} />
         </div>
         <div style={{margin:'12px 12px',padding:'16px 20px',background:'#F0F7F0',borderLeft:'3px solid #1DB81D'}}>
           <div style={{fontSize:'18px',fontWeight:'700',color:'#0A0A0A',marginBottom:'2px'}}>{companyName || 'Dinamo'}</div>
@@ -156,7 +156,7 @@ export default function ClientDashboard() {
           <div style={{fontSize:'10px',color:'#AAA',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:'8px'}}>KREDİ BAKİYESİ</div>
           <div style={{fontSize:'28px',fontWeight:'700',color:'#1DB81D',letterSpacing:'-1px'}}>{credits}</div>
         </div>
-        <nav style={{padding:'10px 8px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
+        <nav style={{padding:'10px 8px',borderBottom:'1px solid #E8E8E4'}}>
           {[
             {label:'Projelerim', href:'/dashboard/client', active:true},
             {label:'Yeni Brief', href:'/dashboard/client/brief/new', active:false},
@@ -174,12 +174,12 @@ export default function ClientDashboard() {
           ))}
         </nav>
         <div style={{flex:1}}></div>
-        <div style={{padding:'10px 8px',borderTop:'0.5px solid rgba(255,255,255,0.07)'}}>
+        <div style={{padding:'10px 8px',borderTop:'1px solid #E8E8E4'}}>
           <button onClick={handleLogout}
             onMouseEnter={e=>{(e.currentTarget.firstChild as HTMLElement).style.color='#FF4444'}}
             onMouseLeave={e=>{(e.currentTarget.firstChild as HTMLElement).style.color='rgba(255,255,255,0.25)'}}
             style={{display:'flex',alignItems:'center',gap:'7px',padding:'6px 8px',cursor:'pointer',width:'100%',background:'none',border:'none',transition:'all 0.15s ease'}}>
-            <span style={{fontSize:'11px',color:'rgba(255,255,255,0.25)',fontFamily:'var(--font-dm-sans),sans-serif',transition:'color 0.15s ease'}}>Çıkış yap</span>
+            <span style={{fontSize:'11px',color:'#aaa',fontFamily:'var(--font-dm-sans),sans-serif',transition:'color 0.15s ease'}}>Çıkış yap</span>
           </button>
         </div>
       </div>

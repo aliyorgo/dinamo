@@ -281,7 +281,7 @@ export default function ClientsPage() {
           <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', overflow: 'hidden', marginBottom: '16px' }}>
             <div onClick={() => toggleGroup('direct')}
               style={{ padding: '14px 20px', borderBottom: collapsed['direct'] ? 'none' : '0.5px solid rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', userSelect: 'none' }}>
-              <span style={{ fontSize: '12px', color: '#aaa', transition: 'transform 0.2s', transform: collapsed['direct'] ? 'rotate(-90deg)' : 'rotate(0deg)' }}>&#9660;</span>
+              <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.25)', transition: 'transform 0.2s', transform: collapsed['direct'] ? 'rotate(-90deg)' : 'rotate(0deg)' }}>&#9660;</span>
               <div style={{ width: '22px', height: '22px', borderRadius: '5px', background: '#111113', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <span style={{ fontSize: '10px', fontWeight: '600', color: '#fff' }}>D</span>
               </div>
@@ -290,7 +290,7 @@ export default function ClientsPage() {
             </div>
             {!collapsed['direct'] && (
               directClients.length === 0 ? (
-                <div style={{ padding: '20px', textAlign: 'center', color: '#aaa', fontSize: '12px' }}>Dogrudan musteri yok.</div>
+                <div style={{ padding: '20px', textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontSize: '12px' }}>Dogrudan musteri yok.</div>
               ) : directClients.map(client => (
                 <ClientRow key={client.id} client={client} />
               ))
@@ -302,7 +302,7 @@ export default function ClientsPage() {
             <div key={ag.id} style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', overflow: 'hidden', marginBottom: '16px' }}>
               <div onClick={() => toggleGroup(ag.id)}
                 style={{ padding: '14px 20px', borderBottom: collapsed[ag.id] ? 'none' : '0.5px solid rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', userSelect: 'none' }}>
-                <span style={{ fontSize: '12px', color: '#aaa', transition: 'transform 0.2s', transform: collapsed[ag.id] ? 'rotate(-90deg)' : 'rotate(0deg)' }}>&#9660;</span>
+                <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.25)', transition: 'transform 0.2s', transform: collapsed[ag.id] ? 'rotate(-90deg)' : 'rotate(0deg)' }}>&#9660;</span>
                 {ag.logo_url ? (
                   <div style={{ width: '22px', height: '22px', borderRadius: '5px', overflow: 'hidden', background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', flexShrink: 0 }}>
                     <img src={ag.logo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '2px' }} />
@@ -321,7 +321,7 @@ export default function ClientsPage() {
               </div>
               {!collapsed[ag.id] && (
                 ag.clients.length === 0 ? (
-                  <div style={{ padding: '20px', textAlign: 'center', color: '#aaa', fontSize: '12px' }}>Musteri yok.</div>
+                  <div style={{ padding: '20px', textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontSize: '12px' }}>Musteri yok.</div>
                 ) : ag.clients.map((client: any) => (
                   <div key={client.id} style={{ paddingLeft: '12px' }}>
                     <ClientRow client={client} />

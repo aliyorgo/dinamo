@@ -418,15 +418,15 @@ export default function AgenciesPage() {
                       </div>
                       <div style={{ display: 'flex', gap: '20px', flexShrink: 0 }}>
                         <div style={{ textAlign: 'right' }}>
-                          <div style={{ fontSize: '10px', color: '#aaa' }}>Kazanç</div>
+                          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)' }}>Kazanç</div>
                           <div style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>{formatTL(Number(agency.total_earnings || 0))}</div>
                         </div>
                         <div style={{ textAlign: 'right' }}>
-                          <div style={{ fontSize: '10px', color: '#aaa' }}>Faturalanan</div>
+                          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)' }}>Faturalanan</div>
                           <div style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>{formatTL(Number(agency.invoiced_amount || 0))}</div>
                         </div>
                         <div style={{ textAlign: 'right' }}>
-                          <div style={{ fontSize: '10px', color: '#aaa' }}>Ödenen</div>
+                          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)' }}>Ödenen</div>
                           <div style={{ fontSize: '13px', fontWeight: '500', color: '#22c55e' }}>{formatTL(Number(agency.paid_amount || 0))}</div>
                         </div>
                       </div>
@@ -434,7 +434,7 @@ export default function AgenciesPage() {
                         style={{ padding: '5px 14px', borderRadius: '100px', fontSize: '10px', fontWeight: '500', cursor: 'pointer', border: '0.5px solid rgba(0,0,0,0.15)', background: '#fff', color: '#555', fontFamily: 'var(--font-dm-sans),sans-serif', flexShrink: 0 }}>
                         Detay
                       </button>
-                      <div style={{ fontSize: '16px', color: '#aaa', flexShrink: 0, userSelect: 'none' }}>
+                      <div style={{ fontSize: '16px', color: 'rgba(255,255,255,0.25)', flexShrink: 0, userSelect: 'none' }}>
                         {expanded === agency.id ? '▲' : '▼'}
                       </div>
                     </div>
@@ -501,7 +501,7 @@ export default function AgenciesPage() {
                             {/* Pipeline list */}
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                               {(agencyClients[agency.id] || []).length === 0 ? (
-                                <div style={{ fontSize: '12px', color: '#aaa', padding: '12px', textAlign: 'center' }}>Pipeline boş.</div>
+                                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.25)', padding: '12px', textAlign: 'center' }}>Pipeline boş.</div>
                               ) : (agencyClients[agency.id] || []).map(c => (
                                 <div key={c.id} style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '8px', padding: '10px 12px', borderLeft: `3px solid ${PIPELINE_STATUS[c.status]?.color || '#888'}` }}>
                                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
@@ -512,7 +512,7 @@ export default function AgenciesPage() {
                                           {c.contact_name}{c.contact_name && c.contact_email ? ' · ' : ''}{c.contact_email}
                                         </div>
                                       )}
-                                      {c.notes && <div style={{ fontSize: '11px', color: '#aaa', marginTop: '2px', fontStyle: 'italic' }}>{c.notes}</div>}
+                                      {c.notes && <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', marginTop: '2px', fontStyle: 'italic' }}>{c.notes}</div>}
                                     </div>
                                     <select value={c.status} onChange={e => updatePipelineStatus(c.id, agency.id, e.target.value)}
                                       onClick={e => e.stopPropagation()}
@@ -562,12 +562,12 @@ export default function AgenciesPage() {
 
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '20px' }}>
                               {(agencyInvoices[agency.id] || []).length === 0 ? (
-                                <div style={{ fontSize: '12px', color: '#aaa', padding: '12px', textAlign: 'center' }}>Fatura yok.</div>
+                                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.25)', padding: '12px', textAlign: 'center' }}>Fatura yok.</div>
                               ) : (agencyInvoices[agency.id] || []).map(inv => (
                                 <div key={inv.id} style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '8px', padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '10px', borderLeft: `3px solid ${inv.is_paid ? '#22c55e' : '#f59e0b'}` }}>
                                   <div style={{ flex: 1, minWidth: 0 }}>
                                     <div style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>{formatTL(Number(inv.amount))}</div>
-                                    <div style={{ fontSize: '10px', color: '#aaa', marginTop: '2px' }}>
+                                    <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)', marginTop: '2px' }}>
                                       {inv.invoice_number && <span style={{ marginRight: '8px' }}>{inv.invoice_number}</span>}
                                       {inv.invoice_date && new Date(inv.invoice_date).toLocaleDateString('tr-TR')}
                                     </div>
