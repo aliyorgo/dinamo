@@ -264,9 +264,9 @@ export default function CreditsPage() {
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
 
-      {/* LEFT PANEL — Client List */}
-      <div style={{ width: '320px', background: '#fff', borderRight: '1px solid #E8E8E4', display: 'flex', flexDirection: 'column', height: '100vh', position: 'sticky', top: 0 }}>
-        <div style={{ padding: '16px', borderBottom: '0.5px solid rgba(255,255,255,0.07)' }}>
+      {/* LEFT — Client List */}
+      <div style={{ width: '280px', background: '#fff', borderRight: '1px solid #E8E8E4', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+        <div style={{ padding: '16px', borderBottom: '1px solid #E8E8E4' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
             <span style={{ fontSize: '14px', fontWeight: '600', color: '#0a0a0a' }}>Müşteriler</span>
             <button onClick={() => setShowCreateClient(!showCreateClient)} style={{ ...btnPrimary, padding: '5px 12px', fontSize: '11px' }}>+ Yeni</button>
@@ -274,16 +274,15 @@ export default function CreditsPage() {
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Müşteri ara..." style={{ ...inputStyle, fontSize: '12px' }} />
         </div>
 
-        {/* Create client inline form */}
         {showCreateClient && (
-          <div style={{ padding: '12px 16px', borderBottom: '0.5px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.04)' }}>
+          <div style={{ padding: '12px 16px', borderBottom: '1px solid #E8E8E4', background: '#FAFAF8' }}>
             <form onSubmit={createClientFn}>
               <div style={{ marginBottom: '8px' }}><label style={labelStyle}>Şirket Adı *</label><input required value={newClient.company_name} onChange={e => setNewClient({ ...newClient, company_name: e.target.value })} style={inputStyle} /></div>
               <div style={{ marginBottom: '8px' }}><label style={labelStyle}>Email</label><input type="email" value={newClient.contact_email} onChange={e => setNewClient({ ...newClient, contact_email: e.target.value })} style={inputStyle} /></div>
               <div style={{ marginBottom: '10px' }}>
                 <label style={labelStyle}>Ajans</label>
                 <select value={newClient.agency_id} onChange={e => setNewClient({ ...newClient, agency_id: e.target.value })} style={{ ...inputStyle, cursor: 'pointer' }}>
-                  <option value="">DINAMO</option>
+                  <option value="">Yok</option>
                   {agencies.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                 </select>
               </div>
@@ -292,10 +291,9 @@ export default function CreditsPage() {
           </div>
         )}
 
-        {/* Client list */}
-        <div className="dinamo-main-content" style={{ flex: 1, overflowY: 'auto' }}>
+        <div style={{ flex: 1, overflowY: 'auto' }}>
           {filtered.length === 0 ? (
-            <div style={{ padding: '32px', textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontSize: '12px' }}>Henüz müşteri yok.</div>
+            <div style={{ padding: '32px', textAlign: 'center', color: '#aaa', fontSize: '12px' }}>Henüz müşteri yok.</div>
           ) : filtered.map(c => (
             <div key={c.id} onClick={() => selectClient(c.id)}
               style={{ padding: '12px 16px', borderBottom: '1px solid #F0F0EE', cursor: 'pointer', borderLeft: selectedId === c.id ? '3px solid #1DB81D' : '3px solid transparent', background: selectedId === c.id ? '#F8FFF8' : 'transparent', transition: 'all 0.1s' }}>
@@ -303,15 +301,15 @@ export default function CreditsPage() {
                 <span style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>{c.company_name}</span>
                 <span style={{ fontSize: '11px', fontWeight: '600', color: '#1DB81D' }}>{c.credit_balance || 0}</span>
               </div>
-              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', marginTop: '2px' }}>{c.client_users?.[0]?.count || 0} kullanıcı</div>
+              <div style={{ fontSize: '11px', color: '#aaa', marginTop: '2px' }}>{c.client_users?.[0]?.count || 0} kullanıcı</div>
             </div>
           ))}
         </div>
-        {msg && <div style={{ padding: '10px 16px', background: '#F0F7F0', fontSize: '12px', color: '#166534', borderTop: '0.5px solid rgba(255,255,255,0.07)' }}>{msg}</div>}
+        {msg && <div style={{ padding: '10px 16px', background: '#F0F7F0', fontSize: '12px', color: '#166534', borderTop: '1px solid #E8E8E4' }}>{msg}</div>}
       </div>
 
-      {/* RIGHT PANEL — Client Detail */}
-      <div style={{ flex: 1, background: '#f5f4f0', overflowY: 'auto', height: '100vh' }}>
+      {/* RIGHT — Client Detail */}
+      <div style={{ flex: 1, background: '#f5f4f0', overflowY: 'auto' }}>
         {!selectedId ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
             <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.25)' }}>
