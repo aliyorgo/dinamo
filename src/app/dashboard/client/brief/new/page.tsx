@@ -282,7 +282,7 @@ function NewBriefPage() {
   }
 
   const cost = calcCost()
-  const balance = clientUser?.credit_balance || 0
+  const balance = clientUser?.allocated_credits || 0
 
   const steps = ['Kampanya & Format','Hedef & CTA','Brief Metni','Seslendirme','Son Kontrol']
 
