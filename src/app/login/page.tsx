@@ -14,6 +14,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [resetMode, setResetMode] = useState(false)
+  const [resetMsg, setResetMsg] = useState('')
   const router = useRouter()
 
   async function handleLogin(e: React.FormEvent) {
@@ -27,6 +29,19 @@ export default function LoginPage() {
       return
     }
     router.push('/dashboard')
+  }
+
+  async function handleReset(e: React.FormEvent) {
+    e.preventDefault()
+    if (!email) { setError('E-posta adresinizi girin.'); return }
+    setLoading(true)
+    setError('')
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: 'https://dinamo.media/reset-password',
+    })
+    setLoading(false)
+    if (error) { setError(error.message); return }
+    setResetMsg('Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.')
   }
 
   const inputStyle: React.CSSProperties = {
@@ -68,18 +83,35 @@ export default function LoginPage() {
           {error && (
             <div style={{ color: '#ef4444', fontSize: '13px', marginBottom: '16px', fontWeight: '400' }}>{error}</div>
           )}
-          <button type="submit" disabled={loading} style={{
-            width: '100%', padding: '14px', background: '#1db81d', color: '#fff',
-            border: 'none', borderRadius: '10px', fontSize: '14px', fontWeight: '500',
-            cursor: 'pointer', fontFamily: "'Inter', sans-serif",
-            transition: 'opacity 0.3s',
-            opacity: loading ? 0.6 : 1,
-          }}>
-            {loading ? 'Giriş yapılıyor...' : 'Giriş Yap'}
-          </button>
+          {resetMsg && (
+            <div style={{ color: '#22c55e', fontSize: '13px', marginBottom: '16px', fontWeight: '400' }}>{resetMsg}</div>
+          )}
+          {!resetMode ? (
+            <button type="submit" disabled={loading} style={{
+              width: '100%', padding: '14px', background: '#1db81d', color: '#fff',
+              border: 'none', borderRadius: '10px', fontSize: '14px', fontWeight: '500',
+              cursor: 'pointer', fontFamily: "'Inter', sans-serif",
+              transition: 'opacity 0.3s',
+              opacity: loading ? 0.6 : 1,
+            }}>
+              {loading ? 'Giriş yapılıyor...' : 'Giriş Yap'}
+            </button>
+          ) : (
+            <button type="button" onClick={handleReset} disabled={loading} style={{
+              width: '100%', padding: '14px', background: 'rgba(255,255,255,0.08)', color: '#fff',
+              border: '1px solid rgba(255,255,255,0.15)', borderRadius: '10px', fontSize: '14px', fontWeight: '500',
+              cursor: 'pointer', fontFamily: "'Inter', sans-serif",
+              opacity: loading ? 0.6 : 1,
+            }}>
+              {loading ? 'Gönderiliyor...' : 'Sıfırlama Bağlantısı Gönder'}
+            </button>
+          )}
         </form>
         <div style={{ marginTop: '24px', textAlign: 'center' }}>
-          <a href="#" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.25)', fontWeight: '300' }}>Şifremi unuttum</a>
+          <span onClick={() => { setResetMode(!resetMode); setError(''); setResetMsg('') }}
+            style={{ fontSize: '13px', color: 'rgba(255,255,255,0.25)', fontWeight: '300', cursor: 'pointer' }}>
+            {resetMode ? 'Giriş Yap' : 'Şifremi unuttum'}
+          </span>
         </div>
       </div>
     </div>

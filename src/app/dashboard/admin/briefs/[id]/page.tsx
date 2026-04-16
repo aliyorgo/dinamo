@@ -239,6 +239,14 @@ export default function AdminBriefDetail() {
     const { data: { user } } = await supabase.auth.getUser()
     await supabase.from('brief_questions').insert({ brief_id: id, question, asked_by: user?.id })
     await supabase.from('briefs').update({ question_sent_at: new Date().toISOString() }).eq('id', id)
+    // Notify client via email
+    if (clientEmail && brief) {
+      await fetch('/api/notify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+        to: clientEmail,
+        subject: `${brief.campaign_name} hakkında bir soru var`,
+        html: `<p>Merhaba,</p><p>Prodüktörünüz <strong>${brief.campaign_name}</strong> brief'iniz hakkında soru sordu.</p><p>Dinamo'ya giriş yaparak yanıtlayabilirsiniz.</p><p>İyi çalışmalar,<br/>Dinamo</p>`
+      })}).catch(() => null)
+    }
     setQuestion(''); loadData()
   }
 
@@ -252,7 +260,6 @@ export default function AdminBriefDetail() {
   async function handleCancel() {
     if (!confirm('Bu briefi iptal etmek istediğinizden emin misiniz?')) return
     await supabase.from('briefs').update({ status:'cancelled' }).eq('id', id)
-    if (clientEmail && brief) { await fetch('/api/notify', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ to: clientEmail, subject: `${brief.campaign_name} — İptal`, html: `<p>Merhaba,</p><p><strong>${brief.campaign_name}</strong> briefi iptal edildi.</p><p>İyi çalışmalar,<br/>Dinamo</p>` }) }).catch(()=>null) }
     router.push('/dashboard/admin/briefs')
   }
 
