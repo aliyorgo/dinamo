@@ -85,29 +85,25 @@ export default function AdminDashboard() {
   return (
     <div style={{display:'flex',minHeight:'100vh',fontFamily:"var(--font-dm-sans),'DM Sans',system-ui,sans-serif"}}>
 
-      <div style={{width:'240px',background:'#0A0A0A',display:'flex',flexDirection:'column',flexShrink:0,height:'100vh',position:'sticky',top:0}}>
-        <div style={{padding:'18px 16px 14px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
-          <div style={{fontSize:'18px',fontWeight:'500',color:'#fff',letterSpacing:'-0.5px',marginBottom:'12px'}}>
-            <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} />
-          </div>
-          <div style={{fontSize:'10px',color:'rgba(255,255,255,0.3)',marginBottom:'3px'}}>Admin</div>
-          <div style={{fontSize:'13px',fontWeight:'500',color:'#fff'}}>{userName}</div>
+      <div className="dinamo-sidebar">
+        <div style={{padding:'20px 24px 16px'}}>
+          <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} />
+        </div>
+        <div className="dinamo-user-block">
+          <div className="dinamo-user-company">Admin</div>
+          <div className="dinamo-user-name">{userName}</div>
         </div>
 
-        <nav style={{padding:'10px 8px',flex:1}}>
+        <nav style={{flex:1}}>
           {NAV.map(item=>(
             <div key={item.href} onClick={()=>router.push(item.href)}
-              style={{display:'flex',alignItems:'center',padding:'7px 8px',borderRadius:'8px',cursor:'pointer',background:item.href==='/dashboard/admin'?'rgba(255,255,255,0.08)':'transparent',marginBottom:'1px'}}>
-              <span style={{fontSize:'12px',color:item.href==='/dashboard/admin'?'#fff':'rgba(255,255,255,0.4)',fontWeight:item.href==='/dashboard/admin'?'500':'400'}}>{item.label}</span>
+              className={`dinamo-nav-link${item.href==='/dashboard/admin'?' active':''}`}>
+              {item.label}
             </div>
           ))}
         </nav>
 
-        <div style={{padding:'10px 8px',borderTop:'0.5px solid rgba(255,255,255,0.07)'}}>
-          <button onClick={handleLogout} style={{display:'flex',alignItems:'center',gap:'7px',padding:'6px 8px',borderRadius:'7px',cursor:'pointer',width:'100%',background:'none',border:'none'}}>
-            <span style={{fontSize:'11px',color:'rgba(255,255,255,0.25)',fontFamily:'var(--font-dm-sans),sans-serif'}}>Çıkış yap</span>
-          </button>
-        </div>
+        <button onClick={handleLogout} className="dinamo-signout">Çıkış Yap</button>
       </div>
 
       <div style={{flex:1,display:'flex',flexDirection:'column',background:'#f5f4f0',overflow:'hidden'}}>

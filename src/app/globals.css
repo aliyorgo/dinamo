@@ -29,3 +29,139 @@ body {
 *, *::before, *::after {
   border-radius: 0 !important;
 }
+
+/* ═══════ SIDEBAR ═══════ */
+
+.dinamo-sidebar {
+  width: 240px;
+  min-height: 100vh;
+  background: #0A0A0A;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+}
+
+.dinamo-sidebar-light {
+  background: #FFFFFF;
+  border-right: 1px solid #E8E8E4;
+}
+
+/* NAV */
+.dinamo-nav-link {
+  display: block;
+  padding: 10px 24px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.4);
+  text-decoration: none;
+  letter-spacing: 0.05em;
+  border-left: 2px solid transparent;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.dinamo-sidebar-light .dinamo-nav-link {
+  color: #666666;
+}
+
+.dinamo-nav-link:hover {
+  background: rgba(255,255,255,0.06);
+  color: #FFFFFF;
+  border-left: 2px solid #1DB81D;
+}
+
+.dinamo-sidebar-light .dinamo-nav-link:hover {
+  background: #F5F5F5;
+  color: #0A0A0A;
+  border-left: 2px solid #1DB81D;
+}
+
+.dinamo-nav-link.active {
+  background: rgba(255,255,255,0.08);
+  color: #FFFFFF;
+  font-weight: 600;
+  border-left: 2px solid #1DB81D;
+}
+
+.dinamo-sidebar-light .dinamo-nav-link.active {
+  background: #F5F5F5;
+  color: #0A0A0A;
+  font-weight: 600;
+  border-left: 2px solid #1DB81D;
+}
+
+/* SECTION DIVIDERS */
+.dinamo-nav-section {
+  font-size: 10px;
+  color: rgba(255,255,255,0.25);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 16px 24px 6px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  margin-top: 8px;
+}
+
+.dinamo-sidebar-light .dinamo-nav-section {
+  color: #AAAAAA;
+  border-top: 1px solid #E8E8E4;
+}
+
+/* USER BLOCK */
+.dinamo-user-block {
+  background: rgba(29,184,29,0.06);
+  border-left: 3px solid #1DB81D;
+  padding: 16px 20px;
+  margin: 0 12px 12px;
+}
+
+.dinamo-sidebar-light .dinamo-user-block {
+  background: #F0F7F0;
+}
+
+.dinamo-user-company {
+  font-size: 18px;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin-bottom: 2px;
+}
+
+.dinamo-sidebar-light .dinamo-user-company {
+  color: #0A0A0A;
+}
+
+.dinamo-user-name {
+  font-size: 13px;
+  color: rgba(255,255,255,0.4);
+  margin-top: 2px;
+}
+
+.dinamo-sidebar-light .dinamo-user-name {
+  color: #888888;
+}
+
+/* SIGN OUT */
+.dinamo-signout {
+  font-size: 13px;
+  color: rgba(255,255,255,0.25);
+  padding: 10px 24px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  text-align: left;
+  width: 100%;
+  transition: color 0.15s ease;
+  font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+}
+
+.dinamo-sidebar-light .dinamo-signout {
+  color: #AAAAAA;
+  border-top: 1px solid #E8E8E4;
+}
+
+.dinamo-signout:hover {
+  color: #FF4444;
+}
