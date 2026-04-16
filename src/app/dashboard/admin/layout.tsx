@@ -50,7 +50,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       <div className="dinamo-sidebar">
-        <img src="/dinamo_logo.png" alt="Dinamo" style={{ height: '28px', width: 'auto', objectFit: 'contain', margin: '24px 24px 16px', display: 'block' }} />
+        <img src="/dinamo_logo_siyah.png" alt="Dinamo" style={{ height: '28px', width: 'auto', objectFit: 'contain', display: 'block', padding: '24px 0 16px 24px' }} />
         <div className="dinamo-user-block">
           <div className="dinamo-user-company">{userName}</div>
           <div className="dinamo-user-name">Admin</div>
@@ -65,7 +65,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </nav>
         <button onClick={handleLogout} className="dinamo-signout">Çıkış Yap</button>
       </div>
-      <div className="dinamo-main-content" style={{ flex: 1 }}>
+      <div className="dinamo-main-content" style={{ flex: 1, marginLeft: '240px', minWidth: 0 }}>
         {children}
       </div>
     </div>
