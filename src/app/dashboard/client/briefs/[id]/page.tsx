@@ -137,14 +137,24 @@ export default function ClientBriefDetail() {
 
   // Poll AI children for status updates
   useEffect(() => {
-    const processing = aiChildren.filter(c => c.status === 'ai_processing')
-    if (processing.length === 0) return
+    const hasProcessing = aiChildren.some(c => c.status === 'ai_processing' && !c.ai_video_url)
+    if (!hasProcessing || aiChildren.length === 0) return
+    const allIds = aiChildren.map(c => c.id)
     const poll = setInterval(async () => {
-      const { data } = await supabase.from('briefs').select('id, status, ai_video_status, ai_video_url, ai_video_error').in('id', processing.map(c => c.id))
-      if (data) setAiChildren(prev => prev.map(c => { const u = data.find((d: any) => d.id === c.id); return u ? { ...c, ...u } : c }))
+      const { data } = await supabase.from('briefs').select('id, status, ai_video_status, ai_video_url, ai_video_error').in('id', allIds)
+      if (!data) return
+      let changed = false
+      setAiChildren(prev => prev.map(c => {
+        const u = data.find((d: any) => d.id === c.id)
+        if (u && (u.status !== c.status || u.ai_video_status !== c.ai_video_status || u.ai_video_url !== c.ai_video_url)) {
+          changed = true
+          return { ...c, ...u }
+        }
+        return c
+      }))
     }, 3000)
     return () => clearInterval(poll)
-  }, [aiChildren.filter(c => c.status === 'ai_processing').length])
+  }, [aiChildren.some(c => c.status === 'ai_processing' && !c.ai_video_url)])
 
   async function handleAiPurchase() {
     if (!clientUser || !brief?.ai_video_url) return
@@ -1008,7 +1018,7 @@ export default function ClientBriefDetail() {
                           <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'4px'}}>
                             <span style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>V{idx+1}</span>
                             {isPurchased && <span style={{fontSize:'9px',color:'#1DB81D',fontWeight:'600'}}>&#10003; Satın Alındı</span>}
-                            {isProcessing && <span style={{fontSize:'9px',color:'#f59e0b',fontWeight:'500'}}>Üretiliyor...</span>}
+                            {isProcessing && <span style={{fontSize:'9px',color:'#f59e0b',fontWeight:'500'}}>Üretiliyor... (~5 dakika)</span>}
                             {isFailed && <span style={{fontSize:'9px',color:'#ef4444',fontWeight:'500'}}>Başarısız</span>}
                           </div>
                           <div style={{fontSize:'11px',color:'#888',marginBottom:'10px'}}>{new Date(child.created_at).toLocaleDateString('tr-TR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>

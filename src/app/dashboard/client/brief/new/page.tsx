@@ -63,7 +63,7 @@ function NewBriefPage() {
       if (!user) { router.push('/login'); return }
       const { data: userData } = await supabase.from('users').select('name').eq('id', user.id).single()
       setUserName(userData?.name || '')
-      const { data: cu } = await supabase.from('client_users').select('*, clients(company_name, credit_balance)').eq('user_id', user.id).single()
+      const { data: cu } = await supabase.from('client_users').select('*, clients(company_name, credit_balance, ai_video_enabled)').eq('user_id', user.id).single()
       setClientUser(cu)
       setCompanyName((cu as any)?.clients?.company_name || '')
       const { data: s } = await supabase.from('admin_settings').select('*')
@@ -400,6 +400,23 @@ function NewBriefPage() {
             <a href="/dashboard/client" style={{padding:'13px 28px',borderRadius:'10px',border:'1px solid rgba(255,255,255,0.15)',background:'transparent',color:'#fff',fontSize:'14px',fontWeight:'400',textDecoration:'none',fontFamily:'var(--font-dm-sans),sans-serif'}}>Tüm Projelerim</a>
             <a href="/dashboard/client/brief/new" style={{padding:'13px 28px',borderRadius:'10px',background:'#22c55e',color:'#fff',fontSize:'14px',fontWeight:'500',textDecoration:'none',fontFamily:'var(--font-dm-sans),sans-serif'}}>Yeni Brief</a>
           </div>
+
+          {(clientUser as any)?.clients?.ai_video_enabled && savedBriefId && (
+            <div style={{marginTop:'48px',padding:'28px',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'12px',maxWidth:'420px',margin:'48px auto 0'}}>
+              <div style={{fontSize:'15px',fontWeight:'600',color:'#fff',marginBottom:'8px',display:'flex',alignItems:'center',gap:'6px'}}>
+                <span style={{color:'#1DB81D'}}>&#9889;</span> Full AI Video Stüdyosu <span style={{fontSize:'10px',color:'#888',fontWeight:'400'}}>Beta</span>
+              </div>
+              <div style={{fontSize:'12px',color:'rgba(255,255,255,0.45)',lineHeight:1.7,marginBottom:'16px'}}>
+                Briefinizi beklemeden hemen AI ile test edin. Yapay zeka briefinizden yola çıkarak ~5 dakikada fikir, görsel, ses ve müzik üretir. Sonuçlar deneyseldir, garanti edilmez.
+              </div>
+              <a href={`/dashboard/client/briefs/${savedBriefId}`}
+                style={{display:'inline-flex',alignItems:'center',gap:'6px',padding:'12px 24px',background:'#0a0a0a',color:'#fff',border:'1px solid #1DB81D',borderRadius:'2px',fontSize:'13px',fontWeight:'600',textDecoration:'none',fontFamily:'var(--font-dm-sans),sans-serif',transition:'background 0.15s'}}
+                onMouseEnter={(e:any)=>(e.currentTarget.style.background='#1DB81D')}
+                onMouseLeave={(e:any)=>(e.currentTarget.style.background='#0a0a0a')}>
+                <span>&#9889;</span> Full AI Video Üret — Ücretsiz Dene
+              </a>
+            </div>
+          )}
         </div>
       </div>
     )
