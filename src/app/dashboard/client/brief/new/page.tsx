@@ -30,6 +30,7 @@ function NewBriefPage() {
   const [aiBriefInput, setAiBriefInput] = useState('')
   const [aiBriefLoading, setAiBriefLoading] = useState(false)
   const [editBriefId, setEditBriefId] = useState<string|null>(null)
+  const [savedBriefId, setSavedBriefId] = useState<string|null>(null)
   const [isDraftEdit, setIsDraftEdit] = useState(false)
   const [briefScore, setBriefScore] = useState<any>(null)
   const [scoreLoading, setScoreLoading] = useState(false)
@@ -272,6 +273,7 @@ function NewBriefPage() {
       if (newBrief?.id) await supabase.from('briefs').update({ root_campaign_id: newBrief.id }).eq('id', newBrief.id)
     }
     if (error) { setSubmitting(false); alert('Hata: ' + error.message); return }
+    if (newBrief?.id) setSavedBriefId(newBrief.id)
 
     // Upload files if any
     const files = filesRef.current?.files
