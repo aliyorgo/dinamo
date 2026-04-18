@@ -7,11 +7,13 @@ const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.
 
 const statusLabel: Record<string,string> = {
   draft:'Taslak', submitted:'İnceleniyor', read:'İncelendi', in_production:'Üretimde',
-  revision:'Revizyon', approved:'Onay Bekliyor', delivered:'Teslim Edildi', cancelled:'İptal Edildi'
+  revision:'Revizyon', approved:'Onay Bekliyor', delivered:'Teslim Edildi', cancelled:'İptal Edildi',
+  ai_processing:'AI Üretiliyor...', ai_completed:'Önizleme Hazır', ai_archived:'Arşiv'
 }
 const statusColor: Record<string,string> = {
   draft:'#f59e0b', submitted:'#888', read:'#888', in_production:'#3b82f6',
-  revision:'#ef4444', approved:'#f59e0b', delivered:'#22c55e', cancelled:'#555'
+  revision:'#ef4444', approved:'#f59e0b', delivered:'#22c55e', cancelled:'#555',
+  ai_processing:'#f59e0b', ai_completed:'#3b82f6', ai_archived:'#888'
 }
 const PROGRESS_STEPS = ['Brief Alındı','Üretimde','İncelemenizde','Teslim']
 function getProgressStep(status: string) {
@@ -39,6 +41,7 @@ export default function ClientDashboard() {
   const [clientUserId, setClientUserId] = useState('')
   const [briefs, setBriefs] = useState<any[]>([])
   const [videoMap, setVideoMap] = useState<Record<string,string>>({})
+  const [aiChildrenMap, setAiChildrenMap] = useState<Record<string, any[]>>({})
   const [loading, setLoading] = useState(true)
   // Notifications
   const [notifications, setNotifications] = useState<any[]>([])
@@ -47,6 +50,8 @@ export default function ClientDashboard() {
   const [activities, setActivities] = useState<any[]>([])
   // Stats
   const [totalSpent, setTotalSpent] = useState(0)
+  const [aiProduced, setAiProduced] = useState(0)
+  const [aiPurchased, setAiPurchased] = useState(0)
   const [avgDelivery, setAvgDelivery] = useState(0)
   const [homeVideos, setHomeVideos] = useState<any[]>([])
 
@@ -62,12 +67,33 @@ export default function ClientDashboard() {
         setCredits(cu.allocated_credits)
         setClientUserId(cu.id)
         setCompanyName((cu as any).clients?.company_name || '')
-        const { data: b } = await supabase.from('briefs').select('*').eq('client_id', cu.client_id).neq('status','cancelled').order('created_at', { ascending: false })
+        const { data: b, error: bError } = await supabase.from('briefs').select('*').eq('client_id', cu.client_id).neq('status','cancelled').is('parent_brief_id', null).order('created_at', { ascending: false })
+        console.log('[DEBUG] clientId:', cu.client_id, '| briefs:', b?.length, '| error:', bError)
         setBriefs(b || [])
 
-        const deliveredIds = (b || []).filter(br => br.status === 'delivered').map(br => br.id)
-        if (deliveredIds.length > 0) {
-          const { data: vids } = await supabase.from('video_submissions').select('brief_id, video_url').in('brief_id', deliveredIds).order('version', { ascending: false })
+        // Fetch AI children for indicators
+        const briefIds = (b || []).map(br => br.id)
+        const rootIds = (b || []).map(br => br.root_campaign_id).filter(Boolean)
+        const allLookupIds = [...new Set([...briefIds, ...rootIds])]
+        if (allLookupIds.length > 0) {
+          // Query by both root_campaign_id and parent_brief_id as fallback
+          const { data: aiKids, error: aiErr } = await supabase.from('briefs')
+            .select('id, root_campaign_id, parent_brief_id, status, ai_video_status, ai_video_url, created_at, campaign_name')
+            .eq('client_id', cu.client_id)
+            .ilike('campaign_name', '%Full AI%')
+          console.log('[AI-IND] error:', aiErr?.message, '| aiKids count:', aiKids?.length, '| sample:', aiKids?.slice(0,3).map((k:any) => ({ name: k.campaign_name?.slice(0,30), root: k.root_campaign_id?.slice(0,8), parent: k.parent_brief_id?.slice(0,8), url: !!k.ai_video_url, status: k.ai_video_status })))
+          const map: Record<string, any[]> = {}
+          aiKids?.forEach((k: any) => {
+            const key = k.root_campaign_id || k.parent_brief_id
+            if (key) { if (!map[key]) map[key] = []; map[key].push(k) }
+          })
+          console.log('[AI-IND] map keys:', Object.keys(map).map(k => k.slice(0,8)), 'briefIds sample:', briefIds.slice(0,3).map(id => id.slice(0,8)))
+          setAiChildrenMap(map)
+        }
+
+        const withVideoIds = (b || []).filter(br => ['delivered','approved'].includes(br.status)).map(br => br.id)
+        if (withVideoIds.length > 0) {
+          const { data: vids } = await supabase.from('video_submissions').select('brief_id, video_url').in('brief_id', withVideoIds).order('version', { ascending: false })
           const map: Record<string,string> = {}
           vids?.forEach((v: any) => { if (!map[v.brief_id]) map[v.brief_id] = v.video_url })
           setVideoMap(map)
@@ -88,6 +114,12 @@ export default function ClientDashboard() {
           setAvgDelivery(Math.round(totalDays / delivered.length * 10) / 10)
         }
 
+        // AI video stats
+        const { count: aiProd } = await supabase.from('briefs').select('id', { count: 'exact', head: true }).eq('client_id', cu.client_id).ilike('campaign_name', '%Full AI%').not('ai_video_url', 'is', null)
+        setAiProduced(aiProd || 0)
+        const { data: aiPurchData } = await supabase.from('video_submissions').select('id, briefs!inner(client_id)').eq('is_ai_generated', true).eq('briefs.client_id', cu.client_id)
+        setAiPurchased(aiPurchData?.length || 0)
+
         // Activities (last 5 briefs activity)
         const acts: any[] = []
         for (const br of (b || []).slice(0, 10)) {
@@ -104,6 +136,27 @@ export default function ClientDashboard() {
     load()
   }, [router])
 
+  // Poll AI processing briefs every 5s
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      const processing = briefs.filter(b => b.status === 'ai_processing' || b.status === 'ai_completed')
+      if (processing.length === 0) return
+      const { data } = await supabase
+        .from('briefs')
+        .select('id, status, ai_video_status')
+        .in('id', processing.map(b => b.id))
+      if (data) {
+        setBriefs(prev => prev.map(b => {
+          const updated = data.find((d: any) => d.id === b.id)
+          return updated && (updated.status !== b.status || updated.ai_video_status !== b.ai_video_status)
+            ? { ...b, ...updated }
+            : b
+        }))
+      }
+    }, 5000)
+    return () => clearInterval(interval)
+  }, [briefs])
+
   async function markNotifRead(id: string) {
     await supabase.from('notifications').update({ is_read: true }).eq('id', id)
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n))
@@ -112,6 +165,7 @@ export default function ClientDashboard() {
   async function handleLogout() { await supabase.auth.signOut(); router.push('/login') }
 
   const drafts = briefs.filter(b => b.status === 'draft')
+  const nonDrafts = briefs.filter(b => b.status !== 'draft')
   const pending = briefs.filter(b => b.status === 'approved')
   const inProd = briefs.filter(b => ['submitted','read','in_production','revision'].includes(b.status))
   const done = briefs.filter(b => b.status === 'delivered')
@@ -122,25 +176,40 @@ export default function ClientDashboard() {
     setBriefs(prev => prev.filter(b => b.id !== briefId))
   }
   const unreadCount = notifications.filter(n => !n.is_read).length
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
+  const [closedGroups, setClosedGroups] = useState<Set<string>>(new Set())
 
-  function toggleGroup(id: string) {
-    setExpandedGroups(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
+  // Group non-draft briefs by root_campaign_id
+  const campaignGroups: { rootId: string; rootName: string; items: any[]; latestDate: string }[] = (() => {
+    const grouped: Record<string, any[]> = {}
+    nonDrafts.forEach(b => {
+      const key = b.root_campaign_id || b.id
+      if (!grouped[key]) grouped[key] = []
+      grouped[key].push(b)
+    })
+    return Object.entries(grouped)
+      .map(([rootId, items]) => {
+        const sorted = items.sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+        const rootBrief = sorted[0]
+        // Last activity: max of brief dates + AI children dates
+        const briefDates = items.map(b => new Date(b.updated_at || b.created_at).getTime())
+        const aiKids = aiChildrenMap[rootId] || []
+        const aiDates = aiKids.map((k: any) => new Date(k.created_at).getTime())
+        const lastActivity = Math.max(...briefDates, ...aiDates, 0)
+        return { rootId, rootName: rootBrief.campaign_name, items: sorted, latestDate: new Date(lastActivity).toISOString() }
+      })
+      .sort((a, b) => new Date(b.latestDate).getTime() - new Date(a.latestDate).getTime())
+  })()
+
+  function getAiIndicators(brief: any): { label: string; color: string }[] {
+    const kids = aiChildrenMap[brief.root_campaign_id] || aiChildrenMap[brief.id] || []
+    if (kids.length === 0) return []
+    const indicators: { label: string; color: string }[] = []
+    const readyCount = kids.filter(k => !!k.ai_video_url).length
+    if (readyCount > 0) indicators.push({ label: `${readyCount} Full AI Video`, color: '#1DB81D' })
+    const processing = kids.some(k => k.status === 'ai_processing' && !k.ai_video_url)
+    if (processing) indicators.push({ label: 'Üretiliyor', color: '#f59e0b' })
+    return indicators
   }
-
-  // Group by parent — only for done briefs
-  const doneGrouped: Record<string,any[]> = {}
-  done.forEach(b => {
-    const parentId = b.parent_brief_id || b.id
-    if (!doneGrouped[parentId]) doneGrouped[parentId] = []
-    doneGrouped[parentId].push(b)
-  })
-  // Get root briefs for each group (the one without parent_brief_id, or first in group)
-  const doneRoots = Object.entries(doneGrouped).map(([parentId, items]) => {
-    const root = items.find(b => !b.parent_brief_id) || items[0]
-    const children = items.filter(b => b.id !== root.id).sort((a,b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
-    return { root, children, parentId }
-  })
 
   return (
     <div style={{display:'flex',minHeight:'100vh',fontFamily:"var(--font-dm-sans),'DM Sans',system-ui,sans-serif",background:'#f5f4f0'}}>
@@ -173,8 +242,7 @@ export default function ClientDashboard() {
             </div>
           ))}
         </nav>
-        <div style={{flex:1}}></div>
-        <div style={{padding:'10px 8px',borderTop:'0.5px solid rgba(255,255,255,0.07)'}}>
+        <div style={{padding:'10px 8px',borderTop:'0.5px solid rgba(255,255,255,0.07)',marginTop:'auto',flexShrink:0}}>
           <button onClick={handleLogout}
             onMouseEnter={e=>{(e.currentTarget.firstChild as HTMLElement).style.color='#FF4444'}}
             onMouseLeave={e=>{(e.currentTarget.firstChild as HTMLElement).style.color='rgba(255,255,255,0.25)'}}
@@ -302,7 +370,7 @@ export default function ClientDashboard() {
             <>
               {/* 6. STATS */}
               {briefs.length > 0 && (
-                <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'24px'}}>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(140px,1fr))',gap:'12px',marginBottom:'24px'}}>
                   {[
                     {label:'Toplam Video',value:String(done.length),color:'#22c55e'},
                     {label:'Üretimde',value:String(inProd.length + pending.length),color:'#3b82f6'},
@@ -314,6 +382,13 @@ export default function ClientDashboard() {
                       <div style={{fontSize:'22px',fontWeight:'300',color:c.color,letterSpacing:'-0.5px'}}>{c.value}</div>
                     </div>
                   ))}
+                  {aiProduced > 0 && (
+                    <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'14px'}}>
+                      <div style={{fontSize:'10px',color:'#1DB81D',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'6px',display:'flex',alignItems:'center',gap:'4px'}}>&#9889; Full AI Video</div>
+                      <div style={{fontSize:'11px',color:'#0a0a0a',lineHeight:1.8}}>{aiProduced} video üretildi</div>
+                      <div style={{fontSize:'11px',color:'#888'}}>{aiPurchased} video satın alındı</div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -351,126 +426,67 @@ export default function ClientDashboard() {
                 </div>
               )}
 
-              {/* PENDING */}
-              {pending.length > 0 && (
-                <div style={{marginBottom:'24px'}}>
-                  <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'10px'}}>
-                    <div style={{width:'7px',height:'7px',borderRadius:'50%',background:'#f59e0b'}}></div>
-                    <div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>Onayınızı Bekliyor</div>
-                  </div>
-                  {pending.map(b=>(
-                    <div key={b.id} onClick={()=>router.push(`/dashboard/client/briefs/${b.id}`)}
-                      style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'14px 18px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'8px',transition:'border-color 0.2s'}}
-                      onMouseEnter={e=>(e.currentTarget.style.borderColor='rgba(0,0,0,0.25)')}
-                      onMouseLeave={e=>(e.currentTarget.style.borderColor='rgba(0,0,0,0.1)')}>
-                      <div>
-                        <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name}</div>
-                        <div style={{fontSize:'11px',color:'#888',marginTop:'2px'}}>{b.video_type} · {new Date(b.created_at).toLocaleDateString('tr-TR')}</div>
+              {/* CAMPAIGN FOLDERS */}
+              {campaignGroups.map(({ rootId, rootName, items }) => {
+                const isOpen = !closedGroups.has(rootId)
+                const aiList = getAiIndicators(items[0])
+                const isSingle = items.length === 1
+                return (
+                  <div key={rootId} style={{marginBottom:'6px'}}>
+                    {/* Folder header */}
+                    <div onClick={()=>{if(isSingle){router.push(`/dashboard/client/briefs/${items[0].id}`)}else{setClosedGroups(prev=>{const n=new Set(prev);n.has(rootId)?n.delete(rootId):n.add(rootId);return n})}}}
+                      style={{display:'flex',alignItems:'center',gap:'12px',padding:isSingle?'14px 16px':'10px 16px',background:'#fff',border:'0.5px solid rgba(0,0,0,0.08)',borderRadius:isOpen && !isSingle?'10px 10px 0 0':'10px',cursor:'pointer',transition:'all 0.15s'}}
+                      onMouseEnter={e=>(e.currentTarget.style.background='#fafaf8')}
+                      onMouseLeave={e=>(e.currentTarget.style.background='#fff')}>
+                      {!isSingle && (
+                        <svg width="9" height="9" viewBox="0 0 10 10" fill="none" style={{transform:isOpen?'rotate(90deg)':'rotate(0deg)',transition:'transform 0.2s',flexShrink:0,opacity:0.4}}>
+                          <path d="M3 1l4 4-4 4" stroke="#0a0a0a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      )}
+                      {/* Thumbnail for single delivered */}
+                      {isSingle && videoMap[items[0].id] && (
+                        <div style={{width:'36px',height:'64px',borderRadius:'6px',overflow:'hidden',background:'#0a0a0a',flexShrink:0}}>
+                          <video src={videoMap[items[0].id]+'#t=0.1'} muted playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'cover'}} />
+                        </div>
+                      )}
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontSize:'13px',fontWeight:'600',color:'#0a0a0a',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',letterSpacing:'-0.2px'}}>{rootName}</div>
+                        {isSingle && <div style={{fontSize:'10px',color:'#999',marginTop:'3px'}}>{items[0].video_type} · {new Date(items[0].updated_at || items[0].created_at).toLocaleDateString('tr-TR')}</div>}
                       </div>
-                      <div style={{fontSize:'10px',padding:'4px 12px',borderRadius:'100px',background:'rgba(245,158,11,0.1)',color:'#f59e0b',fontWeight:'500'}}>İncele & Onayla</div>
+                      <div style={{display:'flex',alignItems:'center',gap:'6px',flexShrink:0}}>
+                        {aiList.map((ai,ai_i) => <span key={ai_i} style={{fontSize:'9px',padding:'3px 8px',borderRadius:'6px',background:`${ai.color}12`,color:ai.color,fontWeight:'600',display:'flex',alignItems:'center',gap:'3px',whiteSpace:'nowrap'}}>{ai.label==='Üretiliyor'?'':'\u26A1'} {ai.label}</span>)}
+                        {!isSingle && <span style={{fontSize:'10px',color:'#999',background:'rgba(0,0,0,0.04)',padding:'2px 8px',borderRadius:'6px',fontWeight:'500'}}>{items.length}</span>}
+                        {isSingle && <span style={{fontSize:'10px',padding:'4px 12px',borderRadius:'6px',background:`${statusColor[items[0].status]||'#888'}12`,color:statusColor[items[0].status]||'#888',fontWeight:'500',whiteSpace:'nowrap'}}>{statusLabel[items[0].status]||items[0].status}</span>}
+                      </div>
                     </div>
-                  ))}
-                </div>
-              )}
-
-              {/* IN PRODUCTION with progress bars */}
-              {inProd.length > 0 && (
-                <div style={{marginBottom:'24px'}}>
-                  <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'10px'}}>
-                    <div style={{width:'7px',height:'7px',borderRadius:'50%',background:'#3b82f6'}}></div>
-                    <div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>Devam Edenler</div>
-                  </div>
-                  {inProd.map(b=>{
-                    const step = getProgressStep(b.status)
-                    return (
-                      <div key={b.id} onClick={()=>router.push(`/dashboard/client/briefs/${b.id}`)}
-                        style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'14px 18px',cursor:'pointer',marginBottom:'8px',transition:'border-color 0.2s'}}
-                        onMouseEnter={e=>(e.currentTarget.style.borderColor='rgba(0,0,0,0.25)')}
-                        onMouseLeave={e=>(e.currentTarget.style.borderColor='rgba(0,0,0,0.1)')}>
-                        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'10px'}}>
-                          <div>
-                            <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name}</div>
-                            <div style={{fontSize:'11px',color:'#888',marginTop:'2px'}}>{b.video_type}</div>
-                          </div>
-                          <div style={{fontSize:'10px',padding:'4px 12px',borderRadius:'100px',background:`${statusColor[b.status]}15`,color:statusColor[b.status],fontWeight:'500'}}>{statusLabel[b.status]}</div>
-                        </div>
-                        {/* Progress bar */}
-                        <div style={{display:'flex',gap:'4px'}}>
-                          {PROGRESS_STEPS.map((s,i)=>(
-                            <div key={s} style={{flex:1}}>
-                              <div style={{height:'3px',borderRadius:'2px',background:i<=step?'#22c55e':'rgba(0,0,0,0.06)',transition:'background 0.3s'}}></div>
-                              <div style={{fontSize:'9px',color:i<=step?'#22c55e':'#ccc',marginTop:'4px',textAlign:'center'}}>{s}</div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-
-              {/* DONE — grouped by parent */}
-              {done.length > 0 && (
-                <div style={{marginBottom:'24px'}}>
-                  <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'10px'}}>
-                    <div style={{width:'7px',height:'7px',borderRadius:'50%',background:'#22c55e'}}></div>
-                    <div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>Tamamlananlar</div>
-                    <div style={{fontSize:'11px',color:'#888'}}>{done.length}</div>
-                  </div>
-                  {doneRoots.map(({root, children, parentId}) => {
-                    const isExpanded = expandedGroups.has(parentId)
-                    const videoUrl = videoMap[root.id]
-                    return (
-                      <div key={parentId} style={{marginBottom:'8px'}}>
-                        {/* ROOT CARD */}
-                        <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',overflow:'hidden',transition:'border-color 0.2s'}}
-                          onMouseEnter={e=>(e.currentTarget.style.borderColor='rgba(0,0,0,0.25)')}
-                          onMouseLeave={e=>(e.currentTarget.style.borderColor='rgba(0,0,0,0.1)')}>
-                          <div style={{display:'flex',alignItems:'center',gap:'14px',padding:'14px 18px',cursor:'pointer'}}
-                            onClick={()=>router.push(`/dashboard/client/briefs/${root.id}`)}>
-                            {/* Thumbnail */}
-                            <div style={{width:'48px',height:'48px',borderRadius:'8px',overflow:'hidden',background:'#1a1a1f',flexShrink:0}}>
-                              {videoUrl ? <video src={videoUrl} style={{width:'100%',height:'100%',objectFit:'cover'}} preload="metadata" muted playsInline />
-                              : <div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center'}}><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M5 3l9 5-9 5V3z" fill="white"/></svg></div>}
-                            </div>
-                            <div style={{flex:1,minWidth:0}}>
-                              <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a'}}>{root.campaign_name}</div>
-                              <div style={{fontSize:'11px',color:'#888',marginTop:'2px'}}>{root.video_type} · {new Date(root.created_at).toLocaleDateString('tr-TR')}</div>
-                            </div>
-                            <div style={{display:'flex',alignItems:'center',gap:'8px',flexShrink:0}}>
-                              <span style={{fontSize:'10px',padding:'3px 10px',borderRadius:'100px',background:'rgba(34,197,94,0.1)',color:'#22c55e',fontWeight:'500'}}>Teslim</span>
-                              {children.length > 0 && (
-                                <button onClick={e=>{e.stopPropagation();toggleGroup(parentId)}}
-                                  style={{fontSize:'10px',padding:'3px 10px',borderRadius:'100px',background:'rgba(0,0,0,0.05)',color:'#555',border:'none',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',fontWeight:'500'}}>
-                                  {children.length} versiyon {isExpanded?'▲':'▼'}
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* CHILDREN — accordion */}
-                        {isExpanded && children.length > 0 && (
-                          <div style={{marginLeft:'24px',borderLeft:'2px solid #22c55e',paddingLeft:'16px',marginTop:'4px'}}>
-                            {children.map(child=>(
-                              <div key={child.id} onClick={()=>router.push(`/dashboard/client/briefs/${child.id}`)}
-                                style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.08)',borderRadius:'10px',padding:'12px 16px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'4px',transition:'border-color 0.15s'}}
-                                onMouseEnter={e=>(e.currentTarget.style.borderColor='rgba(0,0,0,0.2)')}
-                                onMouseLeave={e=>(e.currentTarget.style.borderColor='rgba(0,0,0,0.08)')}>
-                                <div>
-                                  <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{child.campaign_name}</div>
-                                  <div style={{fontSize:'10px',color:'#888',marginTop:'2px'}}>{child.video_type} · {new Date(child.created_at).toLocaleDateString('tr-TR')}</div>
+                    {/* Items */}
+                    {!isSingle && isOpen && (
+                      <div style={{border:'0.5px solid rgba(0,0,0,0.08)',borderTop:'none',borderRadius:'0 0 10px 10px',overflow:'hidden'}}>
+                        {items.map((b: any, i: number) => {
+                          const isDone = b.status === 'delivered' || b.status === 'approved'
+                          return (
+                            <div key={b.id} onClick={()=>router.push(`/dashboard/client/briefs/${b.id}`)}
+                              style={{padding:'14px 16px 14px 38px',cursor:'pointer',display:'flex',alignItems:'center',gap:'12px',borderTop:i>0?'0.5px solid rgba(0,0,0,0.05)':'none',transition:'background 0.1s',background:isDone?'#f9f9f7':'#fff',borderLeft:isDone?'2px solid #22c55e':'2px solid transparent'}}
+                              onMouseEnter={e=>(e.currentTarget.style.background=isDone?'#f4f4f2':'#fafaf8')}
+                              onMouseLeave={e=>(e.currentTarget.style.background=isDone?'#f9f9f7':'#fff')}>
+                              {videoMap[b.id] && (
+                                <div style={{width:'36px',height:'64px',borderRadius:'6px',overflow:'hidden',background:'#0a0a0a',flexShrink:0}}>
+                                  <video src={videoMap[b.id]+'#t=0.1'} muted playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'cover'}} />
                                 </div>
-                                <span style={{fontSize:'10px',padding:'3px 10px',borderRadius:'100px',background:`${statusColor[child.status]}15`,color:statusColor[child.status],fontWeight:'500'}}>{statusLabel[child.status]}</span>
+                              )}
+                              <div style={{flex:1,minWidth:0}}>
+                                <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.campaign_name}</div>
+                                <div style={{fontSize:'10px',color:'#999',marginTop:'3px'}}>{b.video_type} · {new Date(b.updated_at || b.created_at).toLocaleDateString('tr-TR')}</div>
                               </div>
-                            ))}
-                          </div>
-                        )}
+                              <span style={{fontSize:'10px',padding:'4px 12px',borderRadius:'6px',background:`${statusColor[b.status]||'#888'}12`,color:statusColor[b.status]||'#888',fontWeight:'500',whiteSpace:'nowrap',flexShrink:0}}>{statusLabel[b.status]||b.status}</span>
+                            </div>
+                          )
+                        })}
                       </div>
-                    )
-                  })}
-                </div>
-              )}
+                    )}
+                  </div>
+                )
+              })}
 
               {/* EMPTY STATE */}
               {briefs.length === 0 && (

@@ -370,8 +370,8 @@ export default function AdminBriefDetail() {
                           <span style={statusBadge(s.status)}>{s.status==='pending'?'Bekliyor':s.status==='producer_approved'?'Prodüktör Onayı':s.status==='admin_approved'?'Onaylandı':s.status==='revision_requested'?'Revizyon':s.status}</span>
                         </div>
                         <div style={{padding:'16px'}}>
-                          <div style={{borderRadius:'10px',overflow:'hidden',maxWidth:brief.format==='9:16'?'220px':brief.format==='1:1'?'300px':'100%'}}>
-                            <video ref={s.id===submissions[0]?.id?videoRef:undefined} controls style={{width:'100%',borderRadius:'10px',display:'block',maxHeight:'200px'}}>
+                          <div style={{borderRadius:'10px',overflow:'hidden',maxWidth:brief.format==='9:16'?'660px':brief.format==='1:1'?'900px':'100%'}}>
+                            <video ref={s.id===submissions[0]?.id?videoRef:undefined} controls style={{width:'100%',borderRadius:'10px',display:'block',maxHeight:'600px',objectFit:'contain',background:'black'}}>
                               <source src={s.video_url} />
                             </video>
                           </div>

@@ -77,6 +77,9 @@ export default function ClientDetailPage() {
   // AI notes
   const [aiNotes, setAiNotes] = useState('')
   const [savingNotes, setSavingNotes] = useState(false)
+  // Brand
+  const [brand, setBrand] = useState({ primary_color:'', secondary_color:'', forbidden_colors:'', tone:'', avoid:'', notes:'' })
+  const [savingBrand, setSavingBrand] = useState(false)
 
   function showMsg(text: string, isError = false) {
     setMsg(text)
@@ -105,6 +108,7 @@ export default function ClientDetailPage() {
     if (!cl) { router.push('/dashboard/admin/clients'); return }
     setClient(cl)
     setAiNotes(cl.ai_notes || '')
+    setBrand({ primary_color: cl.brand_primary_color||'', secondary_color: cl.brand_secondary_color||'', forbidden_colors: cl.brand_forbidden_colors||'', tone: cl.brand_tone||'', avoid: cl.brand_avoid||'', notes: cl.brand_notes||'' })
     setBriefs(br || [])
     setTransactions(tx || [])
     setSales(sl || [])
@@ -333,6 +337,20 @@ export default function ClientDetailPage() {
     showMsg('AI notlari kaydedildi.')
   }
 
+  async function saveBrand() {
+    setSavingBrand(true)
+    await supabase.from('clients').update({
+      brand_primary_color: brand.primary_color || null,
+      brand_secondary_color: brand.secondary_color || null,
+      brand_forbidden_colors: brand.forbidden_colors || null,
+      brand_tone: brand.tone || null,
+      brand_avoid: brand.avoid || null,
+      brand_notes: brand.notes || null,
+    }).eq('id', clientId)
+    setSavingBrand(false)
+    showMsg('Marka bilgileri kaydedildi.')
+  }
+
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '8px 12px', border: '0.5px solid rgba(0,0,0,0.15)',
@@ -478,6 +496,72 @@ export default function ClientDetailPage() {
                 <button onClick={saveAiNotes} disabled={savingNotes}
                   style={{ marginTop: '8px', padding: '7px 16px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '11px', fontWeight: '500', cursor: savingNotes ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
                   {savingNotes ? 'Kaydediliyor...' : 'Kaydet'}
+                </button>
+              </div>
+
+              {/* BRAND */}
+              <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', padding: '20px' }}>
+                <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '14px' }}>
+                  Marka Bilgileri
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', padding: '10px 12px', background: 'rgba(0,0,0,0.02)', borderRadius: '8px' }}>
+                  <div>
+                    <div style={{ fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>Full AI Video Stüdyosu</div>
+                    <div style={{ fontSize: '10px', color: '#888', marginTop: '2px' }}>{client?.ai_video_enabled ? 'Müşteri AI video üretebilir' : 'Devre dışı'}</div>
+                  </div>
+                  <button onClick={async () => {
+                    const newVal = !client?.ai_video_enabled
+                    await supabase.from('clients').update({ ai_video_enabled: newVal }).eq('id', clientId)
+                    setClient((prev: any) => ({ ...prev, ai_video_enabled: newVal }))
+                    showMsg(newVal ? 'AI Video açıldı' : 'AI Video kapatıldı')
+                  }}
+                    style={{ width: '44px', height: '24px', borderRadius: '100px', border: 'none', cursor: 'pointer', background: client?.ai_video_enabled ? '#1db81d' : '#ddd', position: 'relative', transition: 'background 0.2s' }}>
+                    <span style={{ position: 'absolute', top: '3px', left: client?.ai_video_enabled ? '23px' : '3px', width: '18px', height: '18px', borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }}></span>
+                  </button>
+                </div>
+                <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}>Primary Renk</div>
+                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                      <input type="color" value={brand.primary_color || '#000000'} onChange={e => setBrand({ ...brand, primary_color: e.target.value })}
+                        style={{ width: '32px', height: '32px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '6px', cursor: 'pointer', padding: 0 }} />
+                      <input value={brand.primary_color} onChange={e => setBrand({ ...brand, primary_color: e.target.value })} placeholder="#000000"
+                        style={{ flex: 1, padding: '7px 10px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', color: '#0a0a0a', fontFamily: 'monospace' }} />
+                    </div>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}>Secondary Renk</div>
+                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                      <input type="color" value={brand.secondary_color || '#000000'} onChange={e => setBrand({ ...brand, secondary_color: e.target.value })}
+                        style={{ width: '32px', height: '32px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '6px', cursor: 'pointer', padding: 0 }} />
+                      <input value={brand.secondary_color} onChange={e => setBrand({ ...brand, secondary_color: e.target.value })} placeholder="#000000"
+                        style={{ flex: 1, padding: '7px 10px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', color: '#0a0a0a', fontFamily: 'monospace' }} />
+                    </div>
+                  </div>
+                </div>
+                <div style={{ marginBottom: '12px' }}>
+                  <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}>Yasakli Renkler</div>
+                  <input value={brand.forbidden_colors} onChange={e => setBrand({ ...brand, forbidden_colors: e.target.value })} placeholder="örn: kırmızı, mor, sarı"
+                    style={{ width: '100%', padding: '7px 10px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', color: '#0a0a0a', boxSizing: 'border-box' }} />
+                </div>
+                <div style={{ marginBottom: '12px' }}>
+                  <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}>Marka Tonu</div>
+                  <input value={brand.tone} onChange={e => setBrand({ ...brand, tone: e.target.value })} placeholder="örn: samimi, enerjik, güvenilir"
+                    style={{ width: '100%', padding: '7px 10px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', color: '#0a0a0a', boxSizing: 'border-box' }} />
+                </div>
+                <div style={{ marginBottom: '12px' }}>
+                  <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}>Kacinilacaklar</div>
+                  <textarea value={brand.avoid} onChange={e => setBrand({ ...brand, avoid: e.target.value })} placeholder="örn: karanlık mekanlar, aşırı resmi dil"
+                    rows={2} style={{ width: '100%', padding: '7px 10px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', color: '#0a0a0a', resize: 'vertical', fontFamily: 'var(--font-dm-sans),sans-serif', boxSizing: 'border-box' }} />
+                </div>
+                <div style={{ marginBottom: '12px' }}>
+                  <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}>Marka Notlari</div>
+                  <textarea value={brand.notes} onChange={e => setBrand({ ...brand, notes: e.target.value })} placeholder="Ek marka bilgileri..."
+                    rows={3} style={{ width: '100%', padding: '7px 10px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', color: '#0a0a0a', resize: 'vertical', fontFamily: 'var(--font-dm-sans),sans-serif', boxSizing: 'border-box' }} />
+                </div>
+                <button onClick={saveBrand} disabled={savingBrand}
+                  style={{ padding: '7px 16px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '11px', fontWeight: '500', cursor: savingBrand ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+                  {savingBrand ? 'Kaydediliyor...' : 'Kaydet'}
                 </button>
               </div>
             </div>

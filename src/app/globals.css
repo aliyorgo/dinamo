@@ -30,6 +30,11 @@ body {
   border-radius: 0 !important;
 }
 
+/* Dashboard scaling — everything 10% larger */
+.dashboard-scale {
+  zoom: 1.1;
+}
+
 /* ═══════ SIDEBAR ═══════ */
 
 .dinamo-sidebar {
@@ -179,6 +184,8 @@ body {
   width: 100%;
   transition: color 0.15s ease;
   font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+  margin-top: auto;
+  flex-shrink: 0;
 }
 
 .dinamo-sidebar-light .dinamo-signout {

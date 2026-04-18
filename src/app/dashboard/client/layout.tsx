@@ -19,5 +19,5 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [router])
 
   if (!ready) return null
-  return <>{children}</>
+  return <div className="dashboard-scale">{children}</div>
 }

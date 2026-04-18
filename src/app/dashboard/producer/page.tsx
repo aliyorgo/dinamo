@@ -26,6 +26,7 @@ export default function ProducerDashboard() {
   const router = useRouter()
   const [userName, setUserName] = useState('')
   const [briefs, setBriefs] = useState<any[]>([])
+  const [tab, setTab] = useState<'briefs'|'ai'>('briefs')
   const [filter, setFilter] = useState('all')
   const [loading, setLoading] = useState(true)
   const [pendingCount, setPendingCount] = useState(0)
@@ -57,7 +58,9 @@ export default function ProducerDashboard() {
 
   async function handleLogout() { await supabase.auth.signOut(); router.push('/login') }
 
-  const filtered = filter === 'all' ? briefs : briefs.filter(b => b.status === filter)
+  const isAiBrief = (b: any) => b.campaign_name?.includes('Full AI')
+  const tabBriefs = tab === 'ai' ? briefs.filter(b => isAiBrief(b) && b.ai_video_url) : briefs.filter(b => !isAiBrief(b))
+  const filtered = filter === 'all' ? tabBriefs : tabBriefs.filter(b => b.status === filter)
   const newCount = briefs.filter(b => b.status === 'submitted').length
   const revisionCount = briefs.filter(b => b.status === 'revision').length
 
@@ -94,6 +97,10 @@ export default function ProducerDashboard() {
           <div style={{fontSize:'13px',fontWeight:'500',color:'#fff'}}>{userName}</div>
         </div>
         <nav style={{padding:'10px 8px',flex:1}}>
+          <div style={{display:'flex',gap:'4px',marginBottom:'10px'}}>
+            <button onClick={()=>{setTab('briefs');setFilter('all')}} style={{flex:1,padding:'6px',border:'none',background:tab==='briefs'?'rgba(255,255,255,0.1)':'transparent',color:tab==='briefs'?'#fff':'rgba(255,255,255,0.4)',fontSize:'11px',fontWeight:tab==='briefs'?'600':'400',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',borderRadius:'6px'}}>Brief'ler</button>
+            <button onClick={()=>{setTab('ai');setFilter('all')}} style={{flex:1,padding:'6px',border:'none',background:tab==='ai'?'rgba(255,255,255,0.1)':'transparent',color:tab==='ai'?'#fff':'rgba(255,255,255,0.4)',fontSize:'11px',fontWeight:tab==='ai'?'600':'400',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',borderRadius:'6px'}}>AI Video</button>
+          </div>
           <div style={{fontSize:'9px',letterSpacing:'1.5px',color:'rgba(255,255,255,0.2)',padding:'0 6px',marginBottom:'6px',textTransform:'uppercase'}}>Filtrele</div>
           {[
             {val:'all',label:'Tümü'},

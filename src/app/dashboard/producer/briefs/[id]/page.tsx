@@ -61,7 +61,7 @@ export default function ProducerBriefDetail() {
   async function loadData() {
     const { data: { user } } = await supabase.auth.getUser()
     if (user) { const { data: ud } = await supabase.from('users').select('name').eq('id', user.id).single(); setUserName(ud?.name||'') }
-    const { data: b } = await supabase.from('briefs').select('*, clients(company_name, logo_url, font_url)').eq('id', id).single()
+    const { data: b } = await supabase.from('briefs').select('*, clients(company_name, logo_url, font_url, brand_primary_color, brand_secondary_color, brand_forbidden_colors, brand_tone, brand_avoid)').eq('id', id).single()
     setBrief(b)
     if (b?.status==='submitted') await supabase.from('briefs').update({ status:'read', read_at: new Date().toISOString() }).eq('id', id)
     const { data: pb } = await supabase.from('producer_briefs').select('*').eq('brief_id', id).maybeSingle()
@@ -434,6 +434,22 @@ export default function ProducerBriefDetail() {
                       {brief.clients?.font_url&&<a href={brief.clients.font_url} target="_blank" style={{fontSize:'12px',color:'#22c55e',textDecoration:'none'}}>Font ↓</a>}
                     </div>
                   </div>
+
+                  {/* Brand guidance */}
+                  {(brief.clients?.brand_primary_color || brief.clients?.brand_tone || brief.clients?.brand_avoid) && (
+                    <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'16px 20px',marginBottom:'12px'}}>
+                      <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'10px'}}>Marka Yönlendirmesi</div>
+                      {(brief.clients?.brand_primary_color || brief.clients?.brand_secondary_color) && (
+                        <div style={{display:'flex',gap:'8px',alignItems:'center',marginBottom:'8px'}}>
+                          {brief.clients.brand_primary_color && <div style={{width:'20px',height:'20px',borderRadius:'4px',background:brief.clients.brand_primary_color,border:'0.5px solid rgba(0,0,0,0.1)'}} />}
+                          {brief.clients.brand_secondary_color && <div style={{width:'20px',height:'20px',borderRadius:'4px',background:brief.clients.brand_secondary_color,border:'0.5px solid rgba(0,0,0,0.1)'}} />}
+                          <span style={{fontSize:'10px',color:'#888'}}>Marka renkleri</span>
+                        </div>
+                      )}
+                      {brief.clients?.brand_tone && <div style={{fontSize:'11px',color:'#0a0a0a',marginBottom:'6px'}}><span style={{color:'#888'}}>Ton:</span> {brief.clients.brand_tone}</div>}
+                      {brief.clients?.brand_avoid && <div style={{fontSize:'11px',color:'#0a0a0a'}}><span style={{color:'#888'}}>Kaçın:</span> {brief.clients.brand_avoid}</div>}
+                    </div>
+                  )}
 
                   {/* Previous briefs */}
                   {prevBriefs.length > 0 && (

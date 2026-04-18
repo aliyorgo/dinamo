@@ -36,6 +36,9 @@ function NewBriefPage() {
   const [expandLoading, setExpandLoading] = useState(false)
   const [prevMessage, setPrevMessage] = useState<string|null>(null)
   const filesRef = useRef<HTMLInputElement>(null)
+  const productImageRef = useRef<HTMLInputElement>(null)
+  const [productImageUrl, setProductImageUrl] = useState<string | null>(null)
+  const [productUploading, setProductUploading] = useState(false)
 
   const [form, setForm] = useState({
     campaign_name: '',
@@ -148,6 +151,20 @@ function NewBriefPage() {
     }
   }
 
+  async function handleProductImageUpload() {
+    const file = productImageRef.current?.files?.[0]
+    if (!file || !clientUser) return
+    if (file.size > 10 * 1024 * 1024) { alert('Dosya 10MB\'dan küçük olmalı'); return }
+    setProductUploading(true)
+    const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'
+    const storagePath = `product-images/${clientUser.client_id}/${Date.now()}.${ext}`
+    const { error: upErr } = await supabase.storage.from('brand-assets').upload(storagePath, file, { upsert: true })
+    if (upErr) { alert('Yükleme hatası: ' + upErr.message); setProductUploading(false); return }
+    const { data: urlData } = supabase.storage.from('brand-assets').getPublicUrl(storagePath)
+    setProductImageUrl(urlData.publicUrl)
+    setProductUploading(false)
+  }
+
   function calcCost() {
     let cost = BASE_COSTS[form.video_type] || 0
     if (form.voiceover_type === 'real') cost += parseInt(settings['credit_voiceover_real'] || '6')
@@ -229,6 +246,7 @@ function NewBriefPage() {
       notes: combinedNotes,
       languages: form.languages.length > 0 ? form.languages : [],
       credit_cost: cost,
+      product_image_url: productImageUrl || null,
     }
 
     let newBrief: any = null
@@ -250,6 +268,8 @@ function NewBriefPage() {
         status: asDraft ? 'draft' : 'submitted',
       }).select('id').single()
       newBrief = res.data; error = res.error
+      // Set root_campaign_id to self for new briefs
+      if (newBrief?.id) await supabase.from('briefs').update({ root_campaign_id: newBrief.id }).eq('id', newBrief.id)
     }
     if (error) { setSubmitting(false); alert('Hata: ' + error.message); return }
 
@@ -794,6 +814,42 @@ function NewBriefPage() {
                     <input ref={filesRef} type="file" multiple style={{fontSize:'12px',color:'#0a0a0a',flex:1}} />
                   </div>
                   <div style={{fontSize:'10px',color:'#aaa',marginTop:'6px'}}>Opsiyonel. Logo, referans video, moodboard vb.</div>
+                </div>
+
+                {/* PRODUCT IMAGE */}
+                <div style={{marginBottom:'22px'}}>
+                  <label style={{display:'flex',alignItems:'center',gap:'8px',cursor:'pointer',marginBottom:productImageUrl?'12px':'0'}}>
+                    <input type="checkbox" checked={!!productImageUrl || productUploading} onChange={e=>{if(!e.target.checked){setProductImageUrl(null)}}} style={{accentColor:'#22c55e'}} />
+                    <span style={{fontSize:'13px',color:'#0a0a0a'}}>Bu kampanya için ürün görselim var</span>
+                  </label>
+                  {(productImageUrl || productUploading) ? (
+                    productImageUrl ? (
+                      <div style={{display:'flex',alignItems:'center',gap:'12px',background:'#f5f4f0',borderRadius:'10px',padding:'12px 16px'}}>
+                        <img src={productImageUrl} alt="Ürün" style={{width:'48px',height:'48px',objectFit:'cover',borderRadius:'8px',border:'0.5px solid rgba(0,0,0,0.1)'}} />
+                        <div style={{flex:1}}>
+                          <div style={{fontSize:'12px',color:'#22c55e',fontWeight:'500'}}>Yüklendi</div>
+                          <div style={{fontSize:'10px',color:'#888',marginTop:'2px'}}>AI video ürününüzü kullanarak oluşturulacak</div>
+                        </div>
+                        <button onClick={()=>setProductImageUrl(null)} style={{fontSize:'11px',color:'#ef4444',background:'none',border:'none',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>Kaldır</button>
+                      </div>
+                    ) : (
+                      <div style={{fontSize:'11px',color:'#888',padding:'12px'}}>Yükleniyor...</div>
+                    )
+                  ) : null}
+                  {!productImageUrl && !productUploading && (
+                    <div style={{marginTop:'8px',display:'flex',gap:'8px',alignItems:'flex-start'}}>
+                      <div style={{flex:1}}>
+                        <input placeholder="Görsel URL yapıştır (jpg, png, webp)" onBlur={e=>{const v=e.target.value.trim();if(v&&/\.(jpg|jpeg|png|webp)/i.test(v)){setProductImageUrl(v);e.target.value=''}}}
+                          style={{...inputStyle,fontSize:'12px',padding:'9px 12px'}} />
+                      </div>
+                      <div style={{fontSize:'11px',color:'#aaa',lineHeight:'36px'}}>veya</div>
+                      <div>
+                        <input ref={productImageRef} type="file" accept=".jpg,.jpeg,.png,.webp" onChange={handleProductImageUpload}
+                          style={{fontSize:'11px',width:'130px'}} disabled={productUploading} />
+                      </div>
+                    </div>
+                  )}
+                  <div style={{fontSize:'10px',color:'#aaa',marginTop:'6px'}}>Ürün görseli yüklerseniz AI video ürününüzü kullanarak oluşturur. JPG, PNG, WebP — max 10MB</div>
                 </div>
 
                 {balance < cost && (

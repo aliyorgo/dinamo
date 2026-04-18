@@ -8,12 +8,32 @@ const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.
 
 const statusLabel: Record<string,string> = {
   draft:'Taslak', submitted:'İnceleniyor', read:'İncelendi', in_production:'Üretimde',
-  revision:'Revizyon', approved:'Onay Bekliyor', delivered:'Teslim Edildi', cancelled:'İptal Edildi'
+  revision:'Revizyon', approved:'Onay Bekliyor', delivered:'Teslim Edildi', cancelled:'İptal Edildi',
+  ai_processing:'AI Üretiliyor...', ai_completed:'Önizleme Hazır', ai_archived:'Arşiv'
 }
 const statusColor: Record<string,string> = {
   draft:'#f59e0b', submitted:'#888', read:'#888', in_production:'#3b82f6',
-  revision:'#ef4444', approved:'#f59e0b', delivered:'#22c55e', cancelled:'#555'
+  revision:'#ef4444', approved:'#f59e0b', delivered:'#22c55e', cancelled:'#555',
+  ai_processing:'#f59e0b', ai_completed:'#3b82f6', ai_archived:'#888'
 }
+
+const CHARACTER_STAGES = [
+  { key: 'processing_concept', label: 'Konsept oluşturuluyor', duration: 10 },
+  { key: 'processing_video', label: 'Görsel üretiliyor', duration: 210 },
+  { key: 'processing_voice', label: 'Ses kaydediliyor', duration: 15 },
+  { key: 'processing_music', label: 'Müzik seçiliyor', duration: 5 },
+  { key: 'processing_merge', label: 'Birleştiriliyor', duration: 10 },
+  { key: 'uploading', label: 'Yükleniyor', duration: 10 },
+]
+const PRODUCT_STAGES = [
+  { key: 'processing_concept', label: 'Konsept oluşturuluyor', duration: 10 },
+  { key: 'processing_lifestyle', label: 'Ürün görseli hazırlanıyor', duration: 30 },
+  { key: 'processing_video', label: 'Görsel üretiliyor', duration: 210 },
+  { key: 'processing_voice', label: 'Ses kaydediliyor', duration: 15 },
+  { key: 'processing_music', label: 'Müzik seçiliyor', duration: 5 },
+  { key: 'processing_merge', label: 'Birleştiriliyor', duration: 10 },
+  { key: 'uploading', label: 'Yükleniyor', duration: 10 },
+]
 const REVISION_COST = 4
 const BASE_COSTS: Record<string,number> = {'Bumper / Pre-roll':12,'Story / Reels':18,'Feed Video':24,'Long Form':36}
 const VIDEO_TYPES = ['Bumper / Pre-roll','Story / Reels','Feed Video','Long Form']
@@ -47,6 +67,15 @@ export default function ClientBriefDetail() {
   const [copiedIdx, setCopiedIdx] = useState<string|null>(null)
   const [generatingLink, setGeneratingLink] = useState(false)
   const [linkCopied, setLinkCopied] = useState(false)
+  const [aiStageElapsed, setAiStageElapsed] = useState(0)
+  const aiStageStartRef = useRef(Date.now())
+  const [aiError, setAiError] = useState('')
+  // AI Studio
+  const [aiChildren, setAiChildren] = useState<any[]>([])
+  const [selectedAiIdx, setSelectedAiIdx] = useState<number>(0)
+  const [showAiGenerate, setShowAiGenerate] = useState(false)
+  const [aiGenerating, setAiGenerating] = useState(false)
+  const [aiWarningDismissed, setAiWarningDismissed] = useState(false)
 
   useEffect(() => { loadData() }, [id])
 
@@ -58,7 +87,7 @@ export default function ClientBriefDetail() {
     const { data: cu } = await supabase.from('client_users').select('*, clients(company_name, credit_balance)').eq('user_id', user.id).single()
     setClientUser(cu)
     setCompanyName((cu as any)?.clients?.company_name || '')
-    const { data: b } = await supabase.from('briefs').select('*').eq('id', id).single()
+    const { data: b } = await supabase.from('briefs').select('*, clients(ai_video_enabled)').eq('id', id).single()
     setBrief(b)
     const { data: q } = await supabase.from('brief_questions').select('*').eq('brief_id', id).order('asked_at')
     setQuestions(q || [])
@@ -66,6 +95,126 @@ export default function ClientBriefDetail() {
     setVideos(v || [])
     const revCount = (q || []).filter((x:any) => x.question.startsWith('REVİZYON:')).length
     setRevisionCount(revCount)
+    // AI clones for this campaign (root_campaign_id based)
+    const rootId = b?.root_campaign_id || b?.id
+    const { data: aiKids } = await supabase.from('briefs')
+      .select('id, campaign_name, status, ai_video_status, ai_video_url, ai_video_error, product_image_url, created_at')
+      .eq('root_campaign_id', rootId)
+      .like('campaign_name', '%Full AI%')
+      .order('created_at', { ascending: true })
+    setAiChildren(aiKids || [])
+  }
+
+  // AI video polling — runs when brief is ai_processing and video not yet ready
+  useEffect(() => {
+    if (brief?.status !== 'ai_processing') return
+    if (brief?.ai_video_status === 'completed' || brief?.ai_video_status === 'failed') return
+    const poll = setInterval(async () => {
+      try {
+        const { data: b, error: err } = await supabase.from('briefs').select('ai_video_status, ai_video_url, ai_video_error, status').eq('id', id).maybeSingle()
+        if (err || !b) return
+        if (b.ai_video_status !== brief.ai_video_status || b.status !== brief.status) {
+          setBrief((prev: any) => ({ ...prev, ...b }))
+        }
+      } catch {}
+    }, 3000)
+    return () => clearInterval(poll)
+  }, [brief?.status, brief?.ai_video_status])
+
+  // AI stage elapsed timer
+  useEffect(() => {
+    if (brief?.ai_video_status?.startsWith('processing_')) {
+      aiStageStartRef.current = Date.now()
+      setAiStageElapsed(0)
+    }
+  }, [brief?.ai_video_status])
+  useEffect(() => {
+    if (!brief?.ai_video_status?.startsWith('processing_')) return
+    const t = setInterval(() => setAiStageElapsed(Math.floor((Date.now() - aiStageStartRef.current) / 1000)), 1000)
+    return () => clearInterval(t)
+  }, [brief?.ai_video_status])
+
+
+  // Poll AI children for status updates
+  useEffect(() => {
+    const processing = aiChildren.filter(c => c.status === 'ai_processing')
+    if (processing.length === 0) return
+    const poll = setInterval(async () => {
+      const { data } = await supabase.from('briefs').select('id, status, ai_video_status, ai_video_url, ai_video_error').in('id', processing.map(c => c.id))
+      if (data) setAiChildren(prev => prev.map(c => { const u = data.find((d: any) => d.id === c.id); return u ? { ...c, ...u } : c }))
+    }, 3000)
+    return () => clearInterval(poll)
+  }, [aiChildren.filter(c => c.status === 'ai_processing').length])
+
+  async function handleAiPurchase() {
+    if (!clientUser || !brief?.ai_video_url) return
+    if ((clientUser.allocated_credits || 0) < 2) { setAiError('Yetersiz kredi'); return }
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const res = await fetch('/api/generate-ai-video/purchase', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ briefId: id, userId: user.id }),
+    })
+    const result = await res.json()
+    if (result.error) { setAiError(result.error); return }
+    setClientUser({ ...clientUser, allocated_credits: (clientUser.allocated_credits || 0) - 2 })
+    setBrief((prev: any) => ({ ...prev, status: 'delivered' }))
+    loadData()
+  }
+
+  async function handleAiDiscard() {
+    await supabase.from('briefs').update({ status: 'ai_archived' }).eq('id', id)
+    router.push('/dashboard/client')
+  }
+
+  async function handleStudioGenerate(mode: 'character' | 'product' = 'character') {
+    if (!clientUser || !brief || aiGenerating) return
+    if ((clientUser.allocated_credits || 0) < 1) { setAiError('Yetersiz kredi'); return }
+    setAiGenerating(true)
+    setShowAiGenerate(false)
+    const newCredits = (clientUser.allocated_credits || 0) - 1
+    await supabase.from('client_users').update({ allocated_credits: newCredits }).eq('id', clientUser.id)
+    setClientUser({ ...clientUser, allocated_credits: newCredits })
+    const baseName = brief.campaign_name?.replace(/\s*—\s*Full AI #\d+$/, '').replace(/\s*—\s*\d+$/, '') || brief.campaign_name
+    const rootId = brief.root_campaign_id || id
+    const { count } = await supabase.from('briefs').select('id', { count: 'exact', head: true }).eq('root_campaign_id', rootId).like('campaign_name', '%Full AI%')
+    const aiNum = (count || 0) + 1
+    const { data: newBrief } = await supabase.from('briefs').insert({
+      campaign_name: `${baseName} — Full AI #${aiNum}`,
+      parent_brief_id: id,
+      video_type: brief.video_type, format: brief.format, platforms: brief.platforms,
+      message: brief.message, cta: brief.cta, target_audience: brief.target_audience,
+      voiceover_type: brief.voiceover_type, voiceover_gender: brief.voiceover_gender,
+      voiceover_text: brief.voiceover_text, notes: brief.notes, languages: brief.languages,
+      product_image_url: mode === 'product' ? (brief.product_image_url || null) : null,
+      pipeline_type: mode,
+      credit_cost: 1, client_id: brief.client_id, client_user_id: brief.client_user_id,
+      root_campaign_id: brief.root_campaign_id || id,
+      status: 'ai_processing', ai_video_status: 'processing_concept',
+    }).select('id, campaign_name, status, ai_video_status, ai_video_url, created_at, product_image_url').single()
+    if (newBrief) {
+      setAiChildren(prev => [...prev, newBrief])
+      setSelectedAiIdx(aiChildren.length)
+    }
+    fetch('/api/generate-ai-video', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ briefId: newBrief?.id }) })
+    setAiGenerating(false)
+  }
+
+  async function handleStudioPurchase(childBrief: any) {
+    if (!clientUser || !childBrief?.ai_video_url) return
+    if ((clientUser.allocated_credits || 0) < 2) { setAiError('Yetersiz kredi'); return }
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const res = await fetch('/api/generate-ai-video/purchase', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ briefId: childBrief.id, userId: user.id }),
+    })
+    const result = await res.json()
+    if (result.error) { setAiError(result.error); return }
+    setClientUser({ ...clientUser, allocated_credits: (clientUser.allocated_credits || 0) - 2 })
+    setAiChildren(prev => prev.map(c => c.id === childBrief.id ? { ...c, status: 'delivered' } : c))
+    loadData()
   }
 
   async function loadCaptions() {
@@ -106,10 +255,10 @@ export default function ClientBriefDetail() {
     const fullCost = BASE_COSTS[reorderType] || 12
     const halfCost = Math.ceil(fullCost / 2)
     if (clientUser.allocated_credits < halfCost) { setReordering(false); return }
-    const originalId = brief.parent_brief_id || brief.id
-    const { count } = await supabase.from('briefs').select('id', { count: 'exact', head: true }).eq('parent_brief_id', originalId)
-    const copyNum = (count || 0) + 2
-    const baseName = brief.campaign_name.replace(/\s*—\s*\d+$/, '')
+    const baseName = brief.campaign_name.replace(/\s*—\s*\d+$/, '').replace(/\s*—\s*Full AI #\d+$/, '')
+    const rootId = brief.root_campaign_id || id
+    const { count } = await supabase.from('briefs').select('id', { count: 'exact', head: true }).eq('root_campaign_id', rootId).not('campaign_name', 'like', '%Full AI%')
+    const copyNum = (count || 0) + 1
     const newName = `${baseName} — ${copyNum}`
     await supabase.from('client_users').update({ credit_balance: clientUser.allocated_credits - halfCost }).eq('id', clientUser.id)
     await supabase.from('credit_transactions').insert({ client_id: brief.client_id, client_user_id: clientUser.id, amount: -halfCost, type: 'deduct', description: `${newName} (tekrar sipariş)` })
@@ -121,7 +270,7 @@ export default function ClientBriefDetail() {
       voiceover_type: brief.voiceover_type, voiceover_gender: brief.voiceover_gender,
       voiceover_text: brief.voiceover_text, notes: brief.notes,
       status: 'submitted', credit_cost: halfCost,
-      parent_brief_id: originalId,
+      root_campaign_id: brief.root_campaign_id || id,
     })
     setReordering(false)
     setReorderSuccess(true)
@@ -328,7 +477,7 @@ export default function ClientBriefDetail() {
             <span style={{fontSize:'12px',color:'rgba(255,255,255,0.4)'}}>İçerik Güvencesi</span>
           </div>
         </nav>
-        <div style={{padding:'10px 8px',borderTop:'0.5px solid rgba(255,255,255,0.07)'}}>
+        <div style={{padding:'10px 8px',borderTop:'0.5px solid rgba(255,255,255,0.07)',marginTop:'auto',flexShrink:0}}>
           <button onClick={handleLogout} style={{display:'flex',alignItems:'center',gap:'7px',padding:'6px 8px',borderRadius:'7px',cursor:'pointer',width:'100%',background:'none',border:'none'}}>
             <span style={{fontSize:'11px',color:'#aaa',fontFamily:'var(--font-dm-sans),sans-serif'}}>Çıkış yap</span>
           </button>
@@ -414,6 +563,108 @@ export default function ClientBriefDetail() {
                   ))}
                 </div>
               )}
+
+              {/* AI VIDEO PROCESSING / COMPLETED / FAILED */}
+              {(brief.status === 'ai_processing' || brief.status === 'ai_completed') && (() => {
+                const stages = brief.product_image_url ? PRODUCT_STAGES : CHARACTER_STAGES
+                const stageKeys = stages.map(s => s.key)
+                const curIdx = stageKeys.indexOf(brief.ai_video_status || '')
+                const curDur = curIdx >= 0 ? stages[curIdx].duration : 0
+                const curRem = Math.max(0, curDur - aiStageElapsed)
+                const futureTime = stages.slice(curIdx + 1).reduce((s, x) => s + x.duration, 0)
+                const totalRem = curRem + futureTime
+                const barPct = curDur > 0 ? Math.min(100, (aiStageElapsed / curDur) * 100) : 0
+                const fmtCd = (s: number) => { const m = Math.floor(s/60); const r = s%60; return m > 0 ? `${m}:${String(r).padStart(2,'0')}` : `${r} sn` }
+                const fmtRem = (s: number) => s >= 60 ? `~${Math.ceil(s/60)} dk kaldı` : `~${s} sn kaldı`
+
+                // COMPLETED
+                if (brief.ai_video_status === 'completed' && brief.ai_video_url) {
+                  return (
+                    <div style={{display:'flex',gap:'20px',marginBottom:'16px',alignItems:'flex-start'}}>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{borderRadius:'12px',overflow:'hidden',position:'relative',maxWidth:aspect.maxW,margin:briefFormat==='16:9'?'0':'0 auto'}}>
+                          <div style={{paddingTop:aspect.padding,position:'relative'}}>
+                            <video controls autoPlay style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',borderRadius:'12px'}}>
+                              <source src={brief.ai_video_url} />
+                            </video>
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{width:'280px',flexShrink:0,position:'sticky',top:'24px'}}>
+                        <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a',marginBottom:'6px'}}>AI Video Hazır</div>
+                        <div style={{fontSize:'12px',color:'#888',marginBottom:'20px',lineHeight:1.6}}>Videoyu beğendiyseniz satın alabilirsiniz.</div>
+                        <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'8px'}}>
+                          <button onClick={handleAiPurchase} disabled={(clientUser?.allocated_credits||0)<2}
+                            style={{padding:'12px 24px',background:(clientUser?.allocated_credits||0)<2?'#ccc':'#1DB81D',color:'#0A0A0A',border:'none',borderRadius:'10px',fontSize:'14px',fontWeight:'600',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                            Satın Al
+                          </button>
+                          <span style={{fontSize:'11px',color:'#888'}}>2 kredi</span>
+                        </div>
+                        <button onClick={handleAiDiscard}
+                          style={{width:'100%',padding:'10px',background:'#fff',color:'#555',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'10px',fontSize:'12px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                          Vazgeç
+                        </button>
+                        {aiError && <div style={{fontSize:'12px',color:'#ef4444',marginTop:'8px'}}>{aiError}</div>}
+                      </div>
+                    </div>
+                  )
+                }
+
+                // FAILED
+                if (brief.ai_video_status === 'failed') {
+                  return (
+                    <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'24px',marginBottom:'16px'}}>
+                      <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a',marginBottom:'8px'}}>Video oluşturulamadı</div>
+                      <div style={{fontSize:'13px',color:'#ef4444',marginBottom:'16px'}}>{brief.ai_video_error || 'Bilinmeyen hata'}</div>
+                      <button onClick={async ()=>{
+                        await supabase.from('briefs').update({ ai_video_status:'processing_concept', status:'ai_processing', ai_video_url:null, ai_video_error:null }).eq('id',id)
+                        setBrief((prev:any)=>({...prev, ai_video_status:'processing_concept', status:'ai_processing', ai_video_url:null, ai_video_error:null}))
+                        fetch('/api/generate-ai-video',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({briefId:id})})
+                      }}
+                        style={{padding:'10px 20px',background:'#222',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                        Tekrar Dene
+                      </button>
+                    </div>
+                  )
+                }
+
+                // PROCESSING
+                return (
+                  <div style={{background:'#0a0a0a',borderRadius:'12px',padding:'24px 28px',marginBottom:'16px'}}>
+                    <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'20px'}}>
+                      <div style={{fontSize:'15px',fontWeight:'500',color:'#fff'}}>Video oluşturuluyor...</div>
+                      {totalRem > 0 && <div style={{fontSize:'13px',color:'#1DB81D',fontFamily:'monospace',fontWeight:'500'}}>Tahmini: {fmtCd(totalRem)} kaldı</div>}
+                    </div>
+                    {stages.map((s, i) => {
+                      const isDone = curIdx > i
+                      const isCurrent = curIdx === i
+                      return (
+                        <div key={s.key} style={{marginBottom:isCurrent?'16px':'10px'}}>
+                          <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+                            <div style={{width:'18px',height:'18px',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                              {isDone ? <span style={{color:'#1DB81D',fontSize:'14px'}}>&#10003;</span>
+                                : isCurrent ? <div style={{width:'10px',height:'10px',border:'2px solid #1DB81D',borderTop:'2px solid transparent',borderRadius:'50%',animation:'spin 1s linear infinite'}}></div>
+                                : <div style={{width:'6px',height:'6px',background:'#444',borderRadius:'50%'}}></div>}
+                            </div>
+                            <span style={{fontSize:'13px',color:isDone?'#1DB81D':isCurrent?'#fff':'#555',flex:1}}>{s.label}{isDone?' ✓':''}</span>
+                            {isCurrent && curRem > 0 && <span style={{fontSize:'11px',color:'#888'}}>{fmtRem(curRem)}</span>}
+                            {!isDone && !isCurrent && <span style={{fontSize:'10px',color:'#444'}}>~{s.duration >= 60 ? `${Math.floor(s.duration/60)} dk` : `${s.duration} sn`}</span>}
+                          </div>
+                          {isCurrent && (
+                            <div style={{marginTop:'6px',marginLeft:'28px',height:'3px',background:'#222',borderRadius:'2px',overflow:'hidden'}}>
+                              <div style={{height:'100%',background:'#1DB81D',borderRadius:'2px',transition:'width 1s linear',width:`${barPct}%`}}></div>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                    <div style={{marginTop:'16px',fontSize:'11px',color:'#555',display:'flex',alignItems:'center',gap:'6px',lineHeight:'1.5'}}>
+                      <span style={{color:'#1DB81D',flexShrink:0}}>&#9889;</span> Sayfayı kapatabilirsiniz, video arka planda oluşturulmaya devam eder.
+                    </div>
+                  </div>
+                )
+              })()}
 
               {/* VIDEO PLAYER + ACTION PANEL */}
               {currentVideo && (brief.status==='approved'||brief.status==='delivered') && (
@@ -666,7 +917,7 @@ export default function ClientBriefDetail() {
                   {label:'Mesaj', value: brief.message},
                   {label:'CTA', value: brief.cta},
                   {label:'Hedef Kitle', value: brief.target_audience},
-                  {label:'Seslendirme', value: brief.voiceover_type==='real'?'Gerçek Seslendirme':brief.voiceover_type==='ai'?'AI Seslendirme':null},
+                  {label:'Seslendirme', value: brief.voiceover_type==='real'?'Gerçek Seslendirme':brief.voiceover_type==='ai'?`AI Seslendirme${brief.voiceover_gender==='male'?' (Erkek)':brief.voiceover_gender==='female'?' (Kadın)':''}`:null},
                   {label:'Seslendirme Metni', value: brief.voiceover_text},
                   {label:'Notlar', value: brief.notes},
                 ].filter(f=>f.value).map(f=>(
@@ -695,6 +946,158 @@ export default function ClientBriefDetail() {
               )}
             </>
           )}
+
+              {/* AI VIDEO STUDIO */}
+              {brief && brief.status !== 'cancelled' && brief.status !== 'draft' && (
+                <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'20px 24px',marginBottom:'16px'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:aiWarningDismissed?'16px':'10px'}}>
+                    <span style={{color:'#1DB81D',fontSize:'16px'}}>&#9889;</span>
+                    <div style={{fontSize:'14px',fontWeight:'600',color:'#0a0a0a'}}>AI Video Stüdyosu</div>
+                  </div>
+                  {!aiWarningDismissed && (
+                    <div style={{background:'#1F1F1F',borderRadius:'8px',padding:'16px 18px',marginBottom:'16px',display:'flex',alignItems:'flex-start',gap:'12px',position:'relative'}}>
+                      <div style={{fontSize:'13px',color:'#fff',lineHeight:1.7,flex:1}}>
+                        Deneysel bir özelliktir — sonuçlar garanti edilmez. Bu videolar tamamen yazdığınız brief'den yola çıkarak yapay zeka tarafından üretilmektedir. Fikir, görsel, ses ve müzik tamamen AI tarafından oluşturulur. Ekrandaki yazılar sosyal medyada native text olarak eklenmelidir. Dinamo sadece marka bilgileri ile AI prompt'larına müdahale eder.
+                      </div>
+                      <button onClick={()=>setAiWarningDismissed(true)} style={{background:'none',border:'none',cursor:'pointer',color:'rgba(255,255,255,0.7)',fontSize:'20px',lineHeight:1,padding:'0 2px',flexShrink:0}}>&#215;</button>
+                    </div>
+                  )}
+
+                  {/* Version list */}
+                  {aiChildren.map((child, idx) => {
+                    const hasVideo = !!child.ai_video_url
+                    const isPurchased = child.status === 'delivered'
+                    const isFailed = !hasVideo && (child.ai_video_status === 'failed' || child.ai_video_status === 'timeout')
+                    const isProcessing = child.status === 'ai_processing' && !hasVideo && !isFailed
+                    return (
+                      <div key={child.id} style={{display:'flex',gap:'14px',padding:'12px 0',borderBottom:idx<aiChildren.length-1?'0.5px solid rgba(0,0,0,0.06)':'none',alignItems:'flex-start'}}>
+                        {/* Video player */}
+                        <div style={{width:'200px',aspectRatio:'9/16',borderRadius:'8px',overflow:'hidden',background:'#0a0a0a',flexShrink:0}}>
+                          {hasVideo ? (
+                            <video src={child.ai_video_url} controls playsInline preload="metadata"
+                              style={{width:'100%',height:'100%',objectFit:'contain',backgroundColor:'black',borderRadius:'8px'}} />
+                          ) : isProcessing ? (
+                            <div style={{width:'100%',height:'100%',display:'flex',flexDirection:'column',justifyContent:'center',padding:'12px'}}>
+                              {(child.product_image_url ? PRODUCT_STAGES : CHARACTER_STAGES).map((s,si) => {
+                                const sKeys = (child.product_image_url ? PRODUCT_STAGES : CHARACTER_STAGES).map(x=>x.key)
+                                const curSi = sKeys.indexOf(child.ai_video_status || '')
+                                const done = curSi > si
+                                const active = curSi === si
+                                return (
+                                  <div key={s.key} style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'4px'}}>
+                                    <div style={{width:'10px',height:'10px',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                                      {done ? <span style={{color:'#1DB81D',fontSize:'8px'}}>&#10003;</span>
+                                        : active ? <div style={{width:'6px',height:'6px',border:'1.5px solid #1DB81D',borderTop:'1.5px solid transparent',borderRadius:'50%',animation:'spin 1s linear infinite'}}></div>
+                                        : <div style={{width:'3px',height:'3px',background:'#444',borderRadius:'50%'}}></div>}
+                                    </div>
+                                    <span style={{fontSize:'8px',color:done?'#1DB81D':active?'#fff':'#555'}}>{s.label}</span>
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          ) : (
+                            <div style={{width:'100%',height:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'6px'}}>
+                              <span style={{fontSize:'20px',color:'#555'}}>&#9888;</span>
+                              <span style={{fontSize:'10px',color:'#999',fontWeight:'500'}}>Üretilemedi</span>
+                              <span style={{fontSize:'8px',color:'#555'}}>Geçici sistem hatası</span>
+                            </div>
+                          )}
+                        </div>
+                        {/* Info */}
+                        <div style={{flex:1,minWidth:0,paddingTop:'4px'}}>
+                          <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'4px'}}>
+                            <span style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>V{idx+1}</span>
+                            {isPurchased && <span style={{fontSize:'9px',color:'#1DB81D',fontWeight:'600'}}>&#10003; Satın Alındı</span>}
+                            {isProcessing && <span style={{fontSize:'9px',color:'#f59e0b',fontWeight:'500'}}>Üretiliyor...</span>}
+                            {isFailed && <span style={{fontSize:'9px',color:'#ef4444',fontWeight:'500'}}>Başarısız</span>}
+                          </div>
+                          <div style={{fontSize:'11px',color:'#888',marginBottom:'10px'}}>{new Date(child.created_at).toLocaleDateString('tr-TR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
+                          {isFailed && (
+                            <div style={{display:'flex',gap:'6px',marginBottom:'10px'}}>
+                              <button onClick={async ()=>{
+                                await supabase.from('briefs').update({ ai_video_status:'processing_concept', ai_video_error:null, status:'ai_processing' }).eq('id',child.id)
+                                setAiChildren(prev=>prev.map(c=>c.id===child.id?{...c,ai_video_status:'processing_concept',status:'ai_processing'}:c))
+                                fetch('/api/generate-ai-video',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({briefId:child.id,pipelineType:child.product_image_url?'product':'character'})})
+                              }}
+                                style={{padding:'5px 12px',background:'#0a0a0a',color:'#fff',border:'none',borderRadius:'4px',fontSize:'11px',fontWeight:'500',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                                Tekrar Dene
+                              </button>
+                              <button onClick={async ()=>{
+                                await supabase.from('briefs').delete().eq('id',child.id)
+                                setAiChildren(prev=>prev.filter(c=>c.id!==child.id))
+                              }}
+                                style={{padding:'5px 12px',background:'none',color:'#ef4444',border:'0.5px solid #ef4444',borderRadius:'4px',fontSize:'11px',fontWeight:'500',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                                Sil
+                              </button>
+                            </div>
+                          )}
+                          {hasVideo && (
+                            <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
+                              {isPurchased ? (
+                                <>
+                                  <a href={child.ai_video_url} download target="_blank"
+                                    style={{fontSize:'11px',color:'#0a0a0a',textDecoration:'none',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'6px',padding:'5px 12px',display:'inline-flex',alignItems:'center',gap:'4px',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                                    <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M8 2v9M4 8l4 4 4-4" stroke="#0a0a0a" strokeWidth="1.5" strokeLinecap="round"/><path d="M2 13h12" stroke="#0a0a0a" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                                    İndir
+                                  </a>
+                                  <button onClick={()=>generateCertificatePDF(brief, companyName)}
+                                    style={{fontSize:'11px',color:'#555',background:'none',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'6px',padding:'5px 12px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                                    Telif Belgesi
+                                  </button>
+                                </>
+                              ) : (
+                                <>
+                                  <button onClick={()=>handleStudioPurchase(child)} disabled={(clientUser?.allocated_credits||0)<2}
+                                    style={{padding:'6px 16px',background:(clientUser?.allocated_credits||0)<2?'#ccc':'#1DB81D',color:'#0A0A0A',border:'none',borderRadius:'6px',fontSize:'11px',fontWeight:'600',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                                    Satın Al
+                                  </button>
+                                  <span style={{fontSize:'10px',color:'#888'}}>2 kredi</span>
+                                </>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+
+                  {/* Generate button — only if AI video enabled */}
+                  {brief.clients?.ai_video_enabled !== false && <div style={{marginTop:aiChildren.length>0?'16px':'0'}}>
+                    {aiGenerating ? (
+                      <div style={{display:'flex',alignItems:'center',gap:'8px',padding:'14px 0'}}>
+                        <div style={{width:'16px',height:'16px',border:'2px solid #1DB81D',borderTop:'2px solid transparent',borderRadius:'50%',animation:'spin 1s linear infinite'}}></div>
+                        <span style={{fontSize:'12px',color:'#888'}}>Üretim başlatılıyor...</span>
+                      </div>
+                    ) : brief.product_image_url && showAiGenerate ? (
+                      <div style={{display:'flex',gap:'8px'}}>
+                        <button onClick={()=>handleStudioGenerate('product')}
+                          style={{flex:1,padding:'12px',background:'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'12px',fontWeight:'600',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',transition:'background 0.15s'}}
+                          onMouseEnter={e=>(e.currentTarget.style.background='#1DB81D')}
+                          onMouseLeave={e=>(e.currentTarget.style.background='#0a0a0a')}>
+                          Ürün Odaklı
+                        </button>
+                        <button onClick={()=>handleStudioGenerate('character')}
+                          style={{flex:1,padding:'12px',background:'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'12px',fontWeight:'600',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',transition:'background 0.15s'}}
+                          onMouseEnter={e=>(e.currentTarget.style.background='#1DB81D')}
+                          onMouseLeave={e=>(e.currentTarget.style.background='#0a0a0a')}>
+                          Karakter Odaklı
+                        </button>
+                      </div>
+                    ) : (
+                      <div>
+                        <button onClick={()=>brief.product_image_url?setShowAiGenerate(true):handleStudioGenerate('character')} disabled={(clientUser?.allocated_credits||0)<1}
+                          style={{width:'100%',padding:'14px',background:(clientUser?.allocated_credits||0)<1?'#ccc':'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'13px',fontWeight:'600',cursor:(clientUser?.allocated_credits||0)<1?'default':'pointer',fontFamily:'var(--font-dm-sans),sans-serif',transition:'background 0.15s',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}
+                          onMouseEnter={e=>{if((clientUser?.allocated_credits||0)>=1)e.currentTarget.style.background='#1DB81D'}}
+                          onMouseLeave={e=>{if((clientUser?.allocated_credits||0)>=1)e.currentTarget.style.background='#0a0a0a'}}>
+                          <span>&#9889;</span> {aiChildren.length > 0 ? 'Yeni Versiyon Üret' : 'Full AI Video Üret'}
+                        </button>
+                        <div style={{fontSize:'10px',color:'#999',textAlign:'center',marginTop:'6px'}}>{aiChildren.length > 0 ? '~5 dakika · 1 kredi' : '~5 dakika · İlk deneme ücretsiz · 2 kredi satın alma'}</div>
+                      </div>
+                    )}
+                  </div>}
+                </div>
+              )}
+
         </div>
       </div>
 

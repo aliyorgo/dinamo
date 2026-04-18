@@ -10,6 +10,7 @@ export default function BriefsPage() {
   const router = useRouter()
   const [briefs, setBriefs] = useState<any[]>([])
   const [creators, setCreators] = useState<any[]>([])
+  const [tab, setTab] = useState<'briefs'|'ai'>('briefs')
   const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
   const [dateFrom, setDateFrom] = useState('')
@@ -36,7 +37,9 @@ export default function BriefsPage() {
     return producerBriefs.find(pb => pb.brief_id === briefId)?.assigned_creator_id || ''
   }
 
-  const filtered = briefs.filter(b => {
+  const isAiBrief = (b: any) => b.campaign_name?.includes('Full AI')
+  const tabBriefs = tab === 'ai' ? briefs.filter(b => isAiBrief(b) && b.ai_video_url) : briefs.filter(b => !isAiBrief(b))
+  const filtered = tabBriefs.filter(b => {
     if (filter !== 'all' && b.status !== filter) return false
     if (search && !b.campaign_name?.toLowerCase().includes(search.toLowerCase()) && !b.clients?.company_name?.toLowerCase().includes(search.toLowerCase())) return false
     if (dateFrom && b.created_at < dateFrom) return false
@@ -96,6 +99,16 @@ export default function BriefsPage() {
           )}
         </div>
 
+        {/* MAIN TABS */}
+        <div style={{display:'flex',gap:'0',marginBottom:'20px',borderBottom:'1px solid #e8e7e3'}}>
+          {[{val:'briefs' as const,label:"Brief'ler"},{val:'ai' as const,label:'Full AI Videolar'}].map(t=>(
+            <button key={t.val} onClick={()=>{setTab(t.val);setFilter('all')}}
+              style={{padding:'8px 20px',border:'none',borderBottom:tab===t.val?'2px solid #0a0a0a':'2px solid transparent',background:'none',color:tab===t.val?'#0a0a0a':'#888',fontSize:'13px',fontWeight:tab===t.val?'600':'400',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+              {t.label}{t.val==='ai'?` (${briefs.filter(b=>isAiBrief(b)&&b.ai_video_url).length})`:''}
+            </button>
+          ))}
+        </div>
+
         {/* STATUS TABS */}
         <div style={{display:'flex',gap:'8px',marginBottom:'20px',flexWrap:'wrap'}}>
           {[{val:'all',label:'Tümü'},{val:'submitted',label:'Yeni'},{val:'in_production',label:'Üretimde'},{val:'revision',label:'Revizyon'},{val:'approved',label:'Onay'},{val:'delivered',label:'Teslim'}].map(f=>(
@@ -120,6 +133,16 @@ export default function BriefsPage() {
             </select>
             <button onClick={applyBulk} disabled={bulkLoading||(!bulkStatus&&!bulkCreator)} style={{padding:'7px 16px',background:'#0a0a0a',color:'#fff',border:'none',borderRadius:'8px',fontSize:'12px',cursor:'pointer',fontWeight:'500',opacity:!bulkStatus&&!bulkCreator?0.4:1}}>
               {bulkLoading?'Uygulanıyor...':'Uygula'}
+            </button>
+            <button onClick={async()=>{
+              if(!confirm(`${selected.size} brief kalıcı olarak silinecek. Bu işlem geri alınamaz. Emin misiniz?`)) return
+              setBulkLoading(true)
+              for(const id of Array.from(selected)) await supabase.from('briefs').delete().eq('id',id)
+              setBriefs(prev=>prev.filter(b=>!selected.has(b.id)))
+              setSelected(new Set())
+              setBulkLoading(false)
+            }} disabled={bulkLoading} style={{padding:'7px 16px',background:'#ef4444',color:'#fff',border:'none',borderRadius:'8px',fontSize:'12px',cursor:'pointer',fontWeight:'500'}}>
+              Seçilenleri Sil ({selected.size})
             </button>
           </div>
         )}
