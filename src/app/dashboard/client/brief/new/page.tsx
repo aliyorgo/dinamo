@@ -384,41 +384,82 @@ function NewBriefPage() {
   })
 
   if (step === 99) {
+    const aiEnabled = (clientUser as any)?.clients?.ai_video_enabled
+    const cardStyle = (highlight?: boolean): React.CSSProperties => ({
+      background: highlight ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.03)',
+      border: highlight ? '1px solid rgba(29,184,29,0.3)' : '1px solid rgba(255,255,255,0.08)',
+      borderRadius: '10px',
+      padding: '20px',
+      textAlign: 'left',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '8px',
+    })
+    const btnStyle = (primary?: boolean): React.CSSProperties => ({
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '6px',
+      padding: '10px 18px',
+      background: primary ? '#0a0a0a' : 'transparent',
+      color: '#fff',
+      border: primary ? '1px solid #1DB81D' : '1px solid rgba(255,255,255,0.15)',
+      borderRadius: '2px',
+      fontSize: '12px',
+      fontWeight: '600',
+      textDecoration: 'none',
+      fontFamily: 'var(--font-dm-sans),sans-serif',
+      marginTop: 'auto',
+    })
     return (
       <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'#0a0a0a',fontFamily:"var(--font-dm-sans),'DM Sans',system-ui,sans-serif"}}>
-        <div style={{textAlign:'center',maxWidth:'520px',padding:'0 24px'}}>
-          <div style={{fontSize:'28px',fontWeight:'500',color:'#fff',letterSpacing:'-0.5px',marginBottom:'32px'}}>
-            <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} />
-          </div>
-          <div style={{fontSize:'36px',fontWeight:'300',color:'#fff',letterSpacing:'-1px',marginBottom:'12px'}}>Brief'iniz alındı.</div>
-          <div style={{fontSize:'18px',fontWeight:'300',color:'#fff',fontStyle:'italic',marginBottom:'24px'}}>"{form.campaign_name}"</div>
-          <div style={{fontSize:'15px',color:'rgba(255,255,255,0.45)',lineHeight:1.8,marginBottom:'24px',maxWidth:'480px',margin:'0 auto 24px'}}>
-            Ekibimiz en kısa sürede incelemeye başlayacak. Sorularımız olursa platform üzerinden iletişime geçeceğiz. Videonuz hazır olduğunda bildirim alacaksınız.
-          </div>
-          <div style={{display:'inline-block',padding:'6px 16px',borderRadius:'100px',background:'rgba(34,197,94,0.1)',border:'1px solid rgba(34,197,94,0.2)',fontSize:'13px',color:'#22c55e',fontWeight:'400',marginBottom:'36px'}}>
-            Tahmini teslim süresi: 24 saat
-          </div>
-          <div style={{display:'flex',gap:'12px',justifyContent:'center'}}>
-            <a href="/dashboard/client" style={{padding:'13px 28px',borderRadius:'10px',border:'1px solid rgba(255,255,255,0.15)',background:'transparent',color:'#fff',fontSize:'14px',fontWeight:'400',textDecoration:'none',fontFamily:'var(--font-dm-sans),sans-serif'}}>Tüm Projelerim</a>
-            <a href="/dashboard/client/brief/new" style={{padding:'13px 28px',borderRadius:'10px',background:'#22c55e',color:'#fff',fontSize:'14px',fontWeight:'500',textDecoration:'none',fontFamily:'var(--font-dm-sans),sans-serif'}}>Yeni Brief</a>
+        <div style={{maxWidth:'680px',padding:'0 24px',width:'100%'}}>
+          {/* Header */}
+          <div style={{textAlign:'center',marginBottom:'40px'}}>
+            <div style={{marginBottom:'24px'}}><img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} /></div>
+            <div style={{fontSize:'32px',fontWeight:'300',color:'#fff',letterSpacing:'-1px',marginBottom:'10px'}}>Brief'iniz alındı.</div>
+            <div style={{fontSize:'16px',fontWeight:'300',color:'#fff',fontStyle:'italic',marginBottom:'16px'}}>"{form.campaign_name}"</div>
+            <div style={{fontSize:'13px',color:'rgba(255,255,255,0.4)',lineHeight:1.7,marginBottom:'16px'}}>
+              Ekibimiz en kısa sürede incelemeye başlayacak. Videonuz hazır olduğunda bildirim alacaksınız.
+            </div>
+            <div style={{display:'inline-block',padding:'5px 14px',background:'rgba(34,197,94,0.1)',border:'1px solid rgba(34,197,94,0.2)',fontSize:'12px',color:'#22c55e'}}>
+              Tahmini teslim: 24 saat
+            </div>
           </div>
 
-          {(clientUser as any)?.clients?.ai_video_enabled && savedBriefId && (
-            <div style={{marginTop:'48px',padding:'28px',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'12px',maxWidth:'420px',margin:'48px auto 0'}}>
-              <div style={{fontSize:'15px',fontWeight:'600',color:'#fff',marginBottom:'8px',display:'flex',alignItems:'center',gap:'6px'}}>
-                <span style={{color:'#1DB81D'}}>&#9889;</span> Full AI Video Stüdyosu <span style={{fontSize:'10px',color:'#888',fontWeight:'400'}}>Beta</span>
-              </div>
-              <div style={{fontSize:'12px',color:'rgba(255,255,255,0.45)',lineHeight:1.7,marginBottom:'16px'}}>
-                Briefinizi beklemeden hemen AI ile test edin. Yapay zeka briefinizden yola çıkarak ~5 dakikada fikir, görsel, ses ve müzik üretir. Sonuçlar deneyseldir, garanti edilmez.
-              </div>
-              <a href={`/dashboard/client/briefs/${savedBriefId}`}
-                style={{display:'inline-flex',alignItems:'center',gap:'6px',padding:'12px 24px',background:'#0a0a0a',color:'#fff',border:'1px solid #1DB81D',borderRadius:'2px',fontSize:'13px',fontWeight:'600',textDecoration:'none',fontFamily:'var(--font-dm-sans),sans-serif',transition:'background 0.15s'}}
-                onMouseEnter={(e:any)=>(e.currentTarget.style.background='#1DB81D')}
-                onMouseLeave={(e:any)=>(e.currentTarget.style.background='#0a0a0a')}>
-                <span>&#9889;</span> Full AI Video Üret — Ücretsiz Dene
+          {/* Action cards */}
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
+            {/* New brief */}
+            <a href="/dashboard/client/brief/new" style={{...cardStyle(),textDecoration:'none'}}>
+              <div style={{fontSize:'14px',fontWeight:'600',color:'#fff'}}>Yeni Kampanya</div>
+              <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',lineHeight:1.6}}>Yeni bir kampanya briefinı başlatın.</div>
+              <div style={btnStyle()}>+ Yeni Brief</div>
+            </a>
+
+            {/* MVC */}
+            {savedBriefId && (
+              <a href={`/dashboard/client/briefs/${savedBriefId}?tab=mvc`} style={{...cardStyle(true),textDecoration:'none'}}>
+                <div style={{fontSize:'14px',fontWeight:'600',color:'#fff'}}>Ek Video Sipariş Et</div>
+                <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',lineHeight:1.6}}>Aynı kampanyadan farklı formatlarda ek videolar — yarı fiyata.</div>
+                <div style={btnStyle(true)}>&#9638; Multi Video Campaign →</div>
               </a>
-            </div>
-          )}
+            )}
+
+            {/* AI Express */}
+            {aiEnabled && savedBriefId && (
+              <a href={`/dashboard/client/briefs/${savedBriefId}?tab=express&autoGenerate=1`} style={{...cardStyle(),textDecoration:'none'}}>
+                <div style={{fontSize:'14px',fontWeight:'600',color:'#fff',display:'flex',alignItems:'center',gap:'6px'}}>AI Express ile Test Et <span style={{fontSize:'8px',padding:'1px 5px',background:'#1DB81D',color:'#fff',borderRadius:'3px',fontWeight:'600'}}>Beta</span></div>
+                <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',lineHeight:1.6}}>Yapay zeka ~5 dakikada fikir, görsel ve ses üretir.</div>
+                <div style={btnStyle()}>&#9889; AI Express'i Dene →</div>
+              </a>
+            )}
+
+            {/* Brief list */}
+            <a href="/dashboard/client" style={{...cardStyle(),textDecoration:'none'}}>
+              <div style={{fontSize:'14px',fontWeight:'600',color:'#fff'}}>Brief Listesi</div>
+              <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',lineHeight:1.6}}>Tüm kampanyalarınızı görün.</div>
+              <div style={btnStyle()}>← Brief Listesine Dön</div>
+            </a>
+          </div>
         </div>
       </div>
     )

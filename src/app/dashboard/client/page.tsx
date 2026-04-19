@@ -42,6 +42,7 @@ export default function ClientDashboard() {
   const [briefs, setBriefs] = useState<any[]>([])
   const [videoMap, setVideoMap] = useState<Record<string,string>>({})
   const [aiChildrenMap, setAiChildrenMap] = useState<Record<string, any[]>>({})
+  const [mvcChildrenMap, setMvcChildrenMap] = useState<Record<string, any[]>>({})
   const [loading, setLoading] = useState(true)
   // Notifications
   const [notifications, setNotifications] = useState<any[]>([])
@@ -89,6 +90,18 @@ export default function ClientDashboard() {
           })
           console.log('[AI-IND] map keys:', Object.keys(map).map(k => k.slice(0,8)), 'briefIds sample:', briefIds.slice(0,3).map(id => id.slice(0,8)))
           setAiChildrenMap(map)
+
+          // MVC children
+          const { data: mvcKids } = await supabase.from('briefs')
+            .select('id, root_campaign_id, parent_brief_id, status, brief_type')
+            .eq('client_id', cu.client_id)
+            .eq('brief_type', 'mvc_child')
+          const mvcMap: Record<string, any[]> = {}
+          mvcKids?.forEach((k: any) => {
+            const key = k.root_campaign_id || k.parent_brief_id
+            if (key) { if (!mvcMap[key]) mvcMap[key] = []; mvcMap[key].push(k) }
+          })
+          setMvcChildrenMap(mvcMap)
         }
 
         const withVideoIds = (b || []).filter(br => ['delivered','approved'].includes(br.status)).map(br => br.id)
@@ -176,39 +189,27 @@ export default function ClientDashboard() {
     setBriefs(prev => prev.filter(b => b.id !== briefId))
   }
   const unreadCount = notifications.filter(n => !n.is_read).length
-  const [closedGroups, setClosedGroups] = useState<Set<string>>(new Set())
-
-  // Group non-draft briefs by root_campaign_id
-  const campaignGroups: { rootId: string; rootName: string; items: any[]; latestDate: string }[] = (() => {
-    const grouped: Record<string, any[]> = {}
-    nonDrafts.forEach(b => {
-      const key = b.root_campaign_id || b.id
-      if (!grouped[key]) grouped[key] = []
-      grouped[key].push(b)
-    })
-    return Object.entries(grouped)
-      .map(([rootId, items]) => {
-        const sorted = items.sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
-        const rootBrief = sorted[0]
-        // Last activity: max of brief dates + AI children dates
-        const briefDates = items.map(b => new Date(b.updated_at || b.created_at).getTime())
-        const aiKids = aiChildrenMap[rootId] || []
-        const aiDates = aiKids.map((k: any) => new Date(k.created_at).getTime())
-        const lastActivity = Math.max(...briefDates, ...aiDates, 0)
-        return { rootId, rootName: rootBrief.campaign_name, items: sorted, latestDate: new Date(lastActivity).toISOString() }
-      })
-      .sort((a, b) => new Date(b.latestDate).getTime() - new Date(a.latestDate).getTime())
-  })()
 
   function getAiIndicators(brief: any): { label: string; color: string }[] {
     const kids = aiChildrenMap[brief.root_campaign_id] || aiChildrenMap[brief.id] || []
     if (kids.length === 0) return []
     const indicators: { label: string; color: string }[] = []
     const readyCount = kids.filter(k => !!k.ai_video_url).length
-    if (readyCount > 0) indicators.push({ label: `${readyCount} Full AI Video`, color: '#1DB81D' })
+    if (readyCount > 0) indicators.push({ label: `${readyCount} AI Express Video`, color: '#1DB81D' })
     const processing = kids.some(k => k.status === 'ai_processing' && !k.ai_video_url)
     if (processing) indicators.push({ label: 'Üretiliyor', color: '#f59e0b' })
     return indicators
+  }
+
+  function getMvcIndicator(brief: any): { label: string; color: string } | null {
+    const kids = mvcChildrenMap[brief.root_campaign_id] || mvcChildrenMap[brief.id] || []
+    if (kids.length === 0) return null
+    const total = kids.length
+    const inProgress = kids.filter(k => ['submitted','read','in_production','revision'].includes(k.status)).length
+    const delivered = kids.filter(k => k.status === 'delivered').length
+    if (inProgress > 0) return { label: `${total} MVC Üretiliyor`, color: '#f59e0b' }
+    if (delivered === total) return { label: `${total} MVC Hazır`, color: '#1DB81D' }
+    return { label: `${total} MVC`, color: '#888' }
   }
 
   return (
@@ -426,67 +427,37 @@ export default function ClientDashboard() {
                 </div>
               )}
 
-              {/* CAMPAIGN FOLDERS */}
-              {campaignGroups.map(({ rootId, rootName, items }) => {
-                const isOpen = !closedGroups.has(rootId)
-                const aiList = getAiIndicators(items[0])
-                const isSingle = items.length === 1
-                return (
-                  <div key={rootId} style={{marginBottom:'6px'}}>
-                    {/* Folder header */}
-                    <div onClick={()=>{if(isSingle){router.push(`/dashboard/client/briefs/${items[0].id}`)}else{setClosedGroups(prev=>{const n=new Set(prev);n.has(rootId)?n.delete(rootId):n.add(rootId);return n})}}}
-                      style={{display:'flex',alignItems:'center',gap:'12px',padding:isSingle?'14px 16px':'10px 16px',background:'#fff',border:'0.5px solid rgba(0,0,0,0.08)',borderRadius:isOpen && !isSingle?'10px 10px 0 0':'10px',cursor:'pointer',transition:'all 0.15s'}}
-                      onMouseEnter={e=>(e.currentTarget.style.background='#fafaf8')}
-                      onMouseLeave={e=>(e.currentTarget.style.background='#fff')}>
-                      {!isSingle && (
-                        <svg width="9" height="9" viewBox="0 0 10 10" fill="none" style={{transform:isOpen?'rotate(90deg)':'rotate(0deg)',transition:'transform 0.2s',flexShrink:0,opacity:0.4}}>
-                          <path d="M3 1l4 4-4 4" stroke="#0a0a0a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      )}
-                      {/* Thumbnail for single delivered */}
-                      {isSingle && videoMap[items[0].id] && (
-                        <div style={{width:'36px',height:'64px',borderRadius:'6px',overflow:'hidden',background:'#0a0a0a',flexShrink:0}}>
-                          <video src={videoMap[items[0].id]+'#t=0.1'} muted playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'cover'}} />
+              {/* BRIEF LIST */}
+              {nonDrafts.length > 0 && (
+                <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.08)',borderRadius:'10px',overflow:'hidden'}}>
+                  {nonDrafts.map((b, i) => {
+                    const isDone = b.status === 'delivered' || b.status === 'approved'
+                    const aiList = getAiIndicators(b)
+                    const mvcInd = getMvcIndicator(b)
+                    return (
+                      <div key={b.id} onClick={()=>router.push(`/dashboard/client/briefs/${b.id}`)}
+                        style={{padding:'14px 16px',cursor:'pointer',display:'flex',alignItems:'center',gap:'12px',borderTop:i>0?'0.5px solid rgba(0,0,0,0.05)':'none',transition:'background 0.1s',background:isDone?'#f9f9f7':'#fff',borderLeft:isDone?'2px solid #22c55e':'2px solid transparent'}}
+                        onMouseEnter={e=>(e.currentTarget.style.background=isDone?'#f4f4f2':'#fafaf8')}
+                        onMouseLeave={e=>(e.currentTarget.style.background=isDone?'#f9f9f7':'#fff')}>
+                        {videoMap[b.id] && (
+                          <div style={{width:'36px',height:'64px',borderRadius:'6px',overflow:'hidden',background:'#0a0a0a',flexShrink:0}}>
+                            <video src={videoMap[b.id]+'#t=0.1'} muted playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'cover'}} />
+                          </div>
+                        )}
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{fontSize:'13px',fontWeight:'600',color:'#0a0a0a',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',letterSpacing:'-0.2px'}}>{b.campaign_name}</div>
+                          <div style={{fontSize:'10px',color:'#999',marginTop:'3px'}}>{b.video_type} · {new Date(b.updated_at || b.created_at).toLocaleDateString('tr-TR')}</div>
                         </div>
-                      )}
-                      <div style={{flex:1,minWidth:0}}>
-                        <div style={{fontSize:'13px',fontWeight:'600',color:'#0a0a0a',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',letterSpacing:'-0.2px'}}>{rootName}</div>
-                        {isSingle && <div style={{fontSize:'10px',color:'#999',marginTop:'3px'}}>{items[0].video_type} · {new Date(items[0].updated_at || items[0].created_at).toLocaleDateString('tr-TR')}</div>}
+                        <div style={{display:'flex',alignItems:'center',gap:'6px',flexShrink:0}}>
+                          {aiList.map((ai,ai_i) => <span key={ai_i} style={{fontSize:'9px',padding:'3px 8px',borderRadius:'6px',background:`${ai.color}12`,color:ai.color,fontWeight:'600',display:'flex',alignItems:'center',gap:'3px',whiteSpace:'nowrap'}}>{ai.label==='Üretiliyor'?'':'\u26A1'} {ai.label}</span>)}
+                          {mvcInd && <span style={{fontSize:'9px',padding:'3px 8px',borderRadius:'6px',background:`${mvcInd.color}12`,color:mvcInd.color,fontWeight:'600',display:'flex',alignItems:'center',gap:'3px',whiteSpace:'nowrap'}}>&#9638; {mvcInd.label}</span>}
+                          <span style={{fontSize:'10px',padding:'4px 12px',borderRadius:'6px',background:`${statusColor[b.status]||'#888'}12`,color:statusColor[b.status]||'#888',fontWeight:'500',whiteSpace:'nowrap'}}>{statusLabel[b.status]||b.status}</span>
+                        </div>
                       </div>
-                      <div style={{display:'flex',alignItems:'center',gap:'6px',flexShrink:0}}>
-                        {aiList.map((ai,ai_i) => <span key={ai_i} style={{fontSize:'9px',padding:'3px 8px',borderRadius:'6px',background:`${ai.color}12`,color:ai.color,fontWeight:'600',display:'flex',alignItems:'center',gap:'3px',whiteSpace:'nowrap'}}>{ai.label==='Üretiliyor'?'':'\u26A1'} {ai.label}</span>)}
-                        {!isSingle && <span style={{fontSize:'10px',color:'#999',background:'rgba(0,0,0,0.04)',padding:'2px 8px',borderRadius:'6px',fontWeight:'500'}}>{items.length}</span>}
-                        {isSingle && <span style={{fontSize:'10px',padding:'4px 12px',borderRadius:'6px',background:`${statusColor[items[0].status]||'#888'}12`,color:statusColor[items[0].status]||'#888',fontWeight:'500',whiteSpace:'nowrap'}}>{statusLabel[items[0].status]||items[0].status}</span>}
-                      </div>
-                    </div>
-                    {/* Items */}
-                    {!isSingle && isOpen && (
-                      <div style={{border:'0.5px solid rgba(0,0,0,0.08)',borderTop:'none',borderRadius:'0 0 10px 10px',overflow:'hidden'}}>
-                        {items.map((b: any, i: number) => {
-                          const isDone = b.status === 'delivered' || b.status === 'approved'
-                          return (
-                            <div key={b.id} onClick={()=>router.push(`/dashboard/client/briefs/${b.id}`)}
-                              style={{padding:'14px 16px 14px 38px',cursor:'pointer',display:'flex',alignItems:'center',gap:'12px',borderTop:i>0?'0.5px solid rgba(0,0,0,0.05)':'none',transition:'background 0.1s',background:isDone?'#f9f9f7':'#fff',borderLeft:isDone?'2px solid #22c55e':'2px solid transparent'}}
-                              onMouseEnter={e=>(e.currentTarget.style.background=isDone?'#f4f4f2':'#fafaf8')}
-                              onMouseLeave={e=>(e.currentTarget.style.background=isDone?'#f9f9f7':'#fff')}>
-                              {videoMap[b.id] && (
-                                <div style={{width:'36px',height:'64px',borderRadius:'6px',overflow:'hidden',background:'#0a0a0a',flexShrink:0}}>
-                                  <video src={videoMap[b.id]+'#t=0.1'} muted playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'cover'}} />
-                                </div>
-                              )}
-                              <div style={{flex:1,minWidth:0}}>
-                                <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.campaign_name}</div>
-                                <div style={{fontSize:'10px',color:'#999',marginTop:'3px'}}>{b.video_type} · {new Date(b.updated_at || b.created_at).toLocaleDateString('tr-TR')}</div>
-                              </div>
-                              <span style={{fontSize:'10px',padding:'4px 12px',borderRadius:'6px',background:`${statusColor[b.status]||'#888'}12`,color:statusColor[b.status]||'#888',fontWeight:'500',whiteSpace:'nowrap',flexShrink:0}}>{statusLabel[b.status]||b.status}</span>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    )}
-                  </div>
-                )
-              })}
+                    )
+                  })}
+                </div>
+              )}
 
               {/* EMPTY STATE */}
               {briefs.length === 0 && (

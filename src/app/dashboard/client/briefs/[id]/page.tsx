@@ -1,7 +1,8 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@supabase/supabase-js'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
+import { Suspense } from 'react'
 import { generateCertificatePDF } from '@/lib/generate-certificate'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
@@ -38,9 +39,14 @@ const REVISION_COST = 4
 const BASE_COSTS: Record<string,number> = {'Bumper / Pre-roll':12,'Story / Reels':18,'Feed Video':24,'Long Form':36}
 const VIDEO_TYPES = ['Bumper / Pre-roll','Story / Reels','Feed Video','Long Form']
 
-export default function ClientBriefDetail() {
+export default function ClientBriefDetailWrapper() {
+  return <Suspense><ClientBriefDetail /></Suspense>
+}
+
+function ClientBriefDetail() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const id = params.id as string
   const [brief, setBrief] = useState<any>(null)
   const [questions, setQuestions] = useState<any[]>([])
@@ -76,8 +82,24 @@ export default function ClientBriefDetail() {
   const [showAiGenerate, setShowAiGenerate] = useState(false)
   const [aiGenerating, setAiGenerating] = useState(false)
   const [aiWarningDismissed, setAiWarningDismissed] = useState(false)
+  const [mvcBannerDismissed, setMvcBannerDismissed] = useState(() => typeof window !== 'undefined' && localStorage.getItem('mvc_banner_dismissed') === '1')
+  const [activeTab, setActiveTab] = useState<'hybrid'|'express'|'mvc'>(searchParams.get('tab') === 'express' ? 'express' : searchParams.get('tab') === 'mvc' ? 'mvc' : 'hybrid')
+  const [autoGenerateTriggered, setAutoGenerateTriggered] = useState(false)
+  const [mvcChildren, setMvcChildren] = useState<any[]>([])
+  const [mvcFormat, setMvcFormat] = useState('')
+  const [mvcLang, setMvcLang] = useState('tr')
 
   useEffect(() => { loadData() }, [id])
+
+  // Auto-generate AI Express from URL param
+  useEffect(() => {
+    if (autoGenerateTriggered) return
+    if (searchParams.get('autoGenerate') !== '1') return
+    if (!brief || !clientUser || aiChildren.length > 0 || aiGenerating) return
+    if (brief.clients?.ai_video_enabled === false) return
+    setAutoGenerateTriggered(true)
+    handleStudioGenerate('character')
+  }, [brief, clientUser, aiChildren.length])
 
   async function loadData() {
     const { data: { user } } = await supabase.auth.getUser()
@@ -98,11 +120,18 @@ export default function ClientBriefDetail() {
     // AI clones for this campaign (root_campaign_id based)
     const rootId = b?.root_campaign_id || b?.id
     const { data: aiKids } = await supabase.from('briefs')
-      .select('id, campaign_name, status, ai_video_status, ai_video_url, ai_video_error, product_image_url, created_at')
+      .select('id, campaign_name, status, ai_video_status, ai_video_url, ai_video_error, product_image_url, created_at, ai_feedbacks')
       .eq('root_campaign_id', rootId)
       .like('campaign_name', '%Full AI%')
       .order('created_at', { ascending: true })
     setAiChildren(aiKids || [])
+    // MVC children
+    const { data: mvcKids } = await supabase.from('briefs')
+      .select('*, video_submissions(id, video_url, status)')
+      .eq('parent_brief_id', id)
+      .eq('brief_type', 'mvc_child')
+      .order('mvc_order', { ascending: true })
+    setMvcChildren(mvcKids || [])
   }
 
   // AI video polling — runs when brief is ai_processing and video not yet ready
@@ -509,6 +538,28 @@ export default function ClientBriefDetail() {
           </div>
         </div>
 
+        {/* TABS */}
+        <div style={{display:'flex',gap:0,background:'#fff',paddingLeft:'28px',borderBottom:'1px solid rgba(0,0,0,0.08)'}}>
+          {[
+            {key:'hybrid' as const, label:'Hybrid'},
+            {key:'mvc' as const, label:'MVC'},
+            {key:'express' as const, label:'AI Express'},
+          ].map((t,ti)=>{
+            const isActive = activeTab === t.key
+            return (
+              <button key={t.key} onClick={()=>setActiveTab(t.key)}
+                style={{padding:'12px 24px',border:'none',borderBottom:isActive?'2px solid #1DB81D':'2px solid transparent',borderRight:ti<2?'1px solid rgba(0,0,0,0.06)':'none',background:isActive?'#0a0a0a':'#fff',color:isActive?'#fff':'#555',fontSize:'14px',fontWeight:'600',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',transition:'all 0.15s'}}
+                onMouseEnter={e=>{if(!isActive)e.currentTarget.style.background='#f5f5f5'}}
+                onMouseLeave={e=>{if(!isActive)e.currentTarget.style.background='#fff'}}>
+                {t.label}
+                {t.key==='express' && <span style={{marginLeft:'4px',fontSize:'9px',padding:'1px 5px',background:'#1DB81D',color:'#fff',borderRadius:'3px',fontWeight:'600',verticalAlign:'middle'}}>Beta</span>}
+                {t.key==='express' && aiChildren.length > 0 && <span style={{marginLeft:'6px',fontSize:'10px',color:isActive?'#1DB81D':'#1DB81D',fontWeight:'600'}}>{aiChildren.filter(c=>c.ai_video_url).length}</span>}
+                {t.key==='mvc' && mvcChildren.length > 0 && <span style={{marginLeft:'6px',fontSize:'10px',color:isActive?'#8bb4f6':'#3b82f6',fontWeight:'600'}}>{mvcChildren.length}</span>}
+              </button>
+            )
+          })}
+        </div>
+
         <div style={{flex:1,overflowY:'auto',padding:'24px 28px'}}>
           {!brief ? <div style={{color:'#888',fontSize:'14px'}}>Yükleniyor...</div> : (
             <>
@@ -519,6 +570,9 @@ export default function ClientBriefDetail() {
                   Onaylandı! Teşekkürler.
                 </div>
               )}
+
+              {/* ═══ HYBRID TAB ═══ */}
+              {activeTab === 'hybrid' && <>
 
               {/* DRAFT BANNER */}
               {brief.status === 'draft' && (
@@ -804,18 +858,6 @@ export default function ClientBriefDetail() {
                 </div>
               )}
 
-              {/* REORDER */}
-              {brief.status !== 'cancelled' && (
-                <div style={{marginBottom:'16px'}}>
-                  <button onClick={()=>{setReorderType(brief.video_type);setShowReorderModal(true)}}
-                    onMouseEnter={e=>(e.currentTarget.style.background='rgba(29,184,29,0.08)')}
-                    onMouseLeave={e=>(e.currentTarget.style.background='transparent')}
-                    style={{padding:'10px 20px',background:'transparent',color:'#1db81d',border:'1.5px solid #1db81d',borderRadius:'10px',fontSize:'13px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',fontWeight:'500',display:'flex',alignItems:'center',gap:'8px',transition:'background 0.15s'}}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1db81d" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
-                    Aynı Brief'ten Yeni Video
-                  </button>
-                </div>
-              )}
 
               {/* SOSYAL MEDYA BAŞLIKLARI */}
               {brief.status === 'delivered' && (
@@ -954,15 +996,18 @@ export default function ClientBriefDetail() {
                   ))}
                 </div>
               )}
-            </>
-          )}
+
+              </>}
+
+              {/* ═══ AI EXPRESS TAB ═══ */}
+              {activeTab === 'express' && <>
 
               {/* AI VIDEO STUDIO */}
               {brief && brief.status !== 'cancelled' && brief.status !== 'draft' && (
                 <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'20px 24px',marginBottom:'16px'}}>
                   <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:aiWarningDismissed?'16px':'10px'}}>
                     <span style={{color:'#1DB81D',fontSize:'16px'}}>&#9889;</span>
-                    <div style={{fontSize:'14px',fontWeight:'600',color:'#0a0a0a'}}>AI Video Stüdyosu</div>
+                    <div style={{fontSize:'14px',fontWeight:'600',color:'#0a0a0a'}}>AI Express</div>
                   </div>
                   {!aiWarningDismissed && (
                     <div style={{background:'#1F1F1F',borderRadius:'8px',padding:'16px 18px',marginBottom:'16px',display:'flex',alignItems:'flex-start',gap:'12px',position:'relative'}}>
@@ -1066,6 +1111,56 @@ export default function ClientBriefDetail() {
                               )}
                             </div>
                           )}
+                          {/* Feedback */}
+                          {hasVideo && (() => {
+                            const feedbacks: any[] = Array.isArray(child.ai_feedbacks) ? child.ai_feedbacks : []
+                            const lastFb = feedbacks.length > 0 ? feedbacks[feedbacks.length - 1] : null
+                            const fbId = `fb-${child.id}`
+                            const savedId = `fb-saved-${child.id}`
+                            const editId = `fb-edit-${child.id}`
+                            return (
+                              <div style={{marginTop:'10px'}}>
+                                {lastFb && !document.getElementById(editId)?.dataset.editing ? (
+                                  <div id={editId} style={{fontSize:'11px',color:'#555',padding:'8px 10px',background:'#f5f4f0',borderRadius:'6px',lineHeight:1.5}}>
+                                    <span style={{color:'#0a0a0a'}}>{lastFb.feedback}</span>
+                                    <span onClick={()=>{const el=document.getElementById(editId);if(el)el.dataset.editing='1';const ta=document.getElementById(fbId) as HTMLTextAreaElement;if(ta){ta.style.display='block';ta.value=lastFb.feedback;ta.focus()}}} style={{marginLeft:'8px',fontSize:'10px',color:'#3b82f6',cursor:'pointer'}}>Düzenle</span>
+                                  </div>
+                                ) : null}
+                                <div style={{display:'flex',gap:'6px',alignItems:'flex-end',marginTop:'6px'}}>
+                                  <textarea
+                                    id={fbId}
+                                    defaultValue=""
+                                    placeholder="Yorum bırakın — bir sonraki üretimde dikkate alınır."
+                                    rows={2}
+                                    style={{flex:1,padding:'8px 10px',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'6px',fontSize:'11px',color:'#0a0a0a',resize:'vertical',fontFamily:'var(--font-dm-sans),sans-serif',boxSizing:'border-box',display:lastFb?'none':'block'}}
+                                  />
+                                  <button id={savedId} onClick={async(e)=>{
+                                    const ta = document.getElementById(fbId) as HTMLTextAreaElement
+                                    const val = ta?.value?.trim()
+                                    if(!val) return
+                                    const btn = e.currentTarget
+                                    const newEntry = {video_version:`V${idx+1}`,feedback:val,created_at:new Date().toISOString()}
+                                    const existing: any[] = Array.isArray(child.ai_feedbacks) ? child.ai_feedbacks : []
+                                    const updated = [...existing, newEntry]
+                                    await supabase.from('briefs').update({ai_feedbacks:updated}).eq('id',child.id)
+                                    // Update local state without triggering video refresh
+                                    child.ai_feedbacks = updated
+                                    btn.textContent='Kaydedildi ✓'
+                                    btn.style.color='#1DB81D'
+                                    btn.style.background='transparent'
+                                    btn.style.border='1px solid #1DB81D'
+                                    setTimeout(()=>{btn.textContent='Kaydet';btn.style.color='#fff';btn.style.background='#0a0a0a';btn.style.border='none'},2000)
+                                    ta.style.display='none'
+                                    const editEl=document.getElementById(editId)
+                                    if(editEl)delete editEl.dataset.editing
+                                  }}
+                                    style={{padding:'8px 14px',background:'#0a0a0a',color:'#fff',border:'none',borderRadius:'6px',fontSize:'11px',fontWeight:'500',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',whiteSpace:'nowrap',height:'36px',display:lastFb?'none':'block'}}>
+                                    Kaydet
+                                  </button>
+                                </div>
+                              </div>
+                            )
+                          })()}
                         </div>
                       </div>
                     )
@@ -1108,8 +1203,229 @@ export default function ClientBriefDetail() {
                 </div>
               )}
 
+              </>}
+
+              {/* ═══ MVC TAB ═══ */}
+              {activeTab === 'mvc' && <>
+                {/* MVC info banner */}
+                {!mvcBannerDismissed && (
+                  <div style={{background:'#1F1F1F',borderRadius:'8px',padding:'18px 20px',marginBottom:'16px',position:'relative'}}>
+                    <button onClick={()=>{setMvcBannerDismissed(true);localStorage.setItem('mvc_banner_dismissed','1')}}
+                      style={{position:'absolute',top:'12px',right:'14px',background:'none',border:'none',cursor:'pointer',color:'rgba(255,255,255,0.5)',fontSize:'20px',lineHeight:1,padding:'0 2px'}}>&#215;</button>
+                    <div style={{fontSize:'14px',fontWeight:'600',color:'#fff',marginBottom:'10px'}}>Multi Video Campaign ile maliyetinizi düşürün</div>
+                    <div style={{fontSize:'12px',color:'rgba(255,255,255,0.6)',lineHeight:1.8,marginBottom:'12px'}}>
+                      Kampanya briefini bir kez yazın, farklı formatlarda istediğiniz kadar video üretin. Her ek video yarı fiyata üretilir — Story, Bumper, Feed Video, Pre-roll.
+                    </div>
+                    <div style={{fontSize:'12px',color:'rgba(255,255,255,0.75)',lineHeight:2}}>
+                      ✓ Algoritmaları canlı tutmak için düzenli içerik üretin<br/>
+                      ✓ Farklı platformlar için farklı formatlar, tek ekranda<br/>
+                      ✓ Tüm videoları ZIP olarak toplu indirin<br/>
+                      ✓ Her video ayrı onaylanır, revizyon talep edilebilir<br/>
+                      ✓ Brief tekrar yazma derdi yok — aynı konsept, yeni format
+                    </div>
+                  </div>
+                )}
+
+                {/* Reference video */}
+                {currentVideo && (
+                  <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'16px',marginBottom:'16px'}}>
+                    <div style={{fontSize:'11px',color:'#888',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'10px'}}>Referans — Ana Video</div>
+                    <div style={{maxWidth:'200px'}}>
+                      <video src={currentVideo.video_url} controls playsInline preload="metadata" style={{width:'100%',borderRadius:'8px',objectFit:'contain',background:'black'}} />
+                    </div>
+                  </div>
+                )}
+
+                {/* MVC children */}
+                <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'20px 24px',marginBottom:'16px'}}>
+                  <div style={{marginBottom:'16px'}}>
+                    <div style={{fontSize:'14px',fontWeight:'600',color:'#0a0a0a',marginBottom:'4px'}}>Multi Video Campaign</div>
+                    <div style={{fontSize:'11px',color:'#888'}}>Format seç, dil seç, sipariş ver — 3 adım.</div>
+                  </div>
+
+                  {/* Format cards */}
+                  <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(130px, 1fr))',gap:'8px',marginBottom:'16px'}}>
+                    {[
+                      {val:'Story / Reels',label:'Story',dur:'15sn',cost:18},
+                      {val:'Bumper / Pre-roll',label:'Bumper',dur:'6sn',cost:12},
+                      {val:'Feed Video',label:'Feed Video',dur:'15sn',cost:24},
+                      {val:'Pre-roll',label:'Pre-roll',dur:'6sn',cost:12},
+                    ].map(f=>{
+                      const isSelected = mvcFormat === f.val
+                      const halfCost = Math.ceil(f.cost / 2)
+                      return (
+                        <div key={f.val} onClick={()=>setMvcFormat(isSelected ? '' : f.val)}
+                          style={{padding:'14px',border:isSelected?'1.5px solid #1DB81D':'1px solid rgba(0,0,0,0.1)',borderRadius:'8px',cursor:'pointer',background:isSelected?'rgba(29,184,29,0.04)':'#fff',transition:'all 0.15s',textAlign:'center'}}
+                          onMouseEnter={e=>{if(!isSelected)e.currentTarget.style.background='#fafaf8'}}
+                          onMouseLeave={e=>{if(!isSelected)e.currentTarget.style.background=isSelected?'rgba(29,184,29,0.04)':'#fff'}}>
+                          <div style={{fontSize:'13px',fontWeight:'600',color:'#0a0a0a'}}>{f.label}</div>
+                          <div style={{fontSize:'11px',color:'#888',marginTop:'2px'}}>{f.dur}</div>
+                          <div style={{fontSize:'11px',color:isSelected?'#1DB81D':'#555',marginTop:'6px',fontWeight:'500'}}>{halfCost} kredi</div>
+                        </div>
+                      )
+                    })}
+                  </div>
+
+                  {/* Language + Order */}
+                  {mvcFormat && (
+                    <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'16px',padding:'12px 14px',background:'#f9f9f7',borderRadius:'8px'}}>
+                      <div style={{flex:1}}>
+                        <div style={{fontSize:'10px',color:'#888',marginBottom:'4px'}}>İçerik Dili</div>
+                        <select value={mvcLang} onChange={e=>setMvcLang(e.target.value)}
+                          style={{width:'100%',padding:'7px 10px',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'6px',fontSize:'12px',color:'#0a0a0a',fontFamily:'var(--font-dm-sans),sans-serif',background:'#fff'}}>
+                          <option value="tr">Türkçe</option>
+                          <option value="en">İngilizce</option>
+                          <option value="de">Almanca</option>
+                          <option value="fr">Fransızca</option>
+                          <option value="es">İspanyolca</option>
+                          <option value="it">İtalyanca</option>
+                          <option value="ar">Arapça</option>
+                        </select>
+                      </div>
+                      <div style={{textAlign:'right'}}>
+                        <div style={{fontSize:'11px',color:'#555',marginBottom:'6px'}}>{mvcFormat} · {({tr:'Türkçe',en:'İngilizce',de:'Almanca',fr:'Fransızca',es:'İspanyolca',it:'İtalyanca',ar:'Arapça'} as any)[mvcLang]} · <strong>{Math.ceil(({'Bumper / Pre-roll':12,'Story / Reels':18,'Feed Video':24,'Pre-roll':12} as any)[mvcFormat]||18)/2} kredi</strong></div>
+                        <button onClick={async()=>{
+                          if(!clientUser||!brief) return
+                          const baseCost = ({'Bumper / Pre-roll':12,'Story / Reels':18,'Feed Video':24,'Pre-roll':12,'Long Form':36} as any)[mvcFormat] || 18
+                          const halfCost = Math.ceil(baseCost / 2)
+                          if((clientUser.allocated_credits||0) < halfCost) { alert('Yetersiz kredi'); return }
+                          await supabase.from('client_users').update({allocated_credits:(clientUser.allocated_credits||0)-halfCost}).eq('id',clientUser.id)
+                          setClientUser({...clientUser,allocated_credits:(clientUser.allocated_credits||0)-halfCost})
+                          await supabase.from('briefs').insert({
+                            campaign_name:`${brief.campaign_name} — ${mvcFormat} ${mvcChildren.length+1}`,
+                            parent_brief_id:id, root_campaign_id:brief.root_campaign_id||id,
+                            brief_type:'mvc_child', mvc_format:mvcFormat, mvc_order:mvcChildren.length+1,
+                            video_type:mvcFormat, format:brief.format, message:brief.message,
+                            cta:brief.cta, target_audience:brief.target_audience,
+                            voiceover_type:brief.voiceover_type, voiceover_gender:brief.voiceover_gender,
+                            voiceover_text:brief.voiceover_text, content_language:mvcLang,
+                            client_id:brief.client_id, client_user_id:brief.client_user_id,
+                            status:'submitted', credit_cost:halfCost,
+                          })
+                          setMvcFormat('')
+                          loadData()
+                        }}
+                          style={{padding:'9px 20px',background:'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'12px',fontWeight:'600',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                          Sipariş Ver
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Existing MVC list */}
+                  {mvcChildren.length === 0 && !mvcFormat ? (
+                    <div style={{textAlign:'center',padding:'24px',color:'#888',fontSize:'12px'}}>
+                      Henüz video eklenmedi. Üstten format seçerek başlayın.
+                    </div>
+                  ) : mvcChildren.map((child: any, idx: number) => {
+                    const childVideo = child.video_submissions?.[0]
+                    return (
+                      <div key={child.id} style={{display:'flex',gap:'14px',padding:'14px 0',borderTop:idx>0?'0.5px solid rgba(0,0,0,0.06)':'none',alignItems:'flex-start'}}>
+                        <div style={{width:'120px',aspectRatio:'9/16',borderRadius:'6px',overflow:'hidden',background:'#0a0a0a',flexShrink:0}}>
+                          {childVideo?.video_url ? (
+                            <video src={childVideo.video_url} controls playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'contain',background:'black'}} />
+                          ) : (
+                            <div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                              <span style={{fontSize:'10px',color:'#555'}}>{statusLabel[child.status]||child.status}</span>
+                            </div>
+                          )}
+                        </div>
+                        <div style={{flex:1,paddingTop:'4px'}}>
+                          <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px'}}>
+                            <span style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{child.mvc_format || child.video_type}</span>
+                            <span style={{fontSize:'9px',padding:'2px 6px',background:'rgba(34,197,94,0.1)',color:'#22c55e',borderRadius:'4px',fontWeight:'600'}}>Yarı Fiyat</span>
+                            <span style={{fontSize:'10px',padding:'3px 10px',borderRadius:'6px',background:`${statusColor[child.status]||'#888'}12`,color:statusColor[child.status]||'#888',fontWeight:'500'}}>{statusLabel[child.status]||child.status}</span>
+                          </div>
+                          <div style={{fontSize:'11px',color:'#888',marginBottom:'10px'}}>{new Date(child.created_at).toLocaleDateString('tr-TR',{day:'numeric',month:'short'})}</div>
+                          {childVideo?.video_url && (
+                            <div style={{display:'flex',gap:'6px'}}>
+                              <a href={childVideo.video_url} download target="_blank"
+                                style={{fontSize:'11px',color:'#0a0a0a',textDecoration:'none',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'4px',padding:'5px 12px',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                                İndir
+                              </a>
+                              <button onClick={()=>generateCertificatePDF(brief, companyName)}
+                                style={{fontSize:'11px',color:'#555',background:'none',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'4px',padding:'5px 12px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                                Telif Belgesi
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {/* Download all */}
+                {mvcChildren.some((c: any) => c.video_submissions?.[0]?.video_url) && (
+                  <div style={{textAlign:'center',marginBottom:'16px'}}>
+                    <button onClick={()=>{alert('ZIP indirme yakında')}}
+                      style={{padding:'10px 24px',background:'#fff',color:'#0a0a0a',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'2px',fontSize:'12px',fontWeight:'500',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                      Tümünü İndir (ZIP)
+                    </button>
+                  </div>
+                )}
+              </>}
+
+            </>
+          )}
         </div>
       </div>
+
+      {/* MVC ordering is now inline */}
+      {false && (
+        <div>
+          <div>
+            <div style={{fontSize:'16px',fontWeight:'500',color:'#0a0a0a',marginBottom:'18px'}}>Video Sipariş Et</div>
+            <div style={{marginBottom:'14px'}}>
+              <div style={{fontSize:'10px',color:'#888',marginBottom:'6px',textTransform:'uppercase',letterSpacing:'0.3px'}}>Format Seç</div>
+              {[
+                {val:'Story / Reels',label:'Story / Reels — 15sn',cost:18},
+                {val:'Bumper / Pre-roll',label:'Bumper / Pre-roll — 6sn',cost:12},
+                {val:'Feed Video',label:'Feed Video — 30sn',cost:24},
+              ].map(f=>(
+                <div key={f.val} onClick={()=>setMvcFormat(f.val)}
+                  style={{padding:'12px 14px',border:mvcFormat===f.val?'1.5px solid #0a0a0a':'1px solid rgba(0,0,0,0.1)',borderRadius:'8px',marginBottom:'8px',cursor:'pointer',display:'flex',justifyContent:'space-between',alignItems:'center',background:mvcFormat===f.val?'rgba(0,0,0,0.02)':'#fff'}}>
+                  <span style={{fontSize:'13px',color:'#0a0a0a',fontWeight:mvcFormat===f.val?'600':'400'}}>{f.label}</span>
+                  <span style={{fontSize:'11px',color:'#888'}}>{Math.ceil(f.cost/2)} kredi</span>
+                </div>
+              ))}
+            </div>
+            <div style={{fontSize:'12px',color:'#888',marginBottom:'16px',padding:'10px 14px',background:'#f5f4f0',borderRadius:'8px'}}>
+              Bu format <strong style={{color:'#0a0a0a'}}>{Math.ceil(({'Bumper / Pre-roll':12,'Story / Reels':18,'Feed Video':24} as any)[mvcFormat]||18)/2} kredi</strong> harcar (yarı fiyat)
+            </div>
+            <div style={{display:'flex',gap:'10px'}}>
+              <button onClick={()=>setShowMvcModal(false)}
+                style={{flex:1,padding:'10px',background:'#f5f4f0',color:'#555',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                Vazgeç
+              </button>
+              <button onClick={async()=>{
+                if(!clientUser||!brief) return
+                const baseCost = ({'Bumper / Pre-roll':12,'Story / Reels':18,'Feed Video':24,'Long Form':36} as any)[mvcFormat] || 18
+                const halfCost = Math.ceil(baseCost / 2)
+                if((clientUser.allocated_credits||0) < halfCost) { alert('Yetersiz kredi'); return }
+                await supabase.from('client_users').update({allocated_credits:(clientUser.allocated_credits||0)-halfCost}).eq('id',clientUser.id)
+                setClientUser({...clientUser,allocated_credits:(clientUser.allocated_credits||0)-halfCost})
+                await supabase.from('briefs').insert({
+                  campaign_name:`${brief.campaign_name} — ${mvcFormat} ${mvcChildren.length+1}`,
+                  parent_brief_id:id, root_campaign_id:brief.root_campaign_id||id,
+                  brief_type:'mvc_child', mvc_format:mvcFormat, mvc_order:mvcChildren.length+1,
+                  video_type:mvcFormat, format:brief.format, message:brief.message,
+                  cta:brief.cta, target_audience:brief.target_audience,
+                  voiceover_type:brief.voiceover_type, voiceover_gender:brief.voiceover_gender,
+                  voiceover_text:brief.voiceover_text,
+                  client_id:brief.client_id, client_user_id:brief.client_user_id,
+                  status:'submitted', credit_cost:halfCost,
+                })
+                setShowMvcModal(false)
+                loadData()
+              }}
+                style={{flex:2,padding:'10px',background:'#0a0a0a',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',fontWeight:'500',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                Onayla ve Sipariş Ver
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* APPROVE MODAL */}
       {showApproveModal && (
