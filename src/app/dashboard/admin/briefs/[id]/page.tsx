@@ -319,6 +319,11 @@ export default function AdminBriefDetail() {
           {brief && (
             <>
               {msg && <div style={{padding:'10px 16px',background:msg.startsWith('Hata')||msg.includes('zorunlu')?'#fef2f2':'#e8f7e8',borderRadius:'8px',fontSize:'12px',color:msg.startsWith('Hata')||msg.includes('zorunlu')?'#ef4444':'#22c55e',marginBottom:'16px'}}>{msg}</div>}
+              {brief.content_language && brief.content_language !== 'tr' && (
+                <div style={{padding:'10px 16px',background:'#fef3c7',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a',marginBottom:'16px',fontWeight:'500'}}>
+                  {({en:'🇬🇧 Bu video İngilizce',de:'🇩🇪 Bu video Almanca',fr:'🇫🇷 Bu video Fransızca',es:'🇪🇸 Bu video İspanyolca',it:'🇮🇹 Bu video İtalyanca',ar:'🇸🇦 Bu video Arapça'} as any)[brief.content_language] || brief.content_language} üretilecek
+                </div>
+              )}
 
               {clientRevisions.length > 0 && (
                 <div style={{background:'#fff',border:'2px solid #ef4444',borderRadius:'12px',padding:'14px 20px',marginBottom:'16px'}}>

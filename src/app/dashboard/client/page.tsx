@@ -93,7 +93,7 @@ export default function ClientDashboard() {
 
           // MVC children
           const { data: mvcKids } = await supabase.from('briefs')
-            .select('id, root_campaign_id, parent_brief_id, status, brief_type')
+            .select('id, root_campaign_id, parent_brief_id, status, brief_type, content_language')
             .eq('client_id', cu.client_id)
             .eq('brief_type', 'mvc_child')
           const mvcMap: Record<string, any[]> = {}
@@ -201,15 +201,20 @@ export default function ClientDashboard() {
     return indicators
   }
 
+  const langFlags: Record<string,string> = {en:'🇬🇧',de:'🇩🇪',fr:'🇫🇷',es:'🇪🇸',it:'🇮🇹',ar:'🇸🇦'}
+
   function getMvcIndicator(brief: any): { label: string; color: string } | null {
     const kids = mvcChildrenMap[brief.root_campaign_id] || mvcChildrenMap[brief.id] || []
     if (kids.length === 0) return null
     const total = kids.length
     const inProgress = kids.filter(k => ['submitted','read','in_production','revision'].includes(k.status)).length
     const delivered = kids.filter(k => k.status === 'delivered').length
-    if (inProgress > 0) return { label: `${total} MVC Üretiliyor`, color: '#f59e0b' }
-    if (delivered === total) return { label: `${total} MVC Hazır`, color: '#1DB81D' }
-    return { label: `${total} MVC`, color: '#888' }
+    const foreignLangs = [...new Set(kids.map(k => k.content_language).filter((l: string) => l && l !== 'tr'))]
+    const flags = foreignLangs.map((l: string) => langFlags[l] || '').filter(Boolean).join('')
+    const suffix = flags ? ' ' + flags : ''
+    if (inProgress > 0) return { label: `${total} MVC Üretiliyor${suffix}`, color: '#f59e0b' }
+    if (delivered === total) return { label: `${total} MVC Hazır${suffix}`, color: '#1DB81D' }
+    return { label: `${total} MVC${suffix}`, color: '#888' }
   }
 
   return (

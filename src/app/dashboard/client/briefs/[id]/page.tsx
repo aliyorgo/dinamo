@@ -1292,7 +1292,7 @@ function ClientBriefDetail() {
                           await supabase.from('client_users').update({allocated_credits:(clientUser.allocated_credits||0)-halfCost}).eq('id',clientUser.id)
                           setClientUser({...clientUser,allocated_credits:(clientUser.allocated_credits||0)-halfCost})
                           await supabase.from('briefs').insert({
-                            campaign_name:`${brief.campaign_name} — ${mvcFormat} ${mvcChildren.length+1}`,
+                            campaign_name:`${brief.campaign_name} — ${mvcFormat.split(' / ')[0]} #${mvcChildren.length+1}`,
                             parent_brief_id:id, root_campaign_id:brief.root_campaign_id||id,
                             brief_type:'mvc_child', mvc_format:mvcFormat, mvc_order:mvcChildren.length+1,
                             video_type:mvcFormat, format:brief.format, message:brief.message,
@@ -1332,8 +1332,9 @@ function ClientBriefDetail() {
                         </div>
                         <div style={{flex:1,paddingTop:'4px'}}>
                           <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px'}}>
-                            <span style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{child.mvc_format || child.video_type}</span>
+                            <span style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{child.campaign_name || child.mvc_format || child.video_type}</span>
                             <span style={{fontSize:'9px',padding:'2px 6px',background:'rgba(34,197,94,0.1)',color:'#22c55e',borderRadius:'4px',fontWeight:'600'}}>Yarı Fiyat</span>
+                            {child.content_language && child.content_language !== 'tr' && <span style={{fontSize:'10px'}}>{({en:'🇬🇧',de:'🇩🇪',fr:'🇫🇷',es:'🇪🇸',it:'🇮🇹',ar:'🇸🇦'} as any)[child.content_language]||''} {({en:'İngilizce',de:'Almanca',fr:'Fransızca',es:'İspanyolca',it:'İtalyanca',ar:'Arapça'} as any)[child.content_language]||child.content_language}</span>}
                             <span style={{fontSize:'10px',padding:'3px 10px',borderRadius:'6px',background:`${statusColor[child.status]||'#888'}12`,color:statusColor[child.status]||'#888',fontWeight:'500'}}>{statusLabel[child.status]||child.status}</span>
                           </div>
                           <div style={{fontSize:'11px',color:'#888',marginBottom:'10px'}}>{new Date(child.created_at).toLocaleDateString('tr-TR',{day:'numeric',month:'short'})}</div>
