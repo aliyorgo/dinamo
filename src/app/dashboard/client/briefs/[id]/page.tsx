@@ -1371,62 +1371,6 @@ function ClientBriefDetail() {
         </div>
       </div>
 
-      {/* MVC ordering is now inline */}
-      {false && (
-        <div>
-          <div>
-            <div style={{fontSize:'16px',fontWeight:'500',color:'#0a0a0a',marginBottom:'18px'}}>Video Sipariş Et</div>
-            <div style={{marginBottom:'14px'}}>
-              <div style={{fontSize:'10px',color:'#888',marginBottom:'6px',textTransform:'uppercase',letterSpacing:'0.3px'}}>Format Seç</div>
-              {[
-                {val:'Story / Reels',label:'Story / Reels — 15sn',cost:18},
-                {val:'Bumper / Pre-roll',label:'Bumper / Pre-roll — 6sn',cost:12},
-                {val:'Feed Video',label:'Feed Video — 30sn',cost:24},
-              ].map(f=>(
-                <div key={f.val} onClick={()=>setMvcFormat(f.val)}
-                  style={{padding:'12px 14px',border:mvcFormat===f.val?'1.5px solid #0a0a0a':'1px solid rgba(0,0,0,0.1)',borderRadius:'8px',marginBottom:'8px',cursor:'pointer',display:'flex',justifyContent:'space-between',alignItems:'center',background:mvcFormat===f.val?'rgba(0,0,0,0.02)':'#fff'}}>
-                  <span style={{fontSize:'13px',color:'#0a0a0a',fontWeight:mvcFormat===f.val?'600':'400'}}>{f.label}</span>
-                  <span style={{fontSize:'11px',color:'#888'}}>{Math.ceil(f.cost/2)} kredi</span>
-                </div>
-              ))}
-            </div>
-            <div style={{fontSize:'12px',color:'#888',marginBottom:'16px',padding:'10px 14px',background:'#f5f4f0',borderRadius:'8px'}}>
-              Bu format <strong style={{color:'#0a0a0a'}}>{Math.ceil(({'Bumper / Pre-roll':12,'Story / Reels':18,'Feed Video':24} as any)[mvcFormat]||18)/2} kredi</strong> harcar (yarı fiyat)
-            </div>
-            <div style={{display:'flex',gap:'10px'}}>
-              <button onClick={()=>setShowMvcModal(false)}
-                style={{flex:1,padding:'10px',background:'#f5f4f0',color:'#555',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
-                Vazgeç
-              </button>
-              <button onClick={async()=>{
-                if(!clientUser||!brief) return
-                const baseCost = ({'Bumper / Pre-roll':12,'Story / Reels':18,'Feed Video':24,'Long Form':36} as any)[mvcFormat] || 18
-                const halfCost = Math.ceil(baseCost / 2)
-                if((clientUser.allocated_credits||0) < halfCost) { alert('Yetersiz kredi'); return }
-                await supabase.from('client_users').update({allocated_credits:(clientUser.allocated_credits||0)-halfCost}).eq('id',clientUser.id)
-                setClientUser({...clientUser,allocated_credits:(clientUser.allocated_credits||0)-halfCost})
-                await supabase.from('briefs').insert({
-                  campaign_name:`${brief.campaign_name} — ${mvcFormat} ${mvcChildren.length+1}`,
-                  parent_brief_id:id, root_campaign_id:brief.root_campaign_id||id,
-                  brief_type:'mvc_child', mvc_format:mvcFormat, mvc_order:mvcChildren.length+1,
-                  video_type:mvcFormat, format:brief.format, message:brief.message,
-                  cta:brief.cta, target_audience:brief.target_audience,
-                  voiceover_type:brief.voiceover_type, voiceover_gender:brief.voiceover_gender,
-                  voiceover_text:brief.voiceover_text,
-                  client_id:brief.client_id, client_user_id:brief.client_user_id,
-                  status:'submitted', credit_cost:halfCost,
-                })
-                setShowMvcModal(false)
-                loadData()
-              }}
-                style={{flex:2,padding:'10px',background:'#0a0a0a',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',fontWeight:'500',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
-                Onayla ve Sipariş Ver
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* APPROVE MODAL */}
       {showApproveModal && (
         <div style={{position:'fixed',inset:0,zIndex:150,display:'flex',alignItems:'center',justifyContent:'center',animation:'fadeIn 0.2s ease'}}
