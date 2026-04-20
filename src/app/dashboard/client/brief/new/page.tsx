@@ -428,36 +428,36 @@ function NewBriefPage() {
 
           {/* Action cards */}
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
-            {/* New brief */}
+            {/* 1. Yeni Brief */}
             <a href="/dashboard/client/brief/new" style={{...cardStyle(),textDecoration:'none'}}>
-              <div style={{fontSize:'14px',fontWeight:'600',color:'#fff'}}>Yeni Kampanya</div>
-              <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',lineHeight:1.6}}>Yeni bir kampanya briefinı başlatın.</div>
+              <div style={{fontSize:'14px',fontWeight:'600',color:'#fff'}}>Yeni Brief Yaz</div>
+              <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',lineHeight:1.6}}>Yeni bir kampanya brief'i başlatın.</div>
               <div style={btnStyle()}>+ Yeni Brief</div>
             </a>
 
-            {/* MVC */}
+            {/* 2. CPS */}
             {savedBriefId && (
               <a href={`/dashboard/client/briefs/${savedBriefId}?tab=cps`} style={{...cardStyle(true),textDecoration:'none'}}>
-                <div style={{fontSize:'14px',fontWeight:'600',color:'#fff'}}>Creative Performance System</div>
-                <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',lineHeight:1.6}}>Aynı brief'ten farklı yaratıcı yönler üretin. Hook'tan ton'a, her varyasyonu kontrol edin.</div>
-                <div style={btnStyle(true)}>&#9638; Creative Performance System →</div>
+                <div style={{fontSize:'14px',fontWeight:'600',color:'#fff'}}>CPS — Creative Performance System</div>
+                <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',lineHeight:1.6}}>Bu brief'ten farklı yaratıcı yönler üretin. Kreatifi çeşitlendirin, test edin, kazananı bulun.</div>
+                <div style={btnStyle(true)}>CPS'e Git →</div>
               </a>
             )}
 
-            {/* AI Express */}
+            {/* 3. AI Express */}
             {aiEnabled && savedBriefId && (
-              <a href={`/dashboard/client/briefs/${savedBriefId}?tab=express&autoGenerate=1`} style={{...cardStyle(),textDecoration:'none'}}>
-                <div style={{fontSize:'14px',fontWeight:'600',color:'#fff',display:'flex',alignItems:'center',gap:'6px'}}>AI Express ile Test Et <span style={{fontSize:'8px',padding:'1px 5px',background:'#1DB81D',color:'#fff',borderRadius:'3px',fontWeight:'600'}}>Beta</span></div>
-                <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',lineHeight:1.6}}>Yapay zeka ~5 dakikada fikir, görsel ve ses üretir.</div>
-                <div style={btnStyle()}>&#9889; AI Express'i Dene →</div>
+              <a href={`/dashboard/client/briefs/${savedBriefId}?tab=express`} style={{...cardStyle(),textDecoration:'none'}}>
+                <div style={{fontSize:'14px',fontWeight:'600',color:'#fff',display:'flex',alignItems:'center',gap:'6px'}}>AI Express <span style={{fontSize:'8px',padding:'1px 5px',background:'#1DB81D',color:'#fff',borderRadius:'3px',fontWeight:'600'}}>Beta</span></div>
+                <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',lineHeight:1.6}}>5 dakikada AI video — fikrinizi yayına çıkmadan test edin.</div>
+                <div style={btnStyle()}>AI Express →</div>
               </a>
             )}
 
-            {/* Brief list */}
+            {/* 4. Brief Listesi */}
             <a href="/dashboard/client" style={{...cardStyle(),textDecoration:'none'}}>
-              <div style={{fontSize:'14px',fontWeight:'600',color:'#fff'}}>Brief Listesi</div>
+              <div style={{fontSize:'14px',fontWeight:'600',color:'#fff'}}>Brief Listesine Dön</div>
               <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',lineHeight:1.6}}>Tüm kampanyalarınızı görün.</div>
-              <div style={btnStyle()}>← Brief Listesine Dön</div>
+              <div style={btnStyle()}>← Brief Listesi</div>
             </a>
           </div>
         </div>
