@@ -91,6 +91,8 @@ function ClientBriefDetail() {
   const [cpsGenerating, setCpsGenerating] = useState(false)
   const [cpsConfirmModal, setCpsConfirmModal] = useState(false)
   const [timerStageMap, setTimerStageMap] = useState<Record<string, number>>({})
+  const [editingFeedback, setEditingFeedback] = useState<Record<string, boolean>>({})
+  const [feedbackText, setFeedbackText] = useState<Record<string, string>>({})
 
   useEffect(() => { loadData() }, [id])
 
@@ -191,41 +193,33 @@ function ClientBriefDetail() {
     return () => clearInterval(poll)
   }, [aiChildren.some(c => c.status === 'ai_processing' && !c.ai_video_url)])
 
-  // Timer-based auto-advance for processing children
+  // Timer-based auto-advance for processing children — setTimeout chain
   useEffect(() => {
     const processing = aiChildren.filter(c => c.status === 'ai_processing' && !c.ai_video_url)
     if (processing.length === 0) return
-    // Initialize timer stages for new processing children
+    // Initialize new processing children at stage 0
     setTimerStageMap(prev => {
       const next = { ...prev }
-      processing.forEach(c => { if (!(c.id in next)) next[c.id] = 0 })
-      return next
+      let changed = false
+      processing.forEach(c => { if (!(c.id in next)) { next[c.id] = 0; changed = true } })
+      return changed ? next : prev
     })
-    const timer = setInterval(() => {
-      setTimerStageMap(prev => {
-        const next = { ...prev }
-        let changed = false
-        processing.forEach(c => {
-          const stg = c.product_image_url ? PRODUCT_STAGES : CHARACTER_STAGES
-          const cur = next[c.id] || 0
-          if (cur < stg.length - 1) {
-            next[c.id] = cur + 1
-            changed = true
-          }
-        })
-        return changed ? next : prev
+    // Set up cumulative timeout chains per child
+    const allTimers: ReturnType<typeof setTimeout>[] = []
+    processing.forEach(c => {
+      const stg = c.product_image_url ? PRODUCT_STAGES : CHARACTER_STAGES
+      let cumulative = 0
+      stg.forEach((s, si) => {
+        if (si === 0) return // already at 0
+        cumulative += stg[si - 1].duration * 1000
+        const t = setTimeout(() => {
+          setTimerStageMap(prev => ({ ...prev, [c.id]: si }))
+        }, cumulative)
+        allTimers.push(t)
       })
-    }, (() => {
-      // Use the shortest current stage duration across all processing children
-      const durations = processing.map(c => {
-        const stg = c.product_image_url ? PRODUCT_STAGES : CHARACTER_STAGES
-        const cur = timerStageMap[c.id] || 0
-        return (stg[cur]?.duration || 15) * 1000
-      })
-      return Math.min(...durations)
-    })())
-    return () => clearInterval(timer)
-  }, [aiChildren.filter(c => c.status === 'ai_processing' && !c.ai_video_url).length, timerStageMap])
+    })
+    return () => allTimers.forEach(clearTimeout)
+  }, [aiChildren.filter(c => c.status === 'ai_processing' && !c.ai_video_url).map(c => c.id).join(',')])
 
   async function handleAiPurchase() {
     if (!clientUser || !brief?.ai_video_url) return
@@ -613,6 +607,8 @@ function ClientBriefDetail() {
                 </div>
               )}
 
+              <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+
               {/* ═══ HYBRID TAB ═══ */}
               {activeTab === 'hybrid' && <>
 
@@ -737,7 +733,6 @@ function ClientBriefDetail() {
                 // PROCESSING
                 return (
                   <div style={{background:'#0a0a0a',borderRadius:'12px',padding:'24px 28px',marginBottom:'16px'}}>
-                    <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'20px'}}>
                       <div style={{fontSize:'15px',fontWeight:'500',color:'#fff'}}>Video oluşturuluyor...</div>
                       {totalRem > 0 && <div style={{fontSize:'13px',color:'#1DB81D',fontFamily:'monospace',fontWeight:'500'}}>Tahmini: {fmtCd(totalRem)} kaldı</div>}
@@ -1179,49 +1174,40 @@ function ClientBriefDetail() {
                           {hasVideo && (() => {
                             const feedbacks: any[] = Array.isArray(child.ai_feedbacks) ? child.ai_feedbacks : []
                             const lastFb = feedbacks.length > 0 ? feedbacks[feedbacks.length - 1] : null
-                            const fbId = `fb-${child.id}`
-                            const savedId = `fb-saved-${child.id}`
-                            const editId = `fb-edit-${child.id}`
+                            const isEditing = editingFeedback[child.id] || !lastFb
+                            const currentText = feedbackText[child.id] ?? ''
                             return (
                               <div style={{marginTop:'10px'}}>
-                                {lastFb && !document.getElementById(editId)?.dataset.editing ? (
-                                  <div id={editId} style={{fontSize:'11px',color:'#555',padding:'8px 10px',background:'#f5f4f0',borderRadius:'6px',lineHeight:1.5}}>
+                                {!isEditing && lastFb ? (
+                                  <div style={{fontSize:'11px',color:'#555',padding:'8px 10px',background:'#f5f4f0',borderRadius:'6px',lineHeight:1.5}}>
                                     <span style={{color:'#0a0a0a'}}>{lastFb.feedback}</span>
-                                    <span onClick={()=>{const el=document.getElementById(editId);if(el)el.dataset.editing='1';const ta=document.getElementById(fbId) as HTMLTextAreaElement;if(ta){ta.style.display='block';ta.value=lastFb.feedback;ta.focus()}}} style={{marginLeft:'8px',fontSize:'10px',color:'#3b82f6',cursor:'pointer'}}>Düzenle</span>
+                                    <span onClick={()=>{setEditingFeedback(p=>({...p,[child.id]:true}));setFeedbackText(p=>({...p,[child.id]:lastFb.feedback}))}} style={{marginLeft:'8px',fontSize:'10px',color:'#3b82f6',cursor:'pointer'}}>Düzenle</span>
                                   </div>
-                                ) : null}
-                                <div style={{display:'flex',gap:'6px',alignItems:'flex-end',marginTop:'6px'}}>
-                                  <textarea
-                                    id={fbId}
-                                    defaultValue=""
-                                    placeholder="Yorum bırakın — bir sonraki üretimde dikkate alınır."
-                                    rows={2}
-                                    style={{flex:1,padding:'8px 10px',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'6px',fontSize:'11px',color:'#0a0a0a',resize:'vertical',fontFamily:'var(--font-dm-sans),sans-serif',boxSizing:'border-box',display:lastFb?'none':'block'}}
-                                  />
-                                  <button id={savedId} onClick={async(e)=>{
-                                    const ta = document.getElementById(fbId) as HTMLTextAreaElement
-                                    const val = ta?.value?.trim()
-                                    if(!val) return
-                                    const btn = e.currentTarget
-                                    const newEntry = {video_version:`V${idx+1}`,feedback:val,created_at:new Date().toISOString()}
-                                    const existing: any[] = Array.isArray(child.ai_feedbacks) ? child.ai_feedbacks : []
-                                    const updated = [...existing, newEntry]
-                                    await supabase.from('briefs').update({ai_feedbacks:updated}).eq('id',child.id)
-                                    // Update local state without triggering video refresh
-                                    child.ai_feedbacks = updated
-                                    btn.textContent='Kaydedildi ✓'
-                                    btn.style.color='#1DB81D'
-                                    btn.style.background='transparent'
-                                    btn.style.border='1px solid #1DB81D'
-                                    setTimeout(()=>{btn.textContent='Kaydet';btn.style.color='#fff';btn.style.background='#0a0a0a';btn.style.border='none'},2000)
-                                    ta.style.display='none'
-                                    const editEl=document.getElementById(editId)
-                                    if(editEl)delete editEl.dataset.editing
-                                  }}
-                                    style={{padding:'8px 14px',background:'#0a0a0a',color:'#fff',border:'none',borderRadius:'6px',fontSize:'11px',fontWeight:'500',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',whiteSpace:'nowrap',height:'36px',display:lastFb?'none':'block'}}>
-                                    Kaydet
-                                  </button>
-                                </div>
+                                ) : (
+                                  <div style={{display:'flex',gap:'6px',alignItems:'flex-end'}}>
+                                    <textarea
+                                      value={currentText}
+                                      onChange={e=>setFeedbackText(p=>({...p,[child.id]:e.target.value}))}
+                                      placeholder="Yorum bırakın — bir sonraki üretimde dikkate alınır."
+                                      rows={2}
+                                      style={{flex:1,padding:'8px 10px',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'6px',fontSize:'11px',color:'#0a0a0a',resize:'vertical',fontFamily:'var(--font-dm-sans),sans-serif',boxSizing:'border-box'}}
+                                    />
+                                    <button onClick={async()=>{
+                                      const val = currentText.trim()
+                                      if(!val) return
+                                      const newEntry = {video_version:`V${idx+1}`,feedback:val,created_at:new Date().toISOString()}
+                                      const existing: any[] = Array.isArray(child.ai_feedbacks) ? child.ai_feedbacks : []
+                                      const updated = [...existing, newEntry]
+                                      await supabase.from('briefs').update({ai_feedbacks:updated}).eq('id',child.id)
+                                      setAiChildren(prev=>prev.map(c=>c.id===child.id?{...c,ai_feedbacks:updated}:c))
+                                      setEditingFeedback(p=>({...p,[child.id]:false}))
+                                      setFeedbackText(p=>({...p,[child.id]:''}))
+                                    }}
+                                      style={{padding:'8px 14px',background:'#0a0a0a',color:'#fff',border:'none',borderRadius:'6px',fontSize:'11px',fontWeight:'500',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',whiteSpace:'nowrap',height:'36px'}}>
+                                      Kaydet
+                                    </button>
+                                  </div>
+                                )}
                               </div>
                             )
                           })()}
