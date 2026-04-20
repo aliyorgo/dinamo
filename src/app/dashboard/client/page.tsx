@@ -330,6 +330,8 @@ export default function ClientDashboard() {
                     ))}
                   </div>
 
+                  <div style={{fontSize:'12px',color:'#888',marginTop:'-36px',marginBottom:'36px'}}>Her brief, AI Express ve CPS ile genişletilebilir — 5 dakikada AI video veya çoklu varyasyon kampanyası.</div>
+
                   {/* CTA */}
                   <button onClick={()=>router.push('/dashboard/client/brief/new')}
                     onMouseEnter={e=>{e.currentTarget.style.background='#1DB81D';e.currentTarget.style.color='#0A0A0A';const arrow=e.currentTarget.querySelector('svg');if(arrow)(arrow as unknown as HTMLElement).style.transform='translateX(4px)'}}
