@@ -469,7 +469,7 @@ function NewBriefPage() {
   return (
     <div style={{display:'flex',minHeight:'100vh',fontFamily:"var(--font-dm-sans),'DM Sans',system-ui,sans-serif"}}>
       <Sidebar/>
-      <div style={{flex:1,display:'flex',flexDirection:'column',background:'#f5f4f0',overflow:'hidden'}}>
+      <div style={{flex:1,display:'flex',flexDirection:'column',background:'#f5f4f0',height:'100vh',overflow:'hidden'}}>
         <div style={{padding:'14px 28px',background:'#fff',borderBottom:'0.5px solid rgba(0,0,0,0.08)',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
           <div style={{fontSize:'12px',color:'#888'}}>Yeni Brief{step > 0 ? <> / <span style={{color:'#0a0a0a',fontWeight:'500'}}>{steps[step-1]}</span></> : ''}</div>
           {step > 0 && <div style={{fontSize:'11px',color:'#aaa'}}>Adım {step} / 5</div>}
@@ -609,33 +609,6 @@ function NewBriefPage() {
                           color:sel?'#22c55e':'#888'}}>
                         {p.icon}
                         <span style={{fontSize:'12px',fontWeight:'500'}}>{p.label}</span>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-              <div style={{marginTop:'22px'}}>
-                <div style={{fontSize:'11px',color:'#888',letterSpacing:'0.5px',textTransform:'uppercase',marginBottom:'4px'}}>Yabancı Dil Versiyonu</div>
-                <div style={{fontSize:'11px',color:'#aaa',marginBottom:'10px'}}>Her dil için +2 kredi uygulanır</div>
-                <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
-                  {[
-                    {id:'en',label:'İngilizce',flag:'🇬🇧'},
-                    {id:'de',label:'Almanca',flag:'🇩🇪'},
-                    {id:'fr',label:'Fransızca',flag:'🇫🇷'},
-                    {id:'ru',label:'Rusça',flag:'🇷🇺'},
-                    {id:'ar',label:'Arapça',flag:'🇸🇦'},
-                    {id:'it',label:'İtalyanca',flag:'🇮🇹'},
-                    {id:'es',label:'İspanyolca',flag:'🇪🇸'},
-                  ].map(lang=>{
-                    const sel = form.languages.includes(lang.id)
-                    return (
-                      <div key={lang.id} onClick={()=>setForm(prev=>({...prev,languages:prev.languages.includes(lang.id)?prev.languages.filter(x=>x!==lang.id):[...prev.languages,lang.id]}))}
-                        style={{display:'flex',alignItems:'center',gap:'6px',padding:'8px 16px',borderRadius:'100px',cursor:'pointer',transition:'all 0.15s',
-                          border:sel?'1.5px solid #22c55e':'1px solid rgba(0,0,0,0.12)',
-                          background:sel?'rgba(34,197,94,0.06)':'#fff',
-                          color:sel?'#22c55e':'#888'}}>
-                        <span>{lang.flag}</span>
-                        <span style={{fontSize:'12px',fontWeight:'500'}}>{lang.label}</span>
                       </div>
                     )
                   })}
@@ -924,7 +897,7 @@ function NewBriefPage() {
         </div>
 
         {step >= 1 && (
-          <div style={{padding:'16px 40px',background:'#fff',borderTop:'0.5px solid rgba(0,0,0,0.08)',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0,position:'sticky',bottom:0,zIndex:10}}>
+          <div style={{padding:'16px 40px',background:'#fff',borderTop:'0.5px solid rgba(0,0,0,0.08)',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
             <button onClick={()=>step>1?setStep(step-1):router.push('/dashboard/client')}
               style={{background:'none',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'8px',padding:'9px 20px',fontSize:'13px',fontFamily:'var(--font-dm-sans),sans-serif',color:'#555',cursor:'pointer'}}>
               {step===1?'İptal':'Geri'}
