@@ -305,31 +305,6 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* ══════ AI EXPRESS ══════ */}
-      <section style={{ background: '#0a0a0a' }}>
-        <div className="s-pad" style={{ maxWidth: '1200px', margin: '0 auto', padding: '100px 48px' }}>
-          <div style={{ marginBottom: '16px' }}>
-            <div style={{ fontSize: '11px', letterSpacing: '3px', color: '#1db81d', textTransform: 'uppercase', marginBottom: '16px', fontWeight: '400' }}>AI Express</div>
-            <h2 style={{ fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: '300', letterSpacing: '-1.5px', marginBottom: '12px' }}>AI Express — 5 Dakikada Video</h2>
-            <div style={{ display: 'inline-block', padding: '4px 12px', background: 'rgba(29,184,29,0.1)', border: '1px solid rgba(29,184,29,0.2)', fontSize: '11px', color: '#1DB81D', marginBottom: '40px' }}>Beta · Dinamo müşterilerine özel</div>
-          </div>
-          <div style={{ maxWidth: '720px' }}>
-              <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.8, marginBottom: '20px', fontWeight: '300' }}>
-                Brief gönderdiniz. Ekip çalışırken, yapay zeka da çalışıyor.
-              </p>
-              <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.8, marginBottom: '20px', fontWeight: '300' }}>
-                Dinamo AI Express, kampanya briefinizi okur. Marka tonunu, kurumsal renkleri, hedef kitleyi analiz eder ve 5 dakika içinde, 1 kredi ile fikir, görsel, Türkçe seslendirme ve müzik üretir. Her video için yorum bırakırsınız — sistem isteklerinizi anlayıp markanızı tanıdıkça daha iyi üretir.
-              </p>
-              <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.8, marginBottom: '20px', fontWeight: '300' }}>
-                AI Express'le yayına çıkmadan önce fikrinizi test edin. Hangi mesajın işe yaradığını görün, brief'inizi geliştirin, kreatif yön belirleyin.
-              </p>
-              <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.8, fontWeight: '300' }}>
-                Beta sürecindedir. Sonuçlar garanti edilmez. İnsan yapımı üretimin yerini tutmaz — ama fikir aşamasını, içerik testini ve sosyal medya hızını değiştirir.
-              </p>
-          </div>
-        </div>
-      </section>
-
       {/* ══════ FİYATLANDIRMA ══════ */}
       <section id="fiyatlandirma" style={{ background: '#0a0a0a' }}>
         <div className="s-pad" style={{ maxWidth: '1200px', margin: '0 auto', padding: '120px 48px' }}>
@@ -413,6 +388,31 @@ export default function HomePage() {
           ) : (
             <div style={{ padding: '40px 0', textAlign: 'center', color: 'rgba(255,255,255,0.2)', fontSize: '13px' }}>Yükleniyor...</div>
           )}
+        </div>
+      </section>
+
+      {/* ══════ AI EXPRESS ══════ */}
+      <section style={{ background: '#0a0a0a' }}>
+        <div className="s-pad" style={{ maxWidth: '1200px', margin: '0 auto', padding: '100px 48px' }}>
+          <div style={{ marginBottom: '16px' }}>
+            <div style={{ fontSize: '11px', letterSpacing: '3px', color: '#1db81d', textTransform: 'uppercase', marginBottom: '16px', fontWeight: '400' }}>AI Express</div>
+            <h2 style={{ fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: '300', letterSpacing: '-1.5px', marginBottom: '12px' }}>AI Express — 5 Dakikada Video</h2>
+            <div style={{ display: 'inline-block', padding: '4px 12px', background: 'rgba(29,184,29,0.1)', border: '1px solid rgba(29,184,29,0.2)', fontSize: '11px', color: '#1DB81D', marginBottom: '40px' }}>Beta · Dinamo müşterilerine özel</div>
+          </div>
+          <div style={{ maxWidth: '720px' }}>
+              <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.8, marginBottom: '20px', fontWeight: '300' }}>
+                Brief gönderdiniz. Ekip çalışırken, yapay zeka da çalışıyor.
+              </p>
+              <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.8, marginBottom: '20px', fontWeight: '300' }}>
+                Dinamo AI Express, kampanya briefinizi okur. Marka tonunu, kurumsal renkleri, hedef kitleyi analiz eder ve 5 dakika içinde, 1 kredi ile fikir, görsel, Türkçe seslendirme ve müzik üretir. Her video için yorum bırakırsınız — sistem isteklerinizi anlayıp markanızı tanıdıkça daha iyi üretir.
+              </p>
+              <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.8, marginBottom: '20px', fontWeight: '300' }}>
+                AI Express'le yayına çıkmadan önce fikrinizi test edin. Hangi mesajın işe yaradığını görün, brief'inizi geliştirin, kreatif yön belirleyin.
+              </p>
+              <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.8, fontWeight: '300' }}>
+                Beta sürecindedir. Sonuçlar garanti edilmez. İnsan yapımı üretimin yerini tutmaz — ama fikir aşamasını, içerik testini ve sosyal medya hızını değiştirir.
+              </p>
+          </div>
         </div>
       </section>
 
