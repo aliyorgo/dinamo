@@ -42,7 +42,7 @@ export default function ClientDashboard() {
   const [briefs, setBriefs] = useState<any[]>([])
   const [videoMap, setVideoMap] = useState<Record<string,string>>({})
   const [aiChildrenMap, setAiChildrenMap] = useState<Record<string, any[]>>({})
-  const [mvcChildrenMap, setMvcChildrenMap] = useState<Record<string, any[]>>({})
+  const [cpsChildrenMap, setCpsChildrenMap] = useState<Record<string, any[]>>({})
   const [loading, setLoading] = useState(true)
   // Notifications
   const [notifications, setNotifications] = useState<any[]>([])
@@ -91,17 +91,17 @@ export default function ClientDashboard() {
           console.log('[AI-IND] map keys:', Object.keys(map).map(k => k.slice(0,8)), 'briefIds sample:', briefIds.slice(0,3).map(id => id.slice(0,8)))
           setAiChildrenMap(map)
 
-          // MVC children
-          const { data: mvcKids } = await supabase.from('briefs')
-            .select('id, root_campaign_id, parent_brief_id, status, brief_type, content_language')
+          // CPS children
+          const { data: cpsKids } = await supabase.from('briefs')
+            .select('id, root_campaign_id, parent_brief_id, status, brief_type')
             .eq('client_id', cu.client_id)
-            .eq('brief_type', 'mvc_child')
-          const mvcMap: Record<string, any[]> = {}
-          mvcKids?.forEach((k: any) => {
+            .eq('brief_type', 'cps_child')
+          const cpsMap: Record<string, any[]> = {}
+          cpsKids?.forEach((k: any) => {
             const key = k.root_campaign_id || k.parent_brief_id
-            if (key) { if (!mvcMap[key]) mvcMap[key] = []; mvcMap[key].push(k) }
+            if (key) { if (!cpsMap[key]) cpsMap[key] = []; cpsMap[key].push(k) }
           })
-          setMvcChildrenMap(mvcMap)
+          setCpsChildrenMap(cpsMap)
         }
 
         const withVideoIds = (b || []).filter(br => ['delivered','approved'].includes(br.status)).map(br => br.id)
@@ -201,20 +201,15 @@ export default function ClientDashboard() {
     return indicators
   }
 
-  const langFlags: Record<string,string> = {en:'🇬🇧',de:'🇩🇪',fr:'🇫🇷',es:'🇪🇸',it:'🇮🇹',ar:'🇸🇦'}
-
-  function getMvcIndicator(brief: any): { label: string; color: string } | null {
-    const kids = mvcChildrenMap[brief.root_campaign_id] || mvcChildrenMap[brief.id] || []
+  function getCpsIndicator(brief: any): { label: string; color: string } | null {
+    const kids = cpsChildrenMap[brief.root_campaign_id] || cpsChildrenMap[brief.id] || []
     if (kids.length === 0) return null
     const total = kids.length
     const inProgress = kids.filter(k => ['submitted','read','in_production','revision'].includes(k.status)).length
     const delivered = kids.filter(k => k.status === 'delivered').length
-    const foreignLangs = [...new Set(kids.map(k => k.content_language).filter((l: string) => l && l !== 'tr'))]
-    const flags = foreignLangs.map((l: string) => langFlags[l] || '').filter(Boolean).join('')
-    const suffix = flags ? ' ' + flags : ''
-    if (inProgress > 0) return { label: `${total} MVC Üretiliyor${suffix}`, color: '#f59e0b' }
-    if (delivered === total) return { label: `${total} MVC Hazır${suffix}`, color: '#1DB81D' }
-    return { label: `${total} MVC${suffix}`, color: '#888' }
+    if (inProgress > 0) return { label: `${total} CPS Üretiliyor`, color: '#f59e0b' }
+    if (delivered === total) return { label: `${total} CPS Hazır`, color: '#1DB81D' }
+    return { label: `${total} CPS`, color: '#888' }
   }
 
   return (
@@ -438,7 +433,7 @@ export default function ClientDashboard() {
                   {nonDrafts.map((b, i) => {
                     const isDone = b.status === 'delivered' || b.status === 'approved'
                     const aiList = getAiIndicators(b)
-                    const mvcInd = getMvcIndicator(b)
+                    const cpsInd = getCpsIndicator(b)
                     return (
                       <div key={b.id} onClick={()=>router.push(`/dashboard/client/briefs/${b.id}`)}
                         style={{padding:'14px 16px',cursor:'pointer',display:'flex',alignItems:'center',gap:'12px',borderTop:i>0?'0.5px solid rgba(0,0,0,0.05)':'none',transition:'background 0.1s',background:isDone?'#f9f9f7':'#fff',borderLeft:isDone?'2px solid #22c55e':'2px solid transparent'}}
@@ -455,7 +450,7 @@ export default function ClientDashboard() {
                         </div>
                         <div style={{display:'flex',alignItems:'center',gap:'6px',flexShrink:0}}>
                           {aiList.map((ai,ai_i) => <span key={ai_i} style={{fontSize:'9px',padding:'3px 8px',borderRadius:'6px',background:`${ai.color}12`,color:ai.color,fontWeight:'600',display:'flex',alignItems:'center',gap:'3px',whiteSpace:'nowrap'}}>{ai.label==='Üretiliyor'?'':'\u26A1'} {ai.label}</span>)}
-                          {mvcInd && <span style={{fontSize:'9px',padding:'3px 8px',borderRadius:'6px',background:`${mvcInd.color}12`,color:mvcInd.color,fontWeight:'600',display:'flex',alignItems:'center',gap:'3px',whiteSpace:'nowrap'}}>&#9638; {mvcInd.label}</span>}
+                          {cpsInd && <span style={{fontSize:'9px',padding:'3px 8px',borderRadius:'6px',background:`${cpsInd.color}12`,color:cpsInd.color,fontWeight:'600',display:'flex',alignItems:'center',gap:'3px',whiteSpace:'nowrap'}}>&#9638; {cpsInd.label}</span>}
                           <span style={{fontSize:'10px',padding:'4px 12px',borderRadius:'6px',background:`${statusColor[b.status]||'#888'}12`,color:statusColor[b.status]||'#888',fontWeight:'500',whiteSpace:'nowrap'}}>{statusLabel[b.status]||b.status}</span>
                         </div>
                       </div>

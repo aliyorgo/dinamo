@@ -31,3 +31,4 @@ WHERE parent_brief_id IS NOT NULL
 AND campaign_name NOT LIKE '% — Full AI%';
 
 ALTER TABLE briefs ADD COLUMN IF NOT EXISTS ai_feedbacks JSONB DEFAULT '[]';
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS brand_logo_url TEXT;

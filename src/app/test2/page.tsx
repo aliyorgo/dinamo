@@ -249,8 +249,8 @@ export default function HomePage() {
           <div className="feat-grid-2x4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
             {[
               { t: 'AI Destekli Brief', b: "Ne istediğini anlat, sistem brief'i oluştursun. Ya da kendin yaz, AI detaylandırsın." },
-              { t: 'Multi Video Campaign', b: 'Aynı brief, yeni yüz. Algoritmayı taze içerikle besleyin \u2014 her seferinde farklı bir video, yarı fiyata. Story, Bumper, Feed Video, Pre-roll. Tek ekranda yönetin, ZIP\u2019le indirin.' },
               { t: 'Telif Güvencesi', b: 'Her onaylı videoya otomatik İçerik Lisans Sertifikası. Arşivin her zaman hazır.' },
+              { t: 'CPS', b: 'Creative Performance System ile aynı brief\u2019ten farklı yaratıcı yönler üretin. Hook, ton, tempo \u2014 her varyasyonu siz belirleyin. Kreatifi çeşitlendirin, test edin, kazananı bulun, performansı artırın.' },
               { t: 'Her Şey Tek Yerde', b: "Brief'ler, videolar, sertifikalar, tüm dosyalarınız \u2014 tek panelde, her zaman erişilebilir." },
               { t: 'İçerik Performans Raporu', b: 'Görüntülenme ve etkileşim verilerini gir, kampanya bazlı raporlar al.' },
               { t: 'Kendini Geliştiren AI', b: "Genel marka bilgileriyle başlar, her brief'ten öğrenir. Tonunu, dilini, tercihlerini hafızasına alır \u2014 zamanla daha etkili brief yazar." },
@@ -313,24 +313,19 @@ export default function HomePage() {
             <h2 style={{ fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: '300', letterSpacing: '-1.5px', marginBottom: '12px' }}>AI Express — 5 Dakikada Video</h2>
             <div style={{ display: 'inline-block', padding: '4px 12px', background: 'rgba(29,184,29,0.1)', border: '1px solid rgba(29,184,29,0.2)', fontSize: '11px', color: '#1DB81D', marginBottom: '40px' }}>Beta · Dinamo müşterilerine özel</div>
           </div>
-          <div style={{ display: 'flex', gap: '48px', alignItems: 'flex-start' }}>
-            <div style={{ flex: 1 }}>
+          <div style={{ maxWidth: '720px' }}>
               <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.8, marginBottom: '20px', fontWeight: '300' }}>
                 Brief gönderdiniz. Ekip çalışırken, yapay zeka da çalışıyor.
               </p>
               <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.8, marginBottom: '20px', fontWeight: '300' }}>
                 Dinamo AI Express, kampanya briefinizi okur. Marka tonunu, kurumsal renkleri, hedef kitleyi analiz eder ve 5 dakika içinde, 1 kredi ile fikir, görsel, Türkçe seslendirme ve müzik üretir. Her video için yorum bırakırsınız — sistem isteklerinizi anlayıp markanızı tanıdıkça daha iyi üretir.
               </p>
+              <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.8, marginBottom: '20px', fontWeight: '300' }}>
+                AI Express'le yayına çıkmadan önce fikrinizi test edin. Hangi mesajın işe yaradığını görün, brief'inizi geliştirin, kreatif yön belirleyin.
+              </p>
               <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.8, fontWeight: '300' }}>
                 Beta sürecindedir. Sonuçlar garanti edilmez. İnsan yapımı üretimin yerini tutmaz — ama fikir aşamasını, içerik testini ve sosyal medya hızını değiştirir.
               </p>
-            </div>
-            <div style={{ width: '400px', aspectRatio: '9/16', maxHeight: '500px', background: '#151515', borderRadius: '12px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{ textAlign: 'center' }}>
-                <span style={{ fontSize: '32px', opacity: 0.2 }}>&#9889;</span>
-                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.15)', marginTop: '8px' }}>Görsel yakında</div>
-              </div>
-            </div>
           </div>
         </div>
       </section>

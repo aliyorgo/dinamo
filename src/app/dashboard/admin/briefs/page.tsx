@@ -178,7 +178,6 @@ export default function BriefsPage() {
                       <span style={{fontSize:'11px',padding:'3px 10px',borderRadius:'100px',background:`${statusColor[brief.status]||'#888'}15`,color:statusColor[brief.status]||'#888'}}>
                         {statusLabel[brief.status]||brief.status}
                       </span>
-                      {brief.content_language && brief.content_language !== 'tr' && <span style={{marginLeft:'4px',fontSize:'11px'}}>{({en:'🇬🇧',de:'🇩🇪',fr:'🇫🇷',es:'🇪🇸',it:'🇮🇹',ar:'🇸🇦'} as any)[brief.content_language]||''}</span>}
                     </td>
                     <td onClick={()=>router.push(`/dashboard/admin/briefs/${brief.id}`)} style={{padding:'12px 16px',fontSize:'13px',color:'rgba(255,255,255,0.4)'}}>{new Date(brief.created_at).toLocaleDateString('tr-TR')}</td>
                   </tr>

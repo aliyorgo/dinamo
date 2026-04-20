@@ -437,10 +437,10 @@ function NewBriefPage() {
 
             {/* MVC */}
             {savedBriefId && (
-              <a href={`/dashboard/client/briefs/${savedBriefId}?tab=mvc`} style={{...cardStyle(true),textDecoration:'none'}}>
-                <div style={{fontSize:'14px',fontWeight:'600',color:'#fff'}}>Ek Video Sipariş Et</div>
-                <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',lineHeight:1.6}}>Aynı kampanyadan farklı formatlarda ek videolar — yarı fiyata.</div>
-                <div style={btnStyle(true)}>&#9638; Multi Video Campaign →</div>
+              <a href={`/dashboard/client/briefs/${savedBriefId}?tab=cps`} style={{...cardStyle(true),textDecoration:'none'}}>
+                <div style={{fontSize:'14px',fontWeight:'600',color:'#fff'}}>Creative Performance System</div>
+                <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',lineHeight:1.6}}>Aynı brief'ten farklı yaratıcı yönler üretin. Hook'tan ton'a, her varyasyonu kontrol edin.</div>
+                <div style={btnStyle(true)}>&#9638; Creative Performance System →</div>
               </a>
             )}
 

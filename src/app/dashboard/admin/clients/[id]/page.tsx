@@ -80,6 +80,9 @@ export default function ClientDetailPage() {
   // Brand
   const [brand, setBrand] = useState({ primary_color:'', secondary_color:'', forbidden_colors:'', tone:'', avoid:'', notes:'' })
   const [savingBrand, setSavingBrand] = useState(false)
+  const [brandLogoUrl, setBrandLogoUrl] = useState('')
+  const [logoUploading, setLogoUploading] = useState(false)
+  const brandLogoRef = useRef<HTMLInputElement>(null)
 
   function showMsg(text: string, isError = false) {
     setMsg(text)
@@ -109,6 +112,7 @@ export default function ClientDetailPage() {
     setClient(cl)
     setAiNotes(cl.ai_notes || '')
     setBrand({ primary_color: cl.brand_primary_color||'', secondary_color: cl.brand_secondary_color||'', forbidden_colors: cl.brand_forbidden_colors||'', tone: cl.brand_tone||'', avoid: cl.brand_avoid||'', notes: cl.brand_notes||'' })
+    setBrandLogoUrl(cl.brand_logo_url || '')
     setBriefs(br || [])
     setTransactions(tx || [])
     setSales(sl || [])
@@ -506,7 +510,7 @@ export default function ClientDetailPage() {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', padding: '10px 12px', background: 'rgba(0,0,0,0.02)', borderRadius: '8px' }}>
                   <div>
-                    <div style={{ fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>Full AI Video Stüdyosu</div>
+                    <div style={{ fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>AI Express</div>
                     <div style={{ fontSize: '10px', color: '#888', marginTop: '2px' }}>{client?.ai_video_enabled ? 'Müşteri AI video üretebilir' : 'Devre dışı'}</div>
                   </div>
                   <button onClick={async () => {
@@ -518,6 +522,37 @@ export default function ClientDetailPage() {
                     style={{ width: '44px', height: '24px', borderRadius: '100px', border: 'none', cursor: 'pointer', background: client?.ai_video_enabled ? '#1db81d' : '#ddd', position: 'relative', transition: 'background 0.2s' }}>
                     <span style={{ position: 'absolute', top: '3px', left: client?.ai_video_enabled ? '23px' : '3px', width: '18px', height: '18px', borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }}></span>
                   </button>
+                </div>
+                {/* Brand Logo */}
+                <div style={{ marginBottom: '14px' }}>
+                  <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}>Marka Logosu (Transparan PNG)</div>
+                  {brandLogoUrl ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ width: '80px', height: '40px', background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4px' }}>
+                        <img src={brandLogoUrl} alt="Logo" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                      </div>
+                      <button onClick={async () => { await supabase.from('clients').update({ brand_logo_url: null }).eq('id', clientId); setBrandLogoUrl(''); showMsg('Logo kaldırıldı.') }}
+                        style={{ fontSize: '11px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>Kaldır</button>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <input ref={brandLogoRef} type="file" accept=".png" onChange={async () => {
+                        const file = brandLogoRef.current?.files?.[0]
+                        if (!file) return
+                        if (file.size > 2 * 1024 * 1024) { alert('Max 2MB'); return }
+                        setLogoUploading(true)
+                        const path = `brand-logos/${clientId}_${Date.now()}.png`
+                        const { error: upErr } = await supabase.storage.from('brand-assets').upload(path, file, { upsert: true })
+                        if (upErr) { showMsg(upErr.message, true); setLogoUploading(false); return }
+                        const { data: urlData } = supabase.storage.from('brand-assets').getPublicUrl(path)
+                        await supabase.from('clients').update({ brand_logo_url: urlData.publicUrl }).eq('id', clientId)
+                        setBrandLogoUrl(urlData.publicUrl)
+                        setLogoUploading(false)
+                        showMsg('Logo yüklendi.')
+                      }} style={{ fontSize: '11px' }} disabled={logoUploading} />
+                      {logoUploading && <span style={{ fontSize: '11px', color: '#888' }}>Yükleniyor...</span>}
+                    </div>
+                  )}
                 </div>
                 <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
                   <div style={{ flex: 1 }}>

@@ -82,12 +82,14 @@ function ClientBriefDetail() {
   const [showAiGenerate, setShowAiGenerate] = useState(false)
   const [aiGenerating, setAiGenerating] = useState(false)
   const [aiWarningDismissed, setAiWarningDismissed] = useState(false)
-  const [mvcBannerDismissed, setMvcBannerDismissed] = useState(() => typeof window !== 'undefined' && localStorage.getItem('mvc_banner_dismissed') === '1')
-  const [activeTab, setActiveTab] = useState<'hybrid'|'express'|'mvc'>(searchParams.get('tab') === 'express' ? 'express' : searchParams.get('tab') === 'mvc' ? 'mvc' : 'hybrid')
+  const [cpsBannerDismissed, setCpsBannerDismissed] = useState(() => typeof window !== 'undefined' && localStorage.getItem('cps_banner_dismissed') === '1')
+  const [activeTab, setActiveTab] = useState<'hybrid'|'cps'|'express'>(searchParams.get('tab') === 'express' ? 'express' : searchParams.get('tab') === 'cps' ? 'cps' : 'hybrid')
   const [autoGenerateTriggered, setAutoGenerateTriggered] = useState(false)
-  const [mvcChildren, setMvcChildren] = useState<any[]>([])
-  const [mvcFormat, setMvcFormat] = useState('')
-  const [mvcLang, setMvcLang] = useState('tr')
+  const [cpsChildren, setCpsChildren] = useState<any[]>([])
+  const [cpsPackage, setCpsPackage] = useState<number>(0)
+  const [cpsVariations, setCpsVariations] = useState<any[]>([])
+  const [cpsGenerating, setCpsGenerating] = useState(false)
+  const [cpsConfirmModal, setCpsConfirmModal] = useState(false)
 
   useEffect(() => { loadData() }, [id])
 
@@ -125,13 +127,13 @@ function ClientBriefDetail() {
       .like('campaign_name', '%Full AI%')
       .order('created_at', { ascending: true })
     setAiChildren(aiKids || [])
-    // MVC children
-    const { data: mvcKids } = await supabase.from('briefs')
+    // CPS children
+    const { data: cpsKids } = await supabase.from('briefs')
       .select('*, video_submissions(id, video_url, status)')
       .eq('parent_brief_id', id)
-      .eq('brief_type', 'mvc_child')
+      .eq('brief_type', 'cps_child')
       .order('mvc_order', { ascending: true })
-    setMvcChildren(mvcKids || [])
+    setCpsChildren(cpsKids || [])
   }
 
   // AI video polling — runs when brief is ai_processing and video not yet ready
@@ -172,15 +174,18 @@ function ClientBriefDetail() {
     const poll = setInterval(async () => {
       const { data } = await supabase.from('briefs').select('id, status, ai_video_status, ai_video_url, ai_video_error').in('id', allIds)
       if (!data) return
-      let changed = false
-      setAiChildren(prev => prev.map(c => {
-        const u = data.find((d: any) => d.id === c.id)
-        if (u && (u.status !== c.status || u.ai_video_status !== c.ai_video_status || u.ai_video_url !== c.ai_video_url)) {
-          changed = true
-          return { ...c, ...u }
-        }
-        return c
-      }))
+      setAiChildren(prev => {
+        let changed = false
+        const next = prev.map(c => {
+          const u = data.find((d: any) => d.id === c.id)
+          if (u && (u.status !== c.status || u.ai_video_status !== c.ai_video_status || u.ai_video_url !== c.ai_video_url)) {
+            changed = true
+            return { ...c, ...u }
+          }
+          return c
+        })
+        return changed ? next : prev
+      })
     }, 3000)
     return () => clearInterval(poll)
   }, [aiChildren.some(c => c.status === 'ai_processing' && !c.ai_video_url)])
@@ -541,8 +546,8 @@ function ClientBriefDetail() {
         {/* TABS */}
         <div style={{display:'flex',gap:0,background:'#fff',paddingLeft:'28px',borderBottom:'1px solid rgba(0,0,0,0.08)'}}>
           {[
-            {key:'hybrid' as const, label:'Hybrid'},
-            {key:'mvc' as const, label:'MVC'},
+            {key:'hybrid' as const, label:'Ana Video'},
+            {key:'cps' as const, label:'CPS'},
             {key:'express' as const, label:'AI Express'},
           ].map((t,ti)=>{
             const isActive = activeTab === t.key
@@ -554,7 +559,7 @@ function ClientBriefDetail() {
                 {t.label}
                 {t.key==='express' && <span style={{marginLeft:'4px',fontSize:'9px',padding:'1px 5px',background:'#1DB81D',color:'#fff',borderRadius:'3px',fontWeight:'600',verticalAlign:'middle'}}>Beta</span>}
                 {t.key==='express' && aiChildren.length > 0 && <span style={{marginLeft:'6px',fontSize:'10px',color:isActive?'#1DB81D':'#1DB81D',fontWeight:'600'}}>{aiChildren.filter(c=>c.ai_video_url).length}</span>}
-                {t.key==='mvc' && mvcChildren.length > 0 && <span style={{marginLeft:'6px',fontSize:'10px',color:isActive?'#8bb4f6':'#3b82f6',fontWeight:'600'}}>{mvcChildren.length}</span>}
+                {t.key==='cps' && cpsChildren.length > 0 && <span style={{marginLeft:'6px',fontSize:'10px',color:isActive?'#8bb4f6':'#3b82f6',fontWeight:'600'}}>{cpsChildren.length}</span>}
               </button>
             )
           })}
@@ -1027,10 +1032,13 @@ function ClientBriefDetail() {
                     return (
                       <div key={child.id} style={{display:'flex',gap:'14px',padding:'12px 0',borderBottom:idx<aiChildren.length-1?'0.5px solid rgba(0,0,0,0.06)':'none',alignItems:'flex-start'}}>
                         {/* Video player */}
-                        <div style={{width:'200px',aspectRatio:'9/16',borderRadius:'8px',overflow:'hidden',background:'#0a0a0a',flexShrink:0}}>
+                        <div style={{width:'200px',aspectRatio:'9/16',borderRadius:'8px',overflow:'hidden',background:'#0a0a0a',flexShrink:0,position:'relative'}}>
                           {hasVideo ? (
-                            <video src={child.ai_video_url} controls playsInline preload="metadata"
-                              style={{width:'100%',height:'100%',objectFit:'contain',backgroundColor:'black',borderRadius:'8px'}} />
+                            <>
+                              <video key={child.ai_video_url} src={child.ai_video_url} controls playsInline preload="metadata"
+                                style={{width:'100%',height:'100%',objectFit:'contain',backgroundColor:'black',borderRadius:'8px'}} />
+                              {!isPurchased && <img src="/dinamo_logo.png" alt="" style={{position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-50%)',width:'80px',opacity:0.35,pointerEvents:'none'}} />}
+                            </>
                           ) : isProcessing ? (
                             <div style={{width:'100%',height:'100%',display:'flex',flexDirection:'column',justifyContent:'center',padding:'12px'}}>
                               {(child.product_image_url ? PRODUCT_STAGES : CHARACTER_STAGES).map((s,si) => {
@@ -1205,24 +1213,161 @@ function ClientBriefDetail() {
 
               </>}
 
-              {/* ═══ MVC TAB ═══ */}
-              {activeTab === 'mvc' && <>
-                {/* MVC info banner */}
-                {!mvcBannerDismissed && (
+              {/* ═══ CPS TAB ═══ */}
+              {activeTab === 'cps' && <>
+                {/* CPS info banner */}
+                {!cpsBannerDismissed && (
                   <div style={{background:'#1F1F1F',borderRadius:'8px',padding:'18px 20px',marginBottom:'16px',position:'relative'}}>
-                    <button onClick={()=>{setMvcBannerDismissed(true);localStorage.setItem('mvc_banner_dismissed','1')}}
+                    <button onClick={()=>{setCpsBannerDismissed(true);localStorage.setItem('cps_banner_dismissed','1')}}
                       style={{position:'absolute',top:'12px',right:'14px',background:'none',border:'none',cursor:'pointer',color:'rgba(255,255,255,0.5)',fontSize:'20px',lineHeight:1,padding:'0 2px'}}>&#215;</button>
-                    <div style={{fontSize:'14px',fontWeight:'600',color:'#fff',marginBottom:'10px'}}>Multi Video Campaign ile maliyetinizi düşürün</div>
-                    <div style={{fontSize:'12px',color:'rgba(255,255,255,0.6)',lineHeight:1.8,marginBottom:'12px'}}>
-                      Kampanya briefini bir kez yazın, farklı formatlarda istediğiniz kadar video üretin. Her ek video yarı fiyata üretilir — Story, Bumper, Feed Video, Pre-roll.
+                    <div style={{fontSize:'14px',fontWeight:'600',color:'#fff',marginBottom:'10px'}}>Creative Performance System</div>
+                    <div style={{fontSize:'12px',color:'rgba(255,255,255,0.6)',lineHeight:1.8}}>
+                      Aynı brief'ten farklı yaratıcı yönler üretin. Hook'tan ton'a, her varyasyonu kontrol edin. AI otomatik plan oluşturur, ekip üretir.
                     </div>
-                    <div style={{fontSize:'12px',color:'rgba(255,255,255,0.75)',lineHeight:2}}>
-                      ✓ Algoritmaları canlı tutmak için düzenli içerik üretin<br/>
-                      ✓ Farklı platformlar için farklı formatlar, tek ekranda<br/>
-                      ✓ Tüm videoları ZIP olarak toplu indirin<br/>
-                      ✓ Her video ayrı onaylanır, revizyon talep edilebilir<br/>
-                      ✓ Brief tekrar yazma derdi yok — aynı konsept, yeni format
+                  </div>
+                )}
+
+                {/* Package selection — show if no CPS children yet */}
+                {cpsChildren.length === 0 && cpsPackage === 0 && (
+                  <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'20px 24px',marginBottom:'16px'}}>
+                    <div style={{fontSize:'14px',fontWeight:'600',color:'#0a0a0a',marginBottom:'16px'}}>Paket Seçin</div>
+                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'12px'}}>
+                      {[
+                        {size:3,label:'3 Varyasyon',mult:1.5,rec:false},
+                        {size:6,label:'6 Varyasyon',mult:3,rec:true},
+                        {size:10,label:'10 Varyasyon',mult:5,rec:false},
+                      ].map(p=>{
+                        const baseCost = BASE_COSTS[brief.video_type] || 18
+                        const cost = Math.ceil(baseCost * p.mult)
+                        return (
+                          <div key={p.size} onClick={()=>{setCpsPackage(p.size);setCpsVariations(Array.from({length:p.size},(_,i)=>({hook:'',hero:'',ton:'',tempo:'',cta:'',note:''})))}}
+                            style={{padding:'20px',border:'1px solid rgba(0,0,0,0.1)',borderRadius:'8px',cursor:'pointer',textAlign:'center',transition:'all 0.15s',position:'relative'}}
+                            onMouseEnter={e=>(e.currentTarget.style.borderColor='#1DB81D')}
+                            onMouseLeave={e=>(e.currentTarget.style.borderColor='rgba(0,0,0,0.1)')}>
+                            {p.rec && <div style={{position:'absolute',top:'-8px',left:'50%',transform:'translateX(-50%)',fontSize:'9px',padding:'2px 8px',background:'#1DB81D',color:'#fff',borderRadius:'4px',fontWeight:'600'}}>Önerilen</div>}
+                            <div style={{fontSize:'18px',fontWeight:'600',color:'#0a0a0a',marginBottom:'4px'}}>{p.label}</div>
+                            <div style={{fontSize:'12px',color:'#888'}}>{cost} kredi</div>
+                          </div>
+                        )
+                      })}
                     </div>
+                  </div>
+                )}
+
+                {/* CPS Configuration */}
+                {cpsPackage > 0 && cpsChildren.length === 0 && (
+                  <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'20px 24px',marginBottom:'16px'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px'}}>
+                      <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
+                        <div style={{fontSize:'14px',fontWeight:'600',color:'#0a0a0a'}}>{cpsPackage} Varyasyon Planı</div>
+                        <button onClick={()=>{setCpsPackage(0);setCpsVariations([])}} style={{fontSize:'11px',color:'#888',background:'none',border:'none',cursor:'pointer',textDecoration:'underline',fontFamily:'var(--font-dm-sans),sans-serif'}}>Paketi Değiştir</button>
+                      </div>
+                      <button onClick={async()=>{
+                        setCpsGenerating(true)
+                        try{
+                          const res = await fetch('/api/cps-generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({briefId:id,packageSize:cpsPackage})})
+                          const data = await res.json()
+                          if(data.variations) setCpsVariations(data.variations.slice(0,cpsPackage))
+                        }catch{}
+                        setCpsGenerating(false)
+                      }} disabled={cpsGenerating}
+                        style={{padding:'9px 18px',background:'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'12px',fontWeight:'600',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                        {cpsGenerating ? 'AI düşünüyor...' : '⚡ Varyasyon Planını AI Oluştur'}
+                      </button>
+                    </div>
+
+                    {cpsVariations.map((v: any, vi: number) => (
+                      <div key={vi} style={{padding:'14px',border:'0.5px solid rgba(0,0,0,0.08)',borderRadius:'8px',marginBottom:'8px',background:v.hook?'rgba(29,184,29,0.02)':'#fff'}}>
+                        <div style={{fontSize:'12px',fontWeight:'600',color:'#0a0a0a',marginBottom:'10px'}}>Varyasyon {vi+1}</div>
+                        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'8px',marginBottom:'8px'}}>
+                          {[
+                            {key:'hook',label:'Hook',opts:['Direkt ürün','Problem-ihtiyaç','Hikaye','Dikkat çekici açılış','Faydadan başla']},
+                            {key:'hero',label:'Hero',opts:['Erkek','Kadın','Yok']},
+                            {key:'ton',label:'Ton',opts:['Enerjik','Kurumsal','Duygusal','Eğlenceli','Premium']},
+                          ].map(f=>(
+                            <div key={f.key}>
+                              <div style={{fontSize:'9px',color:'#888',marginBottom:'3px'}}>{f.label}</div>
+                              <select value={(v as any)[f.key]||''} onChange={e=>{const u=[...cpsVariations];u[vi]={...u[vi],[f.key]:e.target.value};setCpsVariations(u)}}
+                                style={{width:'100%',padding:'6px 8px',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'4px',fontSize:'11px',color:'#0a0a0a',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                                <option value="">Seç</option>
+                                {f.opts.map(o=><option key={o} value={o}>{o}</option>)}
+                              </select>
+                            </div>
+                          ))}
+                        </div>
+                        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'8px'}}>
+                          {[
+                            {key:'tempo',label:'Tempo',opts:['Hızlı','Orta','Yavaş']},
+                            {key:'cta',label:'CTA',opts:['Satın al','Keşfet','Daha fazla bilgi al','Başvur','İncele']},
+                          ].map(f=>(
+                            <div key={f.key}>
+                              <div style={{fontSize:'9px',color:'#888',marginBottom:'3px'}}>{f.label}</div>
+                              <select value={(v as any)[f.key]||''} onChange={e=>{const u=[...cpsVariations];u[vi]={...u[vi],[f.key]:e.target.value};setCpsVariations(u)}}
+                                style={{width:'100%',padding:'6px 8px',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'4px',fontSize:'11px',color:'#0a0a0a',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                                <option value="">Seç</option>
+                                {f.opts.map(o=><option key={o} value={o}>{o}</option>)}
+                              </select>
+                            </div>
+                          ))}
+                          <div>
+                            <div style={{fontSize:'9px',color:'#888',marginBottom:'3px'}}>Not</div>
+                            <input value={v.note||''} onChange={e=>{const u=[...cpsVariations];u[vi]={...u[vi],note:e.target.value};setCpsVariations(u)}} maxLength={100} placeholder="Opsiyonel"
+                              style={{width:'100%',padding:'6px 8px',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'4px',fontSize:'11px',color:'#0a0a0a',fontFamily:'var(--font-dm-sans),sans-serif',boxSizing:'border-box'}} />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Launch */}
+                    <div style={{display:'flex',alignItems:'center',gap:'12px',marginTop:'16px'}}>
+                      <div style={{flex:1}}></div>
+                      <button onClick={()=>setCpsConfirmModal(true)} disabled={cpsVariations.filter(v=>v.hook&&v.ton).length===0}
+                        style={{padding:'12px 24px',background:cpsVariations.filter(v=>v.hook&&v.ton).length===0?'#ccc':'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'13px',fontWeight:'600',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                        CPS Başlat
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* CPS children list */}
+                {cpsChildren.length > 0 && (
+                  <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'20px 24px',marginBottom:'16px'}}>
+                    <div style={{fontSize:'14px',fontWeight:'600',color:'#0a0a0a',marginBottom:'16px'}}>Varyasyonlar</div>
+                    {cpsChildren.map((child: any, idx: number) => {
+                      const childVideo = child.video_submissions?.[0]
+                      return (
+                        <div key={child.id} style={{display:'flex',gap:'14px',padding:'14px 0',borderTop:idx>0?'0.5px solid rgba(0,0,0,0.06)':'none',alignItems:'flex-start'}}>
+                          <div style={{width:'120px',aspectRatio:'9/16',borderRadius:'6px',overflow:'hidden',background:'#0a0a0a',flexShrink:0}}>
+                            {childVideo?.video_url ? (
+                              <video src={childVideo.video_url} controls playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'contain',background:'black'}} />
+                            ) : (
+                              <div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                                <span style={{fontSize:'10px',color:'#555'}}>{statusLabel[child.status]||child.status}</span>
+                              </div>
+                            )}
+                          </div>
+                          <div style={{flex:1,paddingTop:'4px'}}>
+                            <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'4px',flexWrap:'wrap'}}>
+                              <span style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{child.campaign_name}</span>
+                              <span style={{fontSize:'10px',padding:'3px 10px',borderRadius:'6px',background:`${statusColor[child.status]||'#888'}12`,color:statusColor[child.status]||'#888',fontWeight:'500'}}>{statusLabel[child.status]||child.status}</span>
+                            </div>
+                            <div style={{fontSize:'10px',color:'#888',marginBottom:'6px',display:'flex',gap:'8px',flexWrap:'wrap'}}>
+                              {child.cps_hook && <span>Hook: {child.cps_hook}</span>}
+                              {child.cps_ton && <span>· Ton: {child.cps_ton}</span>}
+                              {child.cps_tempo && <span>· Tempo: {child.cps_tempo}</span>}
+                              {child.cps_hero && child.cps_hero!=='Yok' && <span>· Hero: {child.cps_hero}</span>}
+                            </div>
+                            <div style={{fontSize:'10px',color:'#aaa',marginBottom:'8px'}}>{new Date(child.created_at).toLocaleDateString('tr-TR',{day:'numeric',month:'short'})}</div>
+                            {childVideo?.video_url && (
+                              <div style={{display:'flex',gap:'6px'}}>
+                                <a href={childVideo.video_url} download target="_blank" style={{fontSize:'11px',color:'#0a0a0a',textDecoration:'none',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'4px',padding:'5px 12px',fontFamily:'var(--font-dm-sans),sans-serif'}}>İndir</a>
+                                <button onClick={()=>generateCertificatePDF(brief, companyName)} style={{fontSize:'11px',color:'#555',background:'none',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'4px',padding:'5px 12px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>Telif Belgesi</button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
                 )}
 
@@ -1236,141 +1381,66 @@ function ClientBriefDetail() {
                   </div>
                 )}
 
-                {/* MVC children */}
-                <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'20px 24px',marginBottom:'16px'}}>
-                  <div style={{marginBottom:'16px'}}>
-                    <div style={{fontSize:'14px',fontWeight:'600',color:'#0a0a0a',marginBottom:'4px'}}>Multi Video Campaign</div>
-                    <div style={{fontSize:'11px',color:'#888'}}>Format seç, dil seç, sipariş ver — 3 adım.</div>
-                  </div>
-
-                  {/* Format cards */}
-                  <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(130px, 1fr))',gap:'8px',marginBottom:'16px'}}>
-                    {[
-                      {val:'Story / Reels',label:'Story',dur:'15sn',cost:18},
-                      {val:'Bumper / Pre-roll',label:'Bumper',dur:'6sn',cost:12},
-                      {val:'Feed Video',label:'Feed Video',dur:'15sn',cost:24},
-                      {val:'Pre-roll',label:'Pre-roll',dur:'6sn',cost:12},
-                    ].map(f=>{
-                      const isSelected = mvcFormat === f.val
-                      const halfCost = Math.ceil(f.cost / 2)
-                      return (
-                        <div key={f.val} onClick={()=>setMvcFormat(isSelected ? '' : f.val)}
-                          style={{padding:'14px',border:isSelected?'1.5px solid #1DB81D':'1px solid rgba(0,0,0,0.1)',borderRadius:'8px',cursor:'pointer',background:isSelected?'rgba(29,184,29,0.04)':'#fff',transition:'all 0.15s',textAlign:'center'}}
-                          onMouseEnter={e=>{if(!isSelected)e.currentTarget.style.background='#fafaf8'}}
-                          onMouseLeave={e=>{if(!isSelected)e.currentTarget.style.background=isSelected?'rgba(29,184,29,0.04)':'#fff'}}>
-                          <div style={{fontSize:'13px',fontWeight:'600',color:'#0a0a0a'}}>{f.label}</div>
-                          <div style={{fontSize:'11px',color:'#888',marginTop:'2px'}}>{f.dur}</div>
-                          <div style={{fontSize:'11px',color:isSelected?'#1DB81D':'#555',marginTop:'6px',fontWeight:'500'}}>{halfCost} kredi</div>
-                        </div>
-                      )
-                    })}
-                  </div>
-
-                  {/* Language + Order */}
-                  {mvcFormat && (
-                    <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'16px',padding:'12px 14px',background:'#f9f9f7',borderRadius:'8px'}}>
-                      <div style={{flex:1}}>
-                        <div style={{fontSize:'10px',color:'#888',marginBottom:'4px'}}>İçerik Dili</div>
-                        <select value={mvcLang} onChange={e=>setMvcLang(e.target.value)}
-                          style={{width:'100%',padding:'7px 10px',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'6px',fontSize:'12px',color:'#0a0a0a',fontFamily:'var(--font-dm-sans),sans-serif',background:'#fff'}}>
-                          <option value="tr">Türkçe</option>
-                          <option value="en">İngilizce</option>
-                          <option value="de">Almanca</option>
-                          <option value="fr">Fransızca</option>
-                          <option value="es">İspanyolca</option>
-                          <option value="it">İtalyanca</option>
-                          <option value="ar">Arapça</option>
-                        </select>
-                      </div>
-                      <div style={{textAlign:'right'}}>
-                        <div style={{fontSize:'11px',color:'#555',marginBottom:'6px'}}>{mvcFormat} · {({tr:'Türkçe',en:'İngilizce',de:'Almanca',fr:'Fransızca',es:'İspanyolca',it:'İtalyanca',ar:'Arapça'} as any)[mvcLang]} · <strong>{Math.ceil(({'Bumper / Pre-roll':12,'Story / Reels':18,'Feed Video':24,'Pre-roll':12} as any)[mvcFormat]||18)/2} kredi</strong></div>
-                        <button onClick={async()=>{
-                          if(!clientUser||!brief) return
-                          const baseCost = ({'Bumper / Pre-roll':12,'Story / Reels':18,'Feed Video':24,'Pre-roll':12,'Long Form':36} as any)[mvcFormat] || 18
-                          const halfCost = Math.ceil(baseCost / 2)
-                          if((clientUser.allocated_credits||0) < halfCost) { alert('Yetersiz kredi'); return }
-                          await supabase.from('client_users').update({allocated_credits:(clientUser.allocated_credits||0)-halfCost}).eq('id',clientUser.id)
-                          setClientUser({...clientUser,allocated_credits:(clientUser.allocated_credits||0)-halfCost})
-                          await supabase.from('briefs').insert({
-                            campaign_name:`${brief.campaign_name} — ${mvcFormat.split(' / ')[0]} #${mvcChildren.length+1}`,
-                            parent_brief_id:id, root_campaign_id:brief.root_campaign_id||id,
-                            brief_type:'mvc_child', mvc_format:mvcFormat, mvc_order:mvcChildren.length+1,
-                            video_type:mvcFormat, format:brief.format, message:brief.message,
-                            cta:brief.cta, target_audience:brief.target_audience,
-                            voiceover_type:brief.voiceover_type, voiceover_gender:brief.voiceover_gender,
-                            voiceover_text:brief.voiceover_text, content_language:mvcLang,
-                            client_id:brief.client_id, client_user_id:brief.client_user_id,
-                            status:'submitted', credit_cost:halfCost,
-                          })
-                          setMvcFormat('')
-                          loadData()
-                        }}
-                          style={{padding:'9px 20px',background:'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'12px',fontWeight:'600',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
-                          Sipariş Ver
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Existing MVC list */}
-                  {mvcChildren.length === 0 && !mvcFormat ? (
-                    <div style={{textAlign:'center',padding:'24px',color:'#888',fontSize:'12px'}}>
-                      Henüz video eklenmedi. Üstten format seçerek başlayın.
-                    </div>
-                  ) : mvcChildren.map((child: any, idx: number) => {
-                    const childVideo = child.video_submissions?.[0]
-                    return (
-                      <div key={child.id} style={{display:'flex',gap:'14px',padding:'14px 0',borderTop:idx>0?'0.5px solid rgba(0,0,0,0.06)':'none',alignItems:'flex-start'}}>
-                        <div style={{width:'120px',aspectRatio:'9/16',borderRadius:'6px',overflow:'hidden',background:'#0a0a0a',flexShrink:0}}>
-                          {childVideo?.video_url ? (
-                            <video src={childVideo.video_url} controls playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'contain',background:'black'}} />
-                          ) : (
-                            <div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                              <span style={{fontSize:'10px',color:'#555'}}>{statusLabel[child.status]||child.status}</span>
-                            </div>
-                          )}
-                        </div>
-                        <div style={{flex:1,paddingTop:'4px'}}>
-                          <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px'}}>
-                            <span style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{child.campaign_name || child.mvc_format || child.video_type}</span>
-                            <span style={{fontSize:'9px',padding:'2px 6px',background:'rgba(34,197,94,0.1)',color:'#22c55e',borderRadius:'4px',fontWeight:'600'}}>Yarı Fiyat</span>
-                            {child.content_language && child.content_language !== 'tr' && <span style={{fontSize:'10px'}}>{({en:'🇬🇧',de:'🇩🇪',fr:'🇫🇷',es:'🇪🇸',it:'🇮🇹',ar:'🇸🇦'} as any)[child.content_language]||''} {({en:'İngilizce',de:'Almanca',fr:'Fransızca',es:'İspanyolca',it:'İtalyanca',ar:'Arapça'} as any)[child.content_language]||child.content_language}</span>}
-                            <span style={{fontSize:'10px',padding:'3px 10px',borderRadius:'6px',background:`${statusColor[child.status]||'#888'}12`,color:statusColor[child.status]||'#888',fontWeight:'500'}}>{statusLabel[child.status]||child.status}</span>
-                          </div>
-                          <div style={{fontSize:'11px',color:'#888',marginBottom:'10px'}}>{new Date(child.created_at).toLocaleDateString('tr-TR',{day:'numeric',month:'short'})}</div>
-                          {childVideo?.video_url && (
-                            <div style={{display:'flex',gap:'6px'}}>
-                              <a href={childVideo.video_url} download target="_blank"
-                                style={{fontSize:'11px',color:'#0a0a0a',textDecoration:'none',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'4px',padding:'5px 12px',fontFamily:'var(--font-dm-sans),sans-serif'}}>
-                                İndir
-                              </a>
-                              <button onClick={()=>generateCertificatePDF(brief, companyName)}
-                                style={{fontSize:'11px',color:'#555',background:'none',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'4px',padding:'5px 12px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
-                                Telif Belgesi
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-
-                {/* Download all */}
-                {mvcChildren.some((c: any) => c.video_submissions?.[0]?.video_url) && (
-                  <div style={{textAlign:'center',marginBottom:'16px'}}>
-                    <button onClick={()=>{alert('ZIP indirme yakında')}}
-                      style={{padding:'10px 24px',background:'#fff',color:'#0a0a0a',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'2px',fontSize:'12px',fontWeight:'500',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
-                      Tümünü İndir (ZIP)
-                    </button>
-                  </div>
-                )}
               </>}
 
             </>
           )}
         </div>
       </div>
+
+      {/* CPS CONFIRM MODAL */}
+      {cpsConfirmModal && brief && (() => {
+        const filled = cpsVariations.filter(v=>v.hook&&v.ton)
+        const baseCost = BASE_COSTS[brief.video_type] || 18
+        const totalCost = Math.ceil(baseCost * ({3:1.5,6:3,10:5} as any)[cpsPackage] || baseCost * cpsPackage * 0.5)
+        return (
+          <div style={{position:'fixed',inset:0,zIndex:150,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={()=>setCpsConfirmModal(false)}>
+            <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.5)'}} />
+            <div onClick={e=>e.stopPropagation()} style={{position:'relative',background:'#fff',borderRadius:'4px',padding:'32px',width:'100%',maxWidth:'400px'}}>
+              <div style={{fontSize:'18px',fontWeight:'600',color:'#0a0a0a',marginBottom:'16px'}}>CPS Başlatılıyor</div>
+              <div style={{fontSize:'15px',color:'#0a0a0a',marginBottom:'6px'}}>{cpsPackage} Varyasyon Paketi</div>
+              <div style={{fontSize:'24px',fontWeight:'300',color:'#0a0a0a',letterSpacing:'-0.5px',marginBottom:'12px'}}>Toplam: {totalCost} kredi</div>
+              <div style={{fontSize:'12px',color:'#888',lineHeight:1.6,marginBottom:'24px'}}>Onaylandıktan sonra {filled.length} child brief oluşturulur ve ekip üretime başlar.</div>
+              {(clientUser?.allocated_credits||0) < totalCost && (
+                <div style={{fontSize:'12px',color:'#ef4444',marginBottom:'16px'}}>Yetersiz kredi. Bakiyeniz: {clientUser?.allocated_credits||0}</div>
+              )}
+              <div style={{display:'flex',gap:'10px'}}>
+                <button onClick={()=>setCpsConfirmModal(false)}
+                  style={{flex:1,padding:'12px',background:'#fff',color:'#555',border:'1px solid rgba(0,0,0,0.15)',borderRadius:'4px',fontSize:'13px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                  İptal
+                </button>
+                <button disabled={(clientUser?.allocated_credits||0)<totalCost} onClick={async()=>{
+                  if(!clientUser||!brief) return
+                  setCpsConfirmModal(false)
+                  await supabase.from('client_users').update({allocated_credits:(clientUser.allocated_credits||0)-totalCost}).eq('id',clientUser.id)
+                  setClientUser({...clientUser,allocated_credits:(clientUser.allocated_credits||0)-totalCost})
+                  for(let i=0;i<filled.length;i++){
+                    const v=filled[i]
+                    await supabase.from('briefs').insert({
+                      campaign_name:`${brief.campaign_name} — CPS V${i+1}`,
+                      parent_brief_id:id, root_campaign_id:brief.root_campaign_id||id,
+                      brief_type:'cps_child', mvc_order:i+1,
+                      video_type:brief.video_type, format:brief.format, message:brief.message,
+                      cta:brief.cta, target_audience:brief.target_audience,
+                      voiceover_type:brief.voiceover_type, voiceover_gender:brief.voiceover_gender,
+                      voiceover_text:brief.voiceover_text,
+                      cps_hook:v.hook, cps_hero:v.hero, cps_ton:v.ton, cps_tempo:v.tempo, cps_cta:v.cta, cps_note:v.note,
+                      cps_package:cpsPackage,
+                      client_id:brief.client_id, client_user_id:brief.client_user_id,
+                      status:'submitted', credit_cost:Math.ceil(totalCost/filled.length),
+                    })
+                  }
+                  setCpsPackage(0);setCpsVariations([])
+                  loadData()
+                }}
+                  style={{flex:2,padding:'12px',background:(clientUser?.allocated_credits||0)<totalCost?'#ccc':'#0a0a0a',color:'#fff',border:'none',borderRadius:'4px',fontSize:'13px',fontWeight:'600',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                  Onayla ve Başlat
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
       {/* APPROVE MODAL */}
       {showApproveModal && (
