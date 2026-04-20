@@ -330,7 +330,7 @@ export default function ClientDashboard() {
                     ))}
                   </div>
 
-                  <div style={{fontSize:'12px',color:'#888',marginTop:'-36px',marginBottom:'36px'}}>Her brief, AI Express ve CPS ile genişletilebilir — 5 dakikada AI video veya çoklu varyasyon kampanyası.</div>
+                  <div style={{fontSize:'12px',color:'#888',marginTop:'-36px',marginBottom:'36px'}}>Her brief gönderdikten sonra AI Express ve Creative Performance System özelliklerine erişirsiniz. AI Express ile briefinizden ~5 dakikada yapay zeka videosu üretin, CPS ile aynı kampanyadan farklı yaratıcı yönler ve varyasyonlar oluşturun.</div>
 
                   {/* CTA */}
                   <button onClick={()=>router.push('/dashboard/client/brief/new')}
