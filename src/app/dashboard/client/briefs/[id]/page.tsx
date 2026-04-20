@@ -1032,32 +1032,49 @@ function ClientBriefDetail() {
                     return (
                       <div key={child.id} style={{display:'flex',gap:'14px',padding:'12px 0',borderBottom:idx<aiChildren.length-1?'0.5px solid rgba(0,0,0,0.06)':'none',alignItems:'flex-start'}}>
                         {/* Video player */}
-                        <div style={{width:'200px',aspectRatio:'9/16',borderRadius:'8px',overflow:'hidden',background:'#0a0a0a',flexShrink:0,position:'relative'}}>
+                        <div style={{width:'200px',aspectRatio:'9/16',borderRadius:'8px',background:'#0a0a0a',flexShrink:0,position:'relative'}}>
                           {hasVideo ? (
                             <>
-                              <video key={child.ai_video_url} src={child.ai_video_url} controls playsInline preload="metadata"
-                                style={{width:'100%',height:'100%',objectFit:'contain',backgroundColor:'black',borderRadius:'8px'}} />
+                              <video key={child.ai_video_url} src={child.ai_video_url} controls preload="metadata"
+                                style={{width:'100%',height:'100%',objectFit:'contain',backgroundColor:'black'}} />
                               {!isPurchased && <img src="/dinamo_logo.png" alt="" style={{position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-50%)',width:'80px',opacity:0.35,pointerEvents:'none'}} />}
                             </>
                           ) : isProcessing ? (
-                            <div style={{width:'100%',height:'100%',display:'flex',flexDirection:'column',justifyContent:'center',padding:'12px'}}>
-                              {(child.product_image_url ? PRODUCT_STAGES : CHARACTER_STAGES).map((s,si) => {
-                                const sKeys = (child.product_image_url ? PRODUCT_STAGES : CHARACTER_STAGES).map(x=>x.key)
-                                const curSi = sKeys.indexOf(child.ai_video_status || '')
-                                const done = curSi > si
-                                const active = curSi === si
-                                return (
-                                  <div key={s.key} style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'4px'}}>
-                                    <div style={{width:'10px',height:'10px',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                                      {done ? <span style={{color:'#1DB81D',fontSize:'8px'}}>&#10003;</span>
-                                        : active ? <div style={{width:'6px',height:'6px',border:'1.5px solid #1DB81D',borderTop:'1.5px solid transparent',borderRadius:'50%',animation:'spin 1s linear infinite'}}></div>
-                                        : <div style={{width:'3px',height:'3px',background:'#444',borderRadius:'50%'}}></div>}
+                            (() => {
+                              const stg = child.product_image_url ? PRODUCT_STAGES : CHARACTER_STAGES
+                              const sKeys = stg.map(x=>x.key)
+                              const curSi = sKeys.indexOf(child.ai_video_status || '')
+                              const activeStage = curSi >= 0 ? stg[curSi] : stg[0]
+                              const dur = activeStage?.duration || 0
+                              const durLabel = dur >= 60 ? `~${Math.ceil(dur/60)} dakika` : `~${dur} saniye`
+                              return (
+                                <div style={{width:'100%',height:'100%',display:'flex',flexDirection:'column',justifyContent:'center',padding:'16px',background:'#0a0a0a'}}>
+                                  {/* Active stage — hero */}
+                                  <div style={{textAlign:'center',marginBottom:'16px'}}>
+                                    <div style={{display:'inline-flex',alignItems:'center',gap:'8px',marginBottom:'6px'}}>
+                                      <div style={{width:'14px',height:'14px',border:'2px solid #1DB81D',borderTop:'2px solid transparent',borderRadius:'50%',animation:'spin 1s linear infinite'}}></div>
+                                      <span style={{fontSize:'13px',fontWeight:'600',color:'#fff',animation:'fadeIn 0.4s ease'}}>{activeStage?.label || 'Hazırlanıyor'}</span>
                                     </div>
-                                    <span style={{fontSize:'8px',color:done?'#1DB81D':active?'#fff':'#555'}}>{s.label}</span>
+                                    <div style={{fontSize:'9px',color:'#555'}}>{durLabel}</div>
                                   </div>
-                                )
-                              })}
-                            </div>
+                                  {/* Stage list */}
+                                  {stg.map((s,si) => {
+                                    const done = curSi > si
+                                    const active = curSi === si
+                                    return (
+                                      <div key={s.key} style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'3px'}}>
+                                        <div style={{width:'8px',height:'8px',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                                          {done ? <span style={{color:'#1DB81D',fontSize:'7px'}}>&#10003;</span>
+                                            : active ? <div style={{width:'5px',height:'5px',border:'1.5px solid #1DB81D',borderTop:'1.5px solid transparent',borderRadius:'50%',animation:'spin 1s linear infinite'}}></div>
+                                            : <div style={{width:'3px',height:'3px',background:'#333',borderRadius:'50%'}}></div>}
+                                        </div>
+                                        <span style={{fontSize:'8px',color:done?'#1DB81D':active?'#fff':'#444',fontWeight:active?'600':'400',transition:'all 0.3s'}}>{s.label}</span>
+                                      </div>
+                                    )
+                                  })}
+                                </div>
+                              )
+                            })()
                           ) : (
                             <div style={{width:'100%',height:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'6px'}}>
                               <span style={{fontSize:'20px',color:'#555'}}>&#9888;</span>
