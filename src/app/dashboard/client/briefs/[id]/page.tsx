@@ -19,21 +19,21 @@ const statusColor: Record<string,string> = {
 }
 
 const CHARACTER_STAGES = [
-  { key: 'processing_concept', label: 'Konsept oluşturuluyor', duration: 10 },
-  { key: 'processing_video', label: 'Görsel üretiliyor', duration: 210 },
-  { key: 'processing_voice', label: 'Ses kaydediliyor', duration: 15 },
-  { key: 'processing_music', label: 'Müzik seçiliyor', duration: 5 },
-  { key: 'processing_merge', label: 'Birleştiriliyor', duration: 10 },
-  { key: 'uploading', label: 'Yükleniyor', duration: 10 },
+  { key: 'processing_concept', label: 'Konsept oluşturuluyor', duration: 15 },
+  { key: 'processing_voice', label: 'Ses kaydediliyor', duration: 20 },
+  { key: 'processing_music', label: 'Müzik seçiliyor', duration: 10 },
+  { key: 'processing_video', label: 'Görsel üretiliyor', duration: 120 },
+  { key: 'processing_merge', label: 'Birleştiriliyor', duration: 30 },
+  { key: 'uploading', label: 'Yükleniyor', duration: 60 },
 ]
 const PRODUCT_STAGES = [
-  { key: 'processing_concept', label: 'Konsept oluşturuluyor', duration: 10 },
+  { key: 'processing_concept', label: 'Konsept oluşturuluyor', duration: 15 },
   { key: 'processing_lifestyle', label: 'Ürün görseli hazırlanıyor', duration: 30 },
-  { key: 'processing_video', label: 'Görsel üretiliyor', duration: 210 },
-  { key: 'processing_voice', label: 'Ses kaydediliyor', duration: 15 },
-  { key: 'processing_music', label: 'Müzik seçiliyor', duration: 5 },
-  { key: 'processing_merge', label: 'Birleştiriliyor', duration: 10 },
-  { key: 'uploading', label: 'Yükleniyor', duration: 10 },
+  { key: 'processing_voice', label: 'Ses kaydediliyor', duration: 20 },
+  { key: 'processing_music', label: 'Müzik seçiliyor', duration: 10 },
+  { key: 'processing_video', label: 'Görsel üretiliyor', duration: 120 },
+  { key: 'processing_merge', label: 'Birleştiriliyor', duration: 30 },
+  { key: 'uploading', label: 'Yükleniyor', duration: 60 },
 ]
 const REVISION_COST = 4
 const BASE_COSTS: Record<string,number> = {'Bumper / Pre-roll':12,'Story / Reels':18,'Feed Video':24,'Long Form':36}
@@ -90,6 +90,7 @@ function ClientBriefDetail() {
   const [cpsVariations, setCpsVariations] = useState<any[]>([])
   const [cpsGenerating, setCpsGenerating] = useState(false)
   const [cpsConfirmModal, setCpsConfirmModal] = useState(false)
+  const [timerStageMap, setTimerStageMap] = useState<Record<string, number>>({})
 
   useEffect(() => { loadData() }, [id])
 
@@ -189,6 +190,42 @@ function ClientBriefDetail() {
     }, 3000)
     return () => clearInterval(poll)
   }, [aiChildren.some(c => c.status === 'ai_processing' && !c.ai_video_url)])
+
+  // Timer-based auto-advance for processing children
+  useEffect(() => {
+    const processing = aiChildren.filter(c => c.status === 'ai_processing' && !c.ai_video_url)
+    if (processing.length === 0) return
+    // Initialize timer stages for new processing children
+    setTimerStageMap(prev => {
+      const next = { ...prev }
+      processing.forEach(c => { if (!(c.id in next)) next[c.id] = 0 })
+      return next
+    })
+    const timer = setInterval(() => {
+      setTimerStageMap(prev => {
+        const next = { ...prev }
+        let changed = false
+        processing.forEach(c => {
+          const stg = c.product_image_url ? PRODUCT_STAGES : CHARACTER_STAGES
+          const cur = next[c.id] || 0
+          if (cur < stg.length - 1) {
+            next[c.id] = cur + 1
+            changed = true
+          }
+        })
+        return changed ? next : prev
+      })
+    }, (() => {
+      // Use the shortest current stage duration across all processing children
+      const durations = processing.map(c => {
+        const stg = c.product_image_url ? PRODUCT_STAGES : CHARACTER_STAGES
+        const cur = timerStageMap[c.id] || 0
+        return (stg[cur]?.duration || 15) * 1000
+      })
+      return Math.min(...durations)
+    })())
+    return () => clearInterval(timer)
+  }, [aiChildren.filter(c => c.status === 'ai_processing' && !c.ai_video_url).length, timerStageMap])
 
   async function handleAiPurchase() {
     if (!clientUser || !brief?.ai_video_url) return
@@ -1043,8 +1080,10 @@ function ClientBriefDetail() {
                             (() => {
                               const stg = child.product_image_url ? PRODUCT_STAGES : CHARACTER_STAGES
                               const sKeys = stg.map(x=>x.key)
-                              const curSi = sKeys.indexOf(child.ai_video_status || '')
-                              const activeStage = curSi >= 0 ? stg[curSi] : stg[0]
+                              const realIdx = sKeys.indexOf(child.ai_video_status || '')
+                              const timerIdx = timerStageMap[child.id] || 0
+                              const curSi = Math.max(realIdx, timerIdx, 0)
+                              const activeStage = stg[curSi] || stg[0]
                               const dur = activeStage?.duration || 0
                               const durLabel = dur >= 60 ? `~${Math.ceil(dur/60)} dakika` : `~${dur} saniye`
                               return (
