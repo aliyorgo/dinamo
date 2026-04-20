@@ -1049,7 +1049,7 @@ function ClientBriefDetail() {
                   {!aiWarningDismissed && (
                     <div style={{background:'#1F1F1F',borderRadius:'8px',padding:'16px 18px',marginBottom:'16px',display:'flex',alignItems:'flex-start',gap:'12px',position:'relative'}}>
                       <div style={{fontSize:'13px',color:'#fff',lineHeight:1.7,flex:1}}>
-                        Deneysel bir özelliktir — sonuçlar garanti edilmez. Bu videolar tamamen yazdığınız brief'den yola çıkarak yapay zeka tarafından üretilmektedir. Fikir, görsel, ses ve müzik tamamen AI tarafından oluşturulur. Ekrandaki yazılar sosyal medyada native text olarak eklenmelidir. Dinamo sadece marka bilgileri ile AI prompt'larına müdahale eder.
+                        Yayına çıkmadan önce fikir geliştirmek ve test etmek için tasarlanmıştır. Deneysel bir özelliktir — sonuçlar garanti edilmez. Bu videolar tamamen yazdığınız brief'den yola çıkarak yapay zeka tarafından üretilmektedir. Fikir, görsel, ses ve müzik tamamen AI tarafından oluşturulur. Ekrandaki yazılar sosyal medyada native text olarak eklenmelidir. Dinamo sadece marka bilgileri ile AI prompt'larına müdahale eder.
                       </div>
                       <button onClick={()=>setAiWarningDismissed(true)} style={{background:'none',border:'none',cursor:'pointer',color:'rgba(255,255,255,0.7)',fontSize:'20px',lineHeight:1,padding:'0 2px',flexShrink:0}}>&#215;</button>
                     </div>
@@ -1337,25 +1337,10 @@ function ClientBriefDetail() {
                             </div>
                           ))}
                         </div>
-                        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'8px'}}>
-                          {[
-                            {key:'tempo',label:'Tempo',opts:['Hızlı','Orta','Yavaş']},
-                            {key:'cta',label:'CTA',opts:['Satın al','Keşfet','Daha fazla bilgi al','Başvur','İncele']},
-                          ].map(f=>(
-                            <div key={f.key}>
-                              <div style={{fontSize:'9px',color:'#888',marginBottom:'3px'}}>{f.label}</div>
-                              <select value={(v as any)[f.key]||''} onChange={e=>{const u=[...cpsVariations];u[vi]={...u[vi],[f.key]:e.target.value};setCpsVariations(u)}}
-                                style={{width:'100%',padding:'6px 8px',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'4px',fontSize:'11px',color:'#0a0a0a',fontFamily:'var(--font-dm-sans),sans-serif'}}>
-                                <option value="">Seç</option>
-                                {f.opts.map(o=><option key={o} value={o}>{o}</option>)}
-                              </select>
-                            </div>
-                          ))}
-                          <div>
-                            <div style={{fontSize:'9px',color:'#888',marginBottom:'3px'}}>Not</div>
-                            <input value={v.note||''} onChange={e=>{const u=[...cpsVariations];u[vi]={...u[vi],note:e.target.value};setCpsVariations(u)}} maxLength={100} placeholder="Opsiyonel"
-                              style={{width:'100%',padding:'6px 8px',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'4px',fontSize:'11px',color:'#0a0a0a',fontFamily:'var(--font-dm-sans),sans-serif',boxSizing:'border-box'}} />
-                          </div>
+                        <div style={{marginTop:'8px'}}>
+                          <div style={{fontSize:'9px',color:'#888',marginBottom:'3px'}}>Not (opsiyonel)</div>
+                          <input value={v.note||''} onChange={e=>{const u=[...cpsVariations];u[vi]={...u[vi],note:e.target.value};setCpsVariations(u)}} maxLength={150} placeholder="Ek yön veya açıklama..."
+                            style={{width:'100%',padding:'6px 8px',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'4px',fontSize:'11px',color:'#0a0a0a',fontFamily:'var(--font-dm-sans),sans-serif',boxSizing:'border-box'}} />
                         </div>
                       </div>
                     ))}

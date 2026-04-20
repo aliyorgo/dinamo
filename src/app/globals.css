@@ -41,7 +41,6 @@ body {
   width: 240px;
   min-width: 240px;
   max-width: 240px;
-  min-height: 100vh;
   background: #0A0A0A;
   display: flex;
   flex-direction: column;
@@ -49,9 +48,13 @@ body {
   top: 0;
   left: 0;
   height: 100vh;
-  overflow-y: auto;
   z-index: 50;
   font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+}
+
+.dinamo-sidebar > nav {
+  flex: 1;
+  overflow-y: auto;
 }
 
 .dinamo-sidebar > img,

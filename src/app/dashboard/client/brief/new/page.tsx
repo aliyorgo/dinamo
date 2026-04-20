@@ -40,6 +40,7 @@ function NewBriefPage() {
   const productImageRef = useRef<HTMLInputElement>(null)
   const [productImageUrl, setProductImageUrl] = useState<string | null>(null)
   const [productUploading, setProductUploading] = useState(false)
+  const [showProductUpload, setShowProductUpload] = useState(false)
 
   const [form, setForm] = useState({
     campaign_name: '',
@@ -878,11 +879,11 @@ function NewBriefPage() {
 
                 {/* PRODUCT IMAGE */}
                 <div style={{marginBottom:'22px'}}>
-                  <label style={{display:'flex',alignItems:'center',gap:'8px',cursor:'pointer',marginBottom:productImageUrl?'12px':'0'}}>
-                    <input type="checkbox" checked={!!productImageUrl || productUploading} onChange={e=>{if(!e.target.checked){setProductImageUrl(null)}}} style={{accentColor:'#22c55e'}} />
+                  <label style={{display:'flex',alignItems:'center',gap:'8px',cursor:'pointer',marginBottom:(showProductUpload||productImageUrl)?'12px':'0'}}>
+                    <input type="checkbox" checked={showProductUpload || !!productImageUrl} onChange={e=>{if(e.target.checked){setShowProductUpload(true)}else{setShowProductUpload(false);setProductImageUrl(null)}}} style={{accentColor:'#22c55e'}} />
                     <span style={{fontSize:'13px',color:'#0a0a0a'}}>Bu kampanya için ürün görselim var</span>
                   </label>
-                  {(productImageUrl || productUploading) ? (
+                  {(showProductUpload || productImageUrl || productUploading) ? (
                     productImageUrl ? (
                       <div style={{display:'flex',alignItems:'center',gap:'12px',background:'#f5f4f0',borderRadius:'10px',padding:'12px 16px'}}>
                         <img src={productImageUrl} alt="Ürün" style={{width:'48px',height:'48px',objectFit:'cover',borderRadius:'8px',border:'0.5px solid rgba(0,0,0,0.1)'}} />
@@ -896,7 +897,7 @@ function NewBriefPage() {
                       <div style={{fontSize:'11px',color:'#888',padding:'12px'}}>Yükleniyor...</div>
                     )
                   ) : null}
-                  {!productImageUrl && !productUploading && (
+                  {!productImageUrl && !productUploading && showProductUpload && (
                     <div style={{marginTop:'8px',display:'flex',gap:'8px',alignItems:'flex-start'}}>
                       <div style={{flex:1}}>
                         <input placeholder="Görsel URL yapıştır (jpg, png, webp)" onBlur={e=>{const v=e.target.value.trim();if(v&&/\.(jpg|jpeg|png|webp)/i.test(v)){setProductImageUrl(v);e.target.value=''}}}
@@ -923,7 +924,7 @@ function NewBriefPage() {
         </div>
 
         {step >= 1 && (
-          <div style={{padding:'16px 40px',background:'#fff',borderTop:'0.5px solid rgba(0,0,0,0.08)',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
+          <div style={{padding:'16px 40px',background:'#fff',borderTop:'0.5px solid rgba(0,0,0,0.08)',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0,position:'sticky',bottom:0,zIndex:10}}>
             <button onClick={()=>step>1?setStep(step-1):router.push('/dashboard/client')}
               style={{background:'none',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'8px',padding:'9px 20px',fontSize:'13px',fontFamily:'var(--font-dm-sans),sans-serif',color:'#555',cursor:'pointer'}}>
               {step===1?'İptal':'Geri'}

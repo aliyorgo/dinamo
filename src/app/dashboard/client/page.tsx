@@ -226,7 +226,7 @@ export default function ClientDashboard() {
           <div style={{fontSize:'10px',color:'#AAA',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:'8px'}}>KREDİ BAKİYESİ</div>
           <div style={{fontSize:'28px',fontWeight:'700',color:'#1DB81D',letterSpacing:'-1px'}}>{credits}</div>
         </div>
-        <nav style={{padding:'10px 8px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
+        <nav style={{padding:'10px 8px',flex:1,overflowY:'auto'}}>
           {[
             {label:'Projelerim', href:'/dashboard/client', active:true},
             {label:'Yeni Brief', href:'/dashboard/client/brief/new', active:false},
