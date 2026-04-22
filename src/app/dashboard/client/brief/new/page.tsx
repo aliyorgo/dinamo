@@ -856,7 +856,7 @@ function NewBriefPage() {
                     <input type="checkbox" checked={showProductUpload || !!productImageUrl} onChange={e=>{if(e.target.checked){setShowProductUpload(true)}else{setShowProductUpload(false);setProductImageUrl(null)}}} style={{accentColor:'#22c55e'}} />
                     <span style={{fontSize:'13px',color:'#0a0a0a'}}>Bu kampanya için ürün görselim var</span>
                   </label>
-                  {(showProductUpload || productImageUrl || productUploading) ? (
+                  {(productImageUrl || productUploading) ? (
                     productImageUrl ? (
                       <div style={{display:'flex',alignItems:'center',gap:'12px',background:'#f5f4f0',borderRadius:'10px',padding:'12px 16px'}}>
                         <img src={productImageUrl} alt="Ürün" style={{width:'48px',height:'48px',objectFit:'cover',borderRadius:'8px',border:'0.5px solid rgba(0,0,0,0.1)'}} />
