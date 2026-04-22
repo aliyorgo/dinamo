@@ -311,7 +311,7 @@ function NewBriefPage() {
 
   function Sidebar() {
     return (
-      <div style={{width:'240px',background:'#0A0A0A',display:'flex',flexDirection:'column',flexShrink:0,height:'100vh',position:'sticky',top:0}}>
+      <div style={{width:'240px',background:'#0A0A0A',display:'flex',flexDirection:'column',flexShrink:0,height:'100dvh',overflow:'hidden'}}>
         <div style={{padding:'18px 16px 14px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
           <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} />
         </div>
@@ -332,7 +332,7 @@ function NewBriefPage() {
           )}
         </div>
 
-        <div style={{padding:'10px 8px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
+        <div style={{flex:1,overflowY:'auto',padding:'10px 8px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
           <div style={{fontSize:'9px',letterSpacing:'1.5px',color:'#AAA',padding:'0 6px',marginBottom:'6px',textTransform:'uppercase'}}>Adımlar</div>
           {steps.map((s,i)=>{
             const n = i+1
@@ -359,8 +359,6 @@ function NewBriefPage() {
             )
           })}
         </div>
-
-        <div style={{flex:1}}></div>
         <div style={{padding:'10px 8px',borderTop:'0.5px solid rgba(255,255,255,0.07)'}}>
           <div onClick={()=>router.push('/dashboard/client')} style={{display:'flex',alignItems:'center',gap:'7px',padding:'6px 8px',borderRadius:'7px',cursor:'pointer'}}>
             <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="rgba(255,255,255,0.25)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -467,9 +465,9 @@ function NewBriefPage() {
   }
 
   return (
-    <div style={{display:'flex',minHeight:'100vh',fontFamily:"var(--font-dm-sans),'DM Sans',system-ui,sans-serif"}}>
+    <div style={{display:'flex',height:'100dvh',overflow:'hidden',fontFamily:"var(--font-dm-sans),'DM Sans',system-ui,sans-serif"}}>
       <Sidebar/>
-      <div style={{flex:1,display:'flex',flexDirection:'column',background:'#f5f4f0',height:'100vh',overflow:'hidden'}}>
+      <div style={{flex:1,display:'flex',flexDirection:'column',background:'#f5f4f0',height:'100dvh',overflow:'hidden'}}>
         <div style={{padding:'14px 28px',background:'#fff',borderBottom:'0.5px solid rgba(0,0,0,0.08)',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
           <div style={{fontSize:'12px',color:'#888'}}>Yeni Brief{step > 0 ? <> / <span style={{color:'#0a0a0a',fontWeight:'500'}}>{steps[step-1]}</span></> : ''}</div>
           {step > 0 && <div style={{fontSize:'11px',color:'#aaa'}}>Adım {step} / 5</div>}
