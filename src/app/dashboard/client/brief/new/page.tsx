@@ -904,8 +904,8 @@ function NewBriefPage() {
                     (step===2&&(!form.target_audience||!form.has_cta))||
                     (step===3&&!form.message)
                   }
-                  style={{background:'#111113',color:'#fff',border:'none',borderRadius:'8px',padding:'9px 24px',fontSize:'13px',fontFamily:'var(--font-dm-sans),sans-serif',cursor:'pointer',fontWeight:'500',opacity:(step===1&&(!form.campaign_name||!form.video_type||!form.format))||(step===2&&(!form.target_audience||!form.has_cta))||(step===3&&!form.message)?0.4:1}}>
-                  Devam et               </button>
+                  style={{background:'#22c55e',color:'#fff',border:'none',borderRadius:'8px',padding:'9px 24px',fontSize:'13px',fontFamily:'var(--font-dm-sans),sans-serif',cursor:'pointer',fontWeight:'500',display:'inline-flex',alignItems:'center',gap:'6px',opacity:(step===1&&(!form.campaign_name||!form.video_type||!form.format))||(step===2&&(!form.target_audience||!form.has_cta))||(step===3&&!form.message)?0.4:1}}>
+                  Devam et <span style={{fontSize:'14px'}}>→</span></button>
               ):(
                 <div style={{display:'flex',gap:'8px'}}>
                   <button onClick={()=>handleSubmit(true)} disabled={submitting}
