@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
+import { useClientContext } from './layout'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
@@ -35,10 +36,7 @@ function timeAgo(d: string) {
 
 export default function ClientDashboard() {
   const router = useRouter()
-  const [userName, setUserName] = useState('')
-  const [companyName, setCompanyName] = useState('')
-  const [credits, setCredits] = useState(0)
-  const [clientUserId, setClientUserId] = useState('')
+  const { userName, companyName, credits, clientUserId, clientId } = useClientContext()
   const [briefs, setBriefs] = useState<any[]>([])
   const [videoMap, setVideoMap] = useState<Record<string,string>>({})
   const [aiChildrenMap, setAiChildrenMap] = useState<Record<string, any[]>>({})
@@ -57,19 +55,10 @@ export default function ClientDashboard() {
   const [homeVideos, setHomeVideos] = useState<any[]>([])
 
   useEffect(() => {
+    if (!clientId) return
     async function load() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { router.push('/login'); return }
-      const { data: userData } = await supabase.from('users').select('name, role').eq('id', user.id).single()
-      if (!userData || userData.role !== 'client') { router.push('/login'); return }
-      setUserName(userData.name)
-      const { data: cu } = await supabase.from('client_users').select('id, allocated_credits, client_id, clients(company_name)').eq('user_id', user.id).single()
-      if (cu) {
-        setCredits(cu.allocated_credits)
-        setClientUserId(cu.id)
-        setCompanyName((cu as any).clients?.company_name || '')
-        const { data: b, error: bError } = await supabase.from('briefs').select('*').eq('client_id', cu.client_id).neq('status','cancelled').is('parent_brief_id', null).order('created_at', { ascending: false })
-        console.log('[DEBUG] clientId:', cu.client_id, '| briefs:', b?.length, '| error:', bError)
+        const { data: b, error: bError } = await supabase.from('briefs').select('*').eq('client_id', clientId).neq('status','cancelled').is('parent_brief_id', null).order('created_at', { ascending: false })
+        console.log('[DEBUG] clientId:', clientId, '| briefs:', b?.length, '| error:', bError)
         setBriefs(b || [])
 
         // Fetch AI children for indicators
@@ -80,7 +69,7 @@ export default function ClientDashboard() {
           // Query by both root_campaign_id and parent_brief_id as fallback
           const { data: aiKids, error: aiErr } = await supabase.from('briefs')
             .select('id, root_campaign_id, parent_brief_id, status, ai_video_status, ai_video_url, created_at, campaign_name')
-            .eq('client_id', cu.client_id)
+            .eq('client_id', clientId)
             .ilike('campaign_name', '%Full AI%')
           console.log('[AI-IND] error:', aiErr?.message, '| aiKids count:', aiKids?.length, '| sample:', aiKids?.slice(0,3).map((k:any) => ({ name: k.campaign_name?.slice(0,30), root: k.root_campaign_id?.slice(0,8), parent: k.parent_brief_id?.slice(0,8), url: !!k.ai_video_url, status: k.ai_video_status })))
           const map: Record<string, any[]> = {}
@@ -94,7 +83,7 @@ export default function ClientDashboard() {
           // CPS children
           const { data: cpsKids } = await supabase.from('briefs')
             .select('id, root_campaign_id, parent_brief_id, status, brief_type')
-            .eq('client_id', cu.client_id)
+            .eq('client_id', clientId)
             .eq('brief_type', 'cps_child')
           const cpsMap: Record<string, any[]> = {}
           cpsKids?.forEach((k: any) => {
@@ -113,11 +102,11 @@ export default function ClientDashboard() {
         }
 
         // Notifications
-        const { data: notifs } = await supabase.from('notifications').select('*').eq('client_user_id', cu.id).order('created_at', { ascending: false }).limit(10)
+        const { data: notifs } = await supabase.from('notifications').select('*').eq('client_user_id', clientUserId).order('created_at', { ascending: false }).limit(10)
         setNotifications(notifs || [])
 
         // Stats
-        const { data: txns } = await supabase.from('credit_transactions').select('amount').eq('client_id', cu.client_id).lt('amount', 0)
+        const { data: txns } = await supabase.from('credit_transactions').select('amount').eq('client_id', clientId).lt('amount', 0)
         setTotalSpent(Math.abs((txns || []).reduce((s: number, t: any) => s + t.amount, 0)))
 
         // Avg delivery
@@ -128,9 +117,9 @@ export default function ClientDashboard() {
         }
 
         // AI video stats
-        const { count: aiProd } = await supabase.from('briefs').select('id', { count: 'exact', head: true }).eq('client_id', cu.client_id).ilike('campaign_name', '%Full AI%').not('ai_video_url', 'is', null)
+        const { count: aiProd } = await supabase.from('briefs').select('id', { count: 'exact', head: true }).eq('client_id', clientId).ilike('campaign_name', '%Full AI%').not('ai_video_url', 'is', null)
         setAiProduced(aiProd || 0)
-        const { data: aiPurchData } = await supabase.from('video_submissions').select('id, briefs!inner(client_id)').eq('is_ai_generated', true).eq('briefs.client_id', cu.client_id)
+        const { data: aiPurchData } = await supabase.from('video_submissions').select('id, briefs!inner(client_id)').eq('is_ai_generated', true).eq('briefs.client_id', clientId)
         setAiPurchased(aiPurchData?.length || 0)
 
         // Activities (last 5 briefs activity)
@@ -140,14 +129,14 @@ export default function ClientDashboard() {
         }
         acts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         setActivities(acts.slice(0, 5))
-      }
+
       const { data: hvids } = await supabase.from('homepage_videos').select('id, title, video_url').eq('is_active', true).order('created_at', { ascending: false }).limit(10)
       const shuffled = (hvids || []).sort(() => Math.random() - 0.5).slice(0, 3)
       setHomeVideos(shuffled)
       setLoading(false)
     }
     load()
-  }, [router])
+  }, [clientId])
 
   // Poll AI processing briefs every 5s
   useEffect(() => {
@@ -242,8 +231,11 @@ export default function ClientDashboard() {
               <span style={{fontSize:'12px',color:item.active?'#fff':'rgba(255,255,255,0.4)',fontWeight:item.active?'500':'400',transition:'color 0.15s ease'}}>{item.label}</span>
             </div>
           ))}
-          <button onClick={handleLogout} style={{display:'flex',alignItems:'center',gap:'7px',padding:'6px 8px',marginTop:'16px',cursor:'pointer',width:'100%',background:'none',border:'none'}}>
-            <span style={{fontSize:'11px',color:'#aaa',fontFamily:'var(--font-dm-sans),sans-serif'}}>Çıkış yap</span>
+          <button onClick={handleLogout}
+            onMouseEnter={e=>{(e.currentTarget.firstChild as HTMLElement).style.color='#FF4444'}}
+            onMouseLeave={e=>{(e.currentTarget.firstChild as HTMLElement).style.color='#aaa'}}
+            style={{display:'flex',alignItems:'center',gap:'7px',padding:'6px 8px',marginTop:'16px',cursor:'pointer',width:'100%',background:'none',border:'none'}}>
+            <span style={{fontSize:'11px',color:'#aaa',fontFamily:'var(--font-dm-sans),sans-serif',transition:'color 0.15s'}}>Çıkış yap</span>
           </button>
           <img src="/powered_by_dcc.png" alt="Powered by DCC" style={{height:'20px',width:'auto',opacity:0.6,display:'block',margin:'8px 8px',cursor:'pointer'}} onClick={()=>window.open('https://dirtycheapcreative.com','_blank')} />
         </nav>

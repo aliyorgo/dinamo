@@ -1,23 +1,64 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
+type ClientCtx = {
+  userName: string
+  companyName: string
+  credits: number
+  clientUserId: string
+  clientId: string
+  refreshCredits: () => Promise<void>
+}
+
+const ClientContext = createContext<ClientCtx>({
+  userName: '', companyName: '', credits: 0, clientUserId: '', clientId: '',
+  refreshCredits: async () => {},
+})
+
+export function useClientContext() { return useContext(ClientContext) }
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const [ready, setReady] = useState(false)
+  const [userName, setUserName] = useState('')
+  const [companyName, setCompanyName] = useState('')
+  const [credits, setCredits] = useState(0)
+  const [clientUserId, setClientUserId] = useState('')
+  const [clientId, setClientId] = useState('')
+
+  async function refreshCredits() {
+    if (!clientUserId) return
+    const { data } = await supabase.from('client_users').select('allocated_credits').eq('id', clientUserId).single()
+    if (data) setCredits(data.allocated_credits)
+  }
 
   useEffect(() => {
     async function check() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
+      const { data: userData } = await supabase.from('users').select('name, role').eq('id', user.id).single()
+      if (!userData || userData.role !== 'client') { router.push('/login'); return }
+      setUserName(userData.name)
+      const { data: cu } = await supabase.from('client_users').select('id, allocated_credits, client_id, clients(company_name)').eq('user_id', user.id).single()
+      if (cu) {
+        setCredits(cu.allocated_credits)
+        setClientUserId(cu.id)
+        setClientId(cu.client_id)
+        setCompanyName((cu as any).clients?.company_name || '')
+      }
       setReady(true)
     }
     check()
   }, [router])
 
   if (!ready) return null
-  return <div className="dashboard-scale">{children}</div>
+  return (
+    <ClientContext.Provider value={{ userName, companyName, credits, clientUserId, clientId, refreshCredits }}>
+      <div className="dashboard-scale">{children}</div>
+    </ClientContext.Provider>
+  )
 }
