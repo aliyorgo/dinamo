@@ -311,8 +311,8 @@ function NewBriefPage() {
 
   function Sidebar() {
     return (
-      <div style={{width:'240px',background:'#0A0A0A',display:'flex',flexDirection:'column',flexShrink:0,height:'100dvh',overflow:'hidden'}}>
-        <div style={{padding:'18px 16px 14px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
+      <div style={{width:'240px',background:'#0A0A0A',display:'flex',flexDirection:'column',flexShrink:0,height:'100dvh',overflowY:'auto'}}>
+        <div style={{padding:'18px 16px 14px',borderBottom:'0.5px solid rgba(255,255,255,0.07)',cursor:'pointer'}} onClick={()=>router.push('/dashboard/client')}>
           <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} />
         </div>
         <div style={{margin:'12px 12px',padding:'16px 20px',background:'#111',borderLeft:'3px solid #1DB81D'}}>
@@ -332,7 +332,7 @@ function NewBriefPage() {
           )}
         </div>
 
-        <div style={{flex:1,overflowY:'auto',padding:'10px 8px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
+        <div style={{padding:'10px 8px'}}>
           <div style={{fontSize:'9px',letterSpacing:'1.5px',color:'#AAA',padding:'0 6px',marginBottom:'6px',textTransform:'uppercase'}}>Adımlar</div>
           {steps.map((s,i)=>{
             const n = i+1
@@ -358,9 +358,7 @@ function NewBriefPage() {
               </div>
             )
           })}
-        </div>
-        <div style={{padding:'10px 8px',borderTop:'0.5px solid rgba(255,255,255,0.07)'}}>
-          <div onClick={()=>router.push('/dashboard/client')} style={{display:'flex',alignItems:'center',gap:'7px',padding:'6px 8px',borderRadius:'7px',cursor:'pointer'}}>
+          <div onClick={()=>router.push('/dashboard/client')} style={{display:'flex',alignItems:'center',gap:'7px',padding:'6px 8px',marginTop:'16px',cursor:'pointer'}}>
             <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="rgba(255,255,255,0.25)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
             <span style={{fontSize:'11px',color:'#aaa',fontFamily:'var(--font-dm-sans),sans-serif'}}>Projelerime dön</span>
           </div>
@@ -892,37 +890,37 @@ function NewBriefPage() {
               </div>
             )
           })()}
-        </div>
 
-        {step >= 1 && (
-          <div style={{padding:'16px 40px',background:'#fff',borderTop:'0.5px solid rgba(0,0,0,0.08)',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
-            <button onClick={()=>step>1?setStep(step-1):router.push('/dashboard/client')}
-              style={{background:'none',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'8px',padding:'9px 20px',fontSize:'13px',fontFamily:'var(--font-dm-sans),sans-serif',color:'#555',cursor:'pointer'}}>
-              {step===1?'İptal':'Geri'}
-            </button>
-            {step<5?(
-              <button onClick={()=>setStep(step+1)}
-                disabled={
-                  (step===1&&(!form.campaign_name||!form.video_type||!form.format))||
-                  (step===2&&(!form.target_audience||!form.has_cta))||
-                  (step===3&&!form.message)
-                }
-                style={{background:'#111113',color:'#fff',border:'none',borderRadius:'8px',padding:'9px 24px',fontSize:'13px',fontFamily:'var(--font-dm-sans),sans-serif',cursor:'pointer',fontWeight:'500',opacity:(step===1&&(!form.campaign_name||!form.video_type||!form.format))||(step===2&&(!form.target_audience||!form.has_cta))||(step===3&&!form.message)?0.4:1}}>
-                Devam et               </button>
-            ):(
-              <div style={{display:'flex',gap:'8px'}}>
-                <button onClick={()=>handleSubmit(true)} disabled={submitting}
-                  style={{background:'none',border:'1px solid rgba(0,0,0,0.15)',borderRadius:'8px',padding:'9px 20px',fontSize:'13px',fontFamily:'var(--font-dm-sans),sans-serif',cursor:'pointer',fontWeight:'400',color:'#555'}}>
-                  {submitting?'...':'Taslağa Kaydet'}
-                </button>
-                <button onClick={()=>handleSubmit(false)} disabled={submitting||balance<cost}
-                  style={{background:'#22c55e',color:'#fff',border:'none',borderRadius:'8px',padding:'9px 24px',fontSize:'13px',fontFamily:'var(--font-dm-sans),sans-serif',cursor:'pointer',fontWeight:'500',opacity:balance<cost?0.4:1}}>
-                  {submitting?'Gönderiliyor...':'Brief Gönder'}
-                </button>
-              </div>
-            )}
-          </div>
-        )}
+          {step >= 1 && (
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'48px',paddingBottom:'24px'}}>
+              <button onClick={()=>step>1?setStep(step-1):router.push('/dashboard/client')}
+                style={{background:'none',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'8px',padding:'9px 20px',fontSize:'13px',fontFamily:'var(--font-dm-sans),sans-serif',color:'#555',cursor:'pointer'}}>
+                {step===1?'İptal':'Geri'}
+              </button>
+              {step<5?(
+                <button onClick={()=>setStep(step+1)}
+                  disabled={
+                    (step===1&&(!form.campaign_name||!form.video_type||!form.format))||
+                    (step===2&&(!form.target_audience||!form.has_cta))||
+                    (step===3&&!form.message)
+                  }
+                  style={{background:'#111113',color:'#fff',border:'none',borderRadius:'8px',padding:'9px 24px',fontSize:'13px',fontFamily:'var(--font-dm-sans),sans-serif',cursor:'pointer',fontWeight:'500',opacity:(step===1&&(!form.campaign_name||!form.video_type||!form.format))||(step===2&&(!form.target_audience||!form.has_cta))||(step===3&&!form.message)?0.4:1}}>
+                  Devam et               </button>
+              ):(
+                <div style={{display:'flex',gap:'8px'}}>
+                  <button onClick={()=>handleSubmit(true)} disabled={submitting}
+                    style={{background:'none',border:'1px solid rgba(0,0,0,0.15)',borderRadius:'8px',padding:'9px 20px',fontSize:'13px',fontFamily:'var(--font-dm-sans),sans-serif',cursor:'pointer',fontWeight:'400',color:'#555'}}>
+                    {submitting?'...':'Taslağa Kaydet'}
+                  </button>
+                  <button onClick={()=>handleSubmit(false)} disabled={submitting||balance<cost}
+                    style={{background:'#22c55e',color:'#fff',border:'none',borderRadius:'8px',padding:'9px 24px',fontSize:'13px',fontFamily:'var(--font-dm-sans),sans-serif',cursor:'pointer',fontWeight:'500',opacity:balance<cost?0.4:1}}>
+                    {submitting?'Gönderiliyor...':'Brief Gönder'}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

@@ -48,13 +48,9 @@ body {
   top: 0;
   left: 0;
   height: 100dvh;
+  overflow-y: auto;
   z-index: 50;
   font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
-}
-
-.dinamo-sidebar > nav {
-  flex: 1;
-  overflow-y: auto;
 }
 
 .dinamo-sidebar > img,
@@ -179,16 +175,14 @@ body {
   font-size: 13px;
   color: rgba(255,255,255,0.25);
   padding: 10px 24px;
+  margin-top: 16px;
   cursor: pointer;
   background: none;
   border: none;
-  border-top: 1px solid rgba(255,255,255,0.07);
   text-align: left;
   width: 100%;
   transition: color 0.15s ease;
   font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
-  margin-top: auto;
-  flex-shrink: 0;
 }
 
 .dinamo-sidebar-light .dinamo-signout {

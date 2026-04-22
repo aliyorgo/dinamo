@@ -50,14 +50,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div className="dashboard-scale" style={{ display: 'flex', minHeight: '100vh' }}>
       <div className="dinamo-sidebar">
-        <div style={{ padding: '24px 24px 16px' }}>
+        <div style={{ padding: '24px 24px 16px', cursor: 'pointer' }} onClick={() => router.push('/dashboard/admin')}>
           <img src="/dinamo_logo.png" alt="Dinamo" style={{ height: '28px', width: 'auto', objectFit: 'contain', display: 'block' }} />
         </div>
         <div className="dinamo-user-block">
           <div className="dinamo-user-company">{userName}</div>
           <div className="dinamo-user-name">Admin</div>
         </div>
-        <nav style={{ flex: 1 }}>
+        <nav>
           {NAV.map(link => (
             <Link key={link.href} href={link.href}
               className={`dinamo-nav-link${isActive(link.href) ? ' active' : ''}`}>

@@ -46,8 +46,8 @@ export default function CertificatesPage() {
     <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "var(--font-dm-sans),'DM Sans',system-ui,sans-serif", background: '#f5f4f0' }}>
 
       {/* SIDEBAR */}
-      <div style={{ width: '240px', background: '#0A0A0A', display: 'flex', flexDirection: 'column', flexShrink: 0, height: '100dvh', overflow: 'hidden' }}>
-        <div style={{ padding: '18px 16px 14px', borderBottom: '0.5px solid rgba(255,255,255,0.07)' }}>
+      <div style={{ width: '240px', background: '#0A0A0A', display: 'flex', flexDirection: 'column', flexShrink: 0, height: '100dvh', overflowY: 'auto' }}>
+        <div style={{ padding: '18px 16px 14px', borderBottom: '0.5px solid rgba(255,255,255,0.07)', cursor: 'pointer' }} onClick={() => router.push('/dashboard/client')}>
           <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} />
         </div>
         <div style={{margin:'12px 12px',padding:'16px 20px',background:'rgba(29,184,29,0.06)',borderLeft:'3px solid #1DB81D'}}>
@@ -56,7 +56,7 @@ export default function CertificatesPage() {
           <div style={{fontSize:'10px',color:'#AAA',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:'8px'}}>KREDİ BAKİYESİ</div>
           <div style={{fontSize:'28px',fontWeight:'700',color:'#1DB81D',letterSpacing:'-1px'}}>{credits}</div>
         </div>
-        <nav style={{ padding: '10px 8px', flex: 1, overflowY: 'auto' }}>
+        <nav style={{ padding: '10px 8px' }}>
           {[
             { label: 'Projelerim', href: '/dashboard/client', active: false },
             { label: 'Yeni Brief', href: '/dashboard/client/brief/new', active: false },
@@ -70,14 +70,11 @@ export default function CertificatesPage() {
               <span style={{ fontSize: '12px', color: item.active ? '#fff' : 'rgba(255,255,255,0.4)', fontWeight: item.active ? '500' : '400' }}>{item.label}</span>
             </div>
           ))}
-        </nav>
-        <div style={{ flex: 1 }}></div>
-        <div style={{ padding: '10px 8px', borderTop: '0.5px solid rgba(255,255,255,0.07)' }}>
-          <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '6px 8px', borderRadius: '7px', cursor: 'pointer', width: '100%', background: 'none', border: 'none' }}>
-            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-dm-sans),sans-serif' }}>Çıkış yap</span>
+          <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '6px 8px', marginTop: '16px', cursor: 'pointer', width: '100%', background: 'none', border: 'none' }}>
+            <span style={{ fontSize: '11px', color: '#aaa', fontFamily: 'var(--font-dm-sans),sans-serif' }}>Çıkış yap</span>
           </button>
-          <img src='/powered_by_dcc.png' alt='Powered by DCC' style={{height:'20px',width:'auto',opacity:0.6,display:'block',margin:'16px 24px',cursor:'pointer'}} onClick={()=>window.open('https://dirtycheapcreative.com','_blank')} />
-        </div>
+          <img src='/powered_by_dcc.png' alt='Powered by DCC' style={{height:'20px',width:'auto',opacity:0.6,display:'block',margin:'8px 8px',cursor:'pointer'}} onClick={()=>window.open('https://dirtycheapcreative.com','_blank')} />
+        </nav>
       </div>
 
       {/* MAIN */}
