@@ -46,7 +46,7 @@ export default function CertificatesPage() {
     <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "var(--font-dm-sans),'DM Sans',system-ui,sans-serif", background: '#f5f4f0' }}>
 
       {/* SIDEBAR */}
-      <div style={{ width: '240px', background: '#0A0A0A', display: 'flex', flexDirection: 'column', flexShrink: 0, height: '100vh', position: 'sticky', top: 0 }}>
+      <div style={{ width: '240px', background: '#0A0A0A', display: 'flex', flexDirection: 'column', flexShrink: 0, height: '100dvh', overflow: 'hidden' }}>
         <div style={{ padding: '18px 16px 14px', borderBottom: '0.5px solid rgba(255,255,255,0.07)' }}>
           <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} />
         </div>
@@ -56,7 +56,7 @@ export default function CertificatesPage() {
           <div style={{fontSize:'10px',color:'#AAA',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:'8px'}}>KREDİ BAKİYESİ</div>
           <div style={{fontSize:'28px',fontWeight:'700',color:'#1DB81D',letterSpacing:'-1px'}}>{credits}</div>
         </div>
-        <nav style={{ padding: '10px 8px', borderBottom: '0.5px solid rgba(255,255,255,0.07)' }}>
+        <nav style={{ padding: '10px 8px', flex: 1, overflowY: 'auto' }}>
           {[
             { label: 'Projelerim', href: '/dashboard/client', active: false },
             { label: 'Yeni Brief', href: '/dashboard/client/brief/new', active: false },

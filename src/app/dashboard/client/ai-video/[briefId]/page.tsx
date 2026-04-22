@@ -230,7 +230,7 @@ export default function AiVideoPage() {
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
 
       {/* SIDEBAR */}
-      <div style={{width:'240px',background:'#0A0A0A',display:'flex',flexDirection:'column',flexShrink:0,height:'100vh',position:'sticky',top:0}}>
+      <div style={{width:'240px',background:'#0A0A0A',display:'flex',flexDirection:'column',flexShrink:0,height:'100dvh',overflow:'hidden'}}>
         <div style={{padding:'18px 16px 14px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
           <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} />
         </div>
@@ -240,7 +240,7 @@ export default function AiVideoPage() {
           <div style={{fontSize:'10px',color:'#AAA',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:'8px'}}>KREDİ BAKİYESİ</div>
           <div style={{fontSize:'28px',fontWeight:'700',color:'#1DB81D',letterSpacing:'-1px'}}>{balance}</div>
         </div>
-        <nav style={{padding:'10px 8px',flex:1}}>
+        <nav style={{padding:'10px 8px',flex:1,overflowY:'auto'}}>
           <div onClick={()=>router.push('/dashboard/client')} style={{display:'flex',alignItems:'center',gap:'8px',padding:'7px 8px',borderRadius:'8px',cursor:'pointer',marginBottom:'1px'}}>
             <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
             <span style={{fontSize:'12px',color:'rgba(255,255,255,0.4)'}}>Projelerime dön</span>
