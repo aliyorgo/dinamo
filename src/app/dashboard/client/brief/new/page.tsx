@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef, Suspense } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { logClientActivity } from '@/lib/log-client'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
@@ -275,6 +276,16 @@ function NewBriefPage() {
     }
     if (error) { setSubmitting(false); alert('Hata: ' + error.message); return }
     if (newBrief?.id) setSavedBriefId(newBrief.id)
+
+    // Log
+    if (newBrief?.id) {
+      logClientActivity({
+        actionType: asDraft ? 'brief.edited' : 'brief.created',
+        userName, clientName: companyName, clientId: clientUser?.client_id,
+        targetType: 'brief', targetId: newBrief.id, targetLabel: form.campaign_name,
+        metadata: { brief_type: form.video_type },
+      })
+    }
 
     // Upload files if any
     const files = filesRef.current?.files
