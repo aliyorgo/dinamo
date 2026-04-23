@@ -900,7 +900,7 @@ function ClientBriefDetail() {
                               </a>
                               <button onClick={()=>setStaticImageModal({ briefId: id, videoUrl: currentVideo?.video_url || brief.ai_video_url })}
                                 style={{fontSize:'11px',color:'#555',background:'none',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'6px',padding:'6px 14px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
-                                Yeniden Oluştur
+                                Yeni Görsel Oluştur
                               </button>
                             </>
                           ) : (
@@ -1188,7 +1188,7 @@ function ClientBriefDetail() {
                                       </a>
                                       <button onClick={()=>setStaticImageModal({ briefId: child.id, videoUrl: child.ai_video_url })}
                                         style={{fontSize:'11px',color:'#555',background:'none',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'6px',padding:'5px 12px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
-                                        Yeniden Oluştur
+                                        Yeni Görsel Oluştur
                                       </button>
                                     </>
                                   ) : (
@@ -1615,6 +1615,7 @@ function ClientBriefDetail() {
           onClose={() => setStaticImageModal(null)}
           onGenerated={(url) => {
             setAiChildren(prev => prev.map(c => c.id === staticImageModal.briefId ? { ...c, static_images_url: url } : c))
+            if (staticImageModal.briefId === id) setBrief((prev: any) => ({ ...prev, static_images_url: url }))
           }}
         />
       )}
