@@ -972,12 +972,14 @@ function ClientBriefDetail() {
 
               {/* WAITING FOR PRODUCTION */}
               {!approvedVideo && ['in_production','submitted','read'].includes(brief.status) && (
-                <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'32px',marginBottom:'16px',textAlign:'center'}}>
-                  <div style={{width:'48px',height:'48px',borderRadius:'50%',background:'#f5f4f0',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px'}}>
-                    <svg width="20" height="20" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5" stroke="#888" strokeWidth="1.2"/><path d="M8 5v3l2 1" stroke="#888" strokeWidth="1.2" strokeLinecap="round"/></svg>
+                <div style={{maxWidth:aspect.maxW,margin:briefFormat==='16:9'?'0 0 16px':'0 auto 16px'}}>
+                  <div style={{aspectRatio:briefFormat.replace(':','/'),background:'#0a0a0a',borderRadius:'12px',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'12px'}}>
+                    <div style={{width:'48px',height:'48px',borderRadius:'50%',background:'rgba(255,255,255,0.06)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                      <svg width="20" height="20" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5" stroke="#555" strokeWidth="1.2"/><path d="M8 5v3l2 1" stroke="#555" strokeWidth="1.2" strokeLinecap="round"/></svg>
+                    </div>
+                    <div style={{fontSize:'14px',fontWeight:'500',color:'#fff'}}>Videonuz hazırlanıyor</div>
+                    <div style={{fontSize:'12px',color:'#666'}}>24 saat içinde incelemenize sunulacak.</div>
                   </div>
-                  <div style={{fontSize:'15px',fontWeight:'500',color:'#0a0a0a',marginBottom:'6px'}}>Videonuz hazırlanıyor</div>
-                  <div style={{fontSize:'13px',color:'#888'}}>24 saat içinde incelemenize sunulacak.</div>
                 </div>
               )}
 
@@ -1406,12 +1408,13 @@ function ClientBriefDetail() {
                       const childVideo = child.video_submissions?.[0]
                       return (
                         <div key={child.id} style={{display:'flex',gap:'14px',padding:'14px 0',borderTop:idx>0?'0.5px solid rgba(0,0,0,0.06)':'none',alignItems:'flex-start'}}>
-                          <div style={{width:'120px',aspectRatio:'9/16',borderRadius:'6px',overflow:'hidden',background:'#0a0a0a',flexShrink:0}}>
+                          <div style={{width:'120px',aspectRatio:(child.format||briefFormat).replace(':','/'),borderRadius:'6px',overflow:'hidden',background:'#0a0a0a',flexShrink:0}}>
                             {childVideo?.video_url ? (
                               <video src={childVideo.video_url} controls playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'contain',background:'black'}} />
                             ) : (
-                              <div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                                <span style={{fontSize:'10px',color:'#555'}}>{statusLabel[child.status]||child.status}</span>
+                              <div style={{width:'100%',height:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'6px'}}>
+                                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5" stroke="#555" strokeWidth="1.2"/><path d="M8 5v3l2 1" stroke="#555" strokeWidth="1.2" strokeLinecap="round"/></svg>
+                                <span style={{fontSize:'9px',color:'#555'}}>{statusLabel[child.status]||child.status}</span>
                               </div>
                             )}
                           </div>
