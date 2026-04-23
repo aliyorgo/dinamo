@@ -1101,7 +1101,7 @@ function ClientBriefDetail() {
                             <>
                               <video key={child.ai_video_url} src={child.ai_video_url} controls preload="metadata"
                                 style={{width:'100%',height:'100%',objectFit:'contain',backgroundColor:'black'}} />
-                              {!isPurchased && <img src="/dinamo_logo.png" alt="" style={{position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-50%)',width:'80px',opacity:0.35,pointerEvents:'none'}} />}
+                              {!isPurchased && <img src="/dinamo_logo.png" alt="" style={{position:'absolute',bottom:'30%',left:'50%',transform:'translateX(-50%)',width:'80px',opacity:0.35,pointerEvents:'none'}} />}
                             </>
                           ) : isProcessing ? (
                             (() => {
