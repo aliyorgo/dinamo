@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import { generateCertificatePDF } from '@/lib/generate-certificate'
 import StaticImageGeneratorModal from '@/components/StaticImageGeneratorModal'
+import VideoLoadingBox from '@/components/VideoLoadingBox'
 import { logClientActivity } from '@/lib/log-client'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
@@ -977,13 +978,7 @@ function ClientBriefDetail() {
               {/* WAITING FOR PRODUCTION */}
               {!approvedVideo && ['in_production','submitted','read'].includes(brief.status) && (
                 <div style={{maxWidth:aspect.maxW,margin:briefFormat==='16:9'?'0 0 16px':'0 auto 16px'}}>
-                  <div style={{aspectRatio:briefFormat.replace(':','/'),background:'#f5f4f0',border:'0.5px solid rgba(0,0,0,0.08)',borderRadius:'12px',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'12px'}}>
-                    <div style={{width:'48px',height:'48px',borderRadius:'50%',background:'rgba(0,0,0,0.04)',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                      <svg width="20" height="20" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5" stroke="#aaa" strokeWidth="1.2"/><path d="M8 5v3l2 1" stroke="#aaa" strokeWidth="1.2" strokeLinecap="round"/></svg>
-                    </div>
-                    <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a'}}>Videonuz hazırlanıyor</div>
-                    <div style={{fontSize:'12px',color:'#888'}}>24 saat içinde incelemenize sunulacak.</div>
-                  </div>
+                  <VideoLoadingBox aspect={briefFormat} size="large" />
                 </div>
               )}
 
@@ -1095,7 +1090,7 @@ function ClientBriefDetail() {
                     return (
                       <div key={child.id} style={{display:'flex',gap:'14px',padding:'12px 0',borderBottom:idx<aiChildren.length-1?'0.5px solid rgba(0,0,0,0.06)':'none',alignItems:'flex-start'}}>
                         {/* Video player */}
-                        <div style={{width:'200px',aspectRatio:'9/16',borderRadius:'8px',background:'#0a0a0a',flexShrink:0,position:'relative'}}>
+                        <div style={{width:'200px',aspectRatio:(child.format||'9:16').replace(':','/'),borderRadius:'8px',background:hasVideo?'#0a0a0a':'#f5f4f0',border:hasVideo?'none':'0.5px solid rgba(0,0,0,0.08)',flexShrink:0,position:'relative'}}>
                           {hasVideo ? (
                             <>
                               <video key={child.ai_video_url} src={child.ai_video_url} controls preload="metadata"
@@ -1113,14 +1108,14 @@ function ClientBriefDetail() {
                               const dur = activeStage?.duration || 0
                               const durLabel = dur >= 60 ? `~${Math.ceil(dur/60)} dakika` : `~${dur} saniye`
                               return (
-                                <div style={{width:'100%',height:'100%',display:'flex',flexDirection:'column',justifyContent:'center',padding:'16px',background:'#0a0a0a'}}>
+                                <div style={{width:'100%',height:'100%',display:'flex',flexDirection:'column',justifyContent:'center',padding:'16px'}}>
                                   {/* Active stage — hero */}
                                   <div style={{textAlign:'center',marginBottom:'16px'}}>
                                     <div style={{display:'inline-flex',alignItems:'center',gap:'8px',marginBottom:'6px'}}>
                                       <div style={{width:'14px',height:'14px',border:'2px solid #1DB81D',borderTop:'2px solid transparent',borderRadius:'50%',animation:'spin 1s linear infinite'}}></div>
-                                      <span style={{fontSize:'13px',fontWeight:'600',color:'#fff',animation:'fadeIn 0.4s ease'}}>{activeStage?.label || 'Hazırlanıyor'}</span>
+                                      <span style={{fontSize:'13px',fontWeight:'600',color:'#0a0a0a',animation:'fadeIn 0.4s ease'}}>{activeStage?.label || 'Hazırlanıyor'}</span>
                                     </div>
-                                    <div style={{fontSize:'9px',color:'#555'}}>{durLabel}</div>
+                                    <div style={{fontSize:'9px',color:'#aaa'}}>{durLabel}</div>
                                   </div>
                                   {/* Stage list */}
                                   {stg.map((s,si) => {
@@ -1131,9 +1126,9 @@ function ClientBriefDetail() {
                                         <div style={{width:'8px',height:'8px',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
                                           {done ? <span style={{color:'#1DB81D',fontSize:'7px'}}>&#10003;</span>
                                             : active ? <div style={{width:'5px',height:'5px',border:'1.5px solid #1DB81D',borderTop:'1.5px solid transparent',borderRadius:'50%',animation:'spin 1s linear infinite'}}></div>
-                                            : <div style={{width:'3px',height:'3px',background:'#333',borderRadius:'50%'}}></div>}
+                                            : <div style={{width:'3px',height:'3px',background:'#ccc',borderRadius:'50%'}}></div>}
                                         </div>
-                                        <span style={{fontSize:'8px',color:done?'#1DB81D':active?'#fff':'#444',fontWeight:active?'600':'400',transition:'all 0.3s'}}>{s.label}</span>
+                                        <span style={{fontSize:'8px',color:done?'#1DB81D':active?'#0a0a0a':'#aaa',fontWeight:active?'600':'400',transition:'all 0.3s'}}>{s.label}</span>
                                       </div>
                                     )
                                   })}
@@ -1412,14 +1407,13 @@ function ClientBriefDetail() {
                       const childVideo = child.video_submissions?.[0]
                       return (
                         <div key={child.id} style={{display:'flex',gap:'14px',padding:'14px 0',borderTop:idx>0?'0.5px solid rgba(0,0,0,0.06)':'none',alignItems:'flex-start'}}>
-                          <div style={{width:'120px',aspectRatio:(child.format||briefFormat).replace(':','/'),borderRadius:'6px',overflow:'hidden',background:childVideo?.video_url?'#0a0a0a':'#f5f4f0',border:childVideo?.video_url?'none':'0.5px solid rgba(0,0,0,0.08)',flexShrink:0}}>
+                          <div style={{width:'120px',flexShrink:0}}>
                             {childVideo?.video_url ? (
-                              <video src={childVideo.video_url} controls playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'contain',background:'black'}} />
-                            ) : (
-                              <div style={{width:'100%',height:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'6px'}}>
-                                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5" stroke="#aaa" strokeWidth="1.2"/><path d="M8 5v3l2 1" stroke="#aaa" strokeWidth="1.2" strokeLinecap="round"/></svg>
-                                <span style={{fontSize:'9px',color:'#888'}}>{statusLabel[child.status]||child.status}</span>
+                              <div style={{aspectRatio:(child.format||briefFormat).replace(':','/'),borderRadius:'6px',overflow:'hidden',background:'#0a0a0a'}}>
+                                <video src={childVideo.video_url} controls playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'contain',background:'black'}} />
                               </div>
+                            ) : (
+                              <VideoLoadingBox aspect={child.format||briefFormat} size="small" label={statusLabel[child.status]||child.status} sublabel="" />
                             )}
                           </div>
                           <div style={{flex:1,paddingTop:'4px'}}>
