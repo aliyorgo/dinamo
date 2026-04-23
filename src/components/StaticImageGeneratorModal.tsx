@@ -153,9 +153,11 @@ export default function StaticImageGeneratorModal({ briefId, videoUrl, existingU
 
         {(loading || generating) && !downloadUrl ? (
           <div style={{ textAlign: 'center', padding: '48px 0' }}>
-            <div style={{ width: '24px', height: '24px', border: '2px solid #1DB81D', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 16px' }}></div>
-            <div style={{ fontSize: '13px', color: '#888' }}>{generating ? 'Görseller üretiliyor...' : loadingMessage}</div>
-            <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+            <div style={{ fontSize: '13px', color: '#888', marginBottom: '16px' }}>{generating ? 'Görseller üretiliyor...' : loadingMessage}</div>
+            <div style={{ width: '100%', height: '4px', background: 'rgba(0,0,0,0.06)', borderRadius: '2px', overflow: 'hidden' }}>
+              <div style={{ height: '100%', background: '#1DB81D', borderRadius: '2px', animation: 'staticProgress 10s ease-out forwards' }}></div>
+            </div>
+            <style>{`@keyframes staticProgress { 0% { width: 0% } 100% { width: 90% } }`}</style>
           </div>
         ) : downloadUrl ? (
           <div style={{ textAlign: 'center', padding: '32px 0' }}>
