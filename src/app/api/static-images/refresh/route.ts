@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { execSync } from 'child_process'
+import fs from 'fs'
+import path from 'path'
+import os from 'os'
+import sharp from 'sharp'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
@@ -15,9 +20,45 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ frames: [...keepSet] })
     }
 
-    // Get pool from brief metadata
-    const { data: brief } = await supabase.from('briefs').select('static_frame_pool').eq('id', briefId).single()
-    const pool: string[] = brief?.static_frame_pool || []
+    // Get pool and video URL
+    const { data: brief } = await supabase.from('briefs').select('static_frame_pool, ai_video_url').eq('id', briefId).single()
+    let pool: string[] = brief?.static_frame_pool || []
+
+    // If pool exhausted, extract fresh frames from video
+    if (pool.length < replaceCount && brief?.ai_video_url) {
+      const tmpDir = path.join(os.tmpdir(), `static-refresh-${briefId}-${Date.now()}`)
+      fs.mkdirSync(tmpDir, { recursive: true })
+
+      const videoPath = path.join(tmpDir, 'video.mp4')
+      const videoRes = await fetch(brief.ai_video_url)
+      fs.writeFileSync(videoPath, Buffer.from(await videoRes.arrayBuffer()))
+
+      let duration = 10
+      try {
+        const probe = execSync(`ffprobe -v error -show_entries format=duration -of csv=p=0 "${videoPath}"`, { encoding: 'utf8' }).trim()
+        duration = parseFloat(probe) || 10
+      } catch {}
+
+      // Extract 8 fresh frames at random-ish positions
+      const newFrames: string[] = []
+      for (let i = 0; i < 8; i++) {
+        const ts = 0.3 + Math.random() * (duration - 0.6)
+        const outFile = path.join(tmpDir, `refresh_${i}.jpg`)
+        try {
+          execSync(`ffmpeg -y -ss ${ts.toFixed(2)} -i "${videoPath}" -vframes 1 -q:v 2 "${outFile}" 2>/dev/null`)
+          if (fs.existsSync(outFile)) {
+            const buf = fs.readFileSync(outFile)
+            const storagePath = `static-frames/${briefId}/refresh_${Date.now()}_${i}.jpg`
+            await supabase.storage.from('videos').upload(storagePath, buf, { contentType: 'image/jpeg', upsert: true })
+            const { data } = supabase.storage.from('videos').getPublicUrl(storagePath)
+            newFrames.push(data.publicUrl)
+          }
+        } catch {}
+      }
+
+      try { fs.rmSync(tmpDir, { recursive: true, force: true }) } catch {}
+      pool = [...pool, ...newFrames]
+    }
 
     // Take replacement frames from pool
     const replacements = pool.splice(0, replaceCount)
@@ -25,15 +66,12 @@ export async function POST(req: NextRequest) {
     // Update remaining pool
     await supabase.from('briefs').update({ static_frame_pool: pool }).eq('id', briefId)
 
-    // Build new frame list: kept frames + replacements
     const kept = Array.from(keepSet) as string[]
     const newFrames = [...kept, ...replacements]
 
-    // If pool exhausted and we still need more, return what we have
     return NextResponse.json({
       frames: newFrames.slice(0, 4),
       candidatePool: pool,
-      poolExhausted: pool.length === 0,
     })
   } catch (err: any) {
     console.error('Static images refresh error:', err)

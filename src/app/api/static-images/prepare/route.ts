@@ -35,14 +35,14 @@ export async function POST(req: NextRequest) {
       duration = parseFloat(probe) || 10
     } catch {}
 
-    // Extract 12 candidate frames at even intervals (skip first 0.5s)
+    // Extract 16 candidate frames at well-spread positions
+    const TOTAL_CANDIDATES = 16
     const startTime = 0.5
     const endTime = Math.max(duration - 0.3, startTime + 1)
-    const interval = (endTime - startTime) / 12
-
     const frameFiles: string[] = []
-    for (let i = 0; i < 12; i++) {
-      const ts = startTime + interval * i
+    for (let i = 0; i < TOTAL_CANDIDATES; i++) {
+      // Spread: pick at odd fractions (1/32, 3/32, 5/32...) for maximum diversity
+      const ts = startTime + ((2 * i + 1) / (2 * TOTAL_CANDIDATES)) * (endTime - startTime)
       const outFile = path.join(tmpDir, `frame_${String(i).padStart(2, '0')}.jpg`)
       try {
         execSync(`ffmpeg -y -ss ${ts.toFixed(2)} -i "${videoPath}" -vframes 1 -q:v 2 "${outFile}" 2>/dev/null`)
@@ -55,23 +55,46 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Frame çıkarılamadı' }, { status: 500 })
     }
 
-    // Score frames by sharpness (entropy from sharp stats)
-    const scored: { path: string; score: number; index: number }[] = []
+    // Score frames by sharpness + compute avg color for diversity filtering
+    const scored: { path: string; score: number; index: number; avgColor: number[] }[] = []
     for (let i = 0; i < frameFiles.length; i++) {
       try {
         const img = sharp(frameFiles[i])
         const stats = await img.stats()
-        // Use entropy as sharpness proxy — higher = more detail
         const entropy = stats.entropy
-        scored.push({ path: frameFiles[i], score: entropy, index: i })
+        const avgColor = stats.channels.slice(0, 3).map(c => Math.round(c.mean))
+        scored.push({ path: frameFiles[i], score: entropy, index: i, avgColor })
       } catch {
-        scored.push({ path: frameFiles[i], score: 0, index: i })
+        scored.push({ path: frameFiles[i], score: 0, index: i, avgColor: [0, 0, 0] })
       }
     }
 
+    // Select top 4 with diversity: pick best, then pick next best that differs enough
     scored.sort((a, b) => b.score - a.score)
-    const topFrames = scored.slice(0, 4)
-    const poolFrames = scored.slice(4)
+    const selected: typeof scored = []
+    const colorDiffThreshold = 30 // min RGB distance between selected frames
+
+    for (const candidate of scored) {
+      if (selected.length >= 4) break
+      const tooSimilar = selected.some(s => {
+        const diff = Math.sqrt(
+          Math.pow(s.avgColor[0] - candidate.avgColor[0], 2) +
+          Math.pow(s.avgColor[1] - candidate.avgColor[1], 2) +
+          Math.pow(s.avgColor[2] - candidate.avgColor[2], 2)
+        )
+        return diff < colorDiffThreshold
+      })
+      if (!tooSimilar || selected.length === 0) selected.push(candidate)
+    }
+    // Fill remaining if diversity filter was too strict
+    for (const candidate of scored) {
+      if (selected.length >= 4) break
+      if (!selected.includes(candidate)) selected.push(candidate)
+    }
+
+    const topFrames = selected.slice(0, 4)
+    const topIndexes = new Set(topFrames.map(f => f.index))
+    const poolFrames = scored.filter(f => !topIndexes.has(f.index))
 
     // Upload frames to Supabase storage and get URLs
     const uploadFrame = async (framePath: string, label: string): Promise<string> => {

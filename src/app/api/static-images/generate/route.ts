@@ -82,22 +82,28 @@ export async function POST(req: NextRequest) {
 
           const overlays: sharp.OverlayOptions[] = []
 
-          // Logo top-right with subtle shadow
+          // Logo top-right — ~22% of frame width
           if (logoBuffer) {
-            const logoBuf = await sharp(logoBuffer).resize(120, 60, { fit: 'inside' }).png().toBuffer()
-            overlays.push({ input: logoBuf, top: 40, left: fmt.w - 160, blend: 'over' })
+            const logoW = Math.round(fmt.w * 0.22)
+            const logoH = Math.round(logoW * 0.5)
+            const logoBuf = await sharp(logoBuffer).resize(logoW, logoH, { fit: 'inside' }).png().toBuffer()
+            const logoMeta = await sharp(logoBuf).metadata()
+            overlays.push({ input: logoBuf, top: 40, left: fmt.w - (logoMeta.width || logoW) - 40, blend: 'over' })
           }
 
-          // Copy text at bottom
+          // Copy text at bottom — auto-contrast, no background
           if (copyText) {
-            const fgColor = '#FFFFFF'
-            const fontSize = Math.round(fmt.w * 0.038)
+            // Sample bottom region to determine text color
+            const sampleRegion = await sharp(composed)
+              .extract({ left: 0, top: fmt.h - 120, width: fmt.w, height: 120 })
+              .stats()
+            const avgBrightness = sampleRegion.channels.slice(0, 3).reduce((s, c) => s + c.mean, 0) / 3
+            const fgColor = avgBrightness > 128 ? '#000000' : '#FFFFFF'
+            const fontSize = Math.round(fmt.w * 0.042)
             const svgText = `<svg width="${fmt.w}" height="${fontSize * 3}">
-              <rect x="0" y="0" width="${fmt.w}" height="${fontSize * 3}" fill="rgba(0,0,0,0.45)" rx="0"/>
               <text x="${fmt.w / 2}" y="${fontSize * 2}" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="${fontSize}" font-weight="700" fill="${fgColor}" letter-spacing="1">${escapeXml(copyText)}</text>
             </svg>`
-            const textBuf = Buffer.from(svgText)
-            overlays.push({ input: textBuf, top: fmt.h - fontSize * 3 - 40, left: 0, blend: 'over' })
+            overlays.push({ input: Buffer.from(svgText), top: fmt.h - fontSize * 3 - 40, left: 0, blend: 'over' })
           }
 
           if (overlays.length > 0) {
