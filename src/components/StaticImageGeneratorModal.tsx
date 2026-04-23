@@ -32,7 +32,7 @@ export default function StaticImageGeneratorModal({ briefId, videoUrl, existingU
       const res = await fetch('/api/static-images/prepare', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ briefId }),
+        body: JSON.stringify({ briefId, videoUrl }),
       })
       const data = await res.json()
       if (data.error) { setError(data.error); setLoading(false); return }

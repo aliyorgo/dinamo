@@ -779,7 +779,7 @@ function ClientBriefDetail() {
                       <div style={{paddingTop:aspect.padding,position:'relative'}}>
                         <video ref={videoRef} key={currentVideo.id} controls
                           onTimeUpdate={()=>{if(videoRef.current) setCurrentTime(videoRef.current.currentTime)}}
-                          style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',borderRadius:'12px'}}>
+                          style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'contain',borderRadius:'12px',background:'#000'}}>
                           <source src={currentVideo.video_url} />
                         </video>
                       </div>
