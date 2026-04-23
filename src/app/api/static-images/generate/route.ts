@@ -28,28 +28,68 @@ function escapeXml(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;')
 }
 
+function wordWrap(text: string, maxCharsPerLine: number): string[] {
+  const words = text.split(/\s+/)
+  const lines: string[] = []
+  let current = ''
+  for (const word of words) {
+    if (current && (current.length + 1 + word.length) > maxCharsPerLine) {
+      lines.push(current)
+      current = word
+    } else {
+      current = current ? current + ' ' + word : word
+    }
+  }
+  if (current) lines.push(current)
+  return lines
+}
+
+function buildTextSvg(text: string, containerW: number, fontSize: number, fgColor: string, maxWidthRatio: number): { svg: Buffer; height: number } {
+  const maxW = Math.round(containerW * maxWidthRatio)
+  const charsPerLine = Math.max(8, Math.floor(maxW / (fontSize * 0.55)))
+  const lines = wordWrap(text, charsPerLine)
+  const lineHeight = Math.round(fontSize * 1.3)
+  const totalH = lineHeight * lines.length + fontSize
+  const svgLines = lines.map((line, i) =>
+    `<text x="${containerW / 2}" y="${fontSize + lineHeight * i}" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="${fontSize}" font-weight="700" fill="${fgColor}" letter-spacing="0.5">${escapeXml(line)}</text>`
+  ).join('\n')
+  const svg = `<svg width="${containerW}" height="${totalH}">${svgLines}</svg>`
+  return { svg: Buffer.from(svg), height: totalH }
+}
+
+function slugify(name: string): string {
+  const turkishMap: Record<string, string> = { 'ğ': 'g', 'ü': 'u', 'ş': 's', 'ı': 'i', 'ö': 'o', 'ç': 'c', 'Ğ': 'G', 'Ü': 'U', 'Ş': 'S', 'İ': 'I', 'Ö': 'O', 'Ç': 'C' }
+  let s = name
+  for (const [k, v] of Object.entries(turkishMap)) s = s.replace(new RegExp(k, 'g'), v)
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '')
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { briefId, selectedFrames, copy } = await req.json()
     if (!briefId || !selectedFrames?.length) return NextResponse.json({ error: 'briefId ve frame seçimi gerekli' }, { status: 400 })
 
-    // Get brief + client brand info
     const { data: brief } = await supabase.from('briefs')
       .select('*, clients(brand_logo_url, brand_primary_color, brand_secondary_color, brand_font_url, brand_logo_position)')
       .eq('id', briefId).single()
     if (!brief) return NextResponse.json({ error: 'Brief bulunamadı' }, { status: 404 })
 
     const brand = brief.clients || {}
-    const primaryColor = brand.brand_primary_color || '#1DB81D'
     const secondaryColor = brand.brand_secondary_color || '#0A0A0A'
     const logoUrl = brand.brand_logo_url || null
     const logoPosition = brand.brand_logo_position || 'bottom'
     const copyText = (copy || '').trim()
+    const campaignSlug = slugify(brief.campaign_name || 'visuals')
+
+    // Version counter
+    const existingUrl = brief.static_images_url || ''
+    const vMatch = existingUrl.match(/_v(\d+)\.zip/)
+    const version = vMatch ? parseInt(vMatch[1]) + 1 : existingUrl ? 2 : 1
+    const versionSuffix = version > 1 ? `_v${version}` : ''
 
     const tmpDir = path.join(os.tmpdir(), `static-gen-${briefId}-${Date.now()}`)
     fs.mkdirSync(tmpDir, { recursive: true })
 
-    // Download logo if exists
     let logoBuffer: Buffer | null = null
     if (logoUrl) {
       try {
@@ -58,7 +98,6 @@ export async function POST(req: NextRequest) {
       } catch {}
     }
 
-    // Download all selected frames
     const frameBuffers: Buffer[] = []
     for (const url of selectedFrames) {
       const res = await fetch(url)
@@ -74,60 +113,56 @@ export async function POST(req: NextRequest) {
         const outPath = path.join(tmpDir, `frame${fi + 1}_${fmt.name}.jpg`)
 
         if (fmt.type === 'crop') {
-          // Smart crop to target aspect ratio, then overlay logo + copy
           let composed = await sharp(frameBuf)
-            .resize(fmt.w, fmt.h, { fit: 'cover', position: 'attention' })
-            .jpeg({ quality: 92 })
+            .resize(fmt.w, fmt.h, { fit: 'cover', position: 'attention', kernel: 'lanczos3' })
+            .sharpen({ sigma: 0.5 })
+            .jpeg({ quality: 93 })
             .toBuffer()
 
           const overlays: sharp.OverlayOptions[] = []
 
-          // Logo top-right — ~22% of frame width
+          // Logo top-right — ~32% of frame width
           if (logoBuffer) {
-            const logoW = Math.round(fmt.w * 0.22)
+            const logoW = Math.round(fmt.w * 0.32)
             const logoH = Math.round(logoW * 0.5)
             const logoBuf = await sharp(logoBuffer).resize(logoW, logoH, { fit: 'inside' }).png().toBuffer()
             const logoMeta = await sharp(logoBuf).metadata()
             overlays.push({ input: logoBuf, top: 40, left: fmt.w - (logoMeta.width || logoW) - 40, blend: 'over' })
           }
 
-          // Copy text at bottom — auto-contrast, no background
+          // Copy text — multi-line, auto-contrast, no background
           if (copyText) {
-            // Sample bottom region to determine text color
             const sampleRegion = await sharp(composed)
-              .extract({ left: 0, top: fmt.h - 120, width: fmt.w, height: 120 })
+              .extract({ left: 0, top: fmt.h - 160, width: fmt.w, height: 160 })
               .stats()
             const avgBrightness = sampleRegion.channels.slice(0, 3).reduce((s, c) => s + c.mean, 0) / 3
             const fgColor = avgBrightness > 128 ? '#000000' : '#FFFFFF'
-            const fontSize = Math.round(fmt.w * 0.042)
-            const svgText = `<svg width="${fmt.w}" height="${fontSize * 3}">
-              <text x="${fmt.w / 2}" y="${fontSize * 2}" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="${fontSize}" font-weight="700" fill="${fgColor}" letter-spacing="1">${escapeXml(copyText)}</text>
-            </svg>`
-            overlays.push({ input: Buffer.from(svgText), top: fmt.h - fontSize * 3 - 40, left: 0, blend: 'over' })
+            const fontSize = Math.round(fmt.w * 0.058)
+            const { svg, height: textH } = buildTextSvg(copyText, fmt.w, fontSize, fgColor, 0.80)
+            overlays.push({ input: svg, top: fmt.h - textH - 60, left: 0, blend: 'over' })
           }
 
           if (overlays.length > 0) {
-            composed = await sharp(composed).composite(overlays).jpeg({ quality: 92 }).toBuffer()
+            composed = await sharp(composed).composite(overlays).jpeg({ quality: 93 }).toBuffer()
           }
-
           fs.writeFileSync(outPath, composed)
+
         } else {
-          // Panel layout: left 40% frame, right 60% brand bg + logo + copy
+          // Panel layout
           const frameW = Math.round(fmt.w * 0.4)
           const panelW = fmt.w - frameW
 
-          // Crop frame for left side (4:5 aspect crop)
           const frameCropped = await sharp(frameBuf)
-            .resize(frameW, fmt.h, { fit: 'cover', position: 'attention' })
-            .jpeg({ quality: 92 })
+            .resize(frameW, fmt.h, { fit: 'cover', position: 'attention', kernel: 'lanczos3' })
+            .sharpen({ sigma: 0.5 })
+            .jpeg({ quality: 93 })
             .toBuffer()
 
-          // Create brand panel (right side)
           const panelOverlays: sharp.OverlayOptions[] = []
 
-          // Logo on panel
+          // Logo on panel — 50% bigger than before
           if (logoBuffer) {
-            const logoH = Math.round(fmt.h * 0.08)
+            const logoH = Math.round(fmt.h * 0.12)
             const logoBuf = await sharp(logoBuffer).resize({ height: logoH, fit: 'inside' }).png().toBuffer()
             const logoMeta = await sharp(logoBuf).metadata()
             const logoX = Math.round((panelW - (logoMeta.width || 100)) / 2)
@@ -138,30 +173,27 @@ export async function POST(req: NextRequest) {
             panelOverlays.push({ input: logoBuf, top: logoY, left: logoX, blend: 'over' })
           }
 
-          // Copy text on panel
+          // Copy text on panel — multi-line
           if (copyText) {
             const fgColor = textColor(secondaryColor)
-            const fontSize = Math.round(panelW * 0.065)
-            const textY = Math.round(fmt.h * 0.45)
-            const svgText = `<svg width="${panelW}" height="${fontSize * 4}">
-              <text x="${panelW / 2}" y="${fontSize * 1.5}" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="${fontSize}" font-weight="700" fill="${fgColor}" letter-spacing="1">${escapeXml(copyText)}</text>
-            </svg>`
-            panelOverlays.push({ input: Buffer.from(svgText), top: textY, left: 0, blend: 'over' })
+            const fontSize = Math.round(panelW * 0.08)
+            const textY = Math.round(fmt.h * 0.40)
+            const { svg, height: textH } = buildTextSvg(copyText, panelW, fontSize, fgColor, 0.85)
+            panelOverlays.push({ input: svg, top: textY, left: 0, blend: 'over' })
           }
 
           let panel = sharp({ create: { width: panelW, height: fmt.h, channels: 3, background: secondaryColor } }).jpeg()
           if (panelOverlays.length > 0) {
-            panel = sharp(await panel.toBuffer()).composite(panelOverlays).jpeg({ quality: 92 }) as any
+            panel = sharp(await panel.toBuffer()).composite(panelOverlays).jpeg({ quality: 93 }) as any
           }
           const panelBuf = await (panel as any).toBuffer()
 
-          // Compose final: frame left + panel right
           const final = await sharp({ create: { width: fmt.w, height: fmt.h, channels: 3, background: '#000000' } })
             .composite([
               { input: frameCropped, top: 0, left: 0, blend: 'over' },
               { input: panelBuf, top: 0, left: frameW, blend: 'over' },
             ])
-            .jpeg({ quality: 92 })
+            .jpeg({ quality: 93 })
             .toBuffer()
 
           fs.writeFileSync(outPath, final)
@@ -171,8 +203,9 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // ZIP all output files
-    const zipPath = path.join(tmpDir, 'static_images.zip')
+    // ZIP with campaign name
+    const zipFileName = `${campaignSlug}_visuals${versionSuffix}.zip`
+    const zipPath = path.join(tmpDir, zipFileName)
     await new Promise<void>((resolve, reject) => {
       const output = fs.createWriteStream(zipPath)
       const archive = archiver('zip', { zlib: { level: 6 } })
@@ -185,21 +218,18 @@ export async function POST(req: NextRequest) {
       archive.finalize()
     })
 
-    // Upload ZIP to Supabase storage
     const zipData = fs.readFileSync(zipPath)
-    const storagePath = `static-images/${briefId}/${Date.now()}_static_images.zip`
+    const storagePath = `static-images/${briefId}/${zipFileName}`
     const { error: upErr } = await supabase.storage.from('videos').upload(storagePath, zipData, { contentType: 'application/zip', upsert: true })
     if (upErr) throw new Error('ZIP upload hatası: ' + upErr.message)
     const { data: urlData } = supabase.storage.from('videos').getPublicUrl(storagePath)
     const zipUrl = urlData.publicUrl
 
-    // Update brief
     await supabase.from('briefs').update({
       static_images_url: zipUrl,
       static_images_generated_at: new Date().toISOString(),
     }).eq('id', briefId)
 
-    // Cleanup
     try { fs.rmSync(tmpDir, { recursive: true, force: true }) } catch {}
 
     return NextResponse.json({ url: zipUrl })

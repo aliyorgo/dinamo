@@ -129,12 +129,12 @@ export default function StaticImageGeneratorModal({ briefId, videoUrl, existingU
             <div style={{ marginBottom: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                 <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Reklam Metni</div>
-                <div style={{ fontSize: '10px', color: copy.length > 25 ? '#f59e0b' : '#aaa' }}>{copy.length}/30</div>
+                <div style={{ fontSize: '10px', color: copy.length > 35 ? '#f59e0b' : '#aaa' }}>{copy.length}/40</div>
               </div>
               <input
                 value={copy}
-                onChange={e => { if (e.target.value.length <= 30) setCopy(e.target.value) }}
-                maxLength={30}
+                onChange={e => { if (e.target.value.length <= 40) setCopy(e.target.value) }}
+                maxLength={40}
                 placeholder="Metin ekleyin ya da metin olmadan üretin"
                 style={{ width: '100%', padding: '10px 14px', border: '0.5px solid rgba(0,0,0,0.12)', borderRadius: '8px', fontSize: '14px', color: '#0a0a0a', fontFamily: 'var(--font-dm-sans),sans-serif', boxSizing: 'border-box' }}
               />

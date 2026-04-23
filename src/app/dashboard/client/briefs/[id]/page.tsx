@@ -1162,10 +1162,16 @@ function ClientBriefDetail() {
                                     Telif Belgesi
                                   </button>
                                   {child.static_images_url ? (
-                                    <a href={child.static_images_url} target="_blank" rel="noopener noreferrer"
-                                      style={{fontSize:'11px',color:'#1DB81D',textDecoration:'none',border:'0.5px solid rgba(29,184,29,0.3)',borderRadius:'6px',padding:'5px 12px',display:'inline-flex',alignItems:'center',gap:'4px',fontFamily:'var(--font-dm-sans),sans-serif'}}>
-                                      Görsel İndir
-                                    </a>
+                                    <>
+                                      <a href={child.static_images_url} target="_blank" rel="noopener noreferrer"
+                                        style={{fontSize:'11px',color:'#1DB81D',textDecoration:'none',border:'0.5px solid rgba(29,184,29,0.3)',borderRadius:'6px',padding:'5px 12px',display:'inline-flex',alignItems:'center',gap:'4px',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                                        Görsel İndir
+                                      </a>
+                                      <button onClick={()=>setStaticImageModal({ briefId: child.id, videoUrl: child.ai_video_url })}
+                                        style={{fontSize:'11px',color:'#555',background:'none',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'6px',padding:'5px 12px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                                        Yeniden Oluştur
+                                      </button>
+                                    </>
                                   ) : (
                                     <button onClick={()=>setStaticImageModal({ briefId: child.id, videoUrl: child.ai_video_url })}
                                       style={{fontSize:'11px',color:'#0a0a0a',background:'none',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'6px',padding:'5px 12px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>

@@ -124,12 +124,19 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify({
           model: 'claude-haiku-4-5-20251001',
           max_tokens: 60,
-          system: 'Türkçe reklam görseli için 2-5 kelimelik çarpıcı ad copy üret. Sadece copy döndür, açıklama yapma, tırnak kullanma. 30 karakter üstü yasak.',
+          system: `Türkçe reklam görseli için kısa, çarpıcı ad copy üret.
+KURALLAR:
+- EN FAZLA 40 karakter. 40 karakteri ASLA aşma.
+- Kelime ortasında kesme, tamamlanmış cümle veya ifade olsun.
+- Brief'teki ürün veya kampanya özelliklerini kullan, generic olma.
+- Sentence case kullan.
+- Tırnak işareti KULLANMA (tek veya çift).
+- Açıklama YAPMA, sadece copy metnini döndür, başka hiçbir şey yazma.`,
           messages: [{ role: 'user', content: briefContext || 'Marka reklam görseli copy yaz' }],
         }),
       })
       const data = await res.json()
-      copy = (data.content?.[0]?.text || '').trim().substring(0, 30)
+      copy = (data.content?.[0]?.text || '').trim().substring(0, 40)
     } catch {}
 
     // Store pool in Supabase for refresh endpoint (temp storage via brief metadata)
