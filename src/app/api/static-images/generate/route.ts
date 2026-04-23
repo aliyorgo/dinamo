@@ -140,7 +140,7 @@ export async function POST(req: NextRequest) {
             const fgColor = avgBrightness > 128 ? '#000000' : '#FFFFFF'
             const fontSize = Math.round(fmt.w * 0.066)
             const { svg, height: textH } = buildTextSvg(copyText, fmt.w, fontSize, fgColor, 0.80)
-            overlays.push({ input: svg, top: Math.round(fmt.h * 0.38), left: 0, blend: 'over' })
+            overlays.push({ input: svg, top: Math.round(fmt.h * 0.65), left: 0, blend: 'over' })
           }
 
           if (overlays.length > 0) {
