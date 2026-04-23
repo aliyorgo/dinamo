@@ -14,6 +14,7 @@ const NAV = [
   { href: '/dashboard/admin/users', label: 'Kullanıcılar' },
   { href: '/dashboard/admin/creators', label: "Creator'lar" },
   { href: '/dashboard/admin/reports', label: 'Raporlar' },
+  { href: '/dashboard/admin/activity', label: 'Loglar' },
   { href: '/dashboard/admin/settings', label: 'Ayarlar' },
 ]
 

@@ -26,6 +26,7 @@ export default function AdminDashboard() {
   const [unansweredCount, setUnansweredCount] = useState(0)
   const [approvalCount, setApprovalCount] = useState(0)
   const [overdueBriefs, setOverdueBriefs] = useState<any[]>([])
+  const [activityLogs, setActivityLogs] = useState<any[]>([])
 
   useEffect(() => {
     async function load() {
@@ -59,6 +60,9 @@ export default function AdminDashboard() {
       const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString()
       const overdue = allBriefs.filter(br => ['submitted','read','in_production'].includes(br.status) && br.created_at < fortyEightHoursAgo)
       setOverdueBriefs(overdue)
+      // Activity logs
+      const { data: logs } = await supabase.from('activity_logs').select('*').order('created_at', { ascending: false }).limit(10)
+      setActivityLogs(logs || [])
       setLoading(false)
     }
     load()
@@ -156,6 +160,42 @@ export default function AdminDashboard() {
                 ))}
               </div>
             </>
+          )}
+
+          {/* ACTIVITY LOGS */}
+          {activityLogs.length > 0 && (
+            <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'16px 20px',marginTop:'16px'}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}}>
+                <div style={{fontSize:'12px',fontWeight:'600',color:'#0a0a0a'}}>Son Aktiviteler</div>
+                <a href="/dashboard/admin/activity" style={{fontSize:'11px',color:'#3b82f6',textDecoration:'none'}}>Tümünü gör</a>
+              </div>
+              {activityLogs.map((log: any, i: number) => {
+                const actionLabels: Record<string,string> = {
+                  'auth.login':'giriş yaptı','auth.logout':'çıkış yaptı','brief.created':'brief oluşturdu',
+                  'brief.submitted':'brief gönderdi','video.approved':'videoyu onayladı','video.purchased':'video satın aldı',
+                  'video.revision_requested':'revizyon istedi','static_images.generated':'görsel üretti',
+                  'static_images.downloaded':'görsel indirdi','cps.package_selected':'CPS paketi seçti',
+                  'public_link.created':'link oluşturdu','admin.client_created':'müşteri ekledi',
+                }
+                const diff = Date.now() - new Date(log.created_at).getTime()
+                const mins = Math.floor(diff / 60000)
+                const timeStr = mins < 1 ? 'az önce' : mins < 60 ? `${mins} dk` : mins < 1440 ? `${Math.floor(mins/60)} sa` : `${Math.floor(mins/1440)} gün`
+                const colors: Record<string,string> = {auth:'#3b82f6',brief:'#f59e0b',video:'#22c55e',static_images:'#8b5cf6',cps:'#ec4899',admin:'#ef4444'}
+                const dotColor = colors[log.action_type?.split('.')[0]] || '#888'
+                return (
+                  <div key={log.id} style={{display:'flex',gap:'8px',padding:'6px 0',borderBottom:i<activityLogs.length-1?'0.5px solid rgba(0,0,0,0.04)':'none',alignItems:'flex-start'}}>
+                    <div style={{width:'6px',height:'6px',borderRadius:'50%',background:dotColor,flexShrink:0,marginTop:'6px'}} />
+                    <div style={{flex:1,fontSize:'12px',color:'#0a0a0a',lineHeight:1.5}}>
+                      <span style={{fontWeight:'500'}}>{log.user_name||log.user_email||'—'}</span>
+                      {log.client_name && <span style={{color:'#888'}}> ({log.client_name})</span>}
+                      {' '}{actionLabels[log.action_type]||log.action_type}
+                      {log.target_label && <span style={{color:'#555'}}> — {log.target_label}</span>}
+                    </div>
+                    <div style={{fontSize:'10px',color:'#aaa',flexShrink:0}}>{timeStr}</div>
+                  </div>
+                )
+              })}
+            </div>
           )}
         </div>
     </div>

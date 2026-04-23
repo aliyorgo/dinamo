@@ -22,11 +22,17 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     setError('')
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { data: authData, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
       setError('E-posta veya şifre hatalı.')
       setLoading(false)
       return
+    }
+    // Log login activity
+    if (authData?.session?.access_token) {
+      fetch('/api/activity-log', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authData.session.access_token}` },
+        body: JSON.stringify({ actionType: 'auth.login', userName: email })
+      }).catch(() => {})
     }
     router.push('/dashboard')
   }

@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import { logActivity } from '@/lib/activity-logger'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -30,6 +31,15 @@ export async function POST(request: Request) {
     })
 
     await supabase.from('briefs').update({ status: 'delivered' }).eq('id', briefId)
+
+    // Log
+    const { data: userData } = await supabase.from('users').select('name, email').eq('id', userId).single()
+    const { data: briefData } = await supabase.from('briefs').select('campaign_name, client_id, clients(company_name)').eq('id', briefId).single()
+    logActivity({
+      actionType: 'video.purchased', userId, userEmail: userData?.email, userName: userData?.name,
+      clientId: briefData?.client_id, clientName: (briefData?.clients as any)?.company_name,
+      targetType: 'brief', targetId: briefId, targetLabel: briefData?.campaign_name,
+    })
 
     return NextResponse.json({ success: true })
   } catch (err: any) {
