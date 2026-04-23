@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 interface Props {
   briefId: string
@@ -11,22 +11,59 @@ interface Props {
 
 export default function StaticImageGeneratorModal({ briefId, videoUrl, existingUrl, onClose, onGenerated }: Props) {
   const [loading, setLoading] = useState(true)
+  const [loadingMessage, setLoadingMessage] = useState('Kareler hazırlanıyor...')
   const [frames, setFrames] = useState<string[]>([])
-  const [candidatePool, setCandidatePool] = useState<string[]>([])
   const [copy, setCopy] = useState('')
   const [selectedFrames, setSelectedFrames] = useState<Set<number>>(new Set())
   const [generating, setGenerating] = useState(false)
   const [downloadUrl, setDownloadUrl] = useState(existingUrl || '')
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState('')
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (existingUrl) { setLoading(false); return }
-    prepare()
+    triggerPrepare()
+    return () => { stopPolling() }
   }, [])
 
-  async function prepare() {
+  function stopPolling() {
+    if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null }
+    if (timeoutRef.current) { clearTimeout(timeoutRef.current); timeoutRef.current = null }
+  }
+
+  async function pollStatus(onComplete: (result: any) => void) {
+    stopPolling()
+    timeoutRef.current = setTimeout(() => {
+      stopPolling()
+      setError('İşlem zaman aşımına uğradı. Tekrar deneyin.')
+      setLoading(false)
+      setGenerating(false)
+      setRefreshing(false)
+    }, 120000)
+
+    pollRef.current = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/static-images/status?briefId=${briefId}`)
+        const data = await res.json()
+        if (data.status === 'completed' && data.result) {
+          stopPolling()
+          onComplete(data.result)
+        } else if (data.status === 'failed') {
+          stopPolling()
+          setError(data.error || 'İşlem başarısız')
+          setLoading(false)
+          setGenerating(false)
+          setRefreshing(false)
+        }
+      } catch {}
+    }, 3000)
+  }
+
+  async function triggerPrepare() {
     setLoading(true)
+    setLoadingMessage('Kareler hazırlanıyor...')
     setError('')
     try {
       const res = await fetch('/api/static-images/prepare', {
@@ -36,36 +73,40 @@ export default function StaticImageGeneratorModal({ briefId, videoUrl, existingU
       })
       const data = await res.json()
       if (data.error) { setError(data.error); setLoading(false); return }
-      setFrames(data.frames || [])
-      setCandidatePool(data.candidatePool || [])
-      setCopy(data.copy || '')
-      setSelectedFrames(new Set())
+      if (data.copy) setCopy(data.copy)
+
+      // Poll for Railway completion
+      pollStatus((result) => {
+        setFrames(result.frames || [])
+        setCopy(prev => prev || result.copy || '')
+        setSelectedFrames(new Set())
+        setLoading(false)
+      })
     } catch (err: any) {
       setError(err.message)
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   async function handleRefresh() {
     setRefreshing(true)
     const keepUrls = frames.filter((_, i) => selectedFrames.has(i))
     try {
-      const res = await fetch('/api/static-images/refresh', {
+      await fetch('/api/static-images/refresh', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ briefId, keepFrameUrls: keepUrls, videoUrl }),
       })
-      const data = await res.json()
-      if (data.frames) {
-        setFrames(data.frames)
-        setCandidatePool(data.candidatePool || [])
-        // Keep selection for kept frames (indices 0..keepUrls.length-1), new ones unselected
+      pollStatus((result) => {
+        setFrames(result.frames || [])
         const newSelected = new Set<number>()
         keepUrls.forEach((_, i) => newSelected.add(i))
         setSelectedFrames(newSelected)
-      }
-    } catch {}
-    setRefreshing(false)
+        setRefreshing(false)
+      })
+    } catch {
+      setRefreshing(false)
+    }
   }
 
   async function handleGenerate() {
@@ -74,19 +115,20 @@ export default function StaticImageGeneratorModal({ briefId, videoUrl, existingU
     setError('')
     try {
       const selectedUrls = frames.filter((_, i) => selectedFrames.has(i))
-      const res = await fetch('/api/static-images/generate', {
+      await fetch('/api/static-images/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ briefId, selectedFrames: selectedUrls, copy }),
       })
-      const data = await res.json()
-      if (data.error) { setError(data.error); setGenerating(false); return }
-      setDownloadUrl(data.url)
-      onGenerated?.(data.url)
+      pollStatus((result) => {
+        setDownloadUrl(result.url)
+        onGenerated?.(result.url)
+        setGenerating(false)
+      })
     } catch (err: any) {
       setError(err.message)
+      setGenerating(false)
     }
-    setGenerating(false)
   }
 
   function toggleFrame(idx: number) {
@@ -101,16 +143,15 @@ export default function StaticImageGeneratorModal({ briefId, videoUrl, existingU
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '16px', padding: '28px 32px', maxWidth: '560px', width: '90%', maxHeight: '85vh', overflowY: 'auto', fontFamily: "var(--font-dm-sans),'DM Sans',sans-serif" }}>
-        {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <div style={{ fontSize: '18px', fontWeight: '600', color: '#0a0a0a' }}>Statik Görsel Oluştur</div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '22px', color: '#888', cursor: 'pointer', lineHeight: 1 }}>&times;</button>
         </div>
 
-        {loading ? (
+        {(loading || generating) && !downloadUrl ? (
           <div style={{ textAlign: 'center', padding: '48px 0' }}>
             <div style={{ width: '24px', height: '24px', border: '2px solid #1DB81D', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 16px' }}></div>
-            <div style={{ fontSize: '13px', color: '#888' }}>Frame'ler çıkarılıyor ve copy üretiliyor...</div>
+            <div style={{ fontSize: '13px', color: '#888' }}>{generating ? 'Görseller üretiliyor...' : loadingMessage}</div>
             <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
           </div>
         ) : downloadUrl ? (
@@ -128,22 +169,16 @@ export default function StaticImageGeneratorModal({ briefId, videoUrl, existingU
           <>
             {error && <div style={{ background: '#fef2f2', border: '0.5px solid #fca5a5', borderRadius: '8px', padding: '10px 14px', fontSize: '12px', color: '#dc2626', marginBottom: '16px' }}>{error}</div>}
 
-            {/* Copy input */}
             <div style={{ marginBottom: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                 <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Reklam Metni</div>
                 <div style={{ fontSize: '10px', color: copy.length > 35 ? '#f59e0b' : '#aaa' }}>{copy.length}/40</div>
               </div>
-              <input
-                value={copy}
-                onChange={e => { if (e.target.value.length <= 40) setCopy(e.target.value) }}
-                maxLength={40}
+              <input value={copy} onChange={e => { if (e.target.value.length <= 40) setCopy(e.target.value) }} maxLength={40}
                 placeholder="Metin ekleyin ya da metin olmadan üretin"
-                style={{ width: '100%', padding: '10px 14px', border: '0.5px solid rgba(0,0,0,0.12)', borderRadius: '8px', fontSize: '14px', color: '#0a0a0a', fontFamily: 'var(--font-dm-sans),sans-serif', boxSizing: 'border-box' }}
-              />
+                style={{ width: '100%', padding: '10px 14px', border: '0.5px solid rgba(0,0,0,0.12)', borderRadius: '8px', fontSize: '14px', color: '#0a0a0a', fontFamily: 'var(--font-dm-sans),sans-serif', boxSizing: 'border-box' }} />
             </div>
 
-            {/* Frame grid */}
             <div style={{ marginBottom: '16px' }}>
               <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Frame Seçimi</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
@@ -158,15 +193,14 @@ export default function StaticImageGeneratorModal({ briefId, videoUrl, existingU
               </div>
             </div>
 
-            {/* Actions */}
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'space-between', alignItems: 'center' }}>
               <button onClick={handleRefresh} disabled={refreshing || generating}
-                style={{ padding: '9px 18px', background: 'none', border: '0.5px solid rgba(0,0,0,0.15)', borderRadius: '8px', fontSize: '12px', color: '#555', cursor: refreshing || generating ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+                style={{ padding: '9px 18px', background: 'none', border: '0.5px solid rgba(0,0,0,0.15)', borderRadius: '8px', fontSize: '12px', color: '#555', cursor: refreshing ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
                 {refreshing ? 'Yenileniyor...' : 'Yenile'}
               </button>
               <button onClick={handleGenerate} disabled={generating || selectedFrames.size === 0}
                 style={{ padding: '9px 24px', background: selectedFrames.size === 0 ? '#ccc' : '#22c55e', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '600', cursor: generating || selectedFrames.size === 0 ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', opacity: selectedFrames.size === 0 ? 0.5 : 1 }}>
-                {generating ? 'Üretiliyor...' : selectedFrames.size === 0 ? 'Frame seçin' : `Üret (${selectedFrames.size} frame × 5 format)`}
+                {selectedFrames.size === 0 ? 'Frame seçin' : `Üret (${selectedFrames.size} frame × 5 format)`}
               </button>
             </div>
           </>
