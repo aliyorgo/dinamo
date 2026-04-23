@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
   if (!briefId) return NextResponse.json({ error: 'briefId gerekli' }, { status: 400 })
 
   const { data, error: dbErr } = await supabase.from('briefs')
-    .select('static_images_job_status, static_images_job_payload, static_images_error, static_images_url')
+    .select('static_images_job_status, static_images_job_payload, static_images_job_claimed_at, static_images_error, static_images_url')
     .eq('id', briefId).single()
 
   if (dbErr) {
@@ -19,8 +19,16 @@ export async function GET(req: NextRequest) {
   }
   if (!data) return NextResponse.json({ error: 'Brief bulunamadı' }, { status: 404 })
 
+  // Timeout: processing for more than 2 minutes
+  if (data.static_images_job_status === 'processing' && data.static_images_job_claimed_at) {
+    const elapsed = Date.now() - new Date(data.static_images_job_claimed_at).getTime()
+    if (elapsed > 120000) {
+      await supabase.from('briefs').update({ static_images_job_status: 'failed', static_images_error: 'Zaman aşımı' }).eq('id', briefId)
+      return NextResponse.json({ status: 'failed', error: 'Zaman aşımı', result: null, staticImagesUrl: data.static_images_url })
+    }
+  }
+
   const result = data.static_images_job_payload?.result || null
-  console.log(`[status] ${briefId.slice(0,8)}: ${data.static_images_job_status}, result: ${result ? 'yes' : 'no'}`)
 
   return NextResponse.json({
     status: data.static_images_job_status,
