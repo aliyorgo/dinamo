@@ -18,6 +18,4 @@ CREATE INDEX IF NOT EXISTS idx_activity_logs_client_id ON activity_logs(client_i
 CREATE INDEX IF NOT EXISTS idx_activity_logs_user_id ON activity_logs(user_id);
 
 ALTER TABLE activity_logs ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "service_role_all" ON activity_logs FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "authenticated_insert" ON activity_logs FOR INSERT TO authenticated WITH CHECK (true);
-CREATE POLICY "authenticated_select" ON activity_logs FOR SELECT TO authenticated USING (true);
+CREATE POLICY "allow_all_activity_logs" ON activity_logs FOR ALL USING (true) WITH CHECK (true);

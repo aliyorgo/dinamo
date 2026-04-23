@@ -61,7 +61,8 @@ export default function AdminDashboard() {
       const overdue = allBriefs.filter(br => ['submitted','read','in_production'].includes(br.status) && br.created_at < fortyEightHoursAgo)
       setOverdueBriefs(overdue)
       // Activity logs
-      const { data: logs } = await supabase.from('activity_logs').select('*').order('created_at', { ascending: false }).limit(10)
+      const { data: logs, error: logsErr } = await supabase.from('activity_logs').select('*').order('created_at', { ascending: false }).limit(10)
+      if (logsErr) console.error('[admin] activity_logs error:', logsErr.message)
       setActivityLogs(logs || [])
       setLoading(false)
     }

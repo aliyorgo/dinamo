@@ -277,6 +277,7 @@ function ClientBriefDetail() {
       setSelectedAiIdx(aiChildren.length)
     }
     fetch('/api/generate-ai-video', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ briefId: newBrief?.id }) })
+    logClientActivity({ actionType: 'brief.submitted', userName, clientName: companyName, clientId: brief.client_id, targetType: 'brief', targetId: newBrief?.id, targetLabel: newBrief?.campaign_name, metadata: { type: 'ai_express', mode } })
     setAiGenerating(false)
   }
 
@@ -902,6 +903,7 @@ function ClientBriefDetail() {
                             {brief.static_images_url ? (
                               <>
                                 <a href={brief.static_images_url} target="_blank" rel="noopener noreferrer"
+                                  onClick={()=>logClientActivity({ actionType: 'static_images.downloaded', userName, clientName: companyName, clientId: brief.client_id, targetType: 'brief', targetId: id, targetLabel: brief.campaign_name })}
                                   style={{fontSize:'11px',color:'#1DB81D',textDecoration:'none',border:'0.5px solid rgba(29,184,29,0.3)',borderRadius:'6px',padding:'6px 14px',display:'inline-flex',alignItems:'center',gap:'4px',fontFamily:'var(--font-dm-sans),sans-serif'}}>
                                   Görsel İndir
                                 </a>
@@ -977,8 +979,12 @@ function ClientBriefDetail() {
 
               {/* WAITING FOR PRODUCTION */}
               {!approvedVideo && ['in_production','submitted','read'].includes(brief.status) && (
-                <div style={{maxWidth:aspect.maxW,margin:briefFormat==='16:9'?'0 0 16px':'0 auto 16px'}}>
-                  <VideoLoadingBox aspect={briefFormat} size="large" />
+                <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'32px',marginBottom:'16px',textAlign:'center'}}>
+                  <div style={{width:'48px',height:'48px',borderRadius:'50%',background:'#f5f4f0',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px'}}>
+                    <svg width="20" height="20" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5" stroke="#888" strokeWidth="1.2"/><path d="M8 5v3l2 1" stroke="#888" strokeWidth="1.2" strokeLinecap="round"/></svg>
+                  </div>
+                  <div style={{fontSize:'15px',fontWeight:'500',color:'#0a0a0a',marginBottom:'6px'}}>Videonuz hazırlanıyor</div>
+                  <div style={{fontSize:'13px',color:'#888'}}>24 saat içinde incelemenize sunulacak.</div>
                 </div>
               )}
 
@@ -1187,6 +1193,7 @@ function ClientBriefDetail() {
                                   {child.static_images_url ? (
                                     <>
                                       <a href={child.static_images_url} target="_blank" rel="noopener noreferrer"
+                                        onClick={()=>logClientActivity({ actionType: 'static_images.downloaded', userName, clientName: companyName, clientId: brief?.client_id, targetType: 'brief', targetId: child.id, targetLabel: child.campaign_name })}
                                         style={{fontSize:'11px',color:'#1DB81D',textDecoration:'none',border:'0.5px solid rgba(29,184,29,0.3)',borderRadius:'6px',padding:'5px 12px',display:'inline-flex',alignItems:'center',gap:'4px',fontFamily:'var(--font-dm-sans),sans-serif'}}>
                                         Görsel İndir
                                       </a>
@@ -1500,6 +1507,7 @@ function ClientBriefDetail() {
                       status:'submitted', credit_cost:Math.ceil(totalCost/filled.length),
                     })
                   }
+                  logClientActivity({ actionType: 'cps.package_selected', userName, clientName: companyName, clientId: brief.client_id, targetType: 'brief', targetId: id, targetLabel: brief.campaign_name, metadata: { package: cpsPackage, variations: filled.length } })
                   setCpsPackage(0);setCpsVariations([])
                   loadData()
                 }}
