@@ -47,6 +47,7 @@ export default function StaticImageGeneratorModal({ briefId, videoUrl, existingU
       try {
         const res = await fetch(`/api/static-images/status?briefId=${briefId}`)
         const data = await res.json()
+        console.log('[static-poll]', data.status, data.result ? 'has result' : 'no result', data.error || '')
         if (data.status === 'completed' && data.result) {
           stopPolling()
           onComplete(data.result)
@@ -57,7 +58,9 @@ export default function StaticImageGeneratorModal({ briefId, videoUrl, existingU
           setGenerating(false)
           setRefreshing(false)
         }
-      } catch {}
+      } catch (e) {
+        console.error('[static-poll] error:', e)
+      }
     }, 3000)
   }
 
