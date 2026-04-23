@@ -81,8 +81,12 @@ export default function ClientDetailPage() {
   const [brand, setBrand] = useState({ primary_color:'', secondary_color:'', forbidden_colors:'', tone:'', avoid:'', notes:'' })
   const [savingBrand, setSavingBrand] = useState(false)
   const [brandLogoUrl, setBrandLogoUrl] = useState('')
+  const [brandFontUrl, setBrandFontUrl] = useState('')
+  const [brandLogoPosition, setBrandLogoPosition] = useState('bottom')
   const [logoUploading, setLogoUploading] = useState(false)
+  const [fontUploading, setFontUploading] = useState(false)
   const brandLogoRef = useRef<HTMLInputElement>(null)
+  const brandFontRef = useRef<HTMLInputElement>(null)
 
   function showMsg(text: string, isError = false) {
     setMsg(text)
@@ -113,6 +117,8 @@ export default function ClientDetailPage() {
     setAiNotes(cl.ai_notes || '')
     setBrand({ primary_color: cl.brand_primary_color||'', secondary_color: cl.brand_secondary_color||'', forbidden_colors: cl.brand_forbidden_colors||'', tone: cl.brand_tone||'', avoid: cl.brand_avoid||'', notes: cl.brand_notes||'' })
     setBrandLogoUrl(cl.brand_logo_url || '')
+    setBrandFontUrl(cl.brand_font_url || '')
+    setBrandLogoPosition(cl.brand_logo_position || 'bottom')
     setBriefs(br || [])
     setTransactions(tx || [])
     setSales(sl || [])
@@ -350,6 +356,7 @@ export default function ClientDetailPage() {
       brand_tone: brand.tone || null,
       brand_avoid: brand.avoid || null,
       brand_notes: brand.notes || null,
+      brand_logo_position: brandLogoPosition,
     }).eq('id', clientId)
     setSavingBrand(false)
     showMsg('Marka bilgileri kaydedildi.')
@@ -594,6 +601,48 @@ export default function ClientDetailPage() {
                   <textarea value={brand.notes} onChange={e => setBrand({ ...brand, notes: e.target.value })} placeholder="Ek marka bilgileri..."
                     rows={3} style={{ width: '100%', padding: '7px 10px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', color: '#0a0a0a', resize: 'vertical', fontFamily: 'var(--font-dm-sans),sans-serif', boxSizing: 'border-box' }} />
                 </div>
+                {/* Logo pozisyonu */}
+                <div style={{ marginBottom: '12px' }}>
+                  <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}>Logo Pozisyonu (Statik Görsel Yan Panel)</div>
+                  <select value={brandLogoPosition} onChange={e => setBrandLogoPosition(e.target.value)}
+                    style={{ width: '100%', padding: '7px 10px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', color: '#0a0a0a', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+                    <option value="top">Üst</option>
+                    <option value="middle">Orta</option>
+                    <option value="bottom">Alt</option>
+                  </select>
+                </div>
+
+                {/* Marka fontu */}
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}>Marka Fontu (TTF/OTF)</div>
+                  {brandFontUrl ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#f5f4f0', borderRadius: '8px', padding: '10px 14px' }}>
+                      <span style={{ fontSize: '12px', color: '#0a0a0a', flex: 1 }}>Font yüklendi</span>
+                      <button onClick={async () => { await supabase.from('clients').update({ brand_font_url: null }).eq('id', clientId); setBrandFontUrl(''); showMsg('Font kaldırıldı.') }}
+                        style={{ fontSize: '11px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>Kaldır</button>
+                    </div>
+                  ) : (
+                    <div>
+                      <input ref={brandFontRef} type="file" accept=".ttf,.otf" onChange={async () => {
+                        const file = brandFontRef.current?.files?.[0]
+                        if (!file) return
+                        if (file.size > 5 * 1024 * 1024) { showMsg('Font 5MB\'dan küçük olmalı', true); return }
+                        setFontUploading(true)
+                        const ext = file.name.split('.').pop()?.toLowerCase() || 'ttf'
+                        const storagePath = `brand-fonts/${clientId}_${Date.now()}.${ext}`
+                        const { error: upErr } = await supabase.storage.from('brand-assets').upload(storagePath, file, { upsert: true })
+                        if (upErr) { showMsg('Yükleme hatası: ' + upErr.message, true); setFontUploading(false); return }
+                        const { data: urlData } = supabase.storage.from('brand-assets').getPublicUrl(storagePath)
+                        await supabase.from('clients').update({ brand_font_url: urlData.publicUrl }).eq('id', clientId)
+                        setBrandFontUrl(urlData.publicUrl)
+                        setFontUploading(false)
+                        showMsg('Font yüklendi.')
+                      }} style={{ fontSize: '11px' }} disabled={fontUploading} />
+                      {fontUploading && <span style={{ fontSize: '11px', color: '#888', marginLeft: '8px' }}>Yükleniyor...</span>}
+                    </div>
+                  )}
+                </div>
+
                 <button onClick={saveBrand} disabled={savingBrand}
                   style={{ padding: '7px 16px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '11px', fontWeight: '500', cursor: savingBrand ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
                   {savingBrand ? 'Kaydediliyor...' : 'Kaydet'}

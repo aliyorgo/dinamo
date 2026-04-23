@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import { generateCertificatePDF } from '@/lib/generate-certificate'
+import StaticImageGeneratorModal from '@/components/StaticImageGeneratorModal'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
@@ -92,6 +93,7 @@ function ClientBriefDetail() {
   const [cpsConfirmModal, setCpsConfirmModal] = useState(false)
   const [timerStageMap, setTimerStageMap] = useState<Record<string, number>>({})
   const [editingFeedback, setEditingFeedback] = useState<Record<string, boolean>>({})
+  const [staticImageModal, setStaticImageModal] = useState<{ briefId: string; videoUrl: string; existingUrl?: string } | null>(null)
   const [feedbackText, setFeedbackText] = useState<Record<string, string>>({})
 
   useEffect(() => { loadData() }, [id])
@@ -125,7 +127,7 @@ function ClientBriefDetail() {
     // AI clones for this campaign (root_campaign_id based)
     const rootId = b?.root_campaign_id || b?.id
     const { data: aiKids } = await supabase.from('briefs')
-      .select('id, campaign_name, status, ai_video_status, ai_video_url, ai_video_error, product_image_url, created_at, ai_feedbacks')
+      .select('id, campaign_name, status, ai_video_status, ai_video_url, ai_video_error, product_image_url, created_at, ai_feedbacks, static_images_url')
       .eq('root_campaign_id', rootId)
       .like('campaign_name', '%Full AI%')
       .order('created_at', { ascending: true })
@@ -1159,6 +1161,17 @@ function ClientBriefDetail() {
                                     style={{fontSize:'11px',color:'#555',background:'none',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'6px',padding:'5px 12px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
                                     Telif Belgesi
                                   </button>
+                                  {child.static_images_url ? (
+                                    <a href={child.static_images_url} target="_blank" rel="noopener noreferrer"
+                                      style={{fontSize:'11px',color:'#1DB81D',textDecoration:'none',border:'0.5px solid rgba(29,184,29,0.3)',borderRadius:'6px',padding:'5px 12px',display:'inline-flex',alignItems:'center',gap:'4px',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                                      Görsel İndir
+                                    </a>
+                                  ) : (
+                                    <button onClick={()=>setStaticImageModal({ briefId: child.id, videoUrl: child.ai_video_url })}
+                                      style={{fontSize:'11px',color:'#0a0a0a',background:'none',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'6px',padding:'5px 12px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                                      Görsel Oluştur
+                                    </button>
+                                  )}
                                 </>
                               ) : (
                                 <>
@@ -1568,6 +1581,18 @@ function ClientBriefDetail() {
           </div>
         )
       })()}
+
+      {staticImageModal && (
+        <StaticImageGeneratorModal
+          briefId={staticImageModal.briefId}
+          videoUrl={staticImageModal.videoUrl}
+          existingUrl={staticImageModal.existingUrl}
+          onClose={() => setStaticImageModal(null)}
+          onGenerated={(url) => {
+            setAiChildren(prev => prev.map(c => c.id === staticImageModal.briefId ? { ...c, static_images_url: url } : c))
+          }}
+        />
+      )}
     </div>
   )
 }
