@@ -45,13 +45,14 @@ function wordWrap(text: string, maxCharsPerLine: number): string[] {
 }
 
 function buildTextSvg(text: string, containerW: number, fontSize: number, fgColor: string, maxWidthRatio: number): { svg: Buffer; height: number } {
+  const padLeft = Math.round(containerW * 0.15)
   const maxW = Math.round(containerW * maxWidthRatio)
   const charsPerLine = Math.max(8, Math.floor(maxW / (fontSize * 0.55)))
   const lines = wordWrap(text, charsPerLine)
   const lineHeight = Math.round(fontSize * 1.3)
   const totalH = lineHeight * lines.length + fontSize
   const svgLines = lines.map((line, i) =>
-    `<text x="${containerW / 2}" y="${fontSize + lineHeight * i}" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="${fontSize}" font-weight="700" fill="${fgColor}" letter-spacing="0.5">${escapeXml(line)}</text>`
+    `<text x="${padLeft}" y="${fontSize + lineHeight * i}" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="${fontSize}" font-weight="700" fill="${fgColor}" letter-spacing="0.5">${escapeXml(line)}</text>`
   ).join('\n')
   const svg = `<svg width="${containerW}" height="${totalH}">${svgLines}</svg>`
   return { svg: Buffer.from(svg), height: totalH }
@@ -137,9 +138,9 @@ export async function POST(req: NextRequest) {
               .stats()
             const avgBrightness = sampleRegion.channels.slice(0, 3).reduce((s, c) => s + c.mean, 0) / 3
             const fgColor = avgBrightness > 128 ? '#000000' : '#FFFFFF'
-            const fontSize = Math.round(fmt.w * 0.058)
+            const fontSize = Math.round(fmt.w * 0.066)
             const { svg, height: textH } = buildTextSvg(copyText, fmt.w, fontSize, fgColor, 0.80)
-            overlays.push({ input: svg, top: fmt.h - textH - 60, left: 0, blend: 'over' })
+            overlays.push({ input: svg, top: Math.round(fmt.h * 0.38), left: 0, blend: 'over' })
           }
 
           if (overlays.length > 0) {
@@ -176,8 +177,8 @@ export async function POST(req: NextRequest) {
           // Copy text on panel — multi-line
           if (copyText) {
             const fgColor = textColor(secondaryColor)
-            const fontSize = Math.round(panelW * 0.08)
-            const textY = Math.round(fmt.h * 0.40)
+            const fontSize = Math.round(panelW * 0.09)
+            const textY = Math.round(fmt.h * 0.35)
             const { svg, height: textH } = buildTextSvg(copyText, panelW, fontSize, fgColor, 0.85)
             panelOverlays.push({ input: svg, top: textY, left: 0, blend: 'over' })
           }

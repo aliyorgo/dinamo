@@ -891,6 +891,27 @@ function ClientBriefDetail() {
                             Bu linke sahip herkes videonuzu izleyebilir. Linki yalnızca güvendiğiniz kişilerle paylaşın.
                           </div>
                         </div>
+
+                        {/* STATIC IMAGES */}
+                        <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
+                          {brief.static_images_url ? (
+                            <>
+                              <a href={brief.static_images_url} target="_blank" rel="noopener noreferrer"
+                                style={{fontSize:'11px',color:'#1DB81D',textDecoration:'none',border:'0.5px solid rgba(29,184,29,0.3)',borderRadius:'6px',padding:'6px 14px',display:'inline-flex',alignItems:'center',gap:'4px',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                                Görsel İndir
+                              </a>
+                              <button onClick={()=>setStaticImageModal({ briefId: id, videoUrl: currentVideo?.video_url || brief.ai_video_url })}
+                                style={{fontSize:'11px',color:'#555',background:'none',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'6px',padding:'6px 14px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                                Yeniden Oluştur
+                              </button>
+                            </>
+                          ) : (
+                            <button onClick={()=>setStaticImageModal({ briefId: id, videoUrl: currentVideo?.video_url || brief.ai_video_url })}
+                              style={{width:'100%',padding:'10px',background:'#fff',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'8px',fontSize:'12px',color:'#0a0a0a',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',fontWeight:'500',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px'}}>
+                              Görsel Oluştur
+                            </button>
+                          )}
+                        </div>
                       </>
                     )}
 
