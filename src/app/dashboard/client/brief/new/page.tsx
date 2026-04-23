@@ -277,7 +277,7 @@ function NewBriefPage() {
     if (error) { setSubmitting(false); alert('Hata: ' + error.message); return }
     if (newBrief?.id) setSavedBriefId(newBrief.id)
 
-    // Log
+    // Log + brand learning
     if (newBrief?.id) {
       logClientActivity({
         actionType: asDraft ? 'brief.edited' : 'brief.created',
@@ -285,6 +285,12 @@ function NewBriefPage() {
         targetType: 'brief', targetId: newBrief.id, targetLabel: form.campaign_name,
         metadata: { brief_type: form.video_type },
       })
+      const brandText = [form.message, form.notes, form.target_audience, form.cta].filter(Boolean).join('\n')
+      if (brandText.length > 20) {
+        fetch('/api/brand-learning', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ clientId: clientUser?.client_id, sourceType: 'brief', sourceId: newBrief.id, text: brandText })
+        }).catch(() => {})
+      }
     }
 
     // Upload files if any

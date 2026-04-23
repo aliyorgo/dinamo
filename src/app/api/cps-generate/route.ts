@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import { getActiveBrandRules, buildBrandRulesBlock } from '@/lib/brand-learning'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -11,8 +12,11 @@ export async function POST(request: Request) {
     const { briefId, packageSize } = await request.json()
     if (!briefId || !packageSize) return NextResponse.json({ error: 'briefId ve packageSize gerekli' }, { status: 400 })
 
-    const { data: brief } = await supabase.from('briefs').select('campaign_name, message, video_type, target_audience, cta, voiceover_text').eq('id', briefId).single()
+    const { data: brief } = await supabase.from('briefs').select('campaign_name, message, video_type, target_audience, cta, voiceover_text, client_id').eq('id', briefId).single()
     if (!brief) return NextResponse.json({ error: 'Brief bulunamadı' }, { status: 404 })
+
+    const rules = brief.client_id ? await getActiveBrandRules(brief.client_id) : []
+    const rulesBlock = buildBrandRulesBlock(rules)
 
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -38,7 +42,7 @@ CTA seçenekleri: "Satın al", "Keşfet", "Daha fazla bilgi al", "Başvur", "İn
 Sadece JSON array dön, başka hiçbir şey yazma.`,
         messages: [{
           role: 'user',
-          content: `Brief: ${brief.message || brief.campaign_name}
+          content: `${rulesBlock}Brief: ${brief.message || brief.campaign_name}
 Kampanya: ${brief.campaign_name}
 Video tipi: ${brief.video_type}
 Hedef kitle: ${brief.target_audience || 'Belirtilmemiş'}

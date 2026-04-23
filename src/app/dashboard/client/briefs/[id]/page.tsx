@@ -394,6 +394,7 @@ function ClientBriefDetail() {
     const tcStr = currentTime > 0 ? `[${formatTimecode(currentTime)}] ` : ''
     await supabase.from('brief_questions').insert({ brief_id: id, question: `REVİZYON: ${tcStr}${revisionNote}` })
     logClientActivity({ actionType: 'video.revision_requested', userName, clientName: companyName, clientId: brief.client_id, targetType: 'brief', targetId: id, targetLabel: brief.campaign_name, metadata: { feedback: revisionNote.substring(0, 80) } })
+    if (revisionNote.length > 20) fetch('/api/brand-learning', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ clientId: brief.client_id, sourceType: 'revision', sourceId: id, text: revisionNote }) }).catch(() => {})
     setRevisionNote('')
     setMsg(revisionCount === 0 ? 'Revizyon talebiniz gönderildi (ücretsiz).' : `Revizyon talebiniz gönderildi (${REVISION_COST} kredi düşüldü).`)
     loadData()
@@ -1250,6 +1251,7 @@ function ClientBriefDetail() {
                                       const updated = [...existing, newEntry]
                                       await supabase.from('briefs').update({ai_feedbacks:updated}).eq('id',child.id)
                                       setAiChildren(prev=>prev.map(c=>c.id===child.id?{...c,ai_feedbacks:updated}:c))
+                                      if(val.length>20) fetch('/api/brand-learning',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clientId:brief?.client_id,sourceType:'feedback',sourceId:child.id,text:val})}).catch(()=>{})
                                       setEditingFeedback(p=>({...p,[child.id]:false}))
                                       setFeedbackText(p=>({...p,[child.id]:''}))
                                     }}

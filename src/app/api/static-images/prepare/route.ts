@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { getActiveBrandRules, buildBrandRulesBlock } from '@/lib/brand-learning'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY!
@@ -10,10 +11,13 @@ export async function POST(req: NextRequest) {
     if (!briefId) return NextResponse.json({ error: 'briefId gerekli' }, { status: 400 })
 
     // Generate copy via Anthropic (lightweight, stays on Vercel)
-    const { data: brief } = await supabase.from('briefs').select('campaign_name, message, target_audience, clients(brand_tone)').eq('id', briefId).single()
+    const { data: brief } = await supabase.from('briefs').select('campaign_name, message, target_audience, client_id, clients(brand_tone)').eq('id', briefId).single()
     let copy = ''
     try {
+      const rules = brief?.client_id ? await getActiveBrandRules(brief.client_id) : []
+      const rulesBlock = buildBrandRulesBlock(rules)
       const ctx = [
+        rulesBlock,
         brief?.campaign_name && `Kampanya: ${brief.campaign_name}`,
         brief?.message && `Brief: ${brief.message.substring(0, 200)}`,
         brief?.target_audience && `Hedef kitle: ${brief.target_audience}`,
