@@ -202,7 +202,7 @@ export default function ClientDashboard() {
   }
 
   return (
-    <div style={{display:'flex',minHeight:'100vh',fontFamily:"var(--font-dm-sans),'DM Sans',system-ui,sans-serif",background:'linear-gradient(to right, #0A0A0A 240px, #f5f4f0 240px)'}}>
+    <div style={{display:'flex',minHeight:'100vh',fontFamily:"var(--font-dm-sans),'DM Sans',system-ui,sans-serif"}}>
 
       {/* SIDEBAR */}
       <div style={{width:'240px',background:'#0A0A0A',display:'flex',flexDirection:'column',flexShrink:0,height:'100dvh',overflowY:'auto'}}>

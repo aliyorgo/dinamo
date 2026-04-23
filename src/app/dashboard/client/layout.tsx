@@ -58,7 +58,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (!ready) return null
   return (
     <ClientContext.Provider value={{ userName, companyName, credits, clientUserId, clientId, refreshCredits }}>
-      <div className="dashboard-scale">{children}</div>
+      <div className="dashboard-scale" style={{ background: 'linear-gradient(to right, #0A0A0A 240px, #f5f4f0 240px)', minHeight: '100vh' }}>{children}</div>
     </ClientContext.Provider>
   )
 }
