@@ -10,7 +10,7 @@ const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env
 
 export async function POST(req: NextRequest) {
   try {
-    const { briefId, keepFrameUrls } = await req.json()
+    const { briefId, keepFrameUrls, videoUrl: passedVideoUrl } = await req.json()
     if (!briefId) return NextResponse.json({ error: 'briefId gerekli' }, { status: 400 })
 
     const keepSet = new Set(keepFrameUrls || [])
@@ -20,17 +20,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ frames: [...keepSet] })
     }
 
-    // Get pool and video URL
+    // Get pool and video URL with fallback chain
     const { data: brief } = await supabase.from('briefs').select('static_frame_pool, ai_video_url').eq('id', briefId).single()
     let pool: string[] = brief?.static_frame_pool || []
 
+    let resolvedVideoUrl = passedVideoUrl || brief?.ai_video_url
+    if (!resolvedVideoUrl) {
+      const { data: sub } = await supabase.from('video_submissions').select('video_url').eq('brief_id', briefId).order('version', { ascending: false }).limit(1).maybeSingle()
+      resolvedVideoUrl = sub?.video_url
+    }
+
     // If pool exhausted, extract fresh frames from video
-    if (pool.length < replaceCount && brief?.ai_video_url) {
+    if (pool.length < replaceCount && resolvedVideoUrl) {
       const tmpDir = path.join(os.tmpdir(), `static-refresh-${briefId}-${Date.now()}`)
       fs.mkdirSync(tmpDir, { recursive: true })
 
       const videoPath = path.join(tmpDir, 'video.mp4')
-      const videoRes = await fetch(brief.ai_video_url)
+      const videoRes = await fetch(resolvedVideoUrl)
       fs.writeFileSync(videoPath, Buffer.from(await videoRes.arrayBuffer()))
 
       let duration = 10

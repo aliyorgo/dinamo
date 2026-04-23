@@ -776,16 +776,14 @@ function ClientBriefDetail() {
                   {/* VIDEO */}
                   <div style={{flex:1,minWidth:0}}>
                       <div style={{borderRadius:'12px',overflow:'hidden',position:'relative',maxWidth:aspect.maxW,margin:briefFormat==='16:9'?'0':'0 auto'}}>
-                      <div style={{paddingTop:aspect.padding,position:'relative'}}>
                         <video ref={videoRef} key={currentVideo.id} controls
                           onTimeUpdate={()=>{if(videoRef.current) setCurrentTime(videoRef.current.currentTime)}}
-                          style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'contain',borderRadius:'12px',background:'#000'}}>
+                          style={{width:'100%',height:'auto',display:'block',borderRadius:'12px'}}>
                           <source src={currentVideo.video_url} />
                         </video>
-                      </div>
-                      <div style={{position:'absolute',bottom:'12px',right:'14px',fontSize:'10px',color:'#999',letterSpacing:'0.5px',pointerEvents:'none',zIndex:2}}>
-                        made by dinamo
-                      </div>
+                        <div style={{position:'absolute',bottom:'12px',right:'14px',fontSize:'10px',color:'#999',letterSpacing:'0.5px',pointerEvents:'none',zIndex:2}}>
+                          made by dinamo
+                        </div>
                     </div>
 
                     {/* VERSION TIMELINE */}

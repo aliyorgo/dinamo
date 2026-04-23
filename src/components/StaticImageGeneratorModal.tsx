@@ -14,7 +14,7 @@ export default function StaticImageGeneratorModal({ briefId, videoUrl, existingU
   const [frames, setFrames] = useState<string[]>([])
   const [candidatePool, setCandidatePool] = useState<string[]>([])
   const [copy, setCopy] = useState('')
-  const [selectedFrames, setSelectedFrames] = useState<Set<number>>(new Set([0, 1, 2, 3]))
+  const [selectedFrames, setSelectedFrames] = useState<Set<number>>(new Set())
   const [generating, setGenerating] = useState(false)
   const [downloadUrl, setDownloadUrl] = useState(existingUrl || '')
   const [refreshing, setRefreshing] = useState(false)
@@ -39,7 +39,7 @@ export default function StaticImageGeneratorModal({ briefId, videoUrl, existingU
       setFrames(data.frames || [])
       setCandidatePool(data.candidatePool || [])
       setCopy(data.copy || '')
-      setSelectedFrames(new Set((data.frames || []).map((_: any, i: number) => i)))
+      setSelectedFrames(new Set())
     } catch (err: any) {
       setError(err.message)
     }
@@ -53,13 +53,16 @@ export default function StaticImageGeneratorModal({ briefId, videoUrl, existingU
       const res = await fetch('/api/static-images/refresh', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ briefId, keepFrameUrls: keepUrls }),
+        body: JSON.stringify({ briefId, keepFrameUrls: keepUrls, videoUrl }),
       })
       const data = await res.json()
       if (data.frames) {
         setFrames(data.frames)
         setCandidatePool(data.candidatePool || [])
-        setSelectedFrames(new Set(data.frames.map((_: any, i: number) => i)))
+        // Keep selection for kept frames (indices 0..keepUrls.length-1), new ones unselected
+        const newSelected = new Set<number>()
+        keepUrls.forEach((_, i) => newSelected.add(i))
+        setSelectedFrames(newSelected)
       }
     } catch {}
     setRefreshing(false)
@@ -115,7 +118,7 @@ export default function StaticImageGeneratorModal({ briefId, videoUrl, existingU
             <div style={{ fontSize: '40px', marginBottom: '12px' }}>&#10003;</div>
             <div style={{ fontSize: '16px', fontWeight: '500', color: '#0a0a0a', marginBottom: '8px' }}>Görsel paketin hazır</div>
             <div style={{ fontSize: '12px', color: '#888', marginBottom: '24px' }}>5 format × {selectedFrames.size || '?'} frame = {(selectedFrames.size || 1) * 5} görsel</div>
-            <a href={downloadUrl} target="_blank" rel="noopener noreferrer"
+            <a href={downloadUrl} target="_blank" rel="noopener noreferrer" onClick={() => setTimeout(onClose, 300)}
               style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 28px', background: '#22c55e', color: '#fff', borderRadius: '8px', textDecoration: 'none', fontSize: '14px', fontWeight: '600', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2v9M4 8l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><path d="M2 13h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
               ZIP İndir
@@ -145,7 +148,7 @@ export default function StaticImageGeneratorModal({ briefId, videoUrl, existingU
               <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Frame Seçimi</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
                 {frames.map((url, idx) => (
-                  <div key={idx} onClick={() => toggleFrame(idx)} style={{ position: 'relative', cursor: 'pointer', borderRadius: '8px', overflow: 'hidden', border: selectedFrames.has(idx) ? '2px solid #1DB81D' : '2px solid transparent' }}>
+                  <div key={url} onClick={() => toggleFrame(idx)} style={{ position: 'relative', cursor: 'pointer', borderRadius: '8px', overflow: 'hidden', border: selectedFrames.has(idx) ? '2px solid #1DB81D' : '2px solid transparent' }}>
                     <img src={url} alt={`Frame ${idx + 1}`} style={{ width: '100%', aspectRatio: '9/16', objectFit: 'cover', display: 'block' }} />
                     <div style={{ position: 'absolute', top: '6px', right: '6px', width: '18px', height: '18px', borderRadius: '4px', background: selectedFrames.has(idx) ? '#1DB81D' : 'rgba(255,255,255,0.8)', border: selectedFrames.has(idx) ? 'none' : '1px solid rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       {selectedFrames.has(idx) && <span style={{ color: '#fff', fontSize: '11px', fontWeight: '700' }}>&#10003;</span>}
@@ -158,12 +161,12 @@ export default function StaticImageGeneratorModal({ briefId, videoUrl, existingU
             {/* Actions */}
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'space-between', alignItems: 'center' }}>
               <button onClick={handleRefresh} disabled={refreshing || generating}
-                style={{ padding: '9px 18px', background: 'none', border: '0.5px solid rgba(0,0,0,0.15)', borderRadius: '8px', fontSize: '12px', color: '#555', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+                style={{ padding: '9px 18px', background: 'none', border: '0.5px solid rgba(0,0,0,0.15)', borderRadius: '8px', fontSize: '12px', color: '#555', cursor: refreshing || generating ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
                 {refreshing ? 'Yenileniyor...' : 'Yenile'}
               </button>
               <button onClick={handleGenerate} disabled={generating || selectedFrames.size === 0}
-                style={{ padding: '9px 24px', background: selectedFrames.size === 0 ? '#ccc' : '#22c55e', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
-                {generating ? 'Üretiliyor...' : `Üret (${selectedFrames.size} frame × 5 format)`}
+                style={{ padding: '9px 24px', background: selectedFrames.size === 0 ? '#ccc' : '#22c55e', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '600', cursor: generating || selectedFrames.size === 0 ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', opacity: selectedFrames.size === 0 ? 0.5 : 1 }}>
+                {generating ? 'Üretiliyor...' : selectedFrames.size === 0 ? 'Frame seçin' : `Üret (${selectedFrames.size} frame × 5 format)`}
               </button>
             </div>
           </>
