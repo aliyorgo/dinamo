@@ -754,7 +754,7 @@ function ClientBriefDetail() {
                           <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
                             <div style={{width:'18px',height:'18px',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
                               {isDone ? <span style={{color:'#1DB81D',fontSize:'14px'}}>&#10003;</span>
-                                : isCurrent ? <div style={{width:'10px',height:'10px',border:'2px solid #1DB81D',borderTop:'2px solid transparent',borderRadius:'50%',animation:'spin 1s linear infinite'}}></div>
+                                : isCurrent ? <div style={{width:'10px',height:'10px',border:'2px solid #1DB81D',borderTop:'2px solid transparent',animation:'spin 1s linear infinite'}} className="spinner"></div>
                                 : <div style={{width:'6px',height:'6px',background:'#444',borderRadius:'50%'}}></div>}
                             </div>
                             <span style={{fontSize:'13px',color:isDone?'#1DB81D':isCurrent?'#fff':'#555',flex:1}}>{s.label}{isDone?' ✓':''}</span>
@@ -1115,27 +1115,21 @@ function ClientBriefDetail() {
                               const dur = activeStage?.duration || 0
                               const durLabel = dur >= 60 ? `~${Math.ceil(dur/60)} dakika` : `~${dur} saniye`
                               return (
-                                <div style={{width:'100%',height:'100%',display:'flex',flexDirection:'column',justifyContent:'center',padding:'16px'}}>
-                                  {/* Active stage — hero */}
-                                  <div style={{textAlign:'center',marginBottom:'16px'}}>
-                                    <div style={{display:'inline-flex',alignItems:'center',gap:'8px',marginBottom:'6px'}}>
-                                      <div style={{width:'14px',height:'14px',border:'2px solid #1DB81D',borderTop:'2px solid transparent',borderRadius:'50%',animation:'spin 1s linear infinite'}}></div>
-                                      <span style={{fontSize:'13px',fontWeight:'600',color:'#0a0a0a',animation:'fadeIn 0.4s ease'}}>{activeStage?.label || 'Hazırlanıyor'}</span>
-                                    </div>
-                                    <div style={{fontSize:'9px',color:'#aaa'}}>{durLabel}</div>
-                                  </div>
+                                <div style={{width:'100%',height:'100%',display:'flex',flexDirection:'column',justifyContent:'center',padding:'16px',background:'#0a0a0a'}}>
+                                  {/* Duration label */}
+                                  <div style={{fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:'#6b6b66',marginBottom:'12px'}}>TAHMİNİ SÜRE: {durLabel.replace('~','')}</div>
                                   {/* Stage list */}
                                   {stg.map((s,si) => {
                                     const done = curSi > si
                                     const active = curSi === si
                                     return (
-                                      <div key={s.key} style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'3px'}}>
-                                        <div style={{width:'8px',height:'8px',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                                          {done ? <span style={{color:'#1DB81D',fontSize:'7px'}}>&#10003;</span>
-                                            : active ? <div style={{width:'5px',height:'5px',border:'1.5px solid #1DB81D',borderTop:'1.5px solid transparent',borderRadius:'50%',animation:'spin 1s linear infinite'}}></div>
-                                            : <div style={{width:'3px',height:'3px',background:'#ccc',borderRadius:'50%'}}></div>}
+                                      <div key={s.key} style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'6px'}}>
+                                        <div style={{width:'14px',height:'14px',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                                          {done ? <span style={{color:'#4ade80',fontSize:'10px'}}>&#10003;</span>
+                                            : active ? <div style={{width:'14px',height:'14px',border:'2px solid #4ade80',borderTop:'2px solid transparent',animation:'spin 1s linear infinite'}} className="spinner"></div>
+                                            : <div style={{width:'4px',height:'4px',background:'#555'}}></div>}
                                         </div>
-                                        <span style={{fontSize:'8px',color:done?'#1DB81D':active?'#0a0a0a':'#aaa',fontWeight:active?'600':'400',transition:'all 0.3s'}}>{s.label}</span>
+                                        <span style={{fontSize:'13px',lineHeight:'1.8',color:done?'#4ade80':active?'#fff':'#6b6b66',fontWeight:active?'500':'400',transition:'all 0.3s'}}>{s.label}</span>
                                       </div>
                                     )
                                   })}
@@ -1155,7 +1149,7 @@ function ClientBriefDetail() {
                           <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'4px'}}>
                             <span style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>V{idx+1}</span>
                             {isPurchased && <span style={{fontSize:'9px',color:'#1DB81D',fontWeight:'600'}}>&#10003; Satın Alındı</span>}
-                            {isProcessing && <span style={{fontSize:'9px',color:'#f59e0b',fontWeight:'500'}}>Üretiliyor... (~5 dakika)</span>}
+                            {isProcessing && <span style={{fontSize:'9px',fontWeight:'500',display:'inline-flex',alignItems:'center',gap:'4px'}}><span style={{width:'6px',height:'6px',background:'#4ade80',display:'inline-block',animation:'pulse 1.5s ease infinite'}}></span><span style={{color:'#0a0a0a'}}>Üretiliyor</span> <span style={{color:'#6b6b66'}}>(~5 dakika)</span></span>}
                             {isFailed && <span style={{fontSize:'9px',color:'#ef4444',fontWeight:'500'}}>Başarısız</span>}
                           </div>
                           <div style={{fontSize:'11px',color:'#888',marginBottom:'10px'}}>{new Date(child.created_at).toLocaleDateString('tr-TR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
@@ -1271,7 +1265,7 @@ function ClientBriefDetail() {
                   {brief.clients?.ai_video_enabled !== false && <div style={{marginTop:aiChildren.length>0?'16px':'0'}}>
                     {aiGenerating ? (
                       <div style={{display:'flex',alignItems:'center',gap:'8px',padding:'14px 0'}}>
-                        <div style={{width:'16px',height:'16px',border:'2px solid #1DB81D',borderTop:'2px solid transparent',borderRadius:'50%',animation:'spin 1s linear infinite'}}></div>
+                        <div style={{width:'16px',height:'16px',border:'2px solid #1DB81D',borderTop:'2px solid transparent',animation:'spin 1s linear infinite'}} className="spinner"></div>
                         <span style={{fontSize:'12px',color:'#888'}}>Üretim başlatılıyor...</span>
                       </div>
                     ) : brief.product_image_url && showAiGenerate ? (

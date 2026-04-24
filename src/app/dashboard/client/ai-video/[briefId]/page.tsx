@@ -364,7 +364,7 @@ export default function AiVideoPage() {
                           <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
                             <div style={{width:'18px',height:'18px',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
                               {isDone ? <span style={{color:'#1DB81D',fontSize:'14px'}}>&#10003;</span>
-                                : isCurrent ? <div style={{width:'10px',height:'10px',border:'2px solid #1DB81D',borderTop:'2px solid transparent',borderRadius:'50%',animation:'spin 1s linear infinite'}}></div>
+                                : isCurrent ? <div style={{width:'10px',height:'10px',border:'2px solid #1DB81D',borderTop:'2px solid transparent',animation:'spin 1s linear infinite'}} className="spinner"></div>
                                 : <div style={{width:'6px',height:'6px',background:'#444',borderRadius:'50%'}}></div>}
                             </div>
                             <span style={{fontSize:'13px',color:isDone?'#1DB81D':isCurrent?'#fff':'#555',flex:1}}>{s.label}{isDone?' ✓':''}</span>

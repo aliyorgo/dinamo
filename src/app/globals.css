@@ -52,9 +52,17 @@ body {
   font-family: var(--font-sans), 'Inter', system-ui, sans-serif;
 }
 
-/* Border radius 0 globally */
+/* Border radius 0 globally — except spinners and avatars */
 *, *::before, *::after {
   border-radius: 0 !important;
+}
+.spinner, [data-spinner], .rounded-full {
+  border-radius: 9999px !important;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }
 
 /* Default border color */
