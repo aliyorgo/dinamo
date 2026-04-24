@@ -637,7 +637,7 @@ function ClientBriefDetail() {
               {['submitted','read'].includes(brief.status) && (Date.now() - new Date(brief.created_at).getTime()) < 15*60*1000 && (
                 <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'14px 18px',marginBottom:'16px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                   <div style={{fontSize:'13px',color:'#555'}}>Brief'inizi henüz düzenleyebilirsiniz.</div>
-                  <button onClick={()=>router.push(`/dashboard/client/brief/new?edit=${id}`)} style={{padding:'8px 18px',background:'#111113',color:'#fff',border:'none',borderRadius:'8px',fontSize:'12px',cursor:'pointer',fontWeight:'500'}}>Brief'i Düzenle</button>
+                  <button onClick={()=>router.push(`/dashboard/client/brief/new?edit=${id}`)} className="btn">Brief'i Düzenle</button>
                 </div>
               )}
 
@@ -645,7 +645,7 @@ function ClientBriefDetail() {
               {brief.status==='cancelled' && (
                 <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'20px 24px',marginBottom:'16px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                   <div style={{fontSize:'13px',color:'#888'}}>Bu brief admin tarafından iptal edildi.</div>
-                  <button onClick={handleDelete} style={{padding:'8px 18px',background:'#ef4444',color:'#fff',border:'none',borderRadius:'8px',fontSize:'12px',cursor:'pointer',}}>Sil</button>
+                  <button onClick={handleDelete} className="btn" style={{background:'#ef4444'}}>Sil</button>
                 </div>
               )}
 
@@ -706,9 +706,8 @@ function ClientBriefDetail() {
                         <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a',marginBottom:'6px'}}>AI Video Hazır</div>
                         <div style={{fontSize:'12px',color:'#888',marginBottom:'20px',lineHeight:1.6}}>Videoyu beğendiyseniz satın alabilirsiniz.</div>
                         <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'8px'}}>
-                          <button onClick={handleAiPurchase} disabled={(clientUser?.allocated_credits||0)<2}
-                            style={{padding:'12px 24px',background:(clientUser?.allocated_credits||0)<2?'#ccc':'#1DB81D',color:'#0A0A0A',border:'none',borderRadius:'10px',fontSize:'14px',fontWeight:'600',cursor:'pointer',}}>
-                            Satın Al
+                          <button onClick={handleAiPurchase} disabled={(clientUser?.allocated_credits||0)<2} className="btn btn-accent" style={{padding:'12px 24px'}}>
+                            SATIN AL
                           </button>
                           <span style={{fontSize:'11px',color:'#888'}}>2 kredi</span>
                         </div>
@@ -822,9 +821,8 @@ function ClientBriefDetail() {
                     {brief.status==='approved' && (
                       <>
                         {/* APPROVE */}
-                        <button onClick={()=>setShowApproveModal(true)} disabled={loading}
-                          style={{width:'100%',padding:'14px',background:'#22c55e',color:'#fff',border:'none',borderRadius:'10px',fontSize:'15px',fontWeight:'500',cursor:'pointer',marginBottom:'10px',transition:'transform 0.2s,box-shadow 0.2s'}}>
-                          ✓ Onayla ve Teslim Al
+                        <button onClick={()=>setShowApproveModal(true)} disabled={loading} className="btn btn-accent" style={{width:'100%',padding:'14px',marginBottom:'10px'}}>
+                          ONAYLA VE TESLİM AL
                         </button>
 
                         {/* REVISION */}
@@ -1212,9 +1210,8 @@ function ClientBriefDetail() {
                                 </>
                               ) : (
                                 <>
-                                  <button onClick={()=>handleStudioPurchase(child)} disabled={(clientUser?.allocated_credits||0)<2}
-                                    style={{padding:'6px 16px',background:(clientUser?.allocated_credits||0)<2?'#ccc':'#1DB81D',color:'#0A0A0A',border:'none',borderRadius:'6px',fontSize:'11px',fontWeight:'600',cursor:'pointer',}}>
-                                    Satın Al
+                                  <button onClick={()=>handleStudioPurchase(child)} disabled={(clientUser?.allocated_credits||0)<2} className="btn btn-accent" style={{padding:'6px 16px'}}>
+                                    SATIN AL
                                   </button>
                                   <span style={{fontSize:'10px',color:'#888'}}>2 kredi</span>
                                 </>
@@ -1513,8 +1510,8 @@ function ClientBriefDetail() {
                   setCpsPackage(0);setCpsVariations([])
                   loadData()
                 }}
-                  style={{flex:2,padding:'12px',background:(clientUser?.allocated_credits||0)<totalCost?'#ccc':'#0a0a0a',color:'#fff',border:'none',borderRadius:'4px',fontSize:'13px',fontWeight:'600',cursor:'pointer',}}>
-                  Onayla ve Başlat
+                  className="btn btn-accent" style={{flex:2,padding:'12px'}}>
+                  ONAYLA VE BAŞLAT
                 </button>
               </div>
             </div>

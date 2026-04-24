@@ -567,10 +567,9 @@ function NewBriefPage() {
                 rows={8}
                 style={{...inputStyle,resize:'vertical',lineHeight:'1.7',marginBottom:'16px',fontSize:'14px'}} />
               <div style={{display:'flex',gap:'10px'}}>
-                <button onClick={()=>setStep(0)} style={{background:'none',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'8px',padding:'11px 20px',fontSize:'13px',fontFamily:'var(--font-sans),Inter,sans-serif',color:'#555',cursor:'pointer'}}>Geri</button>
-                <button onClick={handleAiBrief} disabled={aiBriefLoading||!aiBriefInput.trim()}
-                  style={{background:'#22c55e',color:'#fff',border:'none',borderRadius:'8px',padding:'11px 24px',fontSize:'13px',fontFamily:'var(--font-sans),Inter,sans-serif',cursor:'pointer',fontWeight:'500',opacity:aiBriefLoading||!aiBriefInput.trim()?0.5:1,display:'flex',alignItems:'center',gap:'8px'}}>
-                  {aiBriefLoading?'Brief oluşturuluyor...':'Brief Oluştur'}
+                <button onClick={()=>setStep(0)} className="btn btn-outline">GERİ</button>
+                <button onClick={handleAiBrief} disabled={aiBriefLoading||!aiBriefInput.trim()} className="btn">
+                  {aiBriefLoading?'OLUŞTURULUYOR...':'BRİEF OLUŞTUR'}
                 </button>
               </div>
             </div>
@@ -936,8 +935,7 @@ function NewBriefPage() {
                   <button onClick={()=>handleSubmit(true)} disabled={submitting} className="btn btn-outline">
                     {submitting?'...':'TASLAK'}
                   </button>
-                  <button onClick={()=>handleSubmit(false)} disabled={submitting||balance<cost} className="btn"
-                    style={{opacity:balance<cost?0.4:1}}>
+                  <button onClick={()=>handleSubmit(false)} disabled={submitting||balance<cost} className="btn btn-accent">
                     {submitting?'GÖNDERİLİYOR...':'BRİEF GÖNDER →'}
                   </button>
                 </div>

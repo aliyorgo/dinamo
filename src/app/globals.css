@@ -119,6 +119,19 @@ body {
   background: var(--color-background-tertiary);
 }
 
+.btn-accent {
+  background: #4ade80;
+  color: #0a0a0a;
+  border: 1px solid #0a0a0a;
+}
+.btn-accent:hover {
+  background: #22c55e;
+}
+.btn-accent:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 /* ═══════ FORM BASE ═══════ */
 
 input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="file"]):not([type="range"]),
