@@ -338,13 +338,13 @@ function NewBriefPage() {
           <div style={{fontSize:'10px',color:'#AAA',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:'8px'}}>KREDİ BAKİYESİ</div>
           <div style={{fontSize:'28px',fontWeight:'700',color:'#fff',letterSpacing:'-1px',marginBottom:'8px'}}>{balance}</div>
           {cost > 0 && (
-            <div style={{background:'rgba(34,197,94,0.1)',border:'0.5px solid rgba(34,197,94,0.2)',borderRadius:'8px',padding:'8px 10px'}}>
+            <div style={{border:'1px solid rgba(255,255,255,0.1)',padding:'8px 10px',marginTop:'4px'}}>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                <span style={{fontSize:'10px',color:'rgba(34,197,94,0.7)'}}>Bu brief</span>
-                <span style={{fontSize:'14px',fontWeight:'500',color:'#22c55e'}}>{cost} kredi</span>
+                <span style={{fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.4)'}}>Bu brief</span>
+                <span style={{fontSize:'14px',fontWeight:'500',color:'#4ade80'}}>{cost} kredi</span>
               </div>
-              {form.voiceover_type==='real' && <div style={{fontSize:'9px',color:'rgba(34,197,94,0.5)',marginTop:'2px'}}>+6 gerçek seslendirme</div>}
-              {form.languages.length>0 && <div style={{fontSize:'9px',color:'rgba(34,197,94,0.5)',marginTop:'2px'}}>+{form.languages.length*2} dil versiyonu ({form.languages.length} dil)</div>}
+              {form.voiceover_type==='real' && <div style={{fontSize:'9px',color:'rgba(255,255,255,0.25)',marginTop:'2px'}}>+6 gerçek seslendirme</div>}
+              {form.languages.length>0 && <div style={{fontSize:'9px',color:'rgba(255,255,255,0.25)',marginTop:'2px'}}>+{form.languages.length*2} dil versiyonu ({form.languages.length} dil)</div>}
             </div>
           )}
         </div>
@@ -793,24 +793,19 @@ function NewBriefPage() {
                   )}
 
                   {/* CREDIT */}
-                  <div style={{marginTop:'20px',background:'rgba(34,197,94,0.06)',border:'1px solid rgba(34,197,94,0.15)',borderRadius:'10px',padding:'12px 16px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                    <span style={{fontSize:'13px',color:'#0a0a0a'}}>Toplam Kredi</span>
-                    <span style={{fontSize:'18px',fontWeight:'500',color:'#22c55e'}}>{cost} kredi</span>
+                  <div style={{marginTop:'20px',background:'var(--color-background-secondary)',border:'1px solid #0a0a0a',padding:'14px 18px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                    <span style={{fontSize:'14px',color:'var(--color-text-secondary)'}}>Toplam Kredi</span>
+                    <span style={{fontSize:'15px',fontWeight:'500',color:'var(--color-text-primary)'}}>{cost} kredi</span>
                   </div>
                 </div>
 
                 {/* BRIEF SCORE */}
-                <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'20px',marginBottom:'22px'}}>
-                  <div style={{fontSize:'11px',color:'var(--color-text-secondary)',letterSpacing:'2px',textTransform:'uppercase',fontWeight:'500',marginBottom:'14px'}}>Brief Kalite Skoru</div>
+                <div style={{background:'#fff',border:'1px solid var(--color-border-tertiary)',padding:'20px',marginBottom:'22px',minHeight:'140px'}}>
+                  <div style={{fontSize:'11px',color:'var(--color-text-secondary)',letterSpacing:'2px',textTransform:'uppercase',fontWeight:'500',marginBottom:'14px'}}>BRİEF KALİTE SKORU</div>
                   {scoreLoading ? (
-                    <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
-                      {[1,2,3,4].map(i=>(
-                        <div key={i} style={{display:'flex',alignItems:'center',gap:'12px'}}>
-                          <div style={{width:'80px',height:'10px',borderRadius:'4px',background:'rgba(0,0,0,0.06)',animation:'pulse 1.5s infinite'}} />
-                          <div style={{flex:1,height:'6px',borderRadius:'3px',background:'rgba(0,0,0,0.04)'}} />
-                        </div>
-                      ))}
-                      <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }`}</style>
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'10px',padding:'24px 0'}}>
+                      <div style={{width:'14px',height:'14px',border:'2px solid #4ade80',borderTop:'2px solid transparent',animation:'spin 1s linear infinite'}} className="spinner"></div>
+                      <span style={{fontSize:'13px',color:'var(--color-text-tertiary)'}}>Hesaplanıyor...</span>
                     </div>
                   ) : briefScore ? (
                     <div>
