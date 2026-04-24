@@ -27,6 +27,7 @@ export async function extractBrandRuleCandidate({ clientId, sourceType, sourceId
   - rule_type: "positive" (tercih) veya "negative" (yasak)
   - temporal: dönemsel mi (bayram, sezon, kampanya dönemi) true/false
 - Aynı metinden birden fazla kural çıkabilir
+- Duplicate ve çok benzer kurallar üretme — kavramsal olarak aynı şeyi söyleyen kuralları tek madde olarak ver
 - Kural çıkarılamıyorsa boş array döndür
 - JSON array formatında sadece kurallar döndür, açıklama yazma, markdown code fence yok
 
@@ -116,7 +117,7 @@ async function findSimilarCandidate(clientId: string, ruleText: string) {
     .eq('client_id', clientId)
     .eq('status', 'pending')
   if (!data) return null
-  return data.find((c: any) => stringSimilarity.compareTwoStrings(c.rule_text.toLowerCase(), ruleText.toLowerCase()) > 0.75)
+  return data.find((c: any) => stringSimilarity.compareTwoStrings(c.rule_text.toLowerCase(), ruleText.toLowerCase()) > 0.6)
 }
 
 export async function getActiveBrandRules(clientId: string) {

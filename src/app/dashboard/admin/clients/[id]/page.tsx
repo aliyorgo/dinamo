@@ -138,7 +138,9 @@ export default function ClientDetailPage() {
     }
 
     // Brand learning
-    const { data: blc } = await supabase.from('brand_learning_candidates').select('*').eq('client_id', clientId).eq('status', 'pending').order('created_at', { ascending: false })
+    const { data: blc, error: blcErr } = await supabase.from('brand_learning_candidates').select('*').eq('client_id', clientId).eq('status', 'pending').order('created_at', { ascending: false })
+    if (blcErr) console.error('[admin] brand_learning_candidates error:', blcErr.message)
+    console.log('[admin] Learning candidates loaded:', blc?.length || 0)
     setLearningCandidates(blc || [])
     const { data: br2 } = await supabase.from('brand_rules').select('*').eq('client_id', clientId).order('created_at', { ascending: false })
     setBrandRules(br2 || [])
@@ -680,13 +682,16 @@ export default function ClientDetailPage() {
                   ].filter(Boolean)
                   const seedText = seedParts.join('\n')
                   if (seedText.length > 20) {
-                    await fetch('/api/brand-learning', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ clientId, sourceType: 'seed_import', sourceId: clientId, text: seedText }) })
-                    setTimeout(async () => {
-                      const { data } = await supabase.from('brand_learning_candidates').select('*').eq('client_id', clientId).eq('status', 'pending').order('created_at', { ascending: false })
-                      setLearningCandidates(data || [])
-                      setSeedImporting(false)
-                      showMsg('Marka notlarından kurallar çıkarıldı.')
-                    }, 3000)
+                    const resp = await fetch('/api/brand-learning', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ clientId, sourceType: 'seed_import', sourceId: clientId, text: seedText }) })
+                    const respData = await resp.json()
+                    console.log('[admin] Seed import response:', respData)
+                    // Refetch immediately — API awaits extraction now
+                    const { data, error: refetchErr } = await supabase.from('brand_learning_candidates').select('*').eq('client_id', clientId).eq('status', 'pending').order('created_at', { ascending: false })
+                    if (refetchErr) console.error('[admin] Refetch error:', refetchErr.message)
+                    console.log('[admin] Refetched candidates:', data?.length || 0)
+                    setLearningCandidates(data || [])
+                    setSeedImporting(false)
+                    showMsg('Marka notlarından kurallar çıkarıldı.')
                   } else { setSeedImporting(false); showMsg('Marka notları yetersiz.', true) }
                 }} disabled={seedImporting}
                   style={{ fontSize: '10px', padding: '4px 10px', background: '#f5f4f0', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '6px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', color: '#555' }}>
