@@ -39,7 +39,11 @@ Her madde:
 - text: max 150 karakter
 - condition: opsiyonel, yoksa null
 
-Insight'lar yaratıcı ve kreatif olsun, markanın ruhunu yakalasın. Ham metni olduğu gibi kopyalama, mutlaka işle ve yorum üret. Duplicate üretme. Faydasız şişme bilgi çıkarma — sadece üretime fayda verecek olanlar. Sadece JSON array döndür.
+Insight'lar yaratıcı ve kreatif olsun, markanın ruhunu yakalasın. Ham metni olduğu gibi kopyalama, mutlaka işle ve yorum üret. Duplicate üretme. Faydasız şişme bilgi çıkarma — sadece üretime fayda verecek olanlar.
+
+ÖNEMLİ: Renk kodları (#f58f00 gibi) veya "ana renk olarak X kullan" / "ikincil renk" / "logo rengi" tarzı kurallar ÜRETME. Renkler sistem tarafından ayrı yönetiliyor, kural olmaları gerekmiyor. Sadece tonsal, stil ve davranışsal yaklaşımları kural yap.
+
+Sadece JSON array döndür.
 
 Metin:
 "${text}"

@@ -696,8 +696,10 @@ export default function ClientDetailPage() {
                         {c.rule_condition && <div style={{ fontSize: '11px', color: '#888', fontStyle: 'italic', marginTop: '2px' }}>{c.rule_condition}</div>}
                       </div>
                       <button onClick={async () => {
-                        await supabase.from('brand_learning_candidates').update({ status: 'approved', reviewed_at: new Date().toISOString() }).eq('id', c.id)
-                        await supabase.from('brand_rules').insert({ client_id: clientId, rule_text: c.rule_text, rule_condition: c.rule_condition, type: c.type || 'rule', rule_type: c.rule_type, source_candidate_id: c.id, source_type: c.source_type, manually_added: false })
+                        const { error: upErr } = await supabase.from('brand_learning_candidates').update({ status: 'approved', reviewed_at: new Date().toISOString() }).eq('id', c.id)
+                        if (upErr) { console.error('[approve] candidate update error:', upErr.message); showMsg('Hata: ' + upErr.message, true); return }
+                        const { error: insErr } = await supabase.from('brand_rules').insert({ client_id: clientId, rule_text: c.rule_text, rule_condition: c.rule_condition || null, type: c.type || 'rule', rule_type: c.rule_type || 'positive', source_candidate_id: c.id, source_type: c.source_type || 'learned', manually_added: false })
+                        if (insErr) { console.error('[approve] brand_rules insert error:', insErr.message); showMsg('Hata: ' + insErr.message, true); return }
                         setLearningCandidates(prev => prev.filter(x => x.id !== c.id))
                         const { data: r } = await supabase.from('brand_rules').select('*').eq('client_id', clientId).order('created_at', { ascending: false })
                         setBrandRules(r || [])
