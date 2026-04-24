@@ -291,7 +291,7 @@ export default function ClientDashboard() {
                     Hoş geldiniz,
                   </h1>
                   {companyName && (
-                    <h1 className="editorial" style={{fontSize:'40px',fontWeight:'400',color:'var(--color-text-primary)',letterSpacing:'-0.02em',lineHeight:1.1,margin:'0 0 12px 0'}}>
+                    <h1 style={{fontSize:'40px',fontWeight:'600',color:'var(--color-text-primary)',letterSpacing:'-0.02em',lineHeight:1.1,margin:'0 0 12px 0'}}>
                       {companyName}.
                     </h1>
                   )}
@@ -300,24 +300,10 @@ export default function ClientDashboard() {
                     Brief'inizi oluşturun, 24 saat içinde videonuz hazır.
                   </p>
 
-                  {/* Action cards */}
-                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'12px',marginBottom:'40px'}}>
-                    {[
-                      { label: 'TEK VİDEO', title: 'Brief Oluştur', desc: 'Kampanya briefinizi yazın, ekibimiz üretsin.', href: '/dashboard/client/brief/new' },
-                      { label: 'HIZLI ÜRETİM', title: 'AI Express', desc: '~5 dakikada AI video — fikrinizi test edin.', href: '/dashboard/client/brief/new' },
-                      { label: 'PAKET', title: 'CPS', desc: 'Aynı kampanyadan farklı yaratıcı yönler.', href: '/dashboard/client/brief/new' },
-                    ].map(card => (
-                      <div key={card.title} onClick={() => router.push(card.href)}
-                        style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '24px 20px', cursor: 'pointer', transition: 'background 0.15s, border-color 0.15s', display: 'flex', flexDirection: 'column', minHeight: '180px' }}
-                        onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-background-secondary)'; e.currentTarget.style.borderColor = '#0a0a0a' }}
-                        onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = 'var(--color-border-tertiary)' }}>
-                        <div style={{ fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', fontWeight: '500', marginBottom: '12px' }}>{card.label}</div>
-                        <div style={{ fontSize: '18px', fontWeight: '500', color: 'var(--color-text-primary)', marginBottom: '8px' }}>{card.title}</div>
-                        <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: 1.5, flex: 1 }}>{card.desc}</div>
-                        <div style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-primary)', fontWeight: '500', marginTop: '16px' }}>BAŞLAT →</div>
-                      </div>
-                    ))}
-                  </div>
+                  {/* CTA */}
+                  <button onClick={()=>router.push('/dashboard/client/brief/new')} className="btn" style={{padding:'16px 36px',marginBottom:'40px'}}>
+                    İLK BRİEF'İ OLUŞTUR →
+                  </button>
 
                   {/* How it works */}
                   <div style={{ marginBottom: '40px' }}>
@@ -334,8 +320,8 @@ export default function ClientDashboard() {
                     ))}
                   </div>
 
-                  <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', lineHeight: 1.6, marginBottom: '40px' }}>
-                    Her brief gönderdikten sonra AI Express ve Creative Performance System özelliklerine erişirsiniz.
+                  <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: 1.7, marginBottom: '40px' }}>
+                    Her brief gönderdikten sonra AI Express ve Creative Performance System özelliklerine erişirsiniz. AI Express ile briefinizden ~5 dakikada yapay zeka videosu üretin, CPS ile aynı kampanyadan farklı yaratıcı yönler ve varyasyonlar oluşturun.
                   </div>
 
                   {/* Video grid */}
