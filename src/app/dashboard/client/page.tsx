@@ -245,7 +245,7 @@ export default function ClientDashboard() {
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
         {/* TOP BAR with notifications */}
         <div style={{padding:'10px 28px',background:'#fff',borderBottom:'0.5px solid rgba(0,0,0,0.08)',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
-          <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a'}}>Projelerim</div>
+          {briefs.length > 0 && <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a'}}>Projelerim</div>}
           <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
           {/* Notification bell */}
           <div style={{position:'relative'}}>
