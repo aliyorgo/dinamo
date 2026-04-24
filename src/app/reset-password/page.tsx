@@ -5,6 +5,14 @@ import { useRouter } from 'next/navigation'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
+const inputStyle: React.CSSProperties = {
+  width: '100%', boxSizing: 'border-box',
+  padding: '12px 14px', fontSize: '14px',
+  background: 'transparent', border: '1px solid #6b6b66',
+  color: '#fff', outline: 'none',
+  transition: 'border-color 0.15s',
+}
+
 export default function ResetPasswordPage() {
   const router = useRouter()
   const [password, setPassword] = useState('')
@@ -15,9 +23,7 @@ export default function ResetPasswordPage() {
 
   useEffect(() => {
     supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        // User arrived via reset link — session is set
-      }
+      if (event === 'PASSWORD_RECOVERY') {}
     })
   }, [])
 
@@ -34,39 +40,52 @@ export default function ResetPasswordPage() {
     setTimeout(() => router.push('/login'), 2000)
   }
 
-  const inputStyle: React.CSSProperties = {
-    width: '100%', boxSizing: 'border-box',
-    padding: '14px 16px', fontSize: '14px',
-    background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
-    color: '#fff', outline: 'none',
-  }
-
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a',  }}>
-      <div style={{ width: '100%', maxWidth: '380px', padding: '0 24px' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a' }}>
+      <style>{`
+        input::placeholder { color: #6b6b66; }
+        input:focus { border-color: #ffffff !important; border-width: 2px !important; }
+      `}</style>
+      <div style={{ width: '100%', maxWidth: '400px', padding: '0 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: '48px' }}>
           <img src="/dinamo_logo.png" alt="Dinamo" style={{ height: '48px' }} />
         </div>
-        <div style={{ fontSize: '20px', fontWeight: '300', color: '#fff', textAlign: 'center', marginBottom: '32px' }}>Yeni Şifre Belirleyin</div>
+        <div style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: '#6b6b66', fontWeight: '500', textAlign: 'center', marginBottom: '32px' }}>
+          YENİ ŞİFRE BELİRLEYİN
+        </div>
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Yeni Şifre</label>
+            <label style={{ display: 'block', fontSize: '11px', color: '#6b6b66', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: '500' }}>YENİ ŞİFRE</label>
             <input type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="••••••••" style={inputStyle} />
           </div>
           <div style={{ marginBottom: '28px' }}>
-            <label style={{ display: 'block', fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Şifre Tekrar</label>
+            <label style={{ display: 'block', fontSize: '11px', color: '#6b6b66', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: '500' }}>ŞİFRE TEKRAR</label>
             <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)} required placeholder="••••••••" style={inputStyle} />
           </div>
           {error && <div style={{ color: '#ef4444', fontSize: '13px', marginBottom: '16px' }}>{error}</div>}
-          {msg && <div style={{ color: '#22c55e', fontSize: '13px', marginBottom: '16px' }}>{msg}</div>}
-          <button type="submit" disabled={loading} style={{
-            width: '100%', padding: '14px', background: '#1db81d', color: '#fff',
-            border: 'none', fontSize: '14px', fontWeight: '500', cursor: 'pointer',
-            opacity: loading ? 0.6 : 1,
-          }}>
-            {loading ? 'Güncelleniyor...' : 'Şifreyi Güncelle'}
+          {msg && <div style={{ color: '#4ade80', fontSize: '13px', marginBottom: '16px' }}>{msg}</div>}
+          <button type="submit" disabled={loading}
+            style={{
+              width: '100%', padding: '14px',
+              background: '#ffffff', color: '#0a0a0a',
+              border: '1px solid #ffffff',
+              fontSize: '11px', fontWeight: '500', letterSpacing: '1.5px', textTransform: 'uppercase',
+              cursor: 'pointer', opacity: loading ? 0.6 : 1,
+              transition: 'all 0.15s',
+            }}
+            onMouseEnter={e => { if (!loading) { e.currentTarget.style.background = '#0a0a0a'; e.currentTarget.style.color = '#ffffff' } }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#ffffff'; e.currentTarget.style.color = '#0a0a0a' }}>
+            {loading ? 'GÜNCELLENİYOR...' : 'ŞİFREYİ GÜNCELLE'}
           </button>
         </form>
+        <div style={{ marginTop: '24px', textAlign: 'center' }}>
+          <span onClick={() => router.push('/login')}
+            style={{ fontSize: '13px', color: '#6b6b66', cursor: 'pointer', transition: 'color 0.15s' }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#4ade80' }}
+            onMouseLeave={e => { e.currentTarget.style.color = '#6b6b66' }}>
+            Giriş sayfasına dön
+          </span>
+        </div>
       </div>
     </div>
   )
