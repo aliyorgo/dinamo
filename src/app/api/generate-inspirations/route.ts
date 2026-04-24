@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { getActiveBrandRules, buildBrandRulesBlock } from '@/lib/brand-learning'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
@@ -41,7 +42,10 @@ export async function POST(request: Request) {
   if (prevBriefs?.length) context += `Önceki briefler: ${prevBriefs.map((b: any) => `${(b.message||'').substring(0,150)}`).join('; ')}\n`
   if (context.length > 1500) context = context.substring(0, 1500)
 
-  const prompt = `Aşağıdaki brief için ${duration} saniyelik bir ${brief.video_type} videosu için ${numIdeas} farklı yaratıcı konsept öner.
+  const rules = brief.client_id ? await getActiveBrandRules(brief.client_id) : []
+  const rulesBlock = buildBrandRulesBlock(rules)
+
+  const prompt = `${rulesBlock}Aşağıdaki brief için ${duration} saniyelik bir ${brief.video_type} videosu için ${numIdeas} farklı yaratıcı konsept öner.
 
 Marka: ${brief.clients?.company_name || ''}
 Mesaj: ${brief.message || ''}

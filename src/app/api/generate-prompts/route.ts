@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { getActiveBrandRules, buildBrandRulesBlock } from '@/lib/brand-learning'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
@@ -36,7 +37,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Geçersiz model' }, { status: 400 })
     }
 
-    const { data: insp, error: inspErr } = await supabase.from('brief_inspirations').select('*, briefs(video_type)').eq('id', inspiration_id).single()
+    const { data: insp, error: inspErr } = await supabase.from('brief_inspirations').select('*, briefs(video_type, client_id)').eq('id', inspiration_id).single()
     if (inspErr) console.error('[prompts] DB error:', inspErr.message)
     if (!insp) return NextResponse.json({ error: 'Fikir bulunamadı' }, { status: 404 })
     console.log('[prompts] Inspiration:', insp.title, 'scenario type:', typeof insp.scenario)
@@ -60,6 +61,9 @@ export async function POST(request: Request) {
     }
     console.log('[prompts] Scenario text length:', scenarioText.length)
 
+    const rules = insp.briefs?.client_id ? await getActiveBrandRules(insp.briefs.client_id) : []
+    const rulesBlock = buildBrandRulesBlock(rules)
+
     console.log('[prompts] Calling Anthropic API...')
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -68,7 +72,7 @@ export async function POST(request: Request) {
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 2000,
         system: `Sen AI video/görsel üretim prompt mühendisisin. ${MODEL_INFO[model]} Yanıtın SADECE JSON olsun. Markdown code block kullanma.`,
-        messages: [{ role: 'user', content: `Bu video konsepti ve senaryosu için ${model.toUpperCase()} modeline özel, kullanıma hazır prompt yaz.
+        messages: [{ role: 'user', content: `${rulesBlock}Bu video konsepti ve senaryosu için ${model.toUpperCase()} modeline özel, kullanıma hazır prompt yaz.
 
 Konsept: ${insp.title} — ${insp.concept}
 Senaryo: ${scenarioText}

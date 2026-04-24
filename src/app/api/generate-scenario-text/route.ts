@@ -1,12 +1,16 @@
 import { NextResponse } from 'next/server'
+import { getActiveBrandRules, buildBrandRulesBlock } from '@/lib/brand-learning'
 
 export async function POST(request: Request) {
-  const { campaign_name, brand_name, message, target_audience, video_type, format, cta, idea_title, idea_concept, idea_approach } = await request.json()
+  const { campaign_name, brand_name, message, target_audience, video_type, format, cta, idea_title, idea_concept, idea_approach, clientId } = await request.json()
 
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) return NextResponse.json({ error: 'API key yok' }, { status: 500 })
 
-  const prompt = `Sen profesyonel bir video senaryo yazarisin. Asagidaki brief ve secilen fikir icin detayli bir video senaryosu yaz.
+  const rules = clientId ? await getActiveBrandRules(clientId) : []
+  const rulesBlock = buildBrandRulesBlock(rules)
+
+  const prompt = `${rulesBlock}Sen profesyonel bir video senaryo yazarisin. Asagidaki brief ve secilen fikir icin detayli bir video senaryosu yaz.
 
 Brief:
 - Kampanya: ${campaign_name || ''}

@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
+import { getActiveBrandRules, buildBrandRulesBlock } from '@/lib/brand-learning'
 
 export async function POST(request: Request) {
   try {
-    const { campaign_name, message, cta, target_audience, brand_name } = await request.json()
+    const { campaign_name, message, cta, target_audience, brand_name, clientId } = await request.json()
 
     const apiKey = process.env.ANTHROPIC_API_KEY
     if (!apiKey) {
@@ -11,6 +12,9 @@ export async function POST(request: Request) {
     }
 
     console.log('[captions] Generating for:', campaign_name)
+
+    const rules = clientId ? await getActiveBrandRules(clientId) : []
+    const rulesBlock = buildBrandRulesBlock(rules)
 
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -25,7 +29,7 @@ export async function POST(request: Request) {
         system: 'Sen profesyonel bir sosyal medya icerik yazarisin. Yanitin SADECE gecerli bir JSON objesi olsun, baska hicbir sey yazma.',
         messages: [{
           role: 'user',
-          content: `Asagidaki reklam kampanyasi icin sosyal medya basliklari yaz.
+          content: `${rulesBlock}Asagidaki reklam kampanyasi icin sosyal medya basliklari yaz.
 
 Marka: ${brand_name || ''}
 Kampanya: ${campaign_name || ''}

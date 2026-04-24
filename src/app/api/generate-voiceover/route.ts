@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { getActiveBrandRules, buildBrandRulesBlock } from '@/lib/brand-learning'
 
 const DURATION_MAP: Record<string, { seconds: number, words: number }> = {
   'Bumper / Pre-roll': { seconds: 6, words: 11 },
@@ -8,13 +9,15 @@ const DURATION_MAP: Record<string, { seconds: number, words: number }> = {
 }
 
 export async function POST(request: Request) {
-  const { brand_name, campaign_name, message, cta, target_audience, video_type } = await request.json()
+  const { brand_name, campaign_name, message, cta, target_audience, video_type, clientId } = await request.json()
 
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) {
     return NextResponse.json({ error: 'ANTHROPIC_API_KEY not configured' }, { status: 500 })
   }
 
+  const rules = clientId ? await getActiveBrandRules(clientId) : []
+  const rulesBlock = buildBrandRulesBlock(rules)
   const dur = DURATION_MAP[video_type] || { seconds: 30, words: 35 }
 
   const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -30,7 +33,7 @@ export async function POST(request: Request) {
       system: 'Sen profesyonel bir reklam metni yazarısın.',
       messages: [{
         role: 'user',
-        content: `${brand_name || 'Marka'} için bir reklam seslendirme metni yaz.
+        content: `${rulesBlock}${brand_name || 'Marka'} için bir reklam seslendirme metni yaz.
 
 Kurallar:
 - Kesinlikle ${dur.words} kelimeyi geçme (${dur.seconds} saniyelik video). Logo girişi ve çıkışı için sürenin bir kısmı görsel kullanılacak, dış ses tüm süreyi kaplayamaz.

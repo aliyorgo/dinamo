@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { getActiveBrandRules, buildBrandRulesBlock } from '@/lib/brand-learning'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
@@ -27,6 +28,9 @@ export async function POST(request: Request) {
   }
   if (context.length > 1500) context = context.substring(0, 1500)
 
+  const rules = insp.briefs?.client_id ? await getActiveBrandRules(insp.briefs.client_id) : []
+  const rulesBlock = buildBrandRulesBlock(rules)
+
   console.log('[scenario] Calling claude-haiku-4-5-20251001...')
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -35,7 +39,7 @@ export async function POST(request: Request) {
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 2000,
       system: 'Sen profesyonel bir video prodüksiyon yönetmenisin. AI video üretim araçlarına hakimsin. Türkçe yaz.',
-      messages: [{ role: 'user', content: `Bu video konseptini sahne sahne profesyonel senaryo formatına dönüştür. ${insp.briefs?.video_type} için toplam ${dur} saniye.
+      messages: [{ role: 'user', content: `${rulesBlock}Bu video konseptini sahne sahne profesyonel senaryo formatına dönüştür. ${insp.briefs?.video_type} için toplam ${dur} saniye.
 
 Konsept: ${insp.title} — ${insp.concept}
 Sahneler: ${scenes}

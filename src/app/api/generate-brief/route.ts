@@ -1,12 +1,16 @@
 import { NextResponse } from 'next/server'
+import { getActiveBrandRules, buildBrandRulesBlock } from '@/lib/brand-learning'
 
 export async function POST(request: Request) {
-  const { user_input, brand_name } = await request.json()
+  const { user_input, brand_name, clientId } = await request.json()
 
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) {
     return NextResponse.json({ error: 'ANTHROPIC_API_KEY not configured' }, { status: 500 })
   }
+
+  const rules = clientId ? await getActiveBrandRules(clientId) : []
+  const rulesBlock = buildBrandRulesBlock(rules)
 
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -47,7 +51,7 @@ Kurallar:
 - Türkçe yaz, sade ve düzgün dil kullan.`,
       messages: [{
         role: 'user',
-        content: user_input
+        content: rulesBlock + user_input
       }]
     })
   })
