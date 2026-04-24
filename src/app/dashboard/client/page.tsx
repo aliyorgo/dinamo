@@ -369,7 +369,7 @@ export default function ClientDashboard() {
                   ))}
                   {aiProduced > 0 && (
                     <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'14px'}}>
-                      <div style={{fontSize:'10px',color:'#1DB81D',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'6px',display:'flex',alignItems:'center',gap:'4px'}}>&#9889; Full AI Video</div>
+                      <div style={{fontSize:'10px',color:'#1DB81D',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'6px',display:'flex',alignItems:'center',gap:'4px'}}>AI EXPRESS</div>
                       <div style={{fontSize:'11px',color:'#0a0a0a',lineHeight:1.8}}>{aiProduced} video üretildi</div>
                       <div style={{fontSize:'11px',color:'#888'}}>{aiPurchased} video satın alındı</div>
                     </div>
@@ -434,7 +434,7 @@ export default function ClientDashboard() {
                         </div>
                         <div style={{display:'flex',alignItems:'center',gap:'6px',flexShrink:0}}>
                           {aiList.map((ai,ai_i) => <span key={ai_i} style={{fontSize:'9px',padding:'3px 8px',borderRadius:'6px',background:`${ai.color}12`,color:ai.color,fontWeight:'600',display:'flex',alignItems:'center',gap:'3px',whiteSpace:'nowrap'}}>{ai.label==='Üretiliyor'?'':'\u26A1'} {ai.label}</span>)}
-                          {cpsInd && <span style={{fontSize:'9px',padding:'3px 8px',borderRadius:'6px',background:`${cpsInd.color}12`,color:cpsInd.color,fontWeight:'600',display:'flex',alignItems:'center',gap:'3px',whiteSpace:'nowrap'}}>&#9638; {cpsInd.label}</span>}
+                          {cpsInd && <span style={{fontSize:'9px',padding:'3px 8px',borderRadius:'6px',background:`${cpsInd.color}12`,color:cpsInd.color,fontWeight:'600',display:'flex',alignItems:'center',gap:'3px',whiteSpace:'nowrap'}}>{cpsInd.label}</span>}
                           <span style={{fontSize:'10px',padding:'4px 12px',borderRadius:'6px',background:`${statusColor[b.status]||'#888'}12`,color:statusColor[b.status]||'#888',fontWeight:'500',whiteSpace:'nowrap'}}>{statusLabel[b.status]||b.status}</span>
                         </div>
                       </div>

@@ -183,7 +183,7 @@ export default function BrandPage() {
             {msg&&<div style={{marginBottom:'12px',fontSize:'13px',color:'#e24b4a'}}>{msg}</div>}
             <div style={{display:'flex',gap:'8px',justifyContent:'flex-end'}}>
               <button onClick={()=>{setShowModal(false);setMsg('')}} style={{padding:'9px 20px',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'8px',background:'#fff',color:'#555',fontSize:'13px',cursor:'pointer',}}>İptal</button>
-              <button onClick={handleUpload} disabled={uploading} style={{padding:'9px 20px',background:'#111113',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontWeight:'500'}}>
+              <button onClick={handleUpload} disabled={uploading} className="btn" style={{padding:"9px 20px"}}>
                 {uploading?'Yükleniyor...':'Yükle'}
               </button>
             </div>

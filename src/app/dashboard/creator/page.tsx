@@ -274,7 +274,7 @@ export default function CreatorDashboard() {
                 </div>
                 {profileMsg&&<div style={{fontSize:'12px',color:profileMsg.includes('Hata')?'#ef4444':'#22c55e',marginBottom:'12px'}}>{profileMsg}</div>}
                 <button onClick={handleProfileSave} disabled={profileSaving}
-                  style={{padding:'10px 24px',background:'#111113',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontWeight:'500'}}>
+                  className="btn" style={{padding:"10px 24px"}}>
                   {profileSaving?'Kaydediliyor...':'Kaydet'}
                 </button>
               </div>

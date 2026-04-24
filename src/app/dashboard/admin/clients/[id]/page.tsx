@@ -647,7 +647,7 @@ export default function ClientDetailPage() {
                 </div>
 
                 <button onClick={saveBrand} disabled={savingBrand}
-                  style={{ padding: '7px 16px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '11px', fontWeight: '500', cursor: savingBrand ? 'not-allowed' : 'pointer',  }}>
+                  className="btn" style={{padding:'7px 16px',cursor:savingBrand?'not-allowed':'pointer'}}>
                   {savingBrand ? 'Kaydediliyor...' : 'Kaydet'}
                 </button>
               </div>

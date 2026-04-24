@@ -349,7 +349,7 @@ export default function AdminBriefDetail() {
                       {f.type==='textarea'?<textarea value={editForm[f.key]||''} onChange={e=>setEditForm({...editForm,[f.key]:e.target.value})} rows={3} style={{...inputStyle,resize:'vertical'}} />:<input type={f.type} value={editForm[f.key]||''} onChange={e=>setEditForm({...editForm,[f.key]:e.target.value})} style={inputStyle} />}
                     </div>
                   ))}
-                  <button type="submit" disabled={loading} style={{padding:'9px 20px',background:'#111113',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontWeight:'500'}}>{loading?'Kaydediliyor...':'Kaydet'}</button>
+                  <button type="submit" disabled={loading} className="btn" style={{padding:"9px 20px"}}>{loading?'Kaydediliyor...':'Kaydet'}</button>
                 </form>
               )}
 
@@ -512,7 +512,7 @@ export default function AdminBriefDetail() {
                           <div>
                             <input ref={voFileRef} type="file" accept=".mp3,.wav,.m4a,audio/*" style={{fontSize:'12px',color:'#0a0a0a',marginBottom:'8px'}} />
                             <button onClick={handleVoiceoverUpload} disabled={voUpload}
-                              style={{padding:'7px 16px',background:'#111113',color:'#fff',border:'none',borderRadius:'8px',fontSize:'11px',cursor:'pointer',fontWeight:'500'}}>
+                              className="btn" style={{padding:"7px 16px"}}>
                               {voUpload?'Yükleniyor...':'Yükle'}
                             </button>
                             <div style={{fontSize:'10px',color:'rgba(255,255,255,0.25)',marginTop:'6px'}}>mp3, wav, m4a — maks 50MB</div>

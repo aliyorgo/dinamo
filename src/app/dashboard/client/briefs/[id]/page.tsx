@@ -669,7 +669,7 @@ function ClientBriefDetail() {
                       <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a',marginBottom:'10px',lineHeight:'1.5'}}>{q.question}</div>
                       <div style={{display:'flex',gap:'8px'}}>
                         <input value={answers[q.id]||''} onChange={e=>setAnswers(prev=>({...prev,[q.id]:e.target.value}))} placeholder="Cevabınız..." style={{...inputStyle,flex:1,padding:'8px 12px'}} />
-                        <button onClick={()=>handleAnswer(q.id)} style={{padding:'8px 16px',background:'#111113',color:'#fff',border:'none',borderRadius:'8px',fontSize:'12px',cursor:'pointer',fontWeight:'500',whiteSpace:'nowrap'}}>Yanıtla</button>
+                        <button onClick={()=>handleAnswer(q.id)} className="btn" style={{padding:"8px 16px",whiteSpace:"nowrap"}}>Yanıtla</button>
                       </div>
                     </div>
                   ))}
@@ -1082,7 +1082,7 @@ function ClientBriefDetail() {
                       <div style={{fontSize:'13px',color:'#fff',lineHeight:1.7,flex:1}}>
                         Yayına çıkmadan önce fikir geliştirmek ve test etmek için tasarlanmıştır. Deneysel bir özelliktir — sonuçlar garanti edilmez. Bu videolar tamamen yazdığınız brief'den yola çıkarak yapay zeka tarafından üretilmektedir. Fikir, görsel, ses ve müzik tamamen AI tarafından oluşturulur. Ekrandaki yazılar sosyal medyada native text olarak eklenmelidir. Dinamo sadece marka bilgileri ile AI prompt'larına müdahale eder.
                       </div>
-                      <button onClick={()=>setAiWarningDismissed(true)} style={{background:'none',border:'none',cursor:'pointer',color:'rgba(255,255,255,0.7)',fontSize:'20px',lineHeight:1,padding:'0 2px',flexShrink:0}}>&#215;</button>
+                      <button onClick={()=>setAiWarningDismissed(true)} className="btn-ghost" style={{padding:"0 2px",flexShrink:0}}>&#215;</button>
                     </div>
                   )}
 
@@ -1289,7 +1289,7 @@ function ClientBriefDetail() {
                           style={{width:'100%',padding:'14px',background:(clientUser?.allocated_credits||0)<1?'#ccc':'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'13px',fontWeight:'600',cursor:(clientUser?.allocated_credits||0)<1?'default':'pointer',transition:'background 0.15s',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}
                           onMouseEnter={e=>{if((clientUser?.allocated_credits||0)>=1)e.currentTarget.style.background='#1DB81D'}}
                           onMouseLeave={e=>{if((clientUser?.allocated_credits||0)>=1)e.currentTarget.style.background='#0a0a0a'}}>
-                          <span>&#9889;</span> {aiChildren.length > 0 ? 'Yeni Versiyon Üret' : 'Full AI Video Üret'}
+                          {aiChildren.length > 0 ? 'Yeni Versiyon Üret' : 'Full AI Video Üret'}
                         </button>
                         <div style={{fontSize:'10px',color:'#999',textAlign:'center',marginTop:'6px'}}>{aiChildren.length > 0 ? '~5 dakika · 1 kredi' : '~5 dakika · İlk deneme ücretsiz · 2 kredi satın alma'}</div>
                       </div>
@@ -1359,7 +1359,7 @@ function ClientBriefDetail() {
                         setCpsGenerating(false)
                       }} disabled={cpsGenerating}
                         style={{padding:'9px 18px',background:'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'12px',fontWeight:'600',cursor:'pointer',}}>
-                        {cpsGenerating ? 'AI düşünüyor...' : '⚡ Varyasyon Planını AI Oluştur'}
+                        {cpsGenerating ? 'AI düşünüyor...' : 'VARYASYON PLANINI AI OLUŞTUR'}
                       </button>
                     </div>
 

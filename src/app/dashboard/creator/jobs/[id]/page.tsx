@@ -227,7 +227,7 @@ export default function CreatorJobDetail() {
                 <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'14px'}}>Video Yükle</div>
                 <div style={{display:'flex',gap:'10px',alignItems:'center',flexWrap:'wrap'}}>
                   <input ref={fileRef} type="file" accept="video/*" style={{flex:1,fontSize:'13px',color:'#0a0a0a',minWidth:'200px'}} />
-                  <button onClick={handleUpload} disabled={uploading} style={{padding:'9px 20px',background:'#111113',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontWeight:'500',whiteSpace:'nowrap'}}>
+                  <button onClick={handleUpload} disabled={uploading} className="btn" style={{padding:"9px 20px",whiteSpace:"nowrap"}}>
                     {uploading?'Yükleniyor...':'Yükle'}
                   </button>
                 </div>
