@@ -10,8 +10,8 @@ export async function POST(req: NextRequest) {
     const { clientId, sourceType, sourceId, text } = await req.json()
     if (!clientId || !text) return NextResponse.json({ error: 'clientId ve text gerekli' }, { status: 400 })
 
-    // Fire and forget — don't await
-    extractBrandRuleCandidate({ clientId, sourceType: sourceType || 'manual', sourceId: sourceId || clientId, text }).catch(() => {})
+    // Must await — Vercel terminates function after response
+    await extractBrandRuleCandidate({ clientId, sourceType: sourceType || 'manual', sourceId: sourceId || clientId, text })
 
     return NextResponse.json({ ok: true })
   } catch (err: any) {

@@ -14,7 +14,8 @@ interface ExtractionInput {
 }
 
 export async function extractBrandRuleCandidate({ clientId, sourceType, sourceId, text }: ExtractionInput) {
-  if (!text || text.trim().length < 20) return
+  console.log(`[brand-learning] Called: source=${sourceType}, clientId=${clientId?.slice(0,8)}, textLen=${text?.length}`)
+  if (!text || text.trim().length < 20) { console.log('[brand-learning] Skipped: text too short'); return }
 
   const prompt = `Aşağıdaki metin bir müşterinin ${sourceType} içeriğidir. Metinden markanın GENEL kural veya tercihi çıkar.
 
@@ -35,32 +36,60 @@ Metin:
 JSON array:`
 
   try {
+    console.log('[brand-learning] Calling Claude...')
+    const apiKey = process.env.ANTHROPIC_API_KEY
+    if (!apiKey) { console.error('[brand-learning] ANTHROPIC_API_KEY missing!'); return }
+
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
+      headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 1000,
         messages: [{ role: 'user', content: prompt }],
       }),
     })
+
+    if (!res.ok) {
+      const errText = await res.text()
+      console.error(`[brand-learning] Claude API error ${res.status}:`, errText.slice(0, 200))
+      return
+    }
+
     const data = await res.json()
     const raw = (data.content?.[0]?.text || '').trim()
+    console.log('[brand-learning] Claude response:', raw.slice(0, 200))
     const cleaned = raw.replace(/```json|```/g, '').trim()
-    const candidates = JSON.parse(cleaned)
-    if (!Array.isArray(candidates) || !candidates.length) return
+
+    let candidates: any[]
+    try {
+      candidates = JSON.parse(cleaned)
+    } catch (parseErr) {
+      console.error('[brand-learning] JSON parse failed:', cleaned.slice(0, 100))
+      return
+    }
+
+    if (!Array.isArray(candidates) || !candidates.length) {
+      console.log('[brand-learning] No candidates extracted')
+      return
+    }
+
+    console.log(`[brand-learning] ${candidates.length} candidates found`)
 
     for (const c of candidates) {
+      if (!c.rule_text) continue
       const existing = await findSimilarCandidate(clientId, c.rule_text)
       if (existing) {
         const newSourceIds = [...(existing.source_ids || []), sourceId]
         const newSnippets = [...(existing.source_snippets || []), text.slice(0, 200)]
-        await supabase
+        const { error: upErr } = await supabase
           .from('brand_learning_candidates')
           .update({ source_ids: newSourceIds, source_snippets: newSnippets })
           .eq('id', existing.id)
+        if (upErr) console.error('[brand-learning] Update error:', upErr.message)
+        else console.log('[brand-learning] Merged with existing:', existing.id.slice(0, 8))
       } else {
-        await supabase.from('brand_learning_candidates').insert({
+        const { error: insErr } = await supabase.from('brand_learning_candidates').insert({
           client_id: clientId,
           source_type: sourceType,
           source_ids: [sourceId],
@@ -70,11 +99,13 @@ JSON array:`
           rule_type: c.rule_type || 'positive',
           temporal: c.temporal || false,
         })
+        if (insErr) console.error('[brand-learning] Insert error:', insErr.message)
+        else console.log('[brand-learning] New candidate:', c.rule_text.slice(0, 50))
       }
     }
-    console.log(`[brand-learning] Extracted ${candidates.length} candidates for ${clientId.slice(0, 8)}`)
+    console.log(`[brand-learning] Done: ${candidates.length} candidates for ${clientId.slice(0, 8)}`)
   } catch (err: any) {
-    console.error('[brand-learning] extraction failed:', err.message)
+    console.error('[brand-learning] extraction failed:', err.message, err.stack?.slice(0, 200))
   }
 }
 
