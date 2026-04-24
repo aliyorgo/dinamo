@@ -669,7 +669,16 @@ export default function ClientDetailPage() {
                 <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Marka Öğrenme ({learningCandidates.length})</div>
                 <button onClick={async () => {
                   setSeedImporting(true)
-                  const seedText = [brand.tone, brand.avoid, brand.notes, brand.forbidden_colors].filter(Boolean).join('\n')
+                  const seedParts = [
+                    aiNotes && `Marka AI Notları: ${aiNotes}`,
+                    brand.tone && `Marka tonu: ${brand.tone}`,
+                    brand.avoid && `Kaçınılacaklar: ${brand.avoid}`,
+                    brand.notes && `Marka notları: ${brand.notes}`,
+                    brand.forbidden_colors && `Yasaklı renkler: ${brand.forbidden_colors}`,
+                    brand.primary_color && `Ana renk: ${brand.primary_color}`,
+                    brand.secondary_color && `İkincil renk: ${brand.secondary_color}`,
+                  ].filter(Boolean)
+                  const seedText = seedParts.join('\n')
                   if (seedText.length > 20) {
                     await fetch('/api/brand-learning', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ clientId, sourceType: 'seed_import', sourceId: clientId, text: seedText }) })
                     setTimeout(async () => {
