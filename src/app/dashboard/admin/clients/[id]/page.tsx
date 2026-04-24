@@ -570,24 +570,20 @@ export default function ClientDetailPage() {
                     </div>
                   )}
                 </div>
-                <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}>Primary Renk</div>
-                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                      <input type="color" value={brand.primary_color || '#000000'} onChange={e => setBrand({ ...brand, primary_color: e.target.value })}
-                        style={{ width: '32px', height: '32px', border: '1px solid var(--color-border-tertiary)', borderRadius: '6px', cursor: 'pointer', padding: 0 }} />
-                      <input value={brand.primary_color} onChange={e => setBrand({ ...brand, primary_color: e.target.value })} placeholder="#000000"
-                        style={{ flex: 1, padding: '7px 10px', border: '1px solid var(--color-border-tertiary)', borderRadius: '8px', fontSize: '12px', color: '#0a0a0a', fontFamily: 'monospace' }} />
-                    </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <input type="color" value={brand.primary_color || '#000000'} onChange={e => setBrand({ ...brand, primary_color: e.target.value })}
+                      style={{ width: '32px', height: '32px', border: '1px solid #0a0a0a', cursor: 'pointer', padding: 0 }} />
+                    <span style={{ fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: '500', color: 'var(--color-text-secondary)' }}>PRIMARY</span>
+                    <input value={brand.primary_color} onChange={e => setBrand({ ...brand, primary_color: e.target.value })} placeholder="#000000"
+                      style={{ width: '80px', padding: '4px 8px', border: '1px solid var(--color-border-tertiary)', fontSize: '11px', color: 'var(--color-text-secondary)', fontFamily: 'monospace' }} />
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}>Secondary Renk</div>
-                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                      <input type="color" value={brand.secondary_color || '#000000'} onChange={e => setBrand({ ...brand, secondary_color: e.target.value })}
-                        style={{ width: '32px', height: '32px', border: '1px solid var(--color-border-tertiary)', borderRadius: '6px', cursor: 'pointer', padding: 0 }} />
-                      <input value={brand.secondary_color} onChange={e => setBrand({ ...brand, secondary_color: e.target.value })} placeholder="#000000"
-                        style={{ flex: 1, padding: '7px 10px', border: '1px solid var(--color-border-tertiary)', borderRadius: '8px', fontSize: '12px', color: '#0a0a0a', fontFamily: 'monospace' }} />
-                    </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <input type="color" value={brand.secondary_color || '#000000'} onChange={e => setBrand({ ...brand, secondary_color: e.target.value })}
+                      style={{ width: '32px', height: '32px', border: '1px solid #0a0a0a', cursor: 'pointer', padding: 0 }} />
+                    <span style={{ fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: '500', color: 'var(--color-text-secondary)' }}>SECONDARY</span>
+                    <input value={brand.secondary_color} onChange={e => setBrand({ ...brand, secondary_color: e.target.value })} placeholder="#000000"
+                      style={{ width: '80px', padding: '4px 8px', border: '1px solid var(--color-border-tertiary)', fontSize: '11px', color: 'var(--color-text-secondary)', fontFamily: 'monospace' }} />
                   </div>
                 </div>
                 {/* Logo pozisyonu */}
