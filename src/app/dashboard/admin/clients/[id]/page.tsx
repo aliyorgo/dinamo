@@ -92,8 +92,9 @@ export default function ClientDetailPage() {
   const [learningCandidates, setLearningCandidates] = useState<any[]>([])
   const [brandRules, setBrandRules] = useState<any[]>([])
   const [seedImporting, setSeedImporting] = useState(false)
-  const [newRuleModal, setNewRuleModal] = useState(false)
-  const [newRule, setNewRule] = useState({ rule_text: '', rule_condition: '', rule_type: 'positive', temporal: false })
+  const [newRule, setNewRule] = useState({ text: '', condition: '', type: 'rule' })
+  const [rulesTab, setRulesTab] = useState<'pending'|'active'|'add'>('pending')
+  const [aiNotesInput, setAiNotesInput] = useState('')
 
   function showMsg(text: string, isError = false) {
     setMsg(text)
@@ -367,10 +368,6 @@ export default function ClientDetailPage() {
     await supabase.from('clients').update({
       brand_primary_color: brand.primary_color || null,
       brand_secondary_color: brand.secondary_color || null,
-      brand_forbidden_colors: brand.forbidden_colors || null,
-      brand_tone: brand.tone || null,
-      brand_avoid: brand.avoid || null,
-      brand_notes: brand.notes || null,
       brand_logo_position: brandLogoPosition,
     }).eq('id', clientId)
     setSavingBrand(false)
@@ -525,10 +522,10 @@ export default function ClientDetailPage() {
                 </button>
               </div>
 
-              {/* BRAND */}
+              {/* BRAND ASSETS */}
               <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', padding: '20px' }}>
                 <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '14px' }}>
-                  Marka Bilgileri
+                  Marka Varlıkları
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', padding: '10px 12px', background: 'rgba(0,0,0,0.02)', borderRadius: '8px' }}>
                   <div>
@@ -596,26 +593,6 @@ export default function ClientDetailPage() {
                     </div>
                   </div>
                 </div>
-                <div style={{ marginBottom: '12px' }}>
-                  <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}>Yasakli Renkler</div>
-                  <input value={brand.forbidden_colors} onChange={e => setBrand({ ...brand, forbidden_colors: e.target.value })} placeholder="örn: kırmızı, mor, sarı"
-                    style={{ width: '100%', padding: '7px 10px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', color: '#0a0a0a', boxSizing: 'border-box' }} />
-                </div>
-                <div style={{ marginBottom: '12px' }}>
-                  <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}>Marka Tonu</div>
-                  <input value={brand.tone} onChange={e => setBrand({ ...brand, tone: e.target.value })} placeholder="örn: samimi, enerjik, güvenilir"
-                    style={{ width: '100%', padding: '7px 10px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', color: '#0a0a0a', boxSizing: 'border-box' }} />
-                </div>
-                <div style={{ marginBottom: '12px' }}>
-                  <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}>Kacinilacaklar</div>
-                  <textarea value={brand.avoid} onChange={e => setBrand({ ...brand, avoid: e.target.value })} placeholder="örn: karanlık mekanlar, aşırı resmi dil"
-                    rows={2} style={{ width: '100%', padding: '7px 10px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', color: '#0a0a0a', resize: 'vertical', fontFamily: 'var(--font-dm-sans),sans-serif', boxSizing: 'border-box' }} />
-                </div>
-                <div style={{ marginBottom: '12px' }}>
-                  <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}>Marka Notlari</div>
-                  <textarea value={brand.notes} onChange={e => setBrand({ ...brand, notes: e.target.value })} placeholder="Ek marka bilgileri..."
-                    rows={3} style={{ width: '100%', padding: '7px 10px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', color: '#0a0a0a', resize: 'vertical', fontFamily: 'var(--font-dm-sans),sans-serif', boxSizing: 'border-box' }} />
-                </div>
                 {/* Logo pozisyonu */}
                 <div style={{ marginBottom: '12px' }}>
                   <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}>Logo Pozisyonu (Statik Görsel Yan Panel)</div>
@@ -665,24 +642,17 @@ export default function ClientDetailPage() {
               </div>
             </div>
 
-            {/* BRAND LEARNING — CANDIDATES */}
+            {/* AI NOTES + RULES SYSTEM */}
             <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', padding: '20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Marka Öğrenme ({learningCandidates.length})</div>
-                <button onClick={async () => {
+              {/* AI Notes Bucket */}
+              <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>AI Notları Kovası</div>
+              <textarea value={aiNotesInput} onChange={e => setAiNotesInput(e.target.value)} rows={4} placeholder="Marka hakkında bilgi, wiki, analiz, sektör notu, serbest metin yapıştırın..."
+                style={{ width: '100%', padding: '10px 12px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', color: '#0a0a0a', resize: 'vertical', fontFamily: 'var(--font-dm-sans),sans-serif', boxSizing: 'border-box', marginBottom: '8px' }} />
+              <button disabled={seedImporting || aiNotesInput.trim().length < 20} onClick={async () => {
                   setSeedImporting(true)
-                  const seedParts = [
-                    aiNotes && `Marka AI Notları: ${aiNotes}`,
-                    brand.tone && `Marka tonu: ${brand.tone}`,
-                    brand.avoid && `Kaçınılacaklar: ${brand.avoid}`,
-                    brand.notes && `Marka notları: ${brand.notes}`,
-                    brand.forbidden_colors && `Yasaklı renkler: ${brand.forbidden_colors}`,
-                    brand.primary_color && `Ana renk: ${brand.primary_color}`,
-                    brand.secondary_color && `İkincil renk: ${brand.secondary_color}`,
-                  ].filter(Boolean)
-                  const seedText = seedParts.join('\n')
+                  const seedText = aiNotesInput.trim()
                   if (seedText.length > 20) {
-                    const resp = await fetch('/api/brand-learning', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ clientId, sourceType: 'seed_import', sourceId: clientId, text: seedText }) })
+                    const resp = await fetch('/api/brand-learning', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ clientId, sourceType: 'admin_notes', sourceId: clientId, text: seedText }) })
                     const respData = await resp.json()
                     console.log('[admin] Seed import response:', respData)
                     // Refetch immediately — API awaits extraction now
@@ -691,119 +661,118 @@ export default function ClientDetailPage() {
                     console.log('[admin] Refetched candidates:', data?.length || 0)
                     setLearningCandidates(data || [])
                     setSeedImporting(false)
-                    showMsg('Marka notlarından kurallar çıkarıldı.')
-                  } else { setSeedImporting(false); showMsg('Marka notları yetersiz.', true) }
-                }} disabled={seedImporting}
-                  style={{ fontSize: '10px', padding: '4px 10px', background: '#f5f4f0', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '6px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', color: '#555' }}>
-                  {seedImporting ? 'Çıkarılıyor...' : 'Notlardan Çıkar'}
+                    setAiNotesInput('')
+                    setRulesTab('pending')
+                    showMsg('Kurallar çıkarıldı.')
+                  } else { setSeedImporting(false); showMsg('Metin yetersiz (20+ karakter gerekli).', true) }
+                }}
+                  style={{ padding: '7px 16px', background: seedImporting || aiNotesInput.trim().length < 20 ? '#ccc' : '#111113', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '11px', fontWeight: '500', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+                  {seedImporting ? 'Çıkarılıyor...' : 'Kural Çıkar'}
                 </button>
-              </div>
-              {learningCandidates.length === 0 ? (
-                <div style={{ fontSize: '12px', color: '#aaa', textAlign: 'center', padding: '16px 0' }}>Onay bekleyen kural yok</div>
-              ) : learningCandidates.map((c: any) => (
-                <div key={c.id} style={{ padding: '10px 0', borderTop: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a', marginBottom: '4px' }}>{c.rule_text}</div>
-                    <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '4px' }}>
-                      <span style={{ fontSize: '9px', padding: '2px 6px', borderRadius: '3px', background: c.rule_type === 'positive' ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)', color: c.rule_type === 'positive' ? '#22c55e' : '#ef4444' }}>{c.rule_type === 'positive' ? 'Tercih' : 'Yasak'}</span>
-                      {c.temporal && <span style={{ fontSize: '9px', padding: '2px 6px', borderRadius: '3px', background: 'rgba(245,158,11,0.1)', color: '#f59e0b' }}>Dönemsel</span>}
-                      <span style={{ fontSize: '9px', color: '#aaa' }}>{c.source_ids?.length || 1} kaynaktan</span>
-                    </div>
-                    {c.rule_condition && <div style={{ fontSize: '11px', color: '#888', fontStyle: 'italic' }}>{c.rule_condition}</div>}
-                  </div>
-                  <button onClick={async () => {
-                    await supabase.from('brand_learning_candidates').update({ status: 'approved', reviewed_at: new Date().toISOString() }).eq('id', c.id)
-                    await supabase.from('brand_rules').insert({ client_id: clientId, rule_text: c.rule_text, rule_condition: c.rule_condition, rule_type: c.rule_type, temporal: c.temporal, source_candidate_id: c.id })
-                    setLearningCandidates(prev => prev.filter(x => x.id !== c.id))
-                    const { data: r } = await supabase.from('brand_rules').select('*').eq('client_id', clientId).order('created_at', { ascending: false })
-                    setBrandRules(r || [])
-                    showMsg('Kural onaylandı.')
-                  }} style={{ fontSize: '11px', color: '#22c55e', background: 'none', border: '0.5px solid rgba(34,197,94,0.3)', borderRadius: '4px', padding: '4px 10px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>✓</button>
-                  <button onClick={async () => {
-                    await supabase.from('brand_learning_candidates').update({ status: 'rejected', reviewed_at: new Date().toISOString() }).eq('id', c.id)
-                    setLearningCandidates(prev => prev.filter(x => x.id !== c.id))
-                    showMsg('Kural reddedildi.')
-                  }} style={{ fontSize: '11px', color: '#ef4444', background: 'none', border: '0.5px solid rgba(239,68,68,0.3)', borderRadius: '4px', padding: '4px 10px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>✗</button>
-                </div>
-              ))}
-            </div>
 
-            {/* BRAND RULES — ACTIVE */}
-            <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', padding: '20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Aktif Kurallar ({brandRules.length})</div>
-                <button onClick={() => setNewRuleModal(true)}
-                  style={{ fontSize: '10px', padding: '4px 10px', background: '#111113', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
-                  + Kural Ekle
-                </button>
+              {/* 3-TAB RULES */}
+              <div style={{ display: 'flex', gap: '0', borderBottom: '0.5px solid rgba(0,0,0,0.08)', marginTop: '20px', marginBottom: '14px' }}>
+                {([['pending', `Onay Bekleyen (${learningCandidates.length})`], ['active', `Aktif (${brandRules.length})`], ['add', 'Manuel Ekle']] as const).map(([key, label]) => (
+                  <button key={key} onClick={() => setRulesTab(key as any)}
+                    style={{ padding: '8px 14px', fontSize: '11px', fontWeight: rulesTab === key ? '600' : '400', color: rulesTab === key ? '#0a0a0a' : '#888', background: 'none', border: 'none', borderBottom: rulesTab === key ? '2px solid #1DB81D' : '2px solid transparent', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+                    {label}
+                  </button>
+                ))}
               </div>
-              {brandRules.length === 0 ? (
-                <div style={{ fontSize: '12px', color: '#aaa', textAlign: 'center', padding: '16px 0' }}>Henüz aktif kural yok</div>
-              ) : brandRules.map((r: any) => (
-                <div key={r.id} style={{ padding: '8px 0', borderTop: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '12px', fontWeight: '500', color: '#0a0a0a', marginBottom: '3px' }}>{r.rule_text}</div>
-                    <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: '9px', padding: '2px 6px', borderRadius: '3px', background: r.rule_type === 'positive' ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)', color: r.rule_type === 'positive' ? '#22c55e' : '#ef4444' }}>{r.rule_type === 'positive' ? 'Tercih' : 'Yasak'}</span>
-                      {r.temporal && <span style={{ fontSize: '9px', padding: '2px 6px', borderRadius: '3px', background: 'rgba(245,158,11,0.1)', color: '#f59e0b' }}>Dönemsel</span>}
-                      {r.rule_condition && <span style={{ fontSize: '9px', color: '#888', fontStyle: 'italic' }}>{r.rule_condition}</span>}
-                      <span style={{ fontSize: '9px', color: '#aaa' }}>{r.manually_added ? 'Manuel' : 'Onaydan'}</span>
-                    </div>
-                  </div>
-                  <button onClick={async () => {
-                    await supabase.from('brand_rules').delete().eq('id', r.id)
-                    setBrandRules(prev => prev.filter(x => x.id !== r.id))
-                    showMsg('Kural silindi.')
-                  }} style={{ fontSize: '10px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>Sil</button>
-                </div>
-              ))}
-            </div>
 
-            {/* NEW RULE MODAL */}
-            {newRuleModal && (
-              <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setNewRuleModal(false)}>
-                <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)' }} />
-                <div onClick={e => e.stopPropagation()} style={{ position: 'relative', background: '#fff', borderRadius: '12px', padding: '24px', width: '100%', maxWidth: '400px' }}>
-                  <div style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px' }}>Yeni Kural Ekle</div>
-                  <div style={{ marginBottom: '12px' }}>
-                    <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}>Kural metni *</div>
-                    <input value={newRule.rule_text} onChange={e => setNewRule({ ...newRule, rule_text: e.target.value })} placeholder="Erkek model kullanılmasın"
-                      style={{ width: '100%', padding: '8px 10px', border: '0.5px solid rgba(0,0,0,0.12)', borderRadius: '6px', fontSize: '13px', boxSizing: 'border-box' }} />
+              {rulesTab === 'pending' && (
+                learningCandidates.length === 0 ? <div style={{ fontSize: '12px', color: '#aaa', textAlign: 'center', padding: '16px 0' }}>Onay bekleyen kural yok</div> :
+                learningCandidates.map((c: any) => {
+                  const typeColors: Record<string,{bg:string,fg:string,label:string}> = { rule:{bg:'rgba(34,197,94,0.1)',fg:'#22c55e',label:'Kural'}, restriction:{bg:'rgba(239,68,68,0.1)',fg:'#ef4444',label:'Yasak'}, insight:{bg:'rgba(139,92,246,0.1)',fg:'#8b5cf6',label:'İçgörü'} }
+                  const tc = typeColors[c.type] || typeColors.rule
+                  return (
+                    <div key={c.id} style={{ padding: '10px 0', borderTop: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a', marginBottom: '4px' }}>{c.rule_text}</div>
+                        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: '9px', padding: '2px 6px', borderRadius: '3px', background: tc.bg, color: tc.fg }}>{tc.label}</span>
+                          <span style={{ fontSize: '9px', color: '#aaa' }}>{['brief','revision','feedback'].includes(c.source_type) ? 'Müşteriden' : 'Notlardan'}</span>
+                        </div>
+                        {c.rule_condition && <div style={{ fontSize: '11px', color: '#888', fontStyle: 'italic', marginTop: '2px' }}>{c.rule_condition}</div>}
+                      </div>
+                      <button onClick={async () => {
+                        await supabase.from('brand_learning_candidates').update({ status: 'approved', reviewed_at: new Date().toISOString() }).eq('id', c.id)
+                        await supabase.from('brand_rules').insert({ client_id: clientId, rule_text: c.rule_text, rule_condition: c.rule_condition, type: c.type || 'rule', rule_type: c.rule_type, source_candidate_id: c.id, source_type: c.source_type, manually_added: false })
+                        setLearningCandidates(prev => prev.filter(x => x.id !== c.id))
+                        const { data: r } = await supabase.from('brand_rules').select('*').eq('client_id', clientId).order('created_at', { ascending: false })
+                        setBrandRules(r || [])
+                        showMsg('Kural onaylandı.')
+                      }} style={{ fontSize: '11px', color: '#22c55e', background: 'none', border: '0.5px solid rgba(34,197,94,0.3)', borderRadius: '4px', padding: '4px 10px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>✓</button>
+                      <button onClick={async () => {
+                        await supabase.from('brand_learning_candidates').update({ status: 'rejected', reviewed_at: new Date().toISOString() }).eq('id', c.id)
+                        setLearningCandidates(prev => prev.filter(x => x.id !== c.id))
+                        showMsg('Reddedildi.')
+                      }} style={{ fontSize: '11px', color: '#ef4444', background: 'none', border: '0.5px solid rgba(239,68,68,0.3)', borderRadius: '4px', padding: '4px 10px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>✗</button>
+                    </div>
+                  )
+                })
+              )}
+
+              {rulesTab === 'active' && (
+                brandRules.length === 0 ? <div style={{ fontSize: '12px', color: '#aaa', textAlign: 'center', padding: '16px 0' }}>Henüz aktif kural yok</div> :
+                brandRules.map((r: any) => {
+                  const typeColors: Record<string,{bg:string,fg:string,label:string}> = { rule:{bg:'rgba(34,197,94,0.1)',fg:'#22c55e',label:'Kural'}, restriction:{bg:'rgba(239,68,68,0.1)',fg:'#ef4444',label:'Yasak'}, insight:{bg:'rgba(139,92,246,0.1)',fg:'#8b5cf6',label:'İçgörü'} }
+                  const tc = typeColors[r.type] || typeColors.rule
+                  const srcLabel = r.manually_added ? 'Manuel' : r.source_type === 'migrated' ? 'Migrate' : ['brief','revision','feedback'].includes(r.source_type) ? 'Müşteriden' : 'Notlardan'
+                  return (
+                    <div key={r.id} style={{ padding: '8px 0', borderTop: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '12px', fontWeight: '500', color: '#0a0a0a', marginBottom: '3px' }}>{r.rule_text}</div>
+                        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: '9px', padding: '2px 6px', borderRadius: '3px', background: tc.bg, color: tc.fg }}>{tc.label}</span>
+                          {r.rule_condition && <span style={{ fontSize: '9px', color: '#888', fontStyle: 'italic' }}>{r.rule_condition}</span>}
+                          <span style={{ fontSize: '9px', color: '#aaa' }}>{srcLabel}</span>
+                        </div>
+                      </div>
+                      <button onClick={async () => {
+                        await supabase.from('brand_rules').delete().eq('id', r.id)
+                        setBrandRules(prev => prev.filter(x => x.id !== r.id))
+                        showMsg('Kural silindi.')
+                      }} style={{ fontSize: '10px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>Sil</button>
+                    </div>
+                  )
+                })
+              )}
+
+              {rulesTab === 'add' && (
+                <div style={{ padding: '8px 0' }}>
+                  <div style={{ marginBottom: '10px' }}>
+                    <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}>Tip</div>
+                    <select value={newRule.type} onChange={e => setNewRule({ ...newRule, type: e.target.value })}
+                      style={{ width: '100%', padding: '7px 10px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '6px', fontSize: '12px', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+                      <option value="rule">Kural (pozitif talimat)</option>
+                      <option value="restriction">Yasak</option>
+                      <option value="insight">İçgörü (yaratıcı yönlendirme)</option>
+                    </select>
+                  </div>
+                  <div style={{ marginBottom: '10px' }}>
+                    <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}>Metin *</div>
+                    <input value={newRule.text} onChange={e => setNewRule({ ...newRule, text: e.target.value })} placeholder="Erkek model kullanılmasın"
+                      style={{ width: '100%', padding: '7px 10px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '6px', fontSize: '12px', boxSizing: 'border-box' }} />
                   </div>
                   <div style={{ marginBottom: '12px' }}>
                     <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}>Koşul (opsiyonel)</div>
-                    <input value={newRule.rule_condition} onChange={e => setNewRule({ ...newRule, rule_condition: e.target.value })} placeholder="Eğer ürün bikini/mayo ise"
-                      style={{ width: '100%', padding: '8px 10px', border: '0.5px solid rgba(0,0,0,0.12)', borderRadius: '6px', fontSize: '13px', boxSizing: 'border-box' }} />
+                    <input value={newRule.condition} onChange={e => setNewRule({ ...newRule, condition: e.target.value })} placeholder="Eğer ürün bikini/mayo ise"
+                      style={{ width: '100%', padding: '7px 10px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '6px', fontSize: '12px', boxSizing: 'border-box' }} />
                   </div>
-                  <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}>Tip</div>
-                      <select value={newRule.rule_type} onChange={e => setNewRule({ ...newRule, rule_type: e.target.value })}
-                        style={{ width: '100%', padding: '8px 10px', border: '0.5px solid rgba(0,0,0,0.12)', borderRadius: '6px', fontSize: '13px' }}>
-                        <option value="positive">Tercih</option>
-                        <option value="negative">Yasak</option>
-                      </select>
-                    </div>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', paddingTop: '18px' }}>
-                      <input type="checkbox" checked={newRule.temporal} onChange={e => setNewRule({ ...newRule, temporal: e.target.checked })} />
-                      <span style={{ fontSize: '12px', color: '#555' }}>Dönemsel</span>
-                    </label>
-                  </div>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <button onClick={() => setNewRuleModal(false)} style={{ flex: 1, padding: '8px', background: '#fff', border: '1px solid rgba(0,0,0,0.15)', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}>İptal</button>
-                    <button onClick={async () => {
-                      if (!newRule.rule_text) return
-                      await supabase.from('brand_rules').insert({ client_id: clientId, rule_text: newRule.rule_text, rule_condition: newRule.rule_condition || null, rule_type: newRule.rule_type, temporal: newRule.temporal, manually_added: true })
-                      const { data: r } = await supabase.from('brand_rules').select('*').eq('client_id', clientId).order('created_at', { ascending: false })
-                      setBrandRules(r || [])
-                      setNewRuleModal(false)
-                      setNewRule({ rule_text: '', rule_condition: '', rule_type: 'positive', temporal: false })
-                      showMsg('Kural eklendi.')
-                    }} style={{ flex: 1, padding: '8px', background: '#111113', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '12px', fontWeight: '500', cursor: 'pointer' }}>Kaydet</button>
-                  </div>
+                  <button disabled={!newRule.text} onClick={async () => {
+                    await supabase.from('brand_rules').insert({ client_id: clientId, rule_text: newRule.text, rule_condition: newRule.condition || null, type: newRule.type, rule_type: newRule.type === 'restriction' ? 'negative' : 'positive', manually_added: true, source_type: 'manual' })
+                    const { data: r } = await supabase.from('brand_rules').select('*').eq('client_id', clientId).order('created_at', { ascending: false })
+                    setBrandRules(r || [])
+                    setNewRule({ text: '', condition: '', type: 'rule' })
+                    setRulesTab('active')
+                    showMsg('Kural eklendi.')
+                  }} style={{ padding: '7px 16px', background: !newRule.text ? '#ccc' : '#111113', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '11px', fontWeight: '500', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+                    Kaydet
+                  </button>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
             {/* RIGHT COLUMN */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
