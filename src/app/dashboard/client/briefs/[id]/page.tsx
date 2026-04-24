@@ -1093,9 +1093,11 @@ function ClientBriefDetail() {
                     const isFailed = !hasVideo && (child.ai_video_status === 'failed' || child.ai_video_status === 'timeout')
                     const isProcessing = child.status === 'ai_processing' && !hasVideo && !isFailed
                     return (
-                      <div key={child.id} style={{display:'flex',gap:'14px',padding:'12px 0',borderBottom:idx<aiChildren.length-1?'0.5px solid rgba(0,0,0,0.06)':'none',alignItems:'flex-start'}}>
+                      <div key={child.id} style={{display:'flex',gap:'14px',padding:'14px',marginBottom:'8px',border:'1px solid var(--color-border-tertiary)',background:'#fff',alignItems:'flex-start',transition:'background 0.15s'}}
+                        onMouseEnter={e=>{e.currentTarget.style.background='var(--color-background-secondary)'}}
+                        onMouseLeave={e=>{e.currentTarget.style.background='#fff'}}>
                         {/* Video player */}
-                        <div style={{width:'200px',aspectRatio:(child.format||'9:16').replace(':','/'),borderRadius:'8px',background:hasVideo?'#0a0a0a':'#f5f4f0',border:hasVideo?'none':'0.5px solid rgba(0,0,0,0.08)',flexShrink:0,position:'relative'}}>
+                        <div style={{width:'200px',aspectRatio:(child.format||'9:16').replace(':','/'),background:'#0a0a0a',flexShrink:0,position:'relative',overflow:'hidden'}}>
                           {hasVideo ? (
                             <>
                               <video key={child.ai_video_url} src={child.ai_video_url} controls preload="metadata"
@@ -1408,14 +1410,16 @@ function ClientBriefDetail() {
                 {/* CPS children list */}
                 {cpsChildren.length > 0 && (
                   <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'20px 24px',marginBottom:'16px'}}>
-                    <div style={{fontSize:'14px',fontWeight:'600',color:'#0a0a0a',marginBottom:'16px'}}>Varyasyonlar</div>
+                    <div style={{fontSize:'11px',letterSpacing:'2px',textTransform:'uppercase',fontWeight:'500',color:'var(--color-text-primary)',marginBottom:'16px'}}>VARYASYONLAR</div>
                     {cpsChildren.map((child: any, idx: number) => {
                       const childVideo = child.video_submissions?.[0]
                       return (
-                        <div key={child.id} style={{display:'flex',gap:'14px',padding:'14px 0',borderTop:idx>0?'0.5px solid rgba(0,0,0,0.06)':'none',alignItems:'flex-start'}}>
+                        <div key={child.id} style={{display:'flex',gap:'14px',padding:'14px',marginBottom:'8px',border:'1px solid var(--color-border-tertiary)',background:'#fff',alignItems:'flex-start',transition:'background 0.15s'}}
+                          onMouseEnter={e=>{e.currentTarget.style.background='var(--color-background-secondary)'}}
+                          onMouseLeave={e=>{e.currentTarget.style.background='#fff'}}>
                           <div style={{width:'120px',flexShrink:0}}>
                             {childVideo?.video_url ? (
-                              <div style={{aspectRatio:(child.format||briefFormat).replace(':','/'),borderRadius:'6px',overflow:'hidden',background:'#0a0a0a'}}>
+                              <div style={{aspectRatio:(child.format||briefFormat).replace(':','/'),overflow:'hidden',background:'#0a0a0a'}}>
                                 <video src={childVideo.video_url} controls playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'contain',background:'black'}} />
                               </div>
                             ) : (

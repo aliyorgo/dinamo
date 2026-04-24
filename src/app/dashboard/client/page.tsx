@@ -336,7 +336,7 @@ export default function ClientDashboard() {
                       </div>
                       <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'8px'}}>
                         {homeVideos.map(v=>(
-                          <div key={v.id} style={{position:'relative',overflow:'hidden',aspectRatio:'9/16',background:'#111',cursor:'pointer'}}
+                          <div key={v.id} style={{position:'relative',overflow:'hidden',aspectRatio:'9/16',background:'#0a0a0a',cursor:'pointer',border:'1px solid var(--color-border-tertiary)'}}
                             onMouseEnter={e=>{const vid=e.currentTarget.querySelector('video') as HTMLVideoElement;if(vid)vid.play().catch(()=>{});const ov=e.currentTarget.querySelector('[data-ov]') as HTMLElement;if(ov)ov.style.opacity='0'}}
                             onMouseLeave={e=>{const vid=e.currentTarget.querySelector('video') as HTMLVideoElement;if(vid){vid.pause();vid.currentTime=0}const ov=e.currentTarget.querySelector('[data-ov]') as HTMLElement;if(ov)ov.style.opacity='1'}}>
                             <video src={v.video_url} loop muted playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'cover'}} />
