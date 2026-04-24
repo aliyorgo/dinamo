@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { useRouter, useParams } from 'next/navigation'
+import CountUp from 'react-countup'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
@@ -423,6 +424,23 @@ export default function ClientDetailPage() {
           {msg && <div style={{ marginLeft: 'auto', fontSize: '12px', color: msgColor }}>{msg}</div>}
         </div>
 
+        {/* HERO METRICS */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', borderBottom: '1px solid var(--color-border-tertiary)', background: 'var(--color-background-secondary)' }}>
+          {[
+            { label: 'AKTİF KURAL', value: brandRules.length },
+            { label: 'ONAY BEKLEYEN', value: learningCandidates.length },
+            { label: 'BRIEF', value: briefs.length },
+            { label: 'KREDİ BAKİYE', value: client?.credit_balance || 0 },
+          ].map(m => (
+            <div key={m.label} style={{ padding: '16px 20px', borderRight: '1px solid var(--color-border-tertiary)' }}>
+              <div style={{ fontSize: '10px', letterSpacing: '2px', fontWeight: '500', color: 'var(--color-text-tertiary)', marginBottom: '6px' }}>{m.label}</div>
+              <div style={{ fontSize: '28px', fontWeight: '500', color: 'var(--color-text-primary)', letterSpacing: '-1px' }}>
+                <CountUp end={m.value} duration={1.2} />
+              </div>
+            </div>
+          ))}
+        </div>
+
         <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: '20px', alignItems: 'start' }}>
 
@@ -667,7 +685,7 @@ export default function ClientDetailPage() {
               <div style={{ display: 'flex', gap: '0', borderBottom: '1px solid var(--color-border-tertiary)', marginTop: '20px', marginBottom: '14px' }}>
                 {([['pending', `Onay Bekleyen (${learningCandidates.length})`], ['active', `Aktif (${brandRules.length})`], ['add', 'Manuel Ekle']] as const).map(([key, label]) => (
                   <button key={key} onClick={() => setRulesTab(key as any)}
-                    style={{ padding: '8px 14px', fontSize: '11px', fontWeight: rulesTab === key ? '600' : '400', color: rulesTab === key ? '#0a0a0a' : '#888', background: 'none', border: 'none', borderBottom: rulesTab === key ? '2px solid #1DB81D' : '2px solid transparent', cursor: 'pointer',  }}>
+                    style={{ padding: '8px 14px', fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase' as const, fontWeight: '500', color: rulesTab === key ? '#0a0a0a' : 'var(--color-text-tertiary)', background: 'none', border: 'none', borderBottom: rulesTab === key ? '2px solid #0a0a0a' : '2px solid transparent', cursor: 'pointer' }}>
                     {label}
                   </button>
                 ))}
@@ -676,14 +694,14 @@ export default function ClientDetailPage() {
               {rulesTab === 'pending' && (
                 learningCandidates.length === 0 ? <div style={{ fontSize: '12px', color: '#aaa', textAlign: 'center', padding: '16px 0' }}>Onay bekleyen kural yok</div> :
                 learningCandidates.map((c: any) => {
-                  const typeColors: Record<string,{bg:string,fg:string,label:string}> = { rule:{bg:'rgba(34,197,94,0.1)',fg:'#22c55e',label:'Kural'}, restriction:{bg:'rgba(239,68,68,0.1)',fg:'#ef4444',label:'Yasak'}, insight:{bg:'rgba(139,92,246,0.1)',fg:'#8b5cf6',label:'İçgörü'} }
+                  const typeColors: Record<string,{bg:string,fg:string,label:string,border:string}> = { rule:{bg:'#E1F5EE',fg:'#085041',label:'Kural',border:'#1D9E75'}, restriction:{bg:'#FCEBEB',fg:'#791F1F',label:'Yasak',border:'#D85A30'}, insight:{bg:'#EEEDFE',fg:'#3C3489',label:'İçgörü',border:'#7F77DD'} }
                   const tc = typeColors[c.type] || typeColors.rule
                   return (
-                    <div key={c.id} style={{ padding: '10px 0', borderTop: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                    <div key={c.id} style={{ padding: '10px 0 10px 14px', borderTop: '1px solid var(--color-border-tertiary)', borderLeft: `3px solid ${tc.border}`, display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a', marginBottom: '4px' }}>{c.rule_text}</div>
+                        <div style={{ fontSize: '13px', fontWeight: '500', color: 'var(--color-text-primary)', marginBottom: '4px' }}>{c.rule_text}</div>
                         <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                          <span style={{ fontSize: '9px', padding: '2px 6px', borderRadius: '3px', background: tc.bg, color: tc.fg }}>{tc.label}</span>
+                          <span style={{ fontSize: '10px', padding: '3px 8px', fontWeight: '600', letterSpacing: '1px', textTransform: 'uppercase', background: tc.bg, color: tc.fg }}>{tc.label}</span>
                           <span style={{ fontSize: '9px', color: '#aaa' }}>{['brief','revision','feedback'].includes(c.source_type) ? 'Müşteriden' : 'Notlardan'}</span>
                         </div>
                         {c.rule_condition && <div style={{ fontSize: '11px', color: '#888', fontStyle: 'italic', marginTop: '2px' }}>{c.rule_condition}</div>}
@@ -711,15 +729,15 @@ export default function ClientDetailPage() {
               {rulesTab === 'active' && (
                 brandRules.length === 0 ? <div style={{ fontSize: '12px', color: '#aaa', textAlign: 'center', padding: '16px 0' }}>Henüz aktif kural yok</div> :
                 brandRules.map((r: any) => {
-                  const typeColors: Record<string,{bg:string,fg:string,label:string}> = { rule:{bg:'rgba(34,197,94,0.1)',fg:'#22c55e',label:'Kural'}, restriction:{bg:'rgba(239,68,68,0.1)',fg:'#ef4444',label:'Yasak'}, insight:{bg:'rgba(139,92,246,0.1)',fg:'#8b5cf6',label:'İçgörü'} }
+                  const typeColors: Record<string,{bg:string,fg:string,label:string,border:string}> = { rule:{bg:'#E1F5EE',fg:'#085041',label:'Kural',border:'#1D9E75'}, restriction:{bg:'#FCEBEB',fg:'#791F1F',label:'Yasak',border:'#D85A30'}, insight:{bg:'#EEEDFE',fg:'#3C3489',label:'İçgörü',border:'#7F77DD'} }
                   const tc = typeColors[r.type] || typeColors.rule
                   const srcLabel = r.manually_added ? 'Manuel' : r.source_type === 'migrated' ? 'Migrate' : ['brief','revision','feedback'].includes(r.source_type) ? 'Müşteriden' : 'Notlardan'
                   return (
-                    <div key={r.id} style={{ padding: '8px 0', borderTop: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                    <div key={r.id} style={{ padding: '8px 0 8px 14px', borderTop: '1px solid var(--color-border-tertiary)', borderLeft: `3px solid ${tc.border}`, display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: '12px', fontWeight: '500', color: '#0a0a0a', marginBottom: '3px' }}>{r.rule_text}</div>
+                        <div style={{ fontSize: '12px', fontWeight: '500', color: 'var(--color-text-primary)', marginBottom: '3px' }}>{r.rule_text}</div>
                         <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                          <span style={{ fontSize: '9px', padding: '2px 6px', borderRadius: '3px', background: tc.bg, color: tc.fg }}>{tc.label}</span>
+                          <span style={{ fontSize: '10px', padding: '3px 8px', fontWeight: '600', letterSpacing: '1px', textTransform: 'uppercase', background: tc.bg, color: tc.fg }}>{tc.label}</span>
                           {r.rule_condition && <span style={{ fontSize: '9px', color: '#888', fontStyle: 'italic' }}>{r.rule_condition}</span>}
                           <span style={{ fontSize: '9px', color: '#aaa' }}>{srcLabel}</span>
                         </div>
