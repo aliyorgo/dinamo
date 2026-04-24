@@ -70,14 +70,14 @@ export default function AgencyMemberDetailPage() {
       </div>
 
       {/* MAIN */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#f5f4f0', overflow: 'hidden' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#f5f4f0' }}>
         <div style={{ padding: '14px 28px', background: '#fff', borderBottom: '0.5px solid rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
           <button onClick={() => router.push('/dashboard/agency/members')} style={{ fontSize: '12px', color: '#888', background: 'none', border: 'none', cursor: 'pointer', padding: '0',  }}>Uyeler</button>
           <span style={{ color: '#ddd' }}>/</span>
           <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a' }}>{member?.name}</div>
         </div>
 
-        <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px' }}>
+        <div style={{ flex: 1, padding: '24px 28px' }}>
           {/* STATS */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '12px', marginBottom: '20px' }}>
             {[

@@ -124,13 +124,13 @@ export default function ProducerDashboard() {
         </div>
       </div>
 
-      <div style={{flex:1,display:'flex',flexDirection:'column',background:'#f5f4f0',overflow:'hidden'}}>
+      <div style={{flex:1,display:'flex',flexDirection:'column',background:'#f5f4f0'}}>
         <div style={{padding:'14px 28px',background:'#fff',borderBottom:'0.5px solid rgba(0,0,0,0.08)',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
           <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a'}}>Briefler</div>
           <div style={{fontSize:'12px',color:'rgba(255,255,255,0.4)'}}>{filtered.length} proje</div>
         </div>
 
-        <div style={{flex:1,overflowY:'auto',padding:'20px 28px'}}>
+        <div style={{flex:1,padding:'20px 28px'}}>
           {/* DAILY WORK LIST */}
           {!loading && (overdue.length > 0 || newToday.length > 0 || waitingApproval.length > 0) && (
             <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',overflow:'hidden',marginBottom:'20px'}}>

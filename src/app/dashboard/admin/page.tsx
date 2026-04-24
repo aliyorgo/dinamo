@@ -71,12 +71,12 @@ export default function AdminDashboard() {
 
 
   return (
-    <div style={{display:'flex',flexDirection:'column',overflow:'hidden'}}>
+    <div style={{display:'flex',flexDirection:'column'}}>
         <div style={{padding:'14px 28px',background:'#fff',borderBottom:'1px solid var(--color-border-tertiary)',flexShrink:0}}>
           <div style={{fontSize:'11px',letterSpacing:'2px',textTransform:'uppercase',fontWeight:'500',color:'var(--color-text-secondary)'}}>ADMİN PANEL · {new Date().toLocaleDateString('tr-TR',{day:'numeric',month:'long'}).toUpperCase()}</div>
         </div>
 
-        <div style={{flex:1,overflowY:'auto',padding:'24px 28px'}}>
+        <div style={{flex:1,padding:'24px 28px'}}>
           {loading ? <div style={{color:'rgba(255,255,255,0.4)',fontSize:'14px'}}>Yükleniyor...</div> : (
             <>
               {/* BUGÜN YAPILACAKLAR */}

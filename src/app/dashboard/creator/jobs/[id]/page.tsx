@@ -171,12 +171,12 @@ export default function CreatorJobDetail() {
         </div>
       </div>
 
-      <div style={{flex:1,display:'flex',flexDirection:'column',background:'#f5f4f0',overflow:'hidden'}}>
+      <div style={{flex:1,display:'flex',flexDirection:'column',background:'#f5f4f0'}}>
         <div style={{padding:'14px 28px',background:'#fff',borderBottom:'0.5px solid rgba(0,0,0,0.08)',flexShrink:0}}>
           <div style={{fontSize:'12px',color:'rgba(255,255,255,0.4)'}}>İşlerim / <span style={{color:'#0a0a0a',fontWeight:'500'}}>{brief?.campaign_name}</span></div>
         </div>
 
-        <div style={{flex:1,overflowY:'auto',padding:'24px 28px'}}>
+        <div style={{flex:1,padding:'24px 28px'}}>
           {brief && (
             <>
               {brief.voiceover_type==='real'&&!brief.voiceover_file_url&&(

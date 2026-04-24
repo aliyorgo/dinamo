@@ -441,7 +441,7 @@ export default function ClientDetailPage() {
           ))}
         </div>
 
-        <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px' }}>
+        <div style={{ flex: 1, padding: '24px 28px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: '20px', alignItems: 'start' }}>
 
             {/* LEFT COLUMN */}

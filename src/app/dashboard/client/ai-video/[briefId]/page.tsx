@@ -260,7 +260,7 @@ export default function AiVideoPage() {
       </div>
 
       {/* MAIN */}
-      <div style={{flex:1,display:'flex',flexDirection:'column',background:'#f5f4f0',overflow:'hidden'}}>
+      <div style={{flex:1,display:'flex',flexDirection:'column',background:'#f5f4f0'}}>
         {/* HEADER */}
         <div style={{padding:'14px 28px',background:'#fff',borderBottom:'0.5px solid rgba(0,0,0,0.08)',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
           <div style={{display:'flex',alignItems:'center',gap:'10px'}}>

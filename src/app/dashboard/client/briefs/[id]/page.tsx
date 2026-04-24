@@ -533,7 +533,7 @@ function ClientBriefDetail() {
       `}</style>
 
       {/* SIDEBAR */}
-      <div style={{width:'240px',background:'#0A0A0A',display:'flex',flexDirection:'column',flexShrink:0,height:'100dvh',overflowY:'auto'}}>
+      <div style={{width:'240px',background:'#0A0A0A',display:'flex',flexDirection:'column',flexShrink:0,height:'100dvh',overflowY:'auto',position:'sticky',top:0}}>
         <div style={{padding:'18px 16px 14px',borderBottom:'0.5px solid rgba(255,255,255,0.07)',cursor:'pointer'}} onClick={()=>router.push('/dashboard/client')}>
           <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} />
         </div>
@@ -571,7 +571,7 @@ function ClientBriefDetail() {
       </div>
 
       {/* MAIN */}
-      <div style={{flex:1,display:'flex',flexDirection:'column',background:'#f5f4f0',overflow:'hidden'}}>
+      <div style={{flex:1,display:'flex',flexDirection:'column',background:'#f5f4f0'}}>
         {/* HEADER */}
         <div style={{padding:'14px 28px',background:'#fff',borderBottom:'0.5px solid rgba(0,0,0,0.08)',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
           <div>
@@ -606,7 +606,7 @@ function ClientBriefDetail() {
           })}
         </div>
 
-        <div style={{flex:1,overflowY:'auto',padding:'24px 28px'}}>
+        <div style={{flex:1,padding:'24px 28px'}}>
           {!brief ? <div style={{color:'#888',fontSize:'14px'}}>Yükleniyor...</div> : (
             <>
               {/* SUCCESS TOAST */}

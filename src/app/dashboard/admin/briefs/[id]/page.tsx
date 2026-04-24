@@ -315,7 +315,7 @@ export default function AdminBriefDetail() {
           </div>
         </div>
 
-        <div className="dinamo-main-content" style={{flex:1,overflowY:'auto',padding:'24px 28px'}}>
+        <div className="dinamo-main-content" style={{flex:1,padding:'24px 28px'}}>
           {brief && (
             <>
               {msg && <div style={{padding:'10px 16px',background:msg.startsWith('Hata')||msg.includes('zorunlu')?'#fef2f2':'#e8f7e8',borderRadius:'8px',fontSize:'12px',color:msg.startsWith('Hata')||msg.includes('zorunlu')?'#ef4444':'#22c55e',marginBottom:'16px'}}>{msg}</div>}

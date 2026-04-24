@@ -143,12 +143,12 @@ export default function CreatorDashboard() {
         </div>
       </div>
 
-      <div style={{flex:1,display:'flex',flexDirection:'column',background:'#f5f4f0',overflow:'hidden'}}>
+      <div style={{flex:1,display:'flex',flexDirection:'column',background:'#f5f4f0'}}>
         <div style={{padding:'14px 28px',background:'#fff',borderBottom:'0.5px solid rgba(0,0,0,0.08)',flexShrink:0}}>
           <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a'}}>{tab==='jobs'?'İşlerim':tab==='wallet'?'Cüzdan':'Profil'}</div>
         </div>
 
-        <div style={{flex:1,overflowY:'auto',padding:'20px 28px'}}>
+        <div style={{flex:1,padding:'20px 28px'}}>
           {loading ? <div style={{color:'rgba(255,255,255,0.4)',fontSize:'14px'}}>Yükleniyor...</div> : tab==='jobs' ? (
             jobs.length === 0 ? (
               <div style={{textAlign:'center',padding:'60px 0',color:'rgba(255,255,255,0.4)',fontSize:'14px'}}>Atanmış iş yok.</div>
@@ -305,7 +305,7 @@ export default function CreatorDashboard() {
             <div style={{padding:'24px 28px',borderBottom:'0.5px solid rgba(0,0,0,0.08)',flexShrink:0}}>
               <div style={{fontSize:'18px',fontWeight:'500',color:'#0a0a0a'}}>Dinamo Creator Taahhütnamesi</div>
             </div>
-            <div style={{flex:1,overflowY:'auto',padding:'24px 28px',fontSize:'13px',color:'#333',lineHeight:1.8}}>
+            <div style={{flex:1,padding:'24px 28px',fontSize:'13px',color:'#333',lineHeight:1.8}}>
               <p style={{marginBottom:'16px'}}>Dinamo platformu üzerinden gerçekleştireceğim tüm prodüksiyon çalışmalarında aşağıdaki koşulları kabul ettiğimi beyan ederim.</p>
               <p style={{marginBottom:'8px'}}><strong>TELİF HAKLARI:</strong> Ürettiğim içeriklerde telif hakkı koruması altındaki hiçbir görsel, ses, müzik veya materyali izinsiz kullanmayacağımı taahhüt ederim. Stok görüntü, fotoğraf veya video kullanmam halinde yalnızca ticari kullanıma uygun, lisansı bana ait kaynaklardan yararlanacağımı kabul ederim.</p>
               <p style={{marginBottom:'8px'}}><strong>YAPAY ZEKA ARAÇLARI:</strong> AI ile ürettiğim tüm görsel ve ses içeriklerinde yalnızca ticari kullanıma izin veren ve sektörde saygınlığı kabul görmüş platformları kullanacağımı taahhüt ederim. Kullandığım promptların tamamen bana ait olduğunu, başkasına ait içerik veya promptları kopyalamayacağımı beyan ederim.</p>

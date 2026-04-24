@@ -333,7 +333,7 @@ function AgencyNewBrief() {
   return (
     <div style={{ display: 'flex', minHeight: '100vh',  }}>
       <Sidebar />
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#f5f4f0', overflow: 'hidden' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#f5f4f0' }}>
         {step > 0 && (
           <div style={{ padding: '14px 28px', background: '#fff', borderBottom: '0.5px solid rgba(0,0,0,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
             <div style={{ fontSize: '12px', color: '#888' }}>Yeni Brief / <span style={{ color: '#0a0a0a', fontWeight: '500' }}>{steps[step - 1]}</span></div>
@@ -341,7 +341,7 @@ function AgencyNewBrief() {
           </div>
         )}
 
-        <div style={{ flex: 1, overflowY: 'auto', padding: step <= 0 ? '0' : '32px 40px', maxWidth: step <= 0 ? 'none' : '640px' }}>
+        <div style={{ flex: 1, padding: step <= 0 ? '0' : '32px 40px', maxWidth: step <= 0 ? 'none' : '640px' }}>
 
           {/* ADIM 0 — Mod Secimi */}
           {step === 0 && (
