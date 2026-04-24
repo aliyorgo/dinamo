@@ -420,7 +420,7 @@ export default function ClientDashboard() {
                     const cpsInd = getCpsIndicator(b)
                     return (
                       <div key={b.id} onClick={()=>router.push(`/dashboard/client/briefs/${b.id}`)}
-                        style={{padding:'14px 16px',cursor:'pointer',display:'flex',alignItems:'center',gap:'12px',borderTop:i>0?'0.5px solid rgba(0,0,0,0.05)':'none',transition:'background 0.1s',background:isDone?'#f9f9f7':'#fff',borderLeft:isDone?'2px solid #22c55e':'2px solid transparent'}}
+                        style={{padding:'14px 16px 14px 14px',cursor:'pointer',display:'flex',alignItems:'center',gap:'12px',borderTop:i>0?'1px solid var(--color-border-tertiary)':'none',transition:'background 0.1s',background:isDone?'#f9f9f7':'#fff',borderLeft:`3px solid ${['delivered','ai_completed'].includes(b.status)?'#4ade80':['in_production','ai_processing'].includes(b.status)?'#0a0a0a':['draft','submitted','read'].includes(b.status)?'#9b9b95':'#e5e4db'}`}}
                         onMouseEnter={e=>(e.currentTarget.style.background=isDone?'#f4f4f2':'#fafaf8')}
                         onMouseLeave={e=>(e.currentTarget.style.background=isDone?'#f9f9f7':'#fff')}>
                         {videoMap[b.id] && (
