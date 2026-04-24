@@ -281,58 +281,68 @@ export default function ClientDashboard() {
           {loading ? (
             <div style={{padding:'24px 28px',color:'#888',fontSize:'14px'}}>Yükleniyor...</div>
           ) : briefs.length === 0 ? (
-            /* WELCOME SCREEN — white background */
-            <div style={{background:'#FFFFFF',minHeight:'100%',display:'flex',flexDirection:'column',position:'relative'}}>
+            /* WELCOME SCREEN */
+            <div style={{background:'var(--color-background-secondary)',minHeight:'100%',display:'flex',flexDirection:'column',position:'relative'}}>
 
-              {/* Main content centered */}
               <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',padding:'0 48px'}}>
-                <div style={{maxWidth:'520px',width:'100%'}}>
-                  <h1 style={{fontSize:'64px',fontWeight:'300',color:'#888',letterSpacing:'-0.02em',lineHeight:1.05,margin:0}}>
+                <div style={{maxWidth:'600px',width:'100%'}}>
+                  {/* Hero */}
+                  <h1 style={{fontSize:'40px',fontWeight:'500',color:'var(--color-text-secondary)',letterSpacing:'-0.02em',lineHeight:1.1,margin:0}}>
                     Hoş geldiniz,
                   </h1>
                   {companyName && (
-                    <h1 style={{fontSize:'64px',fontWeight:'700',color:'#0A0A0A',letterSpacing:'-0.02em',lineHeight:1.05,margin:0}}>
+                    <h1 className="editorial" style={{fontSize:'40px',fontWeight:'400',color:'var(--color-text-primary)',letterSpacing:'-0.02em',lineHeight:1.1,margin:'0 0 12px 0'}}>
                       {companyName}.
                     </h1>
                   )}
-                  <div style={{width:'60px',height:'2px',background:'#1DB81D',marginTop:'20px',marginBottom:'28px'}}></div>
-                  <p style={{fontSize:'18px',color:'rgba(255,255,255,0.4)',fontWeight:'300',letterSpacing:'0.01em',lineHeight:1.6,margin:'0 0 40px 0'}}>
+                  <div style={{width:'40px',height:'2px',background:'#4ade80',marginBottom:'20px'}}></div>
+                  <p style={{fontSize:'16px',color:'var(--color-text-secondary)',lineHeight:1.65,margin:'0 0 40px 0'}}>
                     Brief'inizi oluşturun, 24 saat içinde videonuz hazır.
                   </p>
 
-                  {/* Steps */}
-                  <div style={{display:'flex',alignItems:'flex-start',gap:'0',marginBottom:'48px'}}>
+                  {/* Action cards */}
+                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'12px',marginBottom:'40px'}}>
                     {[
-                      {n:'01',t:'Brief Yazın'},
-                      {n:'02',t:'Prodüktör Onaylar'},
-                      {n:'03',t:'Video Teslim'},
-                    ].map((s,i)=>(
-                      <div key={s.n} style={{display:'flex',alignItems:'flex-start'}}>
-                        <div>
-                          <div style={{fontSize:'48px',fontWeight:'700',color:'#1DB81D',letterSpacing:'-0.02em',lineHeight:1,marginBottom:'8px'}}>{s.n}</div>
-                          <div style={{fontSize:'16px',color:'#0A0A0A',fontWeight:'500'}}>{s.t}</div>
-                        </div>
-                        {i < 2 && <div style={{width:'40px',height:'1px',background:'#E0E0E0',margin:'8px 20px 0 20px',flexShrink:0}}></div>}
+                      { label: 'TEK VİDEO', title: 'Brief Oluştur', desc: 'Kampanya briefinizi yazın, ekibimiz üretsin.', href: '/dashboard/client/brief/new' },
+                      { label: 'HIZLI ÜRETİM', title: 'AI Express', desc: '~5 dakikada AI video — fikrinizi test edin.', href: '/dashboard/client/brief/new' },
+                      { label: 'PAKET', title: 'CPS', desc: 'Aynı kampanyadan farklı yaratıcı yönler.', href: '/dashboard/client/brief/new' },
+                    ].map(card => (
+                      <div key={card.title} onClick={() => router.push(card.href)}
+                        style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '24px 20px', cursor: 'pointer', transition: 'background 0.15s, border-color 0.15s', display: 'flex', flexDirection: 'column', minHeight: '180px' }}
+                        onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-background-secondary)'; e.currentTarget.style.borderColor = '#0a0a0a' }}
+                        onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = 'var(--color-border-tertiary)' }}>
+                        <div style={{ fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', fontWeight: '500', marginBottom: '12px' }}>{card.label}</div>
+                        <div style={{ fontSize: '18px', fontWeight: '500', color: 'var(--color-text-primary)', marginBottom: '8px' }}>{card.title}</div>
+                        <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: 1.5, flex: 1 }}>{card.desc}</div>
+                        <div style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-primary)', fontWeight: '500', marginTop: '16px' }}>BAŞLAT →</div>
                       </div>
                     ))}
                   </div>
 
-                  <div style={{fontSize:'12px',color:'#888',marginTop:'-36px',marginBottom:'36px'}}>Her brief gönderdikten sonra AI Express ve Creative Performance System özelliklerine erişirsiniz. AI Express ile briefinizden ~5 dakikada yapay zeka videosu üretin, CPS ile aynı kampanyadan farklı yaratıcı yönler ve varyasyonlar oluşturun.</div>
+                  {/* How it works */}
+                  <div style={{ marginBottom: '40px' }}>
+                    <div style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', fontWeight: '500', marginBottom: '16px' }}>NASIL ÇALIŞIR</div>
+                    {[
+                      { n: '01', t: 'Brief yazın — ne istediğinizi anlatın' },
+                      { n: '02', t: 'Prodüktör onaylar — ekibimiz üretir' },
+                      { n: '03', t: 'Video teslim — onayla ve indir' },
+                    ].map(s => (
+                      <div key={s.n} style={{ display: 'flex', gap: '12px', marginBottom: '8px', alignItems: 'baseline' }}>
+                        <span style={{ fontSize: '13px', fontWeight: '500', color: '#4ade80', flexShrink: 0 }}>{s.n}</span>
+                        <span style={{ fontSize: '14px', color: 'var(--color-text-secondary)', lineHeight: 1.7 }}>{s.t}</span>
+                      </div>
+                    ))}
+                  </div>
 
-                  {/* CTA */}
-                  <button onClick={()=>router.push('/dashboard/client/brief/new')}
-                    onMouseEnter={e=>{e.currentTarget.style.background='#1DB81D';e.currentTarget.style.color='#0A0A0A';const arrow=e.currentTarget.querySelector('svg');if(arrow)(arrow as unknown as HTMLElement).style.transform='translateX(4px)'}}
-                    onMouseLeave={e=>{e.currentTarget.style.background='#0A0A0A';e.currentTarget.style.color='#fff';const arrow=e.currentTarget.querySelector('svg');if(arrow)(arrow as unknown as HTMLElement).style.transform='translateX(0)'}}
-                    style={{padding:'14px 32px',background:'#0A0A0A',color:'#fff',border:'none',fontSize:'14px',fontWeight:'600',letterSpacing:'0.05em',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'8px',transition:'all 0.2s ease'}}>
-                    İlk Brief'i Oluştur
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{transition:'transform 0.2s ease'}}><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  </button>
+                  <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', lineHeight: 1.6, marginBottom: '40px' }}>
+                    Her brief gönderdikten sonra AI Express ve Creative Performance System özelliklerine erişirsiniz.
+                  </div>
 
                   {/* Video grid */}
                   {homeVideos.length > 0 && (
-                    <div style={{marginTop:'56px'}}>
-                      <div style={{fontSize:'18px',fontWeight:'600',color:'#0A0A0A',marginBottom:'16px',display:'flex',alignItems:'center',gap:'6px'}}>
-                        <img src="/dinamo_logo_siyah.png" alt="Dinamo" style={{height:'20px'}} /> ile Üretildi
+                    <div style={{marginBottom:'40px'}}>
+                      <div style={{fontSize:'11px',letterSpacing:'2px',textTransform:'uppercase',color:'var(--color-text-tertiary)',fontWeight:'500',marginBottom:'16px'}}>
+                        DİNAMO İLE ÜRETİLDİ
                       </div>
                       <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'8px'}}>
                         {homeVideos.map(v=>(
@@ -340,7 +350,7 @@ export default function ClientDashboard() {
                             onMouseEnter={e=>{const vid=e.currentTarget.querySelector('video') as HTMLVideoElement;if(vid)vid.play().catch(()=>{});const ov=e.currentTarget.querySelector('[data-ov]') as HTMLElement;if(ov)ov.style.opacity='0'}}
                             onMouseLeave={e=>{const vid=e.currentTarget.querySelector('video') as HTMLVideoElement;if(vid){vid.pause();vid.currentTime=0}const ov=e.currentTarget.querySelector('[data-ov]') as HTMLElement;if(ov)ov.style.opacity='1'}}>
                             <video src={v.video_url} loop muted playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'cover'}} />
-                            <div data-ov="" style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.5)',display:'flex',alignItems:'flex-end',padding:'10px',transition:'opacity 0.3s'}}>
+                            <div data-ov="" style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.4)',display:'flex',alignItems:'flex-end',padding:'10px',transition:'opacity 0.3s'}}>
                               <span style={{fontSize:'11px',fontWeight:'500',color:'#fff'}}>{v.title || ''}</span>
                             </div>
                           </div>
@@ -351,9 +361,8 @@ export default function ClientDashboard() {
                 </div>
               </div>
 
-              {/* Bottom email */}
               <div style={{padding:'20px',textAlign:'center'}}>
-                <span style={{fontSize:'11px',color:'#999'}}>Sorularınız için hello@dinamo.media</span>
+                <span style={{fontSize:'11px',color:'var(--color-text-tertiary)'}}>Sorularınız için hello@dinamo.media</span>
               </div>
             </div>
           ) : (
@@ -451,12 +460,11 @@ export default function ClientDashboard() {
               {/* EMPTY STATE */}
               {briefs.length === 0 && (
                 <div style={{display:'flex',justifyContent:'center',padding:'48px 0'}}>
-                  <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'16px',padding:'48px 56px',textAlign:'center',maxWidth:'420px'}}>
-                    <div style={{fontSize:'32px',fontWeight:'300',color:'#0a0a0a',letterSpacing:'-0.5px',marginBottom:'12px'}}>Hoş geldin, {userName.split(' ')[0]}!</div>
-                    <div style={{fontSize:'14px',color:'#888',lineHeight:1.6,marginBottom:'28px'}}>İlk brief'ini oluştur, 24 saat içinde vidyon hazır olsun.</div>
-                    <button onClick={()=>router.push('/dashboard/client/brief/new')}
-                      style={{background:'#22c55e',color:'#fff',border:'none',borderRadius:'10px',padding:'14px 32px',fontSize:'15px',cursor:'pointer',fontWeight:'500'}}>
-                      İlk Brief'ini Oluştur
+                  <div style={{background:'#fff',border:'1px solid var(--color-border-tertiary)',padding:'48px 56px',textAlign:'center',maxWidth:'420px'}}>
+                    <div style={{fontSize:'28px',fontWeight:'500',color:'var(--color-text-primary)',letterSpacing:'-0.01em',marginBottom:'12px'}}>Hoş geldin, {userName.split(' ')[0]}!</div>
+                    <div style={{fontSize:'14px',color:'var(--color-text-secondary)',lineHeight:1.6,marginBottom:'28px'}}>İlk brief'ini oluştur, 24 saat içinde vidyon hazır olsun.</div>
+                    <button onClick={()=>router.push('/dashboard/client/brief/new')} className="btn">
+                      İLK BRİEF'İ OLUŞTUR →
                     </button>
                   </div>
                 </div>
