@@ -71,9 +71,9 @@ export default function ActivityPage() {
 
   return (
     <div style={{ padding: '24px 28px',  }}>
-      <div style={{ fontSize: '18px', fontWeight: '600', color: '#0a0a0a', marginBottom: '20px' }}>Aktivite Logları</div>
+      <div style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: '500', color: 'var(--color-text-primary)', marginBottom: '20px' }}>AKTİVİTE LOG</div>
 
-      <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', padding: '16px 20px' }}>
+      <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '16px 20px' }}>
         {logs.map((log, i) => (
           <div key={log.id} style={{ display: 'flex', gap: '10px', padding: '10px 0', borderBottom: i < logs.length - 1 ? '0.5px solid rgba(0,0,0,0.06)' : 'none', alignItems: 'flex-start' }}>
             <ActionIcon type={log.action_type} />
