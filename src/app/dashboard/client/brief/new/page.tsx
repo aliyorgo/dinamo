@@ -482,7 +482,7 @@ function NewBriefPage() {
   return (
     <div style={{display:'flex',height:'100dvh',overflow:'hidden',fontFamily:"var(--font-sans),'Inter',system-ui,sans-serif"}}>
       <Sidebar/>
-      <div style={{flex:1,display:'flex',flexDirection:'column',background:'var(--color-background-secondary)',height:'100dvh',overflow:'hidden'}}>
+      <div style={{flex:1,display:'flex',flexDirection:'column',background:'var(--color-background-secondary)',minHeight:0,overflow:'hidden'}}>
         <div style={{padding:'14px 28px',background:'#fff',borderBottom:'1px solid var(--color-border-tertiary)',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
           <div style={{fontSize:'11px',letterSpacing:'1px',textTransform:'uppercase',color:'var(--color-text-secondary)'}}>Yeni Brief{step > 0 ? <> / <span style={{color:'var(--color-text-primary)',fontWeight:'500'}}>{steps[step-1]}</span></> : ''}</div>
           {step > 0 && (
