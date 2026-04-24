@@ -407,19 +407,19 @@ export default function ClientDetailPage() {
   return (
     <>
         {/* HEADER */}
-        <div style={{ padding: '14px 28px', background: '#fff', borderBottom: '0.5px solid rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
-          <button onClick={() => router.push('/dashboard/admin/clients')}
-            style={{ fontSize: '12px', color: '#888', background: 'none', border: 'none', cursor: 'pointer', padding: '0',  }}>
-            &#8592; Musteriler
+        <div style={{ padding: '14px 28px', background: '#fff', borderBottom: '1px solid var(--color-border-tertiary)', display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+          <button onClick={() => router.push('/dashboard/admin/clients')} className="btn-ghost"
+            style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', padding: '4px 8px' }}>
+            ← MÜŞTERİLER
           </button>
-          <span style={{ color: '#ddd' }}>/</span>
+          <span style={{ color: 'var(--color-border-tertiary)' }}>/</span>
           {client?.logo_url && (
-            <div style={{ width: '24px', height: '24px', borderRadius: '6px', overflow: 'hidden', background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', flexShrink: 0 }}>
+            <div style={{ width: '24px', height: '24px', overflow: 'hidden', background: '#fff', border: '1px solid var(--color-border-tertiary)', flexShrink: 0 }}>
               <img src={client.logo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '2px' }} />
             </div>
           )}
-          <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a' }}>{client?.company_name}</div>
-          <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '100px', fontWeight: '500', background: st.bg, color: st.color }}>{st.label}</span>
+          <div style={{ fontSize: '18px', fontWeight: '500', color: 'var(--color-text-primary)' }}>{client?.company_name}</div>
+          <span style={{ fontSize: '10px', padding: '3px 8px', fontWeight: '500', letterSpacing: '1px', textTransform: 'uppercase', background: st.bg, color: st.color }}>{st.label}</span>
           {msg && <div style={{ marginLeft: 'auto', fontSize: '12px', color: msgColor }}>{msg}</div>}
         </div>
 
@@ -430,8 +430,8 @@ export default function ClientDetailPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
               {/* LOGO */}
-              <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', padding: '20px' }}>
-                <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '14px' }}>Logo</div>
+              <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '20px' }}>
+                <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: '500', marginBottom: '14px' }}>Logo</div>
                 <div style={{ width: '100%', height: '120px', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '10px', marginBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fafaf8', overflow: 'hidden' }}>
                   {client?.logo_url ? (
                     <img src={client.logo_url} alt="logo" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', padding: '12px' }} />
@@ -457,8 +457,8 @@ export default function ClientDetailPage() {
               </div>
 
               {/* INFO */}
-              <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', padding: '20px' }}>
-                <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px' }}>Bilgiler</div>
+              <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '20px' }}>
+                <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: '500', marginBottom: '12px' }}>Bilgiler</div>
                 {[
                   { label: 'Durum', value: st.label, color: st.color },
                   { label: 'E-posta', value: client?.contact_email || '\u2014' },
@@ -477,8 +477,8 @@ export default function ClientDetailPage() {
               </div>
 
               {/* STATUS CHANGE */}
-              <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', padding: '20px' }}>
-                <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px' }}>Durum Degistir</div>
+              <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '20px' }}>
+                <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: '500', marginBottom: '12px' }}>Durum Degistir</div>
                 <select value={client?.status || 'pending'} onChange={e => changeStatus(e.target.value)}
                   style={{ ...inputStyle, cursor: 'pointer' }}>
                   {Object.entries(STATUS_MAP).map(([key, val]) => (
@@ -489,17 +489,14 @@ export default function ClientDetailPage() {
 
               {/* ACTIONS */}
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                <button onClick={openSaleModal}
-                  style={{ flex: 1, padding: '10px', background: '#22c55e', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: 'pointer',  }}>
-                  Kredi Satisi
+                <button onClick={openSaleModal} className="btn btn-accent" style={{ flex: 1, padding: '10px' }}>
+                  KREDİ SATIŞI
                 </button>
-                <button onClick={() => { setCreditModal(true); setCreditAmount('') }}
-                  style={{ flex: 1, padding: '10px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: 'pointer',  }}>
-                  Kredi Yukle
+                <button onClick={() => { setCreditModal(true); setCreditAmount('') }} className="btn" style={{ flex: 1, padding: '10px' }}>
+                  KREDİ YÜKLE
                 </button>
-                <button onClick={openEditModal}
-                  style={{ flex: 1, padding: '10px', background: '#fff', color: '#0a0a0a', border: '0.5px solid rgba(0,0,0,0.15)', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: 'pointer',  }}>
-                  Duzenle
+                <button onClick={openEditModal} className="btn btn-outline" style={{ flex: 1, padding: '10px' }}>
+                  DÜZENLE
                 </button>
                 <button onClick={() => setDeleteModal(true)}
                   style={{ padding: '10px 14px', background: '#fff', color: '#ef4444', border: '0.5px solid rgba(239,68,68,0.3)', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: 'pointer',  }}>
@@ -508,14 +505,14 @@ export default function ClientDetailPage() {
               </div>
 
               {/* AI NOTES */}
-              <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', padding: '20px' }}>
-                <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '10px' }}>
+              <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '20px' }}>
+                <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: '500', marginBottom: '10px' }}>
                   AI Notlari <span style={{ fontWeight: '400', color: '#bbb', textTransform: 'none' }}>\u2014 fikir/senaryo uretiminde kullanilir</span>
                 </div>
                 <textarea value={aiNotes} onChange={e => setAiNotes(e.target.value)}
                   placeholder="Musterinin tercihleri, tarzi, hassasiyetleri..."
                   rows={4}
-                  style={{ width: '100%', padding: '10px 12px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', color: '#0a0a0a', resize: 'vertical',  outline: 'none', boxSizing: 'border-box' }} />
+                  style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--color-border-tertiary)', borderRadius: '8px', fontSize: '12px', color: '#0a0a0a', resize: 'vertical',  outline: 'none', boxSizing: 'border-box' }} />
                 <button onClick={saveAiNotes} disabled={savingNotes}
                   style={{ marginTop: '8px', padding: '7px 16px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '11px', fontWeight: '500', cursor: savingNotes ? 'not-allowed' : 'pointer',  }}>
                   {savingNotes ? 'Kaydediliyor...' : 'Kaydet'}
@@ -523,8 +520,8 @@ export default function ClientDetailPage() {
               </div>
 
               {/* BRAND ASSETS */}
-              <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', padding: '20px' }}>
-                <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '14px' }}>
+              <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '20px' }}>
+                <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: '500', marginBottom: '14px' }}>
                   Marka Varlıkları
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', padding: '10px 12px', background: 'rgba(0,0,0,0.02)', borderRadius: '8px' }}>
@@ -547,7 +544,7 @@ export default function ClientDetailPage() {
                   <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}>Marka Logosu (Transparan PNG)</div>
                   {brandLogoUrl ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{ width: '80px', height: '40px', background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4px' }}>
+                      <div style={{ width: '80px', height: '40px', background: '#fff', border: '1px solid var(--color-border-tertiary)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4px' }}>
                         <img src={brandLogoUrl} alt="Logo" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
                       </div>
                       <button onClick={async () => { await supabase.from('clients').update({ brand_logo_url: null }).eq('id', clientId); setBrandLogoUrl(''); showMsg('Logo kaldırıldı.') }}
@@ -578,18 +575,18 @@ export default function ClientDetailPage() {
                     <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}>Primary Renk</div>
                     <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                       <input type="color" value={brand.primary_color || '#000000'} onChange={e => setBrand({ ...brand, primary_color: e.target.value })}
-                        style={{ width: '32px', height: '32px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '6px', cursor: 'pointer', padding: 0 }} />
+                        style={{ width: '32px', height: '32px', border: '1px solid var(--color-border-tertiary)', borderRadius: '6px', cursor: 'pointer', padding: 0 }} />
                       <input value={brand.primary_color} onChange={e => setBrand({ ...brand, primary_color: e.target.value })} placeholder="#000000"
-                        style={{ flex: 1, padding: '7px 10px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', color: '#0a0a0a', fontFamily: 'monospace' }} />
+                        style={{ flex: 1, padding: '7px 10px', border: '1px solid var(--color-border-tertiary)', borderRadius: '8px', fontSize: '12px', color: '#0a0a0a', fontFamily: 'monospace' }} />
                     </div>
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}>Secondary Renk</div>
                     <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                       <input type="color" value={brand.secondary_color || '#000000'} onChange={e => setBrand({ ...brand, secondary_color: e.target.value })}
-                        style={{ width: '32px', height: '32px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '6px', cursor: 'pointer', padding: 0 }} />
+                        style={{ width: '32px', height: '32px', border: '1px solid var(--color-border-tertiary)', borderRadius: '6px', cursor: 'pointer', padding: 0 }} />
                       <input value={brand.secondary_color} onChange={e => setBrand({ ...brand, secondary_color: e.target.value })} placeholder="#000000"
-                        style={{ flex: 1, padding: '7px 10px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', color: '#0a0a0a', fontFamily: 'monospace' }} />
+                        style={{ flex: 1, padding: '7px 10px', border: '1px solid var(--color-border-tertiary)', borderRadius: '8px', fontSize: '12px', color: '#0a0a0a', fontFamily: 'monospace' }} />
                     </div>
                   </div>
                 </div>
@@ -597,7 +594,7 @@ export default function ClientDetailPage() {
                 <div style={{ marginBottom: '12px' }}>
                   <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}>Logo Pozisyonu (Statik Görsel Yan Panel)</div>
                   <select value={brandLogoPosition} onChange={e => setBrandLogoPosition(e.target.value)}
-                    style={{ width: '100%', padding: '7px 10px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', color: '#0a0a0a',  }}>
+                    style={{ width: '100%', padding: '7px 10px', border: '1px solid var(--color-border-tertiary)', borderRadius: '8px', fontSize: '12px', color: '#0a0a0a',  }}>
                     <option value="top">Üst</option>
                     <option value="middle">Orta</option>
                     <option value="bottom">Alt</option>
@@ -643,11 +640,11 @@ export default function ClientDetailPage() {
             </div>
 
             {/* AI NOTES + RULES SYSTEM */}
-            <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', padding: '20px' }}>
+            <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '20px' }}>
               {/* AI Notes Bucket */}
-              <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>AI Notları Kovası</div>
+              <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: '500', marginBottom: '8px' }}>AI Notları Kovası</div>
               <textarea value={aiNotesInput} onChange={e => setAiNotesInput(e.target.value)} rows={4} placeholder="Marka hakkında bilgi, wiki, analiz, sektör notu, serbest metin yapıştırın..."
-                style={{ width: '100%', padding: '10px 12px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', color: '#0a0a0a', resize: 'vertical',  boxSizing: 'border-box', marginBottom: '8px' }} />
+                style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--color-border-tertiary)', borderRadius: '8px', fontSize: '12px', color: '#0a0a0a', resize: 'vertical',  boxSizing: 'border-box', marginBottom: '8px' }} />
               <button disabled={seedImporting || aiNotesInput.trim().length < 20} onClick={async () => {
                   setSeedImporting(true)
                   const seedText = aiNotesInput.trim()
@@ -671,7 +668,7 @@ export default function ClientDetailPage() {
                 </button>
 
               {/* 3-TAB RULES */}
-              <div style={{ display: 'flex', gap: '0', borderBottom: '0.5px solid rgba(0,0,0,0.08)', marginTop: '20px', marginBottom: '14px' }}>
+              <div style={{ display: 'flex', gap: '0', borderBottom: '1px solid var(--color-border-tertiary)', marginTop: '20px', marginBottom: '14px' }}>
                 {([['pending', `Onay Bekleyen (${learningCandidates.length})`], ['active', `Aktif (${brandRules.length})`], ['add', 'Manuel Ekle']] as const).map(([key, label]) => (
                   <button key={key} onClick={() => setRulesTab(key as any)}
                     style={{ padding: '8px 14px', fontSize: '11px', fontWeight: rulesTab === key ? '600' : '400', color: rulesTab === key ? '#0a0a0a' : '#888', background: 'none', border: 'none', borderBottom: rulesTab === key ? '2px solid #1DB81D' : '2px solid transparent', cursor: 'pointer',  }}>
@@ -746,7 +743,7 @@ export default function ClientDetailPage() {
                   <div style={{ marginBottom: '10px' }}>
                     <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}>Tip</div>
                     <select value={newRule.type} onChange={e => setNewRule({ ...newRule, type: e.target.value })}
-                      style={{ width: '100%', padding: '7px 10px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '6px', fontSize: '12px',  }}>
+                      style={{ width: '100%', padding: '7px 10px', border: '1px solid var(--color-border-tertiary)', borderRadius: '6px', fontSize: '12px',  }}>
                       <option value="rule">Kural (pozitif talimat)</option>
                       <option value="restriction">Yasak</option>
                       <option value="insight">İçgörü (yaratıcı yönlendirme)</option>
@@ -755,12 +752,12 @@ export default function ClientDetailPage() {
                   <div style={{ marginBottom: '10px' }}>
                     <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}>Metin *</div>
                     <input value={newRule.text} onChange={e => setNewRule({ ...newRule, text: e.target.value })} placeholder="Erkek model kullanılmasın"
-                      style={{ width: '100%', padding: '7px 10px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '6px', fontSize: '12px', boxSizing: 'border-box' }} />
+                      style={{ width: '100%', padding: '7px 10px', border: '1px solid var(--color-border-tertiary)', borderRadius: '6px', fontSize: '12px', boxSizing: 'border-box' }} />
                   </div>
                   <div style={{ marginBottom: '12px' }}>
                     <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}>Koşul (opsiyonel)</div>
                     <input value={newRule.condition} onChange={e => setNewRule({ ...newRule, condition: e.target.value })} placeholder="Eğer ürün bikini/mayo ise"
-                      style={{ width: '100%', padding: '7px 10px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '6px', fontSize: '12px', boxSizing: 'border-box' }} />
+                      style={{ width: '100%', padding: '7px 10px', border: '1px solid var(--color-border-tertiary)', borderRadius: '6px', fontSize: '12px', boxSizing: 'border-box' }} />
                   </div>
                   <button disabled={!newRule.text} onClick={async () => {
                     await supabase.from('brand_rules').insert({ client_id: clientId, rule_text: newRule.text, rule_condition: newRule.condition || null, type: newRule.type, rule_type: newRule.type === 'restriction' ? 'negative' : 'positive', manually_added: true, source_type: 'manual' })
@@ -780,8 +777,8 @@ export default function ClientDetailPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
               {/* BRIEFS */}
-              <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', overflow: 'hidden' }}>
-                <div style={{ padding: '14px 20px', borderBottom: '0.5px solid rgba(0,0,0,0.08)', fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>
+              <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', overflow: 'hidden' }}>
+                <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--color-border-tertiary)', fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>
                   Briefler ({briefs.length})
                 </div>
                 {briefs.length === 0 ? (
@@ -813,8 +810,8 @@ export default function ClientDetailPage() {
               </div>
 
               {/* CLIENT USERS */}
-              <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', overflow: 'hidden' }}>
-                <div style={{ padding: '14px 20px', borderBottom: '0.5px solid rgba(0,0,0,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', overflow: 'hidden' }}>
+                <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--color-border-tertiary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>Kullanicilar ({clientUsers.length})</span>
                   <span style={{ fontSize: '11px', color: '#888' }}>Havuz: {client?.credit_balance || 0} kr</span>
                 </div>
@@ -846,8 +843,8 @@ export default function ClientDetailPage() {
               </div>
 
               {/* CREDIT TRANSACTIONS */}
-              <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', overflow: 'hidden' }}>
-                <div style={{ padding: '14px 20px', borderBottom: '0.5px solid rgba(0,0,0,0.08)', fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>
+              <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', overflow: 'hidden' }}>
+                <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--color-border-tertiary)', fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>
                   Kredi Gecmisi ({transactions.length})
                 </div>
                 {transactions.length === 0 ? (
@@ -879,8 +876,8 @@ export default function ClientDetailPage() {
                   )
                 })}
               {/* CREDIT SALES */}
-              <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', overflow: 'hidden' }}>
-                <div style={{ padding: '14px 20px', borderBottom: '0.5px solid rgba(0,0,0,0.08)', fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>
+              <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', overflow: 'hidden' }}>
+                <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--color-border-tertiary)', fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>
                   Kredi Satislari ({sales.length})
                 </div>
                 {sales.length === 0 ? (
@@ -1040,7 +1037,7 @@ export default function ClientDetailPage() {
               </div>
               <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
                 <button type="button" onClick={() => setEditModal(false)}
-                  style={{ padding: '8px 16px', background: '#f5f4f0', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', cursor: 'pointer',  color: 'rgba(255,255,255,0.4)' }}>
+                  style={{ padding: '8px 16px', background: '#f5f4f0', border: '1px solid var(--color-border-tertiary)', borderRadius: '8px', fontSize: '12px', cursor: 'pointer',  color: 'rgba(255,255,255,0.4)' }}>
                   Iptal
                 </button>
                 <button type="submit" disabled={saving}
@@ -1070,7 +1067,7 @@ export default function ClientDetailPage() {
             )}
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
               <button onClick={() => setDeleteModal(false)}
-                style={{ padding: '8px 16px', background: '#f5f4f0', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', cursor: 'pointer',  color: 'rgba(255,255,255,0.4)' }}>
+                style={{ padding: '8px 16px', background: '#f5f4f0', border: '1px solid var(--color-border-tertiary)', borderRadius: '8px', fontSize: '12px', cursor: 'pointer',  color: 'rgba(255,255,255,0.4)' }}>
                 Iptal
               </button>
               <button onClick={confirmDelete} disabled={deleting}
