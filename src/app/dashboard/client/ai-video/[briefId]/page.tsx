@@ -226,7 +226,7 @@ export default function AiVideoPage() {
   const durationMap: Record<string,string> = { 'Bumper / Pre-roll':'6 sn', 'Story / Reels':'15 sn', 'Feed Video':'30 sn', 'Long Form':'60 sn' }
 
   return (
-    <div style={{display:'flex',minHeight:'100vh',fontFamily:"var(--font-dm-sans),'DM Sans',system-ui,sans-serif"}}>
+    <div style={{display:'flex',minHeight:'100vh',}}>
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
 
       {/* SIDEBAR */}
@@ -243,17 +243,17 @@ export default function AiVideoPage() {
         <nav style={{padding:'10px 8px'}}>
           <div onClick={()=>router.push('/dashboard/client')} style={{display:'flex',alignItems:'center',gap:'8px',padding:'7px 8px',borderRadius:'8px',cursor:'pointer',marginBottom:'1px'}}>
             <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            <span style={{fontSize:'12px',color:'rgba(255,255,255,0.4)'}}>Projelerime dön</span>
+            <span style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.4)'}}>Projelerime dön</span>
           </div>
           <div onClick={()=>router.push(`/dashboard/client/briefs/${briefId}`)} style={{display:'flex',alignItems:'center',gap:'8px',padding:'7px 8px',borderRadius:'8px',cursor:'pointer'}}>
             <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            <span style={{fontSize:'12px',color:'rgba(255,255,255,0.4)'}}>Brief'e dön</span>
+            <span style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.4)'}}>Brief'e dön</span>
           </div>
           <button onClick={handleLogout}
             onMouseEnter={e=>{(e.currentTarget.firstChild as HTMLElement).style.color='#FF4444'}}
             onMouseLeave={e=>{(e.currentTarget.firstChild as HTMLElement).style.color='#aaa'}}
             style={{display:'flex',alignItems:'center',gap:'7px',padding:'6px 8px',marginTop:'16px',cursor:'pointer',width:'100%',background:'none',border:'none'}}>
-            <span style={{fontSize:'11px',color:'#aaa',fontFamily:'var(--font-dm-sans),sans-serif',transition:'color 0.15s'}}>Çıkış yap</span>
+            <span style={{fontSize:'11px',color:'#aaa',transition:'color 0.15s'}}>Çıkış yap</span>
           </button>
           <img src='/powered_by_dcc.png' alt='Powered by DCC' style={{height:'20px',width:'auto',opacity:0.6,display:'block',margin:'8px 8px',cursor:'pointer'}} onClick={()=>window.open('https://dirtycheapcreative.com','_blank')} />
         </nav>
@@ -326,7 +326,7 @@ export default function AiVideoPage() {
                     <div style={{fontSize:'11px',color:'#555',textAlign:'center',lineHeight:1.7}}>
                       Ürününüz modern bir ortamda gösterilir.<br/>Lifestyle setting, sinematik.
                     </div>
-                    <div style={{padding:'10px 24px',background:balance<1?'#333':'#1DB81D',color:balance<1?'#666':'#0A0A0A',borderRadius:'8px',fontSize:'13px',fontWeight:'600',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                    <div style={{padding:'10px 24px',background:balance<1?'#333':'#1DB81D',color:balance<1?'#666':'#0A0A0A',borderRadius:'8px',fontSize:'13px',fontWeight:'600',}}>
                       1 Kredi — Dene
                     </div>
                   </div>
@@ -340,7 +340,7 @@ export default function AiVideoPage() {
                     <div style={{fontSize:'11px',color:'#555',textAlign:'center',lineHeight:1.7}}>
                       Marka mesajınızı anlatan insan hikayesi.<br/>Duygu, atmosfer, Türk karakterler.
                     </div>
-                    <div style={{padding:'10px 24px',background:balance<1?'#333':'#1DB81D',color:balance<1?'#666':'#0A0A0A',borderRadius:'8px',fontSize:'13px',fontWeight:'600',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                    <div style={{padding:'10px 24px',background:balance<1?'#333':'#1DB81D',color:balance<1?'#666':'#0A0A0A',borderRadius:'8px',fontSize:'13px',fontWeight:'600',}}>
                       1 Kredi — Dene
                     </div>
                   </div>
@@ -396,11 +396,11 @@ export default function AiVideoPage() {
                   </div>
                   <div style={{display:'flex',gap:'10px'}}>
                     <button onClick={handlePurchase} disabled={(clientUser?.allocated_credits||0)<2}
-                      style={{flex:1,padding:'14px',background:(clientUser?.allocated_credits||0)<2?'#ccc':'#1DB81D',color:'#0A0A0A',border:'none',borderRadius:'10px',fontSize:'14px',fontWeight:'600',cursor:(clientUser?.allocated_credits||0)<2?'default':'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                      style={{flex:1,padding:'14px',background:(clientUser?.allocated_credits||0)<2?'#ccc':'#1DB81D',color:'#0A0A0A',border:'none',borderRadius:'10px',fontSize:'14px',fontWeight:'600',cursor:(clientUser?.allocated_credits||0)<2?'default':'pointer',}}>
                       2 Kredi ile Al
                     </button>
                     <button onClick={handleDiscard}
-                      style={{padding:'14px 24px',background:'#fff',color:'#555',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'10px',fontSize:'13px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                      style={{padding:'14px 24px',background:'#fff',color:'#555',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'10px',fontSize:'13px',cursor:'pointer',}}>
                       Vazgeç
                     </button>
                   </div>
@@ -415,7 +415,7 @@ export default function AiVideoPage() {
                     <div style={{fontSize:'14px',fontWeight:'500',color:'#fff'}}>Video oluşturulamadı</div>
                     <div style={{fontSize:'12px',color:'#ef4444',textAlign:'center',maxWidth:'280px',lineHeight:1.6}}>{aiError}</div>
                     <button onClick={()=>handleGenerate('character')} disabled={balance < 1}
-                      style={{padding:'12px 24px',background:'#222',color:'#fff',border:'1px solid #333',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',marginTop:'8px'}}>
+                      style={{padding:'12px 24px',background:'#222',color:'#fff',border:'1px solid #333',borderRadius:'8px',fontSize:'13px',cursor:'pointer',marginTop:'8px'}}>
                       1 Kredi ile Tekrar Dene
                     </button>
                   </div>

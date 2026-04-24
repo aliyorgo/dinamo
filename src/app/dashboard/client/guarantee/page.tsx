@@ -36,7 +36,7 @@ export default function GuaranteePage() {
   ]
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "var(--font-dm-sans),'DM Sans',system-ui,sans-serif", background: '#f5f4f0' }}>
+    <div style={{ display: 'flex', minHeight: '100vh',  background: '#f5f4f0' }}>
 
       {/* SIDEBAR */}
       <div style={{ width: '240px', background: '#0A0A0A', display: 'flex', flexDirection: 'column', flexShrink: 0, height: '100dvh', overflowY: 'auto' }}>
@@ -60,14 +60,14 @@ export default function GuaranteePage() {
           ].map(item => (
             <div key={item.href} onClick={() => router.push(item.href)}
               style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 8px', borderRadius: '8px', cursor: 'pointer', background: item.active ? 'rgba(255,255,255,0.08)' : 'transparent', marginBottom: '1px' }}>
-              <span style={{ fontSize: '12px', color: item.active ? '#fff' : 'rgba(255,255,255,0.4)', fontWeight: item.active ? '500' : '400' }}>{item.label}</span>
+              <span style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase' as const, color: item.active ? '#fff' : 'rgba(255,255,255,0.4)', fontWeight: '500' }}>{item.label}</span>
             </div>
           ))}
           <button onClick={handleLogout}
             onMouseEnter={e=>{(e.currentTarget.firstChild as HTMLElement).style.color='#FF4444'}}
             onMouseLeave={e=>{(e.currentTarget.firstChild as HTMLElement).style.color='#aaa'}}
             style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '6px 8px', marginTop: '16px', cursor: 'pointer', width: '100%', background: 'none', border: 'none' }}>
-            <span style={{ fontSize: '11px', color: '#aaa', fontFamily: 'var(--font-dm-sans),sans-serif', transition: 'color 0.15s' }}>Çıkış yap</span>
+            <span style={{ fontSize: '11px', color: '#aaa',  transition: 'color 0.15s' }}>Çıkış yap</span>
           </button>
           <img src='/powered_by_dcc.png' alt='Powered by DCC' style={{height:'20px',width:'auto',opacity:0.6,display:'block',margin:'8px 8px',cursor:'pointer'}} onClick={()=>window.open('https://dirtycheapcreative.com','_blank')} />
         </nav>

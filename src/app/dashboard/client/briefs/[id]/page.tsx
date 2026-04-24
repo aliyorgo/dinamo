@@ -496,12 +496,12 @@ function ClientBriefDetail() {
     return `dinamo_${client}_${campaign}_${fmtSlug}_${date}.mp4`
   }
 
-  const inputStyle: React.CSSProperties = { width:'100%', boxSizing:'border-box', background:'#fff', border:'0.5px solid rgba(0,0,0,0.12)', borderRadius:'10px', padding:'10px 14px', fontSize:'13px', color:'#0a0a0a', fontFamily:'var(--font-dm-sans),sans-serif', outline:'none' }
+  const inputStyle: React.CSSProperties = { width:'100%', boxSizing:'border-box', background:'#fff', border:'0.5px solid rgba(0,0,0,0.12)', borderRadius:'10px', padding:'10px 14px', fontSize:'13px', color:'#0a0a0a',  outline:'none' }
 
   if (reorderSuccess) {
     const baseName = brief?.campaign_name?.replace(/\s*—\s*\d+$/, '') || ''
     return (
-      <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'#0a0a0a',fontFamily:"var(--font-dm-sans),'DM Sans',system-ui,sans-serif"}}>
+      <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'#0a0a0a',}}>
         <div style={{textAlign:'center',maxWidth:'520px',padding:'0 24px'}}>
           <div style={{fontSize:'28px',fontWeight:'500',color:'#fff',letterSpacing:'-0.5px',marginBottom:'32px'}}>
             <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} />
@@ -515,8 +515,8 @@ function ClientBriefDetail() {
             Tahmini teslim süresi: 24 saat
           </div>
           <div style={{display:'flex',gap:'12px',justifyContent:'center'}}>
-            <a href="/dashboard/client" style={{padding:'13px 28px',borderRadius:'10px',border:'1px solid rgba(255,255,255,0.15)',background:'transparent',color:'#fff',fontSize:'14px',fontWeight:'400',textDecoration:'none',fontFamily:'var(--font-dm-sans),sans-serif'}}>Tüm Projelerim</a>
-            <a href="/dashboard/client/brief/new" style={{padding:'13px 28px',borderRadius:'10px',background:'#22c55e',color:'#fff',fontSize:'14px',fontWeight:'500',textDecoration:'none',fontFamily:'var(--font-dm-sans),sans-serif'}}>Yeni Brief</a>
+            <a href="/dashboard/client" style={{padding:'13px 28px',borderRadius:'10px',border:'1px solid rgba(255,255,255,0.15)',background:'transparent',color:'#fff',fontSize:'14px',fontWeight:'400',textDecoration:'none',}}>Tüm Projelerim</a>
+            <a href="/dashboard/client/brief/new" style={{padding:'13px 28px',borderRadius:'10px',background:'#22c55e',color:'#fff',fontSize:'14px',fontWeight:'500',textDecoration:'none',}}>Yeni Brief</a>
           </div>
         </div>
       </div>
@@ -524,7 +524,7 @@ function ClientBriefDetail() {
   }
 
   return (
-    <div style={{display:'flex',minHeight:'100vh',fontFamily:"var(--font-dm-sans),'DM Sans',system-ui,sans-serif"}}>
+    <div style={{display:'flex',minHeight:'100vh',}}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');
         @keyframes successPulse { 0% { transform: scale(0.8); opacity: 0; } 50% { transform: scale(1.05); } 100% { transform: scale(1); opacity: 1; } }
@@ -546,25 +546,25 @@ function ClientBriefDetail() {
         <nav style={{padding:'10px 8px'}}>
           <div onClick={()=>router.push('/dashboard/client')} style={{display:'flex',alignItems:'center',gap:'8px',padding:'7px 8px',borderRadius:'8px',cursor:'pointer',marginBottom:'1px'}}>
             <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            <span style={{fontSize:'12px',color:'rgba(255,255,255,0.4)'}}>Projelerime dön</span>
+            <span style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.4)'}}>Projelerime dön</span>
           </div>
           <div onClick={()=>router.push('/dashboard/client/brief/new')} style={{display:'flex',alignItems:'center',gap:'8px',padding:'7px 8px',borderRadius:'8px',cursor:'pointer',marginBottom:'1px'}}>
-            <span style={{fontSize:'12px',color:'rgba(255,255,255,0.4)'}}>Yeni Brief</span>
+            <span style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.4)'}}>Yeni Brief</span>
           </div>
           <div onClick={()=>router.push('/dashboard/client/brand')} style={{display:'flex',alignItems:'center',gap:'8px',padding:'7px 8px',borderRadius:'8px',cursor:'pointer',marginBottom:'1px'}}>
-            <span style={{fontSize:'12px',color:'rgba(255,255,255,0.4)'}}>Marka Paketi</span>
+            <span style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.4)'}}>Marka Paketi</span>
           </div>
           <div onClick={()=>router.push('/dashboard/client/certificates')} style={{display:'flex',alignItems:'center',gap:'8px',padding:'7px 8px',borderRadius:'8px',cursor:'pointer',marginBottom:'1px'}}>
-            <span style={{fontSize:'12px',color:'rgba(255,255,255,0.4)'}}>Telif Belgeleri</span>
+            <span style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.4)'}}>Telif Belgeleri</span>
           </div>
           <div onClick={()=>router.push('/dashboard/client/guarantee')} style={{display:'flex',alignItems:'center',gap:'8px',padding:'7px 8px',borderRadius:'8px',cursor:'pointer'}}>
-            <span style={{fontSize:'12px',color:'rgba(255,255,255,0.4)'}}>İçerik Güvencesi</span>
+            <span style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.4)'}}>İçerik Güvencesi</span>
           </div>
           <button onClick={handleLogout}
             onMouseEnter={e=>{(e.currentTarget.firstChild as HTMLElement).style.color='#FF4444'}}
             onMouseLeave={e=>{(e.currentTarget.firstChild as HTMLElement).style.color='#aaa'}}
             style={{display:'flex',alignItems:'center',gap:'7px',padding:'6px 8px',marginTop:'16px',cursor:'pointer',width:'100%',background:'none',border:'none'}}>
-            <span style={{fontSize:'11px',color:'#aaa',fontFamily:'var(--font-dm-sans),sans-serif',transition:'color 0.15s'}}>Çıkış yap</span>
+            <span style={{fontSize:'11px',color:'#aaa',transition:'color 0.15s'}}>Çıkış yap</span>
           </button>
           <img src='/powered_by_dcc.png' alt='Powered by DCC' style={{height:'20px',width:'auto',opacity:0.6,display:'block',margin:'8px 8px',cursor:'pointer'}} onClick={()=>window.open('https://dirtycheapcreative.com','_blank')} />
         </nav>
@@ -594,7 +594,7 @@ function ClientBriefDetail() {
             const isActive = activeTab === t.key
             return (
               <button key={t.key} onClick={()=>setActiveTab(t.key)}
-                style={{padding:'12px 24px',border:'none',borderBottom:isActive?'2px solid #1DB81D':'2px solid transparent',borderRight:ti<2?'1px solid rgba(0,0,0,0.06)':'none',background:isActive?'#0a0a0a':'#fff',color:isActive?'#fff':'#555',fontSize:'14px',fontWeight:'600',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',transition:'all 0.15s'}}
+                style={{padding:'12px 24px',border:'none',borderBottom:isActive?'2px solid #1DB81D':'2px solid transparent',borderRight:ti<2?'1px solid rgba(0,0,0,0.06)':'none',background:isActive?'#0a0a0a':'#fff',color:isActive?'#fff':'#555',fontSize:'14px',fontWeight:'600',cursor:'pointer',transition:'all 0.15s'}}
                 onMouseEnter={e=>{if(!isActive)e.currentTarget.style.background='#f5f5f5'}}
                 onMouseLeave={e=>{if(!isActive)e.currentTarget.style.background='#fff'}}>
                 {t.label}
@@ -629,7 +629,7 @@ function ClientBriefDetail() {
                     <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>Bu brief henüz gönderilmedi.</div>
                     <div style={{fontSize:'11px',color:'#888',marginTop:'2px'}}>Taslak olarak kaydedildi. Düzenleyip gönderebilirsiniz.</div>
                   </div>
-                  <button onClick={()=>router.push(`/dashboard/client/brief/new?draft=${id}`)} style={{padding:'8px 18px',background:'#f59e0b',color:'#fff',border:'none',borderRadius:'8px',fontSize:'12px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',fontWeight:'500',whiteSpace:'nowrap'}}>Düzenle ve Gönder</button>
+                  <button onClick={()=>router.push(`/dashboard/client/brief/new?draft=${id}`)} style={{padding:'8px 18px',background:'#f59e0b',color:'#fff',border:'none',borderRadius:'8px',fontSize:'12px',cursor:'pointer',fontWeight:'500',whiteSpace:'nowrap'}}>Düzenle ve Gönder</button>
                 </div>
               )}
 
@@ -637,7 +637,7 @@ function ClientBriefDetail() {
               {['submitted','read'].includes(brief.status) && (Date.now() - new Date(brief.created_at).getTime()) < 15*60*1000 && (
                 <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'14px 18px',marginBottom:'16px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                   <div style={{fontSize:'13px',color:'#555'}}>Brief'inizi henüz düzenleyebilirsiniz.</div>
-                  <button onClick={()=>router.push(`/dashboard/client/brief/new?edit=${id}`)} style={{padding:'8px 18px',background:'#111113',color:'#fff',border:'none',borderRadius:'8px',fontSize:'12px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',fontWeight:'500'}}>Brief'i Düzenle</button>
+                  <button onClick={()=>router.push(`/dashboard/client/brief/new?edit=${id}`)} style={{padding:'8px 18px',background:'#111113',color:'#fff',border:'none',borderRadius:'8px',fontSize:'12px',cursor:'pointer',fontWeight:'500'}}>Brief'i Düzenle</button>
                 </div>
               )}
 
@@ -645,7 +645,7 @@ function ClientBriefDetail() {
               {brief.status==='cancelled' && (
                 <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'20px 24px',marginBottom:'16px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                   <div style={{fontSize:'13px',color:'#888'}}>Bu brief admin tarafından iptal edildi.</div>
-                  <button onClick={handleDelete} style={{padding:'8px 18px',background:'#ef4444',color:'#fff',border:'none',borderRadius:'8px',fontSize:'12px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>Sil</button>
+                  <button onClick={handleDelete} style={{padding:'8px 18px',background:'#ef4444',color:'#fff',border:'none',borderRadius:'8px',fontSize:'12px',cursor:'pointer',}}>Sil</button>
                 </div>
               )}
 
@@ -669,7 +669,7 @@ function ClientBriefDetail() {
                       <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a',marginBottom:'10px',lineHeight:'1.5'}}>{q.question}</div>
                       <div style={{display:'flex',gap:'8px'}}>
                         <input value={answers[q.id]||''} onChange={e=>setAnswers(prev=>({...prev,[q.id]:e.target.value}))} placeholder="Cevabınız..." style={{...inputStyle,flex:1,padding:'8px 12px'}} />
-                        <button onClick={()=>handleAnswer(q.id)} style={{padding:'8px 16px',background:'#111113',color:'#fff',border:'none',borderRadius:'8px',fontSize:'12px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',fontWeight:'500',whiteSpace:'nowrap'}}>Yanıtla</button>
+                        <button onClick={()=>handleAnswer(q.id)} style={{padding:'8px 16px',background:'#111113',color:'#fff',border:'none',borderRadius:'8px',fontSize:'12px',cursor:'pointer',fontWeight:'500',whiteSpace:'nowrap'}}>Yanıtla</button>
                       </div>
                     </div>
                   ))}
@@ -707,13 +707,13 @@ function ClientBriefDetail() {
                         <div style={{fontSize:'12px',color:'#888',marginBottom:'20px',lineHeight:1.6}}>Videoyu beğendiyseniz satın alabilirsiniz.</div>
                         <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'8px'}}>
                           <button onClick={handleAiPurchase} disabled={(clientUser?.allocated_credits||0)<2}
-                            style={{padding:'12px 24px',background:(clientUser?.allocated_credits||0)<2?'#ccc':'#1DB81D',color:'#0A0A0A',border:'none',borderRadius:'10px',fontSize:'14px',fontWeight:'600',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                            style={{padding:'12px 24px',background:(clientUser?.allocated_credits||0)<2?'#ccc':'#1DB81D',color:'#0A0A0A',border:'none',borderRadius:'10px',fontSize:'14px',fontWeight:'600',cursor:'pointer',}}>
                             Satın Al
                           </button>
                           <span style={{fontSize:'11px',color:'#888'}}>2 kredi</span>
                         </div>
                         <button onClick={handleAiDiscard}
-                          style={{width:'100%',padding:'10px',background:'#fff',color:'#555',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'10px',fontSize:'12px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                          style={{width:'100%',padding:'10px',background:'#fff',color:'#555',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'10px',fontSize:'12px',cursor:'pointer',}}>
                           Vazgeç
                         </button>
                         {aiError && <div style={{fontSize:'12px',color:'#ef4444',marginTop:'8px'}}>{aiError}</div>}
@@ -733,7 +733,7 @@ function ClientBriefDetail() {
                         setBrief((prev:any)=>({...prev, ai_video_status:'processing_concept', status:'ai_processing', ai_video_url:null, ai_video_error:null}))
                         fetch('/api/generate-ai-video',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({briefId:id})})
                       }}
-                        style={{padding:'10px 20px',background:'#222',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                        style={{padding:'10px 20px',background:'#222',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer',}}>
                         Tekrar Dene
                       </button>
                     </div>
@@ -801,7 +801,7 @@ function ClientBriefDetail() {
                           const isActive = currentVideo?.id === v.id
                           return (
                             <button key={v.id} onClick={()=>setActiveVideoId(v.id)}
-                              style={{padding:'6px 14px',borderRadius:'100px',fontSize:'12px',fontWeight:'500',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',transition:'all 0.2s',border:isActive?'1.5px solid #22c55e':'1px solid rgba(0,0,0,0.1)',background:isActive?'#22c55e':'#fff',color:isActive?'#fff':'#555'}}>
+                              style={{padding:'6px 14px',borderRadius:'100px',fontSize:'12px',fontWeight:'500',cursor:'pointer',transition:'all 0.2s',border:isActive?'1.5px solid #22c55e':'1px solid rgba(0,0,0,0.1)',background:isActive?'#22c55e':'#fff',color:isActive?'#fff':'#555'}}>
                               V{v.version}
                             </button>
                           )
@@ -823,7 +823,7 @@ function ClientBriefDetail() {
                       <>
                         {/* APPROVE */}
                         <button onClick={()=>setShowApproveModal(true)} disabled={loading}
-                          style={{width:'100%',padding:'14px',background:'#22c55e',color:'#fff',border:'none',borderRadius:'10px',fontSize:'15px',fontWeight:'500',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',marginBottom:'10px',transition:'transform 0.2s,box-shadow 0.2s'}}>
+                          style={{width:'100%',padding:'14px',background:'#22c55e',color:'#fff',border:'none',borderRadius:'10px',fontSize:'15px',fontWeight:'500',cursor:'pointer',marginBottom:'10px',transition:'transform 0.2s,box-shadow 0.2s'}}>
                           ✓ Onayla ve Teslim Al
                         </button>
 
@@ -846,7 +846,7 @@ function ClientBriefDetail() {
                               placeholder="Neyi değiştirmek istiyorsunuz?" rows={3}
                               style={{...inputStyle,resize:'vertical',lineHeight:'1.6',marginBottom:'8px',fontSize:'12px'}} />
                             {msg && <div style={{fontSize:'11px',color:msg.includes('Yetersiz')||msg.includes('yazın')?'#ef4444':'#22c55e',marginBottom:'8px'}}>{msg}</div>}
-                            <button type="submit" disabled={loading} style={{width:'100%',padding:'9px',background:'#fff',color:'#0a0a0a',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'8px',fontSize:'12px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                            <button type="submit" disabled={loading} style={{width:'100%',padding:'9px',background:'#fff',color:'#0a0a0a',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'8px',fontSize:'12px',cursor:'pointer',}}>
                               {loading?'Gönderiliyor...':'Revizyon Gönder'}
                             </button>
                           </form>
@@ -862,7 +862,7 @@ function ClientBriefDetail() {
                           <div style={{fontSize:'11px',color:'#888',marginTop:'4px'}}>Bu proje tamamlandı</div>
                         </div>
                         <button onClick={handleCertificateDownload}
-                          style={{width:'100%',padding:'10px',background:'#fff',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'10px',fontSize:'12px',color:'#0a0a0a',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',fontWeight:'500',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',transition:'border-color 0.2s',marginBottom:'10px'}}>
+                          style={{width:'100%',padding:'10px',background:'#fff',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'10px',fontSize:'12px',color:'#0a0a0a',cursor:'pointer',fontWeight:'500',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',transition:'border-color 0.2s',marginBottom:'10px'}}>
                           <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 1h5l4 4v9a1 1 0 01-1 1H4a1 1 0 01-1-1V2a1 1 0 011-1z" stroke="#0a0a0a" strokeWidth="1.2"/><path d="M9 1v4h4" stroke="#0a0a0a" strokeWidth="1.2"/><path d="M6 9h4M6 11h2" stroke="#0a0a0a" strokeWidth="1.2" strokeLinecap="round"/></svg>
                           Telif Sertifikası İndir
                         </button>
@@ -880,14 +880,14 @@ function ClientBriefDetail() {
                                   {typeof window !== 'undefined' ? `${window.location.origin}/video/${id}` : `/video/${id}`}
                                 </a>
                                 <button onClick={copyPublicLink}
-                                  style={{fontSize:'10px',padding:'4px 10px',borderRadius:'6px',border:'0.5px solid rgba(0,0,0,0.12)',background:'#fff',color:linkCopied?'#22c55e':'#555',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',whiteSpace:'nowrap',flexShrink:0}}>
+                                  style={{fontSize:'10px',padding:'4px 10px',borderRadius:'6px',border:'0.5px solid rgba(0,0,0,0.12)',background:'#fff',color:linkCopied?'#22c55e':'#555',cursor:'pointer',whiteSpace:'nowrap',flexShrink:0}}>
                                   {linkCopied ? 'Kopyalandı ✓' : 'Kopyala'}
                                 </button>
                               </div>
                             </>
                           ) : (
                             <button onClick={generatePublicLink} disabled={generatingLink}
-                              style={{width:'100%',padding:'10px',background:'#fff',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'8px',fontSize:'12px',color:'#0a0a0a',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',fontWeight:'500',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px'}}>
+                              style={{width:'100%',padding:'10px',background:'#fff',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'8px',fontSize:'12px',color:'#0a0a0a',cursor:'pointer',fontWeight:'500',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px'}}>
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" strokeWidth="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
                               {generatingLink ? 'Oluşturuluyor...' : 'Public Link Oluştur'}
                             </button>
@@ -905,17 +905,17 @@ function ClientBriefDetail() {
                               <>
                                 <a href={brief.static_images_url} target="_blank" rel="noopener noreferrer"
                                   onClick={()=>logClientActivity({ actionType: 'static_images.downloaded', userName, clientName: companyName, clientId: brief.client_id, targetType: 'brief', targetId: id, targetLabel: brief.campaign_name })}
-                                  style={{fontSize:'11px',color:'#1DB81D',textDecoration:'none',border:'0.5px solid rgba(29,184,29,0.3)',borderRadius:'6px',padding:'6px 14px',display:'inline-flex',alignItems:'center',gap:'4px',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                                  style={{fontSize:'11px',color:'#1DB81D',textDecoration:'none',border:'0.5px solid rgba(29,184,29,0.3)',borderRadius:'6px',padding:'6px 14px',display:'inline-flex',alignItems:'center',gap:'4px',}}>
                                   Görsel İndir
                                 </a>
                                 <button onClick={()=>setStaticImageModal({ briefId: id, videoUrl: currentVideo?.video_url || brief.ai_video_url })}
-                                  style={{fontSize:'11px',color:'#555',background:'none',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'6px',padding:'6px 14px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                                  style={{fontSize:'11px',color:'#555',background:'none',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'6px',padding:'6px 14px',cursor:'pointer',}}>
                                   Yeni Görsel Oluştur
                                 </button>
                               </>
                             ) : (
                               <button onClick={()=>setStaticImageModal({ briefId: id, videoUrl: currentVideo?.video_url || brief.ai_video_url })}
-                                style={{width:'100%',padding:'10px',background:'#fff',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'8px',fontSize:'12px',color:'#0a0a0a',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',fontWeight:'500',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px'}}>
+                                style={{width:'100%',padding:'10px',background:'#fff',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'8px',fontSize:'12px',color:'#0a0a0a',cursor:'pointer',fontWeight:'500',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px'}}>
                                 Görsel Oluştur
                               </button>
                             )}
@@ -936,7 +936,7 @@ function ClientBriefDetail() {
                     <div style={{fontSize:'11px',color:'#888',textTransform:'uppercase',letterSpacing:'0.5px'}}>Sosyal Medya Başlıkları</div>
                     {!captions && (
                       <button onClick={loadCaptions} disabled={captionsLoading}
-                        style={{fontSize:'11px',padding:'6px 14px',borderRadius:'8px',border:'none',background:'#111113',color:'#fff',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',fontWeight:'500'}}>
+                        style={{fontSize:'11px',padding:'6px 14px',borderRadius:'8px',border:'none',background:'#111113',color:'#fff',cursor:'pointer',fontWeight:'500'}}>
                         {captionsLoading ? 'Oluşturuluyor...' : 'Başlıkları Oluştur'}
                       </button>
                     )}
@@ -951,7 +951,7 @@ function ClientBriefDetail() {
                             <div key={key} style={{padding:'10px 12px',background:'#f5f4f0',borderRadius:'8px',marginBottom:'6px',display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'8px'}}>
                               <div style={{fontSize:'12px',color:'#0a0a0a',lineHeight:'1.5',flex:1}}>{c}</div>
                               <button onClick={() => copyCaption(c, key)}
-                                style={{fontSize:'10px',padding:'4px 10px',borderRadius:'6px',border:'0.5px solid rgba(0,0,0,0.12)',background:'#fff',color:copiedIdx===key?'#22c55e':'#555',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',whiteSpace:'nowrap',flexShrink:0}}>
+                                style={{fontSize:'10px',padding:'4px 10px',borderRadius:'6px',border:'0.5px solid rgba(0,0,0,0.12)',background:'#fff',color:copiedIdx===key?'#22c55e':'#555',cursor:'pointer',whiteSpace:'nowrap',flexShrink:0}}>
                                 {copiedIdx===key ? 'Kopyalandı' : 'Kopyala'}
                               </button>
                             </div>
@@ -966,7 +966,7 @@ function ClientBriefDetail() {
                             <div key={key} style={{padding:'10px 12px',background:'#f5f4f0',borderRadius:'8px',marginBottom:'6px',display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'8px'}}>
                               <div style={{fontSize:'12px',color:'#0a0a0a',lineHeight:'1.5',flex:1}}>{c}</div>
                               <button onClick={() => copyCaption(c, key)}
-                                style={{fontSize:'10px',padding:'4px 10px',borderRadius:'6px',border:'0.5px solid rgba(0,0,0,0.12)',background:'#fff',color:copiedIdx===key?'#22c55e':'#555',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',whiteSpace:'nowrap',flexShrink:0}}>
+                                style={{fontSize:'10px',padding:'4px 10px',borderRadius:'6px',border:'0.5px solid rgba(0,0,0,0.12)',background:'#fff',color:copiedIdx===key?'#22c55e':'#555',cursor:'pointer',whiteSpace:'nowrap',flexShrink:0}}>
                                 {copiedIdx===key ? 'Kopyalandı' : 'Kopyala'}
                               </button>
                             </div>
@@ -1166,14 +1166,14 @@ function ClientBriefDetail() {
                                 setAiChildren(prev=>prev.map(c=>c.id===child.id?{...c,ai_video_status:'processing_concept',status:'ai_processing'}:c))
                                 fetch('/api/generate-ai-video',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({briefId:child.id,pipelineType:child.product_image_url?'product':'character'})})
                               }}
-                                style={{padding:'5px 12px',background:'#0a0a0a',color:'#fff',border:'none',borderRadius:'4px',fontSize:'11px',fontWeight:'500',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                                style={{padding:'5px 12px',background:'#0a0a0a',color:'#fff',border:'none',borderRadius:'4px',fontSize:'11px',fontWeight:'500',cursor:'pointer',}}>
                                 Tekrar Dene
                               </button>
                               <button onClick={async ()=>{
                                 await supabase.from('briefs').delete().eq('id',child.id)
                                 setAiChildren(prev=>prev.filter(c=>c.id!==child.id))
                               }}
-                                style={{padding:'5px 12px',background:'none',color:'#ef4444',border:'0.5px solid #ef4444',borderRadius:'4px',fontSize:'11px',fontWeight:'500',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                                style={{padding:'5px 12px',background:'none',color:'#ef4444',border:'0.5px solid #ef4444',borderRadius:'4px',fontSize:'11px',fontWeight:'500',cursor:'pointer',}}>
                                 Sil
                               </button>
                             </div>
@@ -1183,29 +1183,29 @@ function ClientBriefDetail() {
                               {isPurchased ? (
                                 <>
                                   <a href={child.ai_video_url} download target="_blank"
-                                    style={{fontSize:'11px',color:'#0a0a0a',textDecoration:'none',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'6px',padding:'5px 12px',display:'inline-flex',alignItems:'center',gap:'4px',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                                    style={{fontSize:'11px',color:'#0a0a0a',textDecoration:'none',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'6px',padding:'5px 12px',display:'inline-flex',alignItems:'center',gap:'4px',}}>
                                     <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M8 2v9M4 8l4 4 4-4" stroke="#0a0a0a" strokeWidth="1.5" strokeLinecap="round"/><path d="M2 13h12" stroke="#0a0a0a" strokeWidth="1.5" strokeLinecap="round"/></svg>
                                     İndir
                                   </a>
                                   <button onClick={()=>generateCertificatePDF(brief, companyName)}
-                                    style={{fontSize:'11px',color:'#555',background:'none',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'6px',padding:'5px 12px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                                    style={{fontSize:'11px',color:'#555',background:'none',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'6px',padding:'5px 12px',cursor:'pointer',}}>
                                     Telif Belgesi
                                   </button>
                                   {child.static_images_url ? (
                                     <>
                                       <a href={child.static_images_url} target="_blank" rel="noopener noreferrer"
                                         onClick={()=>logClientActivity({ actionType: 'static_images.downloaded', userName, clientName: companyName, clientId: brief?.client_id, targetType: 'brief', targetId: child.id, targetLabel: child.campaign_name })}
-                                        style={{fontSize:'11px',color:'#1DB81D',textDecoration:'none',border:'0.5px solid rgba(29,184,29,0.3)',borderRadius:'6px',padding:'5px 12px',display:'inline-flex',alignItems:'center',gap:'4px',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                                        style={{fontSize:'11px',color:'#1DB81D',textDecoration:'none',border:'0.5px solid rgba(29,184,29,0.3)',borderRadius:'6px',padding:'5px 12px',display:'inline-flex',alignItems:'center',gap:'4px',}}>
                                         Görsel İndir
                                       </a>
                                       <button onClick={()=>setStaticImageModal({ briefId: child.id, videoUrl: child.ai_video_url })}
-                                        style={{fontSize:'11px',color:'#555',background:'none',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'6px',padding:'5px 12px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                                        style={{fontSize:'11px',color:'#555',background:'none',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'6px',padding:'5px 12px',cursor:'pointer',}}>
                                         Yeni Görsel Oluştur
                                       </button>
                                     </>
                                   ) : (
                                     <button onClick={()=>setStaticImageModal({ briefId: child.id, videoUrl: child.ai_video_url })}
-                                      style={{fontSize:'11px',color:'#0a0a0a',background:'none',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'6px',padding:'5px 12px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                                      style={{fontSize:'11px',color:'#0a0a0a',background:'none',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'6px',padding:'5px 12px',cursor:'pointer',}}>
                                       Görsel Oluştur
                                     </button>
                                   )}
@@ -1213,7 +1213,7 @@ function ClientBriefDetail() {
                               ) : (
                                 <>
                                   <button onClick={()=>handleStudioPurchase(child)} disabled={(clientUser?.allocated_credits||0)<2}
-                                    style={{padding:'6px 16px',background:(clientUser?.allocated_credits||0)<2?'#ccc':'#1DB81D',color:'#0A0A0A',border:'none',borderRadius:'6px',fontSize:'11px',fontWeight:'600',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                                    style={{padding:'6px 16px',background:(clientUser?.allocated_credits||0)<2?'#ccc':'#1DB81D',color:'#0A0A0A',border:'none',borderRadius:'6px',fontSize:'11px',fontWeight:'600',cursor:'pointer',}}>
                                     Satın Al
                                   </button>
                                   <span style={{fontSize:'10px',color:'#888'}}>2 kredi</span>
@@ -1241,7 +1241,7 @@ function ClientBriefDetail() {
                                       onChange={e=>setFeedbackText(p=>({...p,[child.id]:e.target.value}))}
                                       placeholder="Yorum bırakın — bir sonraki üretimde dikkate alınır."
                                       rows={2}
-                                      style={{flex:1,padding:'8px 10px',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'6px',fontSize:'11px',color:'#0a0a0a',resize:'vertical',fontFamily:'var(--font-dm-sans),sans-serif',boxSizing:'border-box'}}
+                                      style={{flex:1,padding:'8px 10px',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'6px',fontSize:'11px',color:'#0a0a0a',resize:'vertical',boxSizing:'border-box'}}
                                     />
                                     <button onClick={async()=>{
                                       const val = currentText.trim()
@@ -1255,7 +1255,7 @@ function ClientBriefDetail() {
                                       setEditingFeedback(p=>({...p,[child.id]:false}))
                                       setFeedbackText(p=>({...p,[child.id]:''}))
                                     }}
-                                      style={{padding:'8px 14px',background:'#0a0a0a',color:'#fff',border:'none',borderRadius:'6px',fontSize:'11px',fontWeight:'500',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',whiteSpace:'nowrap',height:'36px'}}>
+                                      style={{padding:'8px 14px',background:'#0a0a0a',color:'#fff',border:'none',borderRadius:'6px',fontSize:'11px',fontWeight:'500',cursor:'pointer',whiteSpace:'nowrap',height:'36px'}}>
                                       Kaydet
                                     </button>
                                   </div>
@@ -1278,13 +1278,13 @@ function ClientBriefDetail() {
                     ) : brief.product_image_url && showAiGenerate ? (
                       <div style={{display:'flex',gap:'8px'}}>
                         <button onClick={()=>handleStudioGenerate('product')}
-                          style={{flex:1,padding:'12px',background:'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'12px',fontWeight:'600',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',transition:'background 0.15s'}}
+                          style={{flex:1,padding:'12px',background:'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'12px',fontWeight:'600',cursor:'pointer',transition:'background 0.15s'}}
                           onMouseEnter={e=>(e.currentTarget.style.background='#1DB81D')}
                           onMouseLeave={e=>(e.currentTarget.style.background='#0a0a0a')}>
                           Ürün Odaklı
                         </button>
                         <button onClick={()=>handleStudioGenerate('character')}
-                          style={{flex:1,padding:'12px',background:'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'12px',fontWeight:'600',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',transition:'background 0.15s'}}
+                          style={{flex:1,padding:'12px',background:'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'12px',fontWeight:'600',cursor:'pointer',transition:'background 0.15s'}}
                           onMouseEnter={e=>(e.currentTarget.style.background='#1DB81D')}
                           onMouseLeave={e=>(e.currentTarget.style.background='#0a0a0a')}>
                           Karakter Odaklı
@@ -1293,7 +1293,7 @@ function ClientBriefDetail() {
                     ) : (
                       <div>
                         <button onClick={()=>brief.product_image_url?setShowAiGenerate(true):handleStudioGenerate('character')} disabled={(clientUser?.allocated_credits||0)<1}
-                          style={{width:'100%',padding:'14px',background:(clientUser?.allocated_credits||0)<1?'#ccc':'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'13px',fontWeight:'600',cursor:(clientUser?.allocated_credits||0)<1?'default':'pointer',fontFamily:'var(--font-dm-sans),sans-serif',transition:'background 0.15s',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}
+                          style={{width:'100%',padding:'14px',background:(clientUser?.allocated_credits||0)<1?'#ccc':'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'13px',fontWeight:'600',cursor:(clientUser?.allocated_credits||0)<1?'default':'pointer',transition:'background 0.15s',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}
                           onMouseEnter={e=>{if((clientUser?.allocated_credits||0)>=1)e.currentTarget.style.background='#1DB81D'}}
                           onMouseLeave={e=>{if((clientUser?.allocated_credits||0)>=1)e.currentTarget.style.background='#0a0a0a'}}>
                           <span>&#9889;</span> {aiChildren.length > 0 ? 'Yeni Versiyon Üret' : 'Full AI Video Üret'}
@@ -1354,7 +1354,7 @@ function ClientBriefDetail() {
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px'}}>
                       <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
                         <div style={{fontSize:'14px',fontWeight:'600',color:'#0a0a0a'}}>{cpsPackage} Varyasyon Planı</div>
-                        <button onClick={()=>{setCpsPackage(0);setCpsVariations([])}} style={{fontSize:'11px',color:'#888',background:'none',border:'none',cursor:'pointer',textDecoration:'underline',fontFamily:'var(--font-dm-sans),sans-serif'}}>Paketi Değiştir</button>
+                        <button onClick={()=>{setCpsPackage(0);setCpsVariations([])}} style={{fontSize:'11px',color:'#888',background:'none',border:'none',cursor:'pointer',textDecoration:'underline',}}>Paketi Değiştir</button>
                       </div>
                       <button onClick={async()=>{
                         setCpsGenerating(true)
@@ -1365,7 +1365,7 @@ function ClientBriefDetail() {
                         }catch{}
                         setCpsGenerating(false)
                       }} disabled={cpsGenerating}
-                        style={{padding:'9px 18px',background:'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'12px',fontWeight:'600',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                        style={{padding:'9px 18px',background:'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'12px',fontWeight:'600',cursor:'pointer',}}>
                         {cpsGenerating ? 'AI düşünüyor...' : '⚡ Varyasyon Planını AI Oluştur'}
                       </button>
                     </div>
@@ -1382,7 +1382,7 @@ function ClientBriefDetail() {
                             <div key={f.key}>
                               <div style={{fontSize:'9px',color:'#888',marginBottom:'3px'}}>{f.label}</div>
                               <select value={(v as any)[f.key]||''} onChange={e=>{const u=[...cpsVariations];u[vi]={...u[vi],[f.key]:e.target.value};setCpsVariations(u)}}
-                                style={{width:'100%',padding:'6px 8px',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'4px',fontSize:'11px',color:'#0a0a0a',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                                style={{width:'100%',padding:'6px 8px',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'4px',fontSize:'11px',color:'#0a0a0a',}}>
                                 <option value="">Seç</option>
                                 {f.opts.map(o=><option key={o} value={o}>{o}</option>)}
                               </select>
@@ -1392,7 +1392,7 @@ function ClientBriefDetail() {
                         <div style={{marginTop:'8px'}}>
                           <div style={{fontSize:'9px',color:'#888',marginBottom:'3px'}}>Not (opsiyonel)</div>
                           <input value={v.note||''} onChange={e=>{const u=[...cpsVariations];u[vi]={...u[vi],note:e.target.value};setCpsVariations(u)}} maxLength={150} placeholder="Ek yön veya açıklama..."
-                            style={{width:'100%',padding:'6px 8px',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'4px',fontSize:'11px',color:'#0a0a0a',fontFamily:'var(--font-dm-sans),sans-serif',boxSizing:'border-box'}} />
+                            style={{width:'100%',padding:'6px 8px',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'4px',fontSize:'11px',color:'#0a0a0a',boxSizing:'border-box'}} />
                         </div>
                       </div>
                     ))}
@@ -1401,7 +1401,7 @@ function ClientBriefDetail() {
                     <div style={{display:'flex',alignItems:'center',gap:'12px',marginTop:'16px'}}>
                       <div style={{flex:1}}></div>
                       <button onClick={()=>setCpsConfirmModal(true)} disabled={cpsVariations.filter(v=>v.hook&&v.ton).length===0}
-                        style={{padding:'12px 24px',background:cpsVariations.filter(v=>v.hook&&v.ton).length===0?'#ccc':'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'13px',fontWeight:'600',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                        style={{padding:'12px 24px',background:cpsVariations.filter(v=>v.hook&&v.ton).length===0?'#ccc':'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'13px',fontWeight:'600',cursor:'pointer',}}>
                         CPS Başlat
                       </button>
                     </div>
@@ -1439,8 +1439,8 @@ function ClientBriefDetail() {
                             <div style={{fontSize:'10px',color:'#aaa',marginBottom:'8px'}}>{new Date(child.created_at).toLocaleDateString('tr-TR',{day:'numeric',month:'short'})}</div>
                             {childVideo?.video_url && (
                               <div style={{display:'flex',gap:'6px'}}>
-                                <a href={childVideo.video_url} download target="_blank" style={{fontSize:'11px',color:'#0a0a0a',textDecoration:'none',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'4px',padding:'5px 12px',fontFamily:'var(--font-dm-sans),sans-serif'}}>İndir</a>
-                                <button onClick={()=>generateCertificatePDF(brief, companyName)} style={{fontSize:'11px',color:'#555',background:'none',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'4px',padding:'5px 12px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>Telif Belgesi</button>
+                                <a href={childVideo.video_url} download target="_blank" style={{fontSize:'11px',color:'#0a0a0a',textDecoration:'none',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'4px',padding:'5px 12px',}}>İndir</a>
+                                <button onClick={()=>generateCertificatePDF(brief, companyName)} style={{fontSize:'11px',color:'#555',background:'none',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'4px',padding:'5px 12px',cursor:'pointer',}}>Telif Belgesi</button>
                               </div>
                             )}
                           </div>
@@ -1485,7 +1485,7 @@ function ClientBriefDetail() {
               )}
               <div style={{display:'flex',gap:'10px'}}>
                 <button onClick={()=>setCpsConfirmModal(false)}
-                  style={{flex:1,padding:'12px',background:'#fff',color:'#555',border:'1px solid rgba(0,0,0,0.15)',borderRadius:'4px',fontSize:'13px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                  style={{flex:1,padding:'12px',background:'#fff',color:'#555',border:'1px solid rgba(0,0,0,0.15)',borderRadius:'4px',fontSize:'13px',cursor:'pointer',}}>
                   İptal
                 </button>
                 <button disabled={(clientUser?.allocated_credits||0)<totalCost} onClick={async()=>{
@@ -1513,7 +1513,7 @@ function ClientBriefDetail() {
                   setCpsPackage(0);setCpsVariations([])
                   loadData()
                 }}
-                  style={{flex:2,padding:'12px',background:(clientUser?.allocated_credits||0)<totalCost?'#ccc':'#0a0a0a',color:'#fff',border:'none',borderRadius:'4px',fontSize:'13px',fontWeight:'600',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                  style={{flex:2,padding:'12px',background:(clientUser?.allocated_credits||0)<totalCost?'#ccc':'#0a0a0a',color:'#fff',border:'none',borderRadius:'4px',fontSize:'13px',fontWeight:'600',cursor:'pointer',}}>
                   Onayla ve Başlat
                 </button>
               </div>
@@ -1536,8 +1536,8 @@ function ClientBriefDetail() {
               <strong style={{color:'#0a0a0a'}}>{brief?.credit_cost} kredi</strong> hesabınızdan düşecektir. Onaylıyor musunuz?
             </div>
             <div style={{display:'flex',gap:'10px'}}>
-              <button onClick={()=>setShowApproveModal(false)} style={{flex:1,padding:'12px',background:'#f5f4f0',color:'#555',border:'none',borderRadius:'10px',fontSize:'14px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>Vazgeç</button>
-              <button onClick={handleApprove} disabled={loading} style={{flex:1,padding:'12px',background:'#22c55e',color:'#fff',border:'none',borderRadius:'10px',fontSize:'14px',fontWeight:'500',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+              <button onClick={()=>setShowApproveModal(false)} style={{flex:1,padding:'12px',background:'#f5f4f0',color:'#555',border:'none',borderRadius:'10px',fontSize:'14px',cursor:'pointer',}}>Vazgeç</button>
+              <button onClick={handleApprove} disabled={loading} style={{flex:1,padding:'12px',background:'#22c55e',color:'#fff',border:'none',borderRadius:'10px',fontSize:'14px',fontWeight:'500',cursor:'pointer',}}>
                 {loading?'İşleniyor...':'Evet, Onayla'}
               </button>
             </div>
@@ -1576,7 +1576,7 @@ function ClientBriefDetail() {
                           title={isDisabled ? 'Mevcut planınızda mevcut değil' : ''}
                           style={{
                             padding:'8px 14px',borderRadius:'100px',fontSize:'12px',fontWeight:'500',
-                            cursor:isDisabled?'not-allowed':'pointer',fontFamily:'var(--font-dm-sans),sans-serif',
+                            cursor:isDisabled?'not-allowed':'pointer',
                             transition:'all 0.15s',
                             border:isSelected?'1.5px solid #22c55e':isDisabled?'1px solid rgba(0,0,0,0.06)':'1px solid rgba(0,0,0,0.12)',
                             background:isSelected?'#22c55e':isDisabled?'#f5f4f0':'#fff',
@@ -1610,9 +1610,9 @@ function ClientBriefDetail() {
               {!canAfford && <div style={{fontSize:'12px',color:'#ef4444',marginBottom:'12px',textAlign:'center'}}>Yetersiz kredi.</div>}
 
               <div style={{display:'flex',gap:'10px'}}>
-                <button onClick={()=>setShowReorderModal(false)} style={{flex:1,padding:'12px',background:'#f5f4f0',color:'#555',border:'none',borderRadius:'10px',fontSize:'14px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>Vazgeç</button>
+                <button onClick={()=>setShowReorderModal(false)} style={{flex:1,padding:'12px',background:'#f5f4f0',color:'#555',border:'none',borderRadius:'10px',fontSize:'14px',cursor:'pointer',}}>Vazgeç</button>
                 <button onClick={handleReorder} disabled={reordering || !canAfford}
-                  style={{flex:1,padding:'12px',background:'#111113',color:'#fff',border:'none',borderRadius:'10px',fontSize:'14px',fontWeight:'500',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',opacity:canAfford?1:0.4}}>
+                  style={{flex:1,padding:'12px',background:'#111113',color:'#fff',border:'none',borderRadius:'10px',fontSize:'14px',fontWeight:'500',cursor:'pointer',opacity:canAfford?1:0.4}}>
                   {reordering ? 'Oluşturuluyor...' : 'Onaylıyorum'}
                 </button>
               </div>

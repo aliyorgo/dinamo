@@ -378,7 +378,7 @@ export default function ClientDetailPage() {
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '8px 12px', border: '0.5px solid rgba(0,0,0,0.15)',
     borderRadius: '8px', fontSize: '13px', color: '#0a0a0a',
-    fontFamily: 'var(--font-dm-sans),sans-serif', outline: 'none', boxSizing: 'border-box', background: '#fff',
+     outline: 'none', boxSizing: 'border-box', background: '#fff',
   }
   const labelStyle: React.CSSProperties = {
     display: 'block', fontSize: '10px', color: '#888', marginBottom: '5px',
@@ -396,7 +396,7 @@ export default function ClientDetailPage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f4f0', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f4f0',  }}>
         <div style={{ color: '#888', fontSize: '14px' }}>Yukleniyor...</div>
       </div>
     )
@@ -409,7 +409,7 @@ export default function ClientDetailPage() {
         {/* HEADER */}
         <div style={{ padding: '14px 28px', background: '#fff', borderBottom: '0.5px solid rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
           <button onClick={() => router.push('/dashboard/admin/clients')}
-            style={{ fontSize: '12px', color: '#888', background: 'none', border: 'none', cursor: 'pointer', padding: '0', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+            style={{ fontSize: '12px', color: '#888', background: 'none', border: 'none', cursor: 'pointer', padding: '0',  }}>
             &#8592; Musteriler
           </button>
           <span style={{ color: '#ddd' }}>/</span>
@@ -444,12 +444,12 @@ export default function ClientDetailPage() {
                 <input ref={logoRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleLogoUpload} />
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button onClick={() => logoRef.current?.click()} disabled={uploading}
-                    style={{ flex: 1, padding: '7px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: uploading ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+                    style={{ flex: 1, padding: '7px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: uploading ? 'not-allowed' : 'pointer',  }}>
                     {uploading ? 'Yukleniyor...' : 'Logo Yukle'}
                   </button>
                   {client?.logo_url && (
                     <button onClick={removeLogo}
-                      style={{ padding: '7px 12px', background: '#fff', color: '#888', border: '0.5px solid rgba(0,0,0,0.15)', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+                      style={{ padding: '7px 12px', background: '#fff', color: '#888', border: '0.5px solid rgba(0,0,0,0.15)', borderRadius: '8px', fontSize: '12px', cursor: 'pointer',  }}>
                       Kaldir
                     </button>
                   )}
@@ -490,19 +490,19 @@ export default function ClientDetailPage() {
               {/* ACTIONS */}
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 <button onClick={openSaleModal}
-                  style={{ flex: 1, padding: '10px', background: '#22c55e', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+                  style={{ flex: 1, padding: '10px', background: '#22c55e', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: 'pointer',  }}>
                   Kredi Satisi
                 </button>
                 <button onClick={() => { setCreditModal(true); setCreditAmount('') }}
-                  style={{ flex: 1, padding: '10px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+                  style={{ flex: 1, padding: '10px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: 'pointer',  }}>
                   Kredi Yukle
                 </button>
                 <button onClick={openEditModal}
-                  style={{ flex: 1, padding: '10px', background: '#fff', color: '#0a0a0a', border: '0.5px solid rgba(0,0,0,0.15)', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+                  style={{ flex: 1, padding: '10px', background: '#fff', color: '#0a0a0a', border: '0.5px solid rgba(0,0,0,0.15)', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: 'pointer',  }}>
                   Duzenle
                 </button>
                 <button onClick={() => setDeleteModal(true)}
-                  style={{ padding: '10px 14px', background: '#fff', color: '#ef4444', border: '0.5px solid rgba(239,68,68,0.3)', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+                  style={{ padding: '10px 14px', background: '#fff', color: '#ef4444', border: '0.5px solid rgba(239,68,68,0.3)', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: 'pointer',  }}>
                   Sil
                 </button>
               </div>
@@ -515,9 +515,9 @@ export default function ClientDetailPage() {
                 <textarea value={aiNotes} onChange={e => setAiNotes(e.target.value)}
                   placeholder="Musterinin tercihleri, tarzi, hassasiyetleri..."
                   rows={4}
-                  style={{ width: '100%', padding: '10px 12px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', color: '#0a0a0a', resize: 'vertical', fontFamily: 'var(--font-dm-sans),sans-serif', outline: 'none', boxSizing: 'border-box' }} />
+                  style={{ width: '100%', padding: '10px 12px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', color: '#0a0a0a', resize: 'vertical',  outline: 'none', boxSizing: 'border-box' }} />
                 <button onClick={saveAiNotes} disabled={savingNotes}
-                  style={{ marginTop: '8px', padding: '7px 16px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '11px', fontWeight: '500', cursor: savingNotes ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+                  style={{ marginTop: '8px', padding: '7px 16px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '11px', fontWeight: '500', cursor: savingNotes ? 'not-allowed' : 'pointer',  }}>
                   {savingNotes ? 'Kaydediliyor...' : 'Kaydet'}
                 </button>
               </div>
@@ -551,7 +551,7 @@ export default function ClientDetailPage() {
                         <img src={brandLogoUrl} alt="Logo" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
                       </div>
                       <button onClick={async () => { await supabase.from('clients').update({ brand_logo_url: null }).eq('id', clientId); setBrandLogoUrl(''); showMsg('Logo kaldırıldı.') }}
-                        style={{ fontSize: '11px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>Kaldır</button>
+                        style={{ fontSize: '11px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer',  }}>Kaldır</button>
                     </div>
                   ) : (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -597,7 +597,7 @@ export default function ClientDetailPage() {
                 <div style={{ marginBottom: '12px' }}>
                   <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}>Logo Pozisyonu (Statik Görsel Yan Panel)</div>
                   <select value={brandLogoPosition} onChange={e => setBrandLogoPosition(e.target.value)}
-                    style={{ width: '100%', padding: '7px 10px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', color: '#0a0a0a', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+                    style={{ width: '100%', padding: '7px 10px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', color: '#0a0a0a',  }}>
                     <option value="top">Üst</option>
                     <option value="middle">Orta</option>
                     <option value="bottom">Alt</option>
@@ -611,7 +611,7 @@ export default function ClientDetailPage() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#f5f4f0', borderRadius: '8px', padding: '10px 14px' }}>
                       <span style={{ fontSize: '12px', color: '#0a0a0a', flex: 1 }}>Font yüklendi</span>
                       <button onClick={async () => { await supabase.from('clients').update({ brand_font_url: null }).eq('id', clientId); setBrandFontUrl(''); showMsg('Font kaldırıldı.') }}
-                        style={{ fontSize: '11px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>Kaldır</button>
+                        style={{ fontSize: '11px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer',  }}>Kaldır</button>
                     </div>
                   ) : (
                     <div>
@@ -636,7 +636,7 @@ export default function ClientDetailPage() {
                 </div>
 
                 <button onClick={saveBrand} disabled={savingBrand}
-                  style={{ padding: '7px 16px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '11px', fontWeight: '500', cursor: savingBrand ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+                  style={{ padding: '7px 16px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '11px', fontWeight: '500', cursor: savingBrand ? 'not-allowed' : 'pointer',  }}>
                   {savingBrand ? 'Kaydediliyor...' : 'Kaydet'}
                 </button>
               </div>
@@ -647,7 +647,7 @@ export default function ClientDetailPage() {
               {/* AI Notes Bucket */}
               <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>AI Notları Kovası</div>
               <textarea value={aiNotesInput} onChange={e => setAiNotesInput(e.target.value)} rows={4} placeholder="Marka hakkında bilgi, wiki, analiz, sektör notu, serbest metin yapıştırın..."
-                style={{ width: '100%', padding: '10px 12px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', color: '#0a0a0a', resize: 'vertical', fontFamily: 'var(--font-dm-sans),sans-serif', boxSizing: 'border-box', marginBottom: '8px' }} />
+                style={{ width: '100%', padding: '10px 12px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', color: '#0a0a0a', resize: 'vertical',  boxSizing: 'border-box', marginBottom: '8px' }} />
               <button disabled={seedImporting || aiNotesInput.trim().length < 20} onClick={async () => {
                   setSeedImporting(true)
                   const seedText = aiNotesInput.trim()
@@ -666,7 +666,7 @@ export default function ClientDetailPage() {
                     showMsg('Kurallar çıkarıldı.')
                   } else { setSeedImporting(false); showMsg('Metin yetersiz (20+ karakter gerekli).', true) }
                 }}
-                  style={{ padding: '7px 16px', background: seedImporting || aiNotesInput.trim().length < 20 ? '#ccc' : '#111113', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '11px', fontWeight: '500', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+                  style={{ padding: '7px 16px', background: seedImporting || aiNotesInput.trim().length < 20 ? '#ccc' : '#111113', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '11px', fontWeight: '500', cursor: 'pointer',  }}>
                   {seedImporting ? 'Çıkarılıyor...' : 'Kural Çıkar'}
                 </button>
 
@@ -674,7 +674,7 @@ export default function ClientDetailPage() {
               <div style={{ display: 'flex', gap: '0', borderBottom: '0.5px solid rgba(0,0,0,0.08)', marginTop: '20px', marginBottom: '14px' }}>
                 {([['pending', `Onay Bekleyen (${learningCandidates.length})`], ['active', `Aktif (${brandRules.length})`], ['add', 'Manuel Ekle']] as const).map(([key, label]) => (
                   <button key={key} onClick={() => setRulesTab(key as any)}
-                    style={{ padding: '8px 14px', fontSize: '11px', fontWeight: rulesTab === key ? '600' : '400', color: rulesTab === key ? '#0a0a0a' : '#888', background: 'none', border: 'none', borderBottom: rulesTab === key ? '2px solid #1DB81D' : '2px solid transparent', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+                    style={{ padding: '8px 14px', fontSize: '11px', fontWeight: rulesTab === key ? '600' : '400', color: rulesTab === key ? '#0a0a0a' : '#888', background: 'none', border: 'none', borderBottom: rulesTab === key ? '2px solid #1DB81D' : '2px solid transparent', cursor: 'pointer',  }}>
                     {label}
                   </button>
                 ))}
@@ -704,12 +704,12 @@ export default function ClientDetailPage() {
                         const { data: r } = await supabase.from('brand_rules').select('*').eq('client_id', clientId).order('created_at', { ascending: false })
                         setBrandRules(r || [])
                         showMsg('Kural onaylandı.')
-                      }} style={{ fontSize: '11px', color: '#22c55e', background: 'none', border: '0.5px solid rgba(34,197,94,0.3)', borderRadius: '4px', padding: '4px 10px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>✓</button>
+                      }} style={{ fontSize: '11px', color: '#22c55e', background: 'none', border: '0.5px solid rgba(34,197,94,0.3)', borderRadius: '4px', padding: '4px 10px', cursor: 'pointer',  }}>✓</button>
                       <button onClick={async () => {
                         await supabase.from('brand_learning_candidates').update({ status: 'rejected', reviewed_at: new Date().toISOString() }).eq('id', c.id)
                         setLearningCandidates(prev => prev.filter(x => x.id !== c.id))
                         showMsg('Reddedildi.')
-                      }} style={{ fontSize: '11px', color: '#ef4444', background: 'none', border: '0.5px solid rgba(239,68,68,0.3)', borderRadius: '4px', padding: '4px 10px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>✗</button>
+                      }} style={{ fontSize: '11px', color: '#ef4444', background: 'none', border: '0.5px solid rgba(239,68,68,0.3)', borderRadius: '4px', padding: '4px 10px', cursor: 'pointer',  }}>✗</button>
                     </div>
                   )
                 })
@@ -735,7 +735,7 @@ export default function ClientDetailPage() {
                         await supabase.from('brand_rules').delete().eq('id', r.id)
                         setBrandRules(prev => prev.filter(x => x.id !== r.id))
                         showMsg('Kural silindi.')
-                      }} style={{ fontSize: '10px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>Sil</button>
+                      }} style={{ fontSize: '10px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer',  }}>Sil</button>
                     </div>
                   )
                 })
@@ -746,7 +746,7 @@ export default function ClientDetailPage() {
                   <div style={{ marginBottom: '10px' }}>
                     <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}>Tip</div>
                     <select value={newRule.type} onChange={e => setNewRule({ ...newRule, type: e.target.value })}
-                      style={{ width: '100%', padding: '7px 10px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '6px', fontSize: '12px', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+                      style={{ width: '100%', padding: '7px 10px', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '6px', fontSize: '12px',  }}>
                       <option value="rule">Kural (pozitif talimat)</option>
                       <option value="restriction">Yasak</option>
                       <option value="insight">İçgörü (yaratıcı yönlendirme)</option>
@@ -769,7 +769,7 @@ export default function ClientDetailPage() {
                     setNewRule({ text: '', condition: '', type: 'rule' })
                     setRulesTab('active')
                     showMsg('Kural eklendi.')
-                  }} style={{ padding: '7px 16px', background: !newRule.text ? '#ccc' : '#111113', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '11px', fontWeight: '500', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+                  }} style={{ padding: '7px 16px', background: !newRule.text ? '#ccc' : '#111113', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '11px', fontWeight: '500', cursor: 'pointer',  }}>
                     Kaydet
                   </button>
                 </div>
@@ -832,12 +832,12 @@ export default function ClientDetailPage() {
                     </div>
                     <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
                       <button onClick={() => { openAllocModal(cu, 'give') }}
-                        style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '10px', fontWeight: '500', border: '1px solid #22c55e', background: 'rgba(34,197,94,0.1)', color: '#22c55e', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+                        style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '10px', fontWeight: '500', border: '1px solid #22c55e', background: 'rgba(34,197,94,0.1)', color: '#22c55e', cursor: 'pointer',  }}>
                         + Ver
                       </button>
                       <button onClick={() => { openAllocModal(cu, 'take') }}
                         disabled={!cu.allocated_credits}
-                        style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '10px', fontWeight: '500', border: '1px solid rgba(0,0,0,0.15)', background: '#fff', color: cu.allocated_credits ? '#888' : '#ddd', cursor: cu.allocated_credits ? 'pointer' : 'not-allowed', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+                        style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '10px', fontWeight: '500', border: '1px solid rgba(0,0,0,0.15)', background: '#fff', color: cu.allocated_credits ? '#888' : '#ddd', cursor: cu.allocated_credits ? 'pointer' : 'not-allowed',  }}>
                         - Geri Al
                       </button>
                     </div>
@@ -934,11 +934,11 @@ export default function ClientDetailPage() {
                 placeholder="0" autoFocus />
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button type="button" onClick={() => setCreditAllocModal(null)}
-                  style={{ flex: 1, padding: '10px', background: '#fff', color: '#888', border: '0.5px solid rgba(0,0,0,0.15)', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+                  style={{ flex: 1, padding: '10px', background: '#fff', color: '#888', border: '0.5px solid rgba(0,0,0,0.15)', borderRadius: '8px', fontSize: '13px', cursor: 'pointer',  }}>
                   Iptal
                 </button>
                 <button type="submit" disabled={allocSaving}
-                  style={{ flex: 2, padding: '10px', background: creditAllocModal.direction === 'give' ? '#22c55e' : '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: allocSaving ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+                  style={{ flex: 2, padding: '10px', background: creditAllocModal.direction === 'give' ? '#22c55e' : '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: allocSaving ? 'not-allowed' : 'pointer',  }}>
                   {allocSaving ? 'Isleniyor...' : creditAllocModal.direction === 'give' ? 'Kredi Ver' : 'Geri Al'}
                 </button>
               </div>
@@ -1000,11 +1000,11 @@ export default function ClientDetailPage() {
               )}
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button type="button" onClick={() => setSaleModal(false)}
-                  style={{ flex: 1, padding: '10px', background: '#fff', color: '#888', border: '0.5px solid rgba(0,0,0,0.15)', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+                  style={{ flex: 1, padding: '10px', background: '#fff', color: '#888', border: '0.5px solid rgba(0,0,0,0.15)', borderRadius: '8px', fontSize: '13px', cursor: 'pointer',  }}>
                   Iptal
                 </button>
                 <button type="submit" disabled={savingSale}
-                  style={{ flex: 2, padding: '10px', background: '#22c55e', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: savingSale ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+                  style={{ flex: 2, padding: '10px', background: '#22c55e', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: savingSale ? 'not-allowed' : 'pointer',  }}>
                   {savingSale ? 'Kaydediliyor...' : 'Satisi Kaydet'}
                 </button>
               </div>
@@ -1040,11 +1040,11 @@ export default function ClientDetailPage() {
               </div>
               <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
                 <button type="button" onClick={() => setEditModal(false)}
-                  style={{ padding: '8px 16px', background: '#f5f4f0', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', color: 'rgba(255,255,255,0.4)' }}>
+                  style={{ padding: '8px 16px', background: '#f5f4f0', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', cursor: 'pointer',  color: 'rgba(255,255,255,0.4)' }}>
                   Iptal
                 </button>
                 <button type="submit" disabled={saving}
-                  style={{ padding: '8px 16px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: saving ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+                  style={{ padding: '8px 16px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: saving ? 'not-allowed' : 'pointer',  }}>
                   {saving ? 'Kaydediliyor...' : 'Kaydet'}
                 </button>
               </div>
@@ -1070,11 +1070,11 @@ export default function ClientDetailPage() {
             )}
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
               <button onClick={() => setDeleteModal(false)}
-                style={{ padding: '8px 16px', background: '#f5f4f0', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', color: 'rgba(255,255,255,0.4)' }}>
+                style={{ padding: '8px 16px', background: '#f5f4f0', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', cursor: 'pointer',  color: 'rgba(255,255,255,0.4)' }}>
                 Iptal
               </button>
               <button onClick={confirmDelete} disabled={deleting}
-                style={{ padding: '8px 16px', background: '#ef4444', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: deleting ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+                style={{ padding: '8px 16px', background: '#ef4444', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: deleting ? 'not-allowed' : 'pointer',  }}>
                 {deleting ? 'Siliniyor...' : 'Evet, Sil'}
               </button>
             </div>
@@ -1099,11 +1099,11 @@ export default function ClientDetailPage() {
                 placeholder="0" autoFocus />
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button type="button" onClick={() => setCreditModal(false)}
-                  style={{ flex: 1, padding: '10px', background: '#fff', color: '#888', border: '0.5px solid rgba(0,0,0,0.15)', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+                  style={{ flex: 1, padding: '10px', background: '#fff', color: '#888', border: '0.5px solid rgba(0,0,0,0.15)', borderRadius: '8px', fontSize: '13px', cursor: 'pointer',  }}>
                   Iptal
                 </button>
                 <button type="submit" disabled={loadingCredit}
-                  style={{ flex: 2, padding: '10px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: loadingCredit ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+                  style={{ flex: 2, padding: '10px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: loadingCredit ? 'not-allowed' : 'pointer',  }}>
                   {loadingCredit ? 'Yukleniyor...' : 'Kredi Yukle'}
                 </button>
               </div>

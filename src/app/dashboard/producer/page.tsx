@@ -86,7 +86,7 @@ export default function ProducerDashboard() {
   }
 
   return (
-    <div style={{display:'flex',minHeight:'100vh',fontFamily:"var(--font-dm-sans),'DM Sans',system-ui,sans-serif"}}>
+    <div style={{display:'flex',minHeight:'100vh',}}>
 
       <div style={{width:'240px',background:'#0A0A0A',display:'flex',flexDirection:'column',flexShrink:0,height:'100vh',position:'sticky',top:0}}>
         <div style={{padding:'18px 16px 14px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
@@ -98,8 +98,8 @@ export default function ProducerDashboard() {
         </div>
         <nav style={{padding:'10px 8px',flex:1}}>
           <div style={{display:'flex',gap:'4px',marginBottom:'10px'}}>
-            <button onClick={()=>{setTab('briefs');setFilter('all')}} style={{flex:1,padding:'6px',border:'none',background:tab==='briefs'?'rgba(255,255,255,0.1)':'transparent',color:tab==='briefs'?'#fff':'rgba(255,255,255,0.4)',fontSize:'11px',fontWeight:tab==='briefs'?'600':'400',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',borderRadius:'6px'}}>Brief'ler</button>
-            <button onClick={()=>{setTab('ai');setFilter('all')}} style={{flex:1,padding:'6px',border:'none',background:tab==='ai'?'rgba(255,255,255,0.1)':'transparent',color:tab==='ai'?'#fff':'rgba(255,255,255,0.4)',fontSize:'11px',fontWeight:tab==='ai'?'600':'400',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',borderRadius:'6px'}}>AI Video</button>
+            <button onClick={()=>{setTab('briefs');setFilter('all')}} style={{flex:1,padding:'6px',border:'none',background:tab==='briefs'?'rgba(255,255,255,0.1)':'transparent',color:tab==='briefs'?'#fff':'rgba(255,255,255,0.4)',fontSize:'11px',fontWeight:tab==='briefs'?'600':'400',cursor:'pointer',borderRadius:'6px'}}>Brief'ler</button>
+            <button onClick={()=>{setTab('ai');setFilter('all')}} style={{flex:1,padding:'6px',border:'none',background:tab==='ai'?'rgba(255,255,255,0.1)':'transparent',color:tab==='ai'?'#fff':'rgba(255,255,255,0.4)',fontSize:'11px',fontWeight:tab==='ai'?'600':'400',cursor:'pointer',borderRadius:'6px'}}>AI Video</button>
           </div>
           <div style={{fontSize:'9px',letterSpacing:'1.5px',color:'rgba(255,255,255,0.2)',padding:'0 6px',marginBottom:'6px',textTransform:'uppercase'}}>Filtrele</div>
           {[
@@ -119,7 +119,7 @@ export default function ProducerDashboard() {
         </nav>
         <div style={{padding:'10px 8px',borderTop:'0.5px solid rgba(255,255,255,0.07)'}}>
           <button onClick={handleLogout} style={{display:'flex',alignItems:'center',gap:'7px',padding:'6px 8px',borderRadius:'7px',cursor:'pointer',width:'100%',background:'none',border:'none'}}>
-            <span style={{fontSize:'11px',color:'rgba(255,255,255,0.25)',fontFamily:'var(--font-dm-sans),sans-serif'}}>Çıkış yap</span>
+            <span style={{fontSize:'11px',color:'rgba(255,255,255,0.25)',}}>Çıkış yap</span>
           </button>
         </div>
       </div>

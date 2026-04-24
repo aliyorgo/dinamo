@@ -103,7 +103,7 @@ export default function BriefsPage() {
         <div style={{display:'flex',gap:'0',marginBottom:'20px',borderBottom:'1px solid #e8e7e3'}}>
           {[{val:'briefs' as const,label:"Brief'ler"},{val:'ai' as const,label:'Full AI Videolar'}].map(t=>(
             <button key={t.val} onClick={()=>{setTab(t.val);setFilter('all')}}
-              style={{padding:'8px 20px',border:'none',borderBottom:tab===t.val?'2px solid #0a0a0a':'2px solid transparent',background:'none',color:tab===t.val?'#0a0a0a':'#888',fontSize:'13px',fontWeight:tab===t.val?'600':'400',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+              style={{padding:'8px 20px',border:'none',borderBottom:tab===t.val?'2px solid #0a0a0a':'2px solid transparent',background:'none',color:tab===t.val?'#0a0a0a':'#888',fontSize:'13px',fontWeight:tab===t.val?'600':'400',cursor:'pointer',}}>
               {t.label}{t.val==='ai'?` (${briefs.filter(b=>isAiBrief(b)&&b.ai_video_url).length})`:''}
             </button>
           ))}

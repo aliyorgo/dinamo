@@ -145,8 +145,8 @@ export default function AdminCreators() {
                   </div>
                 </div>
                 <div style={{display:'flex',gap:'8px'}}>
-                  <button onClick={() => approveApplicant(u.id)} style={{padding:'8px 18px',background:'#22c55e',color:'#fff',border:'none',borderRadius:'8px',fontSize:'12px',cursor:'pointer',fontWeight:'500',fontFamily:'var(--font-dm-sans),sans-serif'}}>Onayla</button>
-                  <button onClick={() => rejectApplicant(u.id)} style={{padding:'8px 18px',background:'#fff',color:'#ef4444',border:'1px solid #ef4444',borderRadius:'8px',fontSize:'12px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>Reddet</button>
+                  <button onClick={() => approveApplicant(u.id)} style={{padding:'8px 18px',background:'#22c55e',color:'#fff',border:'none',borderRadius:'8px',fontSize:'12px',cursor:'pointer',fontWeight:'500',}}>Onayla</button>
+                  <button onClick={() => rejectApplicant(u.id)} style={{padding:'8px 18px',background:'#fff',color:'#ef4444',border:'1px solid #ef4444',borderRadius:'8px',fontSize:'12px',cursor:'pointer',}}>Reddet</button>
                 </div>
               </div>
             ))}

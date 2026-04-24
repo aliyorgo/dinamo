@@ -145,7 +145,7 @@ export default function StaticImageGeneratorModal({ briefId, videoUrl, existingU
 
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '16px', padding: '28px 32px', maxWidth: '560px', width: '90%', maxHeight: '85vh', overflowY: 'auto', fontFamily: "var(--font-dm-sans),'DM Sans',sans-serif" }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '16px', padding: '28px 32px', maxWidth: '560px', width: '90%', maxHeight: '85vh', overflowY: 'auto',  }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <div style={{ fontSize: '18px', fontWeight: '600', color: '#0a0a0a' }}>Statik Görsel Oluştur</div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '22px', color: '#888', cursor: 'pointer', lineHeight: 1 }}>&times;</button>
@@ -165,7 +165,7 @@ export default function StaticImageGeneratorModal({ briefId, videoUrl, existingU
             <div style={{ fontSize: '16px', fontWeight: '500', color: '#0a0a0a', marginBottom: '8px' }}>Görsel paketin hazır</div>
             <div style={{ fontSize: '12px', color: '#888', marginBottom: '24px' }}>5 format × {selectedFrames.size || '?'} frame = {(selectedFrames.size || 1) * 5} görsel</div>
             <a href={downloadUrl} target="_blank" rel="noopener noreferrer" onClick={() => setTimeout(onClose, 300)}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 28px', background: '#22c55e', color: '#fff', borderRadius: '8px', textDecoration: 'none', fontSize: '14px', fontWeight: '600', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 28px', background: '#22c55e', color: '#fff', borderRadius: '8px', textDecoration: 'none', fontSize: '14px', fontWeight: '600',  }}>
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2v9M4 8l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><path d="M2 13h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
               ZIP İndir
             </a>
@@ -181,7 +181,7 @@ export default function StaticImageGeneratorModal({ briefId, videoUrl, existingU
               </div>
               <input value={copy} onChange={e => { if (e.target.value.length <= 40) setCopy(e.target.value) }} maxLength={40}
                 placeholder="Metin ekleyin ya da metin olmadan üretin"
-                style={{ width: '100%', padding: '10px 14px', border: '0.5px solid rgba(0,0,0,0.12)', borderRadius: '8px', fontSize: '14px', color: '#0a0a0a', fontFamily: 'var(--font-dm-sans),sans-serif', boxSizing: 'border-box' }} />
+                style={{ width: '100%', padding: '10px 14px', border: '0.5px solid rgba(0,0,0,0.12)', borderRadius: '8px', fontSize: '14px', color: '#0a0a0a',  boxSizing: 'border-box' }} />
             </div>
 
             <div style={{ marginBottom: '16px' }}>
@@ -200,11 +200,11 @@ export default function StaticImageGeneratorModal({ briefId, videoUrl, existingU
 
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'space-between', alignItems: 'center' }}>
               <button onClick={handleRefresh} disabled={refreshing || generating}
-                style={{ padding: '9px 18px', background: 'none', border: '0.5px solid rgba(0,0,0,0.15)', borderRadius: '8px', fontSize: '12px', color: '#555', cursor: refreshing ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+                style={{ padding: '9px 18px', background: 'none', border: '0.5px solid rgba(0,0,0,0.15)', borderRadius: '8px', fontSize: '12px', color: '#555', cursor: refreshing ? 'not-allowed' : 'pointer',  }}>
                 {refreshing ? 'Yenileniyor...' : 'Yenile'}
               </button>
               <button onClick={handleGenerate} disabled={generating || selectedFrames.size === 0}
-                style={{ padding: '9px 24px', background: selectedFrames.size === 0 ? '#ccc' : '#22c55e', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '600', cursor: generating || selectedFrames.size === 0 ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', opacity: selectedFrames.size === 0 ? 0.5 : 1 }}>
+                style={{ padding: '9px 24px', background: selectedFrames.size === 0 ? '#ccc' : '#22c55e', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '600', cursor: generating || selectedFrames.size === 0 ? 'not-allowed' : 'pointer',  opacity: selectedFrames.size === 0 ? 0.5 : 1 }}>
                 {selectedFrames.size === 0 ? 'Frame seçin' : `Üret (${selectedFrames.size} frame × 5 format)`}
               </button>
             </div>

@@ -50,10 +50,10 @@ export default function AgencyMemberDetailPage() {
   const totalCredits = briefs.reduce((s, b) => s + Number(b.credit_cost || 0), 0)
   const totalSales = briefs.reduce((s, b) => s + Number(b.sale_price || 0), 0)
 
-  if (loading) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f4f0', fontFamily: 'var(--font-dm-sans),sans-serif' }}><div style={{ color: '#888', fontSize: '14px' }}>Yukleniyor...</div></div>
+  if (loading) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f4f0',  }}><div style={{ color: '#888', fontSize: '14px' }}>Yukleniyor...</div></div>
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "var(--font-dm-sans),'DM Sans',system-ui,sans-serif" }}>
+    <div style={{ display: 'flex', minHeight: '100vh',  }}>
 
       {/* SIDEBAR - minimal */}
       <div style={{ width: '240px', background: '#0A0A0A', display: 'flex', flexDirection: 'column', flexShrink: 0, height: '100vh', position: 'sticky', top: 0 }}>
@@ -72,7 +72,7 @@ export default function AgencyMemberDetailPage() {
       {/* MAIN */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#f5f4f0', overflow: 'hidden' }}>
         <div style={{ padding: '14px 28px', background: '#fff', borderBottom: '0.5px solid rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
-          <button onClick={() => router.push('/dashboard/agency/members')} style={{ fontSize: '12px', color: '#888', background: 'none', border: 'none', cursor: 'pointer', padding: '0', fontFamily: 'var(--font-dm-sans),sans-serif' }}>Uyeler</button>
+          <button onClick={() => router.push('/dashboard/agency/members')} style={{ fontSize: '12px', color: '#888', background: 'none', border: 'none', cursor: 'pointer', padding: '0',  }}>Uyeler</button>
           <span style={{ color: '#ddd' }}>/</span>
           <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a' }}>{member?.name}</div>
         </div>

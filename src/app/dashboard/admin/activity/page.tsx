@@ -70,7 +70,7 @@ export default function ActivityPage() {
   }
 
   return (
-    <div style={{ padding: '24px 28px', fontFamily: "var(--font-dm-sans),'DM Sans',sans-serif" }}>
+    <div style={{ padding: '24px 28px',  }}>
       <div style={{ fontSize: '18px', fontWeight: '600', color: '#0a0a0a', marginBottom: '20px' }}>Aktivite Logları</div>
 
       <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', padding: '16px 20px' }}>
@@ -100,7 +100,7 @@ export default function ActivityPage() {
 
         {hasMore && (
           <button onClick={() => loadLogs(page + 1)} disabled={loading}
-            style={{ width: '100%', padding: '10px', background: 'none', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', color: '#555', cursor: 'pointer', marginTop: '12px', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+            style={{ width: '100%', padding: '10px', background: 'none', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '12px', color: '#555', cursor: 'pointer', marginTop: '12px',  }}>
             {loading ? 'Yükleniyor...' : 'Daha fazla'}
           </button>
         )}

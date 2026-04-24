@@ -84,7 +84,7 @@ export default function BrandPage() {
   }
 
   return (
-    <div style={{display:'flex',minHeight:'100vh',fontFamily:"var(--font-dm-sans),'DM Sans',system-ui,sans-serif"}}>
+    <div style={{display:'flex',minHeight:'100vh',}}>
 
       <div style={{width:'240px',background:'#0A0A0A',display:'flex',flexDirection:'column',flexShrink:0,height:'100dvh',overflowY:'auto'}}>
         <div style={{padding:'18px 16px 14px',borderBottom:'0.5px solid rgba(255,255,255,0.07)',cursor:'pointer'}} onClick={()=>router.push('/dashboard/client')}>
@@ -107,14 +107,14 @@ export default function BrandPage() {
           ].map(item=>(
             <div key={item.href} onClick={()=>router.push(item.href)}
               style={{display:'flex',alignItems:'center',gap:'8px',padding:'7px 8px',borderRadius:'8px',cursor:'pointer',background:item.active?'rgba(255,255,255,0.08)':'transparent',marginBottom:'1px'}}>
-              <span style={{fontSize:'12px',color:item.active?'#fff':'rgba(255,255,255,0.4)',fontWeight:item.active?'500':'400'}}>{item.label}</span>
+              <span style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',color:item.active?'#fff':'rgba(255,255,255,0.4)',fontWeight:'500'}}>{item.label}</span>
             </div>
           ))}
           <button onClick={handleLogout}
             onMouseEnter={e=>{(e.currentTarget.firstChild as HTMLElement).style.color='#FF4444'}}
             onMouseLeave={e=>{(e.currentTarget.firstChild as HTMLElement).style.color='#aaa'}}
             style={{display:'flex',alignItems:'center',gap:'7px',padding:'6px 8px',marginTop:'16px',cursor:'pointer',width:'100%',background:'none',border:'none'}}>
-            <span style={{fontSize:'11px',color:'#aaa',fontFamily:'var(--font-dm-sans),sans-serif',transition:'color 0.15s'}}>Çıkış yap</span>
+            <span style={{fontSize:'11px',color:'#aaa',transition:'color 0.15s'}}>Çıkış yap</span>
           </button>
           <img src='/powered_by_dcc.png' alt='Powered by DCC' style={{height:'20px',width:'auto',opacity:0.6,display:'block',margin:'8px 8px',cursor:'pointer'}} onClick={()=>window.open('https://dirtycheapcreative.com','_blank')} />
         </nav>
@@ -124,7 +124,7 @@ export default function BrandPage() {
         <div style={{padding:'14px 28px',background:'#fff',borderBottom:'0.5px solid rgba(0,0,0,0.08)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
           <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a'}}>Marka Paketi</div>
           <button onClick={()=>setShowModal(true)}
-            style={{background:'#111113',color:'#fff',border:'none',borderRadius:'8px',padding:'8px 18px',fontSize:'12px',fontFamily:'var(--font-dm-sans),sans-serif',cursor:'pointer',fontWeight:'500'}}>
+            style={{background:'#111113',color:'#fff',border:'none',borderRadius:'8px',padding:'8px 18px',fontSize:'12px',cursor:'pointer',fontWeight:'500'}}>
             + Dosya Ekle
           </button>
         </div>
@@ -171,19 +171,19 @@ export default function BrandPage() {
             </div>
             <div style={{marginBottom:'16px'}}>
               <div style={{fontSize:'11px',color:'#888',textTransform:'uppercase',marginBottom:'6px'}}>Dosya Adı / Etiketi</div>
-              <input value={fileLabel} onChange={e=>setFileLabel(e.target.value)} placeholder="örn. Ana Logo, Marka Fontu..." style={{width:'100%',padding:'9px 12px',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a',fontFamily:'var(--font-dm-sans),sans-serif',boxSizing:'border-box'}} />
+              <input value={fileLabel} onChange={e=>setFileLabel(e.target.value)} placeholder="örn. Ana Logo, Marka Fontu..." style={{width:'100%',padding:'9px 12px',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a',boxSizing:'border-box'}} />
             </div>
             <div style={{marginBottom:'20px'}}>
               <div style={{fontSize:'11px',color:'#888',textTransform:'uppercase',marginBottom:'6px'}}>Kampanya ile Eşleştir (opsiyonel)</div>
-              <select value={selectedBriefId} onChange={e=>setSelectedBriefId(e.target.value)} style={{width:'100%',padding:'9px 12px',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a',background:'#fff',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+              <select value={selectedBriefId} onChange={e=>setSelectedBriefId(e.target.value)} style={{width:'100%',padding:'9px 12px',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a',background:'#fff',}}>
                 <option value="">Tüm kampanyalar</option>
                 {briefs.map(b=><option key={b.id} value={b.id}>{b.campaign_name}</option>)}
               </select>
             </div>
             {msg&&<div style={{marginBottom:'12px',fontSize:'13px',color:'#e24b4a'}}>{msg}</div>}
             <div style={{display:'flex',gap:'8px',justifyContent:'flex-end'}}>
-              <button onClick={()=>{setShowModal(false);setMsg('')}} style={{padding:'9px 20px',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'8px',background:'#fff',color:'#555',fontSize:'13px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>İptal</button>
-              <button onClick={handleUpload} disabled={uploading} style={{padding:'9px 20px',background:'#111113',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',fontWeight:'500'}}>
+              <button onClick={()=>{setShowModal(false);setMsg('')}} style={{padding:'9px 20px',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'8px',background:'#fff',color:'#555',fontSize:'13px',cursor:'pointer',}}>İptal</button>
+              <button onClick={handleUpload} disabled={uploading} style={{padding:'9px 20px',background:'#111113',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontWeight:'500'}}>
                 {uploading?'Yükleniyor...':'Yükle'}
               </button>
             </div>

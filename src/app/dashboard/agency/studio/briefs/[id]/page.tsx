@@ -59,12 +59,12 @@ export default function AgencyBriefDetailPage() {
 
   async function handleLogout() { await supabase.auth.signOut(); router.push('/login') }
 
-  if (loading) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f4f0', fontFamily: 'var(--font-dm-sans),sans-serif' }}><div style={{ color: '#888', fontSize: '14px' }}>Yukleniyor...</div></div>
+  if (loading) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f4f0',  }}><div style={{ color: '#888', fontSize: '14px' }}>Yukleniyor...</div></div>
 
   const st = statusLabel[brief?.status] || { label: brief?.status, color: '#888' }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "var(--font-dm-sans),'DM Sans',system-ui,sans-serif" }}>
+    <div style={{ display: 'flex', minHeight: '100vh',  }}>
 
       {/* SIDEBAR */}
       <div style={{ width: '240px', background: '#0A0A0A', display: 'flex', flexDirection: 'column', flexShrink: 0, height: '100vh', position: 'sticky', top: 0 }}>
@@ -89,7 +89,7 @@ export default function AgencyBriefDetailPage() {
         </nav>
         <div style={{ padding: '10px 8px', borderTop: '0.5px solid rgba(255,255,255,0.07)' }}>
           <button onClick={handleLogout} style={{ padding: '6px 8px', borderRadius: '7px', cursor: 'pointer', width: '100%', background: 'none', border: 'none' }}>
-            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-dm-sans),sans-serif' }}>Cikis yap</span>
+            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)',  }}>Cikis yap</span>
           </button>
         </div>
       </div>
@@ -97,7 +97,7 @@ export default function AgencyBriefDetailPage() {
       {/* MAIN */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#f5f4f0', overflow: 'hidden' }}>
         <div style={{ padding: '14px 28px', background: '#fff', borderBottom: '0.5px solid rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
-          <button onClick={() => router.push('/dashboard/agency/studio/briefs')} style={{ fontSize: '12px', color: '#888', background: 'none', border: 'none', cursor: 'pointer', padding: '0', fontFamily: 'var(--font-dm-sans),sans-serif' }}>Briefler</button>
+          <button onClick={() => router.push('/dashboard/agency/studio/briefs')} style={{ fontSize: '12px', color: '#888', background: 'none', border: 'none', cursor: 'pointer', padding: '0',  }}>Briefler</button>
           <span style={{ color: '#ddd' }}>/</span>
           <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a' }}>{brief?.campaign_name}</div>
           <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '100px', fontWeight: '500', background: `${st.color}15`, color: st.color }}>{st.label}</span>

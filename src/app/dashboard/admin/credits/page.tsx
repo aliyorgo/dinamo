@@ -244,16 +244,16 @@ export default function CreditsPage() {
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '8px 12px', border: '1px solid #E8E8E4', fontSize: '13px', color: '#0a0a0a',
-    fontFamily: 'var(--font-dm-sans),sans-serif', outline: 'none', boxSizing: 'border-box', background: '#fff',
+     outline: 'none', boxSizing: 'border-box', background: '#fff',
   }
   const labelStyle: React.CSSProperties = {
     display: 'block', fontSize: '10px', color: '#888', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.5px',
   }
   const btnPrimary: React.CSSProperties = {
-    padding: '8px 16px', background: '#0a0a0a', color: '#fff', border: 'none', fontSize: '12px', fontWeight: '500', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif',
+    padding: '8px 16px', background: '#0a0a0a', color: '#fff', border: 'none', fontSize: '12px', fontWeight: '500', cursor: 'pointer', 
   }
   const btnSecondary: React.CSSProperties = {
-    padding: '8px 16px', background: '#fff', color: '#555', border: '1px solid #E8E8E4', fontSize: '12px', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif',
+    padding: '8px 16px', background: '#fff', color: '#555', border: '1px solid #E8E8E4', fontSize: '12px', cursor: 'pointer', 
   }
 
   const totalLoaded = sales.reduce((s, sl) => s + Number(sl.credits || 0), 0)

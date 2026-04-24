@@ -201,7 +201,7 @@ export default function ClientReportsPage() {
   const usagePercent = totalCreditsBought > 0 ? Math.min(100, Math.round((totalCreditsSpent / totalCreditsBought) * 100)) : 0
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "var(--font-dm-sans),'DM Sans',system-ui,sans-serif", background: '#f5f4f0' }}>
+    <div style={{ display: 'flex', minHeight: '100vh',  background: '#f5f4f0' }}>
 
       {/* SIDEBAR */}
       <div style={{ width: '240px', background: '#0A0A0A', display: 'flex', flexDirection: 'column', flexShrink: 0, height: '100dvh', overflowY: 'auto' }}>
@@ -232,7 +232,7 @@ export default function ClientReportsPage() {
             onMouseEnter={e=>{(e.currentTarget.firstChild as HTMLElement).style.color='#FF4444'}}
             onMouseLeave={e=>{(e.currentTarget.firstChild as HTMLElement).style.color='#aaa'}}
             style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '6px 8px', marginTop: '16px', cursor: 'pointer', width: '100%', background: 'none', border: 'none' }}>
-            <span style={{ fontSize: '11px', color: '#aaa', fontFamily: 'var(--font-dm-sans),sans-serif', transition: 'color 0.15s' }}>Çıkış yap</span>
+            <span style={{ fontSize: '11px', color: '#aaa',  transition: 'color 0.15s' }}>Çıkış yap</span>
           </button>
           <img src='/powered_by_dcc.png' alt='Powered by DCC' style={{height:'20px',width:'auto',opacity:0.6,display:'block',margin:'8px 8px',cursor:'pointer'}} onClick={()=>window.open('https://dirtycheapcreative.com','_blank')} />
         </nav>
@@ -242,7 +242,7 @@ export default function ClientReportsPage() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <div style={{ padding: '14px 28px', background: '#fff', borderBottom: '0.5px solid rgba(0,0,0,0.08)', flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a' }}>Raporlar</div>
-          <button onClick={handlePdf} style={{ background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 18px', fontSize: '12px', fontWeight: '500', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <button onClick={handlePdf} style={{ background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 18px', fontSize: '12px', fontWeight: '500', cursor: 'pointer',  display: 'flex', alignItems: 'center', gap: '6px' }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             PDF İndir
           </button>
@@ -256,10 +256,10 @@ export default function ClientReportsPage() {
                 <div style={{ fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>Tarih Aralığı</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)}
-                    style={{ padding: '7px 12px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.12)', fontSize: '13px', fontFamily: 'var(--font-dm-sans),sans-serif', color: '#0a0a0a', outline: 'none' }} />
+                    style={{ padding: '7px 12px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.12)', fontSize: '13px',  color: '#0a0a0a', outline: 'none' }} />
                   <span style={{ fontSize: '12px', color: '#888' }}>—</span>
                   <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
-                    style={{ padding: '7px 12px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.12)', fontSize: '13px', fontFamily: 'var(--font-dm-sans),sans-serif', color: '#0a0a0a', outline: 'none' }} />
+                    style={{ padding: '7px 12px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.12)', fontSize: '13px',  color: '#0a0a0a', outline: 'none' }} />
                 </div>
                 {[
                   { label: 'Bu Ay', fn: () => { const n=new Date(); setDateFrom(`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-01`); setDateTo('') } },
@@ -268,7 +268,7 @@ export default function ClientReportsPage() {
                   { label: 'Tümü', fn: () => { setDateFrom(''); setDateTo('') } },
                 ].map(p => (
                   <button key={p.label} onClick={p.fn}
-                    style={{ padding: '6px 14px', borderRadius: '100px', border: '1px solid rgba(0,0,0,0.1)', background: '#fff', fontSize: '11px', color: '#555', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', fontWeight: '500' }}>
+                    style={{ padding: '6px 14px', borderRadius: '100px', border: '1px solid rgba(0,0,0,0.1)', background: '#fff', fontSize: '11px', color: '#555', cursor: 'pointer',  fontWeight: '500' }}>
                     {p.label}
                   </button>
                 ))}
@@ -348,7 +348,7 @@ export default function ClientReportsPage() {
                           const isEditingViews = editingCell?.id === b.id && editingCell?.field === 'views'
                           const isEditingEng = editingCell?.id === b.id && editingCell?.field === 'engagement_rate'
 
-                          const inputStyle: React.CSSProperties = { padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(34,197,94,0.5)', fontSize: '13px', fontFamily: 'var(--font-dm-sans),sans-serif', outline: 'none', background: '#fff' }
+                          const inputStyle: React.CSSProperties = { padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(34,197,94,0.5)', fontSize: '13px',  outline: 'none', background: '#fff' }
                           const clickableStyle: React.CSSProperties = isDelivered ? { cursor: 'text', padding: '4px 8px', borderRadius: '6px', border: '1px solid transparent', transition: 'border-color 0.15s' } : {}
 
                           return (
@@ -396,13 +396,13 @@ export default function ClientReportsPage() {
                                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                                     <a href={`/video/${b.id}`} target="_blank" rel="noopener noreferrer" style={{ color: '#3b82f6', textDecoration: 'underline' }}>Link ↗</a>
                                     <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/video/${b.id}`); setCopiedLinkId(b.id); setTimeout(() => setCopiedLinkId(null), 1500) }}
-                                      style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '6px', border: '0.5px solid rgba(0,0,0,0.12)', background: '#fff', color: copiedLinkId === b.id ? '#22c55e' : '#888', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', whiteSpace: 'nowrap' }}>
+                                      style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '6px', border: '0.5px solid rgba(0,0,0,0.12)', background: '#fff', color: copiedLinkId === b.id ? '#22c55e' : '#888', cursor: 'pointer',  whiteSpace: 'nowrap' }}>
                                       {copiedLinkId === b.id ? 'Kopyalandı ✓' : 'Kopyala'}
                                     </button>
                                   </span>
                                 ) : isDelivered ? (
                                   <button onClick={() => generatePublicLink(b.id)} disabled={generatingLinkId === b.id}
-                                    style={{ background: 'none', border: '1px solid rgba(0,0,0,0.12)', borderRadius: '6px', padding: '4px 10px', fontSize: '11px', color: generatingLinkId === b.id ? '#bbb' : '#555', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', whiteSpace: 'nowrap' }}>
+                                    style={{ background: 'none', border: '1px solid rgba(0,0,0,0.12)', borderRadius: '6px', padding: '4px 10px', fontSize: '11px', color: generatingLinkId === b.id ? '#bbb' : '#555', cursor: 'pointer',  whiteSpace: 'nowrap' }}>
                                     {generatingLinkId === b.id ? 'Oluşturuluyor...' : 'Link Oluştur'}
                                   </button>
                                 ) : (

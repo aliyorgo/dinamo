@@ -172,7 +172,7 @@ export default function Sidebar({ role, userName, companyName, credits, extra }:
         <button onClick={handleLogout}
           onMouseEnter={e => { e.currentTarget.style.color = '#FF4444' }}
           onMouseLeave={e => { e.currentTarget.style.color = logoutColor }}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: logoutColor, padding: '6px 0', width: '100%', textAlign: 'left', transition: 'color 0.15s ease', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: logoutColor, padding: '6px 0', width: '100%', textAlign: 'left', transition: 'color 0.15s ease',  }}>
           Çıkış Yap
         </button>
       </div>

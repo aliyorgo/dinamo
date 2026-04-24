@@ -296,7 +296,7 @@ export default function AdminBriefDetail() {
   const assigned = creators.find(c => c.id === forwardForm.assigned_creator_id)
   const [showAssignForm, setShowAssignForm] = useState(!forwardForm.assigned_creator_id)
 
-  const inputStyle: React.CSSProperties = { width:'100%', boxSizing:'border-box', background:'#fff', border:'0.5px solid rgba(0,0,0,0.12)', borderRadius:'10px', padding:'9px 13px', fontSize:'13px', color:'#0a0a0a', fontFamily:'var(--font-dm-sans),sans-serif', outline:'none' }
+  const inputStyle: React.CSSProperties = { width:'100%', boxSizing:'border-box', background:'#fff', border:'0.5px solid rgba(0,0,0,0.12)', borderRadius:'10px', padding:'9px 13px', fontSize:'13px', color:'#0a0a0a',  outline:'none' }
   const statusBadge = (s: string) => ({ fontSize:'10px' as const, padding:'3px 10px', borderRadius:'100px', fontWeight:'500' as const,
     background: s==='pending'?'rgba(0,0,0,0.05)':s==='producer_approved'||s==='admin_approved'?'rgba(34,197,94,0.1)':s==='revision_requested'?'rgba(239,68,68,0.1)':'rgba(0,0,0,0.05)',
     color: s==='pending'?'#888':s==='producer_approved'||s==='admin_approved'?'#22c55e':s==='revision_requested'?'#ef4444':'#888' })
@@ -310,8 +310,8 @@ export default function AdminBriefDetail() {
             {brief && <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',marginTop:'2px'}}>{brief.clients?.company_name} · {brief.video_type} · {brief.format} · {brief.credit_cost} kredi</div>}
           </div>
           <div style={{display:'flex',gap:'8px'}}>
-            <button onClick={()=>setEditMode(!editMode)} style={{padding:'6px 14px',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'8px',background:'#fff',color:'#555',fontSize:'11px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>{editMode?'İptal':'Düzenle'}</button>
-            <button onClick={handleCancel} style={{padding:'6px 14px',border:'0.5px solid #ef4444',borderRadius:'8px',background:'#fff',color:'#ef4444',fontSize:'11px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>İptal Et</button>
+            <button onClick={()=>setEditMode(!editMode)} style={{padding:'6px 14px',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'8px',background:'#fff',color:'#555',fontSize:'11px',cursor:'pointer',}}>{editMode?'İptal':'Düzenle'}</button>
+            <button onClick={handleCancel} style={{padding:'6px 14px',border:'0.5px solid #ef4444',borderRadius:'8px',background:'#fff',color:'#ef4444',fontSize:'11px',cursor:'pointer',}}>İptal Et</button>
           </div>
         </div>
 
@@ -349,7 +349,7 @@ export default function AdminBriefDetail() {
                       {f.type==='textarea'?<textarea value={editForm[f.key]||''} onChange={e=>setEditForm({...editForm,[f.key]:e.target.value})} rows={3} style={{...inputStyle,resize:'vertical'}} />:<input type={f.type} value={editForm[f.key]||''} onChange={e=>setEditForm({...editForm,[f.key]:e.target.value})} style={inputStyle} />}
                     </div>
                   ))}
-                  <button type="submit" disabled={loading} style={{padding:'9px 20px',background:'#111113',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',fontWeight:'500'}}>{loading?'Kaydediliyor...':'Kaydet'}</button>
+                  <button type="submit" disabled={loading} style={{padding:'9px 20px',background:'#111113',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontWeight:'500'}}>{loading?'Kaydediliyor...':'Kaydet'}</button>
                 </form>
               )}
 
@@ -380,7 +380,7 @@ export default function AdminBriefDetail() {
                           <div style={{padding:'0 16px 16px'}}>
                             <div style={{display:'flex',gap:'8px',marginBottom:'10px'}}>
                               <button onClick={()=>handleApprove(s.id)} disabled={loading}
-                                style={{flex:1,padding:'11px',background:'#22c55e',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',fontWeight:'500'}}>
+                                style={{flex:1,padding:'11px',background:'#22c55e',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontWeight:'500'}}>
                                 {loading?'İşleniyor...':'Onayla → Müşteriye İlet'}
                               </button>
                               <button onClick={()=>handleApprove(s.id)} disabled={loading}
@@ -391,7 +391,7 @@ export default function AdminBriefDetail() {
                             <textarea value={revisionNotes[s.id]||''} onChange={e=>setRevisionNotes(prev=>({...prev,[s.id]:e.target.value}))}
                               placeholder="Revizyon notu yazın..." rows={2} style={{...inputStyle,resize:'vertical',marginBottom:'8px',fontSize:'12px'}} />
                             <button onClick={()=>handleRevision(s.id)} disabled={loading}
-                              style={{padding:'8px 16px',background:'#fff',color:'#ef4444',border:'0.5px solid #ef4444',borderRadius:'8px',fontSize:'12px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                              style={{padding:'8px 16px',background:'#fff',color:'#ef4444',border:'0.5px solid #ef4444',borderRadius:'8px',fontSize:'12px',cursor:'pointer',}}>
                               Revizyon İste
                             </button>
                           </div>
@@ -426,7 +426,7 @@ export default function AdminBriefDetail() {
                               </div>
                             </div>
                           </div>
-                          <button onClick={()=>setShowAssignForm(!showAssignForm)} style={{fontSize:'11px',color:'#3b82f6',background:'none',border:'none',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',padding:0}}>
+                          <button onClick={()=>setShowAssignForm(!showAssignForm)} style={{fontSize:'11px',color:'#3b82f6',background:'none',border:'none',cursor:'pointer',padding:0}}>
                             {showAssignForm?'Gizle':'Değiştir'}
                           </button>
                         </div>
@@ -474,7 +474,7 @@ export default function AdminBriefDetail() {
                             <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>Not</div>
                             <textarea value={forwardForm.producer_note} onChange={e=>setForwardForm({...forwardForm,producer_note:e.target.value})} rows={2} style={{...inputStyle,resize:'vertical',fontSize:'12px',padding:'8px 10px'}} />
                           </div>
-                          <button type="submit" disabled={loading} style={{width:'100%',padding:'8px',background:'#111113',color:'#fff',border:'none',borderRadius:'8px',fontSize:'12px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',fontWeight:'500'}}>
+                          <button type="submit" disabled={loading} style={{width:'100%',padding:'8px',background:'#111113',color:'#fff',border:'none',borderRadius:'8px',fontSize:'12px',cursor:'pointer',fontWeight:'500'}}>
                             {loading?'İletiliyor...':assigned?'Güncelle':"Creator'a İlet"}
                           </button>
                         </form>
@@ -505,14 +505,14 @@ export default function AdminBriefDetail() {
                             <audio controls src={brief.voiceover_file_url} style={{width:'100%',marginBottom:'8px',borderRadius:'8px'}} />
                             <div style={{display:'flex',gap:'6px'}}>
                               <a href={brief.voiceover_file_url} download target="_blank" style={{fontSize:'11px',color:'#22c55e',textDecoration:'none'}}>İndir ↓</a>
-                              <button onClick={handleVoiceoverDelete} style={{fontSize:'11px',color:'#ef4444',background:'none',border:'none',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>Sil</button>
+                              <button onClick={handleVoiceoverDelete} style={{fontSize:'11px',color:'#ef4444',background:'none',border:'none',cursor:'pointer',}}>Sil</button>
                             </div>
                           </div>
                         ) : (
                           <div>
                             <input ref={voFileRef} type="file" accept=".mp3,.wav,.m4a,audio/*" style={{fontSize:'12px',color:'#0a0a0a',marginBottom:'8px'}} />
                             <button onClick={handleVoiceoverUpload} disabled={voUpload}
-                              style={{padding:'7px 16px',background:'#111113',color:'#fff',border:'none',borderRadius:'8px',fontSize:'11px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',fontWeight:'500'}}>
+                              style={{padding:'7px 16px',background:'#111113',color:'#fff',border:'none',borderRadius:'8px',fontSize:'11px',cursor:'pointer',fontWeight:'500'}}>
                               {voUpload?'Yükleniyor...':'Yükle'}
                             </button>
                             <div style={{fontSize:'10px',color:'rgba(255,255,255,0.25)',marginTop:'6px'}}>mp3, wav, m4a — maks 50MB</div>
@@ -532,21 +532,21 @@ export default function AdminBriefDetail() {
                             <div style={{fontSize:'11px',color:'#22c55e'}}>↳ {q.answer}</div>
                           ) : answerEditing === q.id ? (
                             <div style={{display:'flex',gap:'6px',marginTop:'4px'}}>
-                              <input value={answerText} onChange={e=>setAnswerText(e.target.value)} placeholder="Cevabı girin..." style={{flex:1,padding:'6px 10px',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'6px',fontSize:'11px',color:'#0a0a0a',fontFamily:'var(--font-dm-sans),sans-serif',outline:'none'}} />
-                              <button onClick={()=>handleAnswerForClient(q.id)} style={{padding:'6px 10px',background:'#22c55e',color:'#fff',border:'none',borderRadius:'6px',fontSize:'10px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>Kaydet</button>
-                              <button onClick={()=>setAnswerEditing(null)} style={{padding:'6px 8px',background:'#f5f4f0',color:'#555',border:'none',borderRadius:'6px',fontSize:'10px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>İptal</button>
+                              <input value={answerText} onChange={e=>setAnswerText(e.target.value)} placeholder="Cevabı girin..." style={{flex:1,padding:'6px 10px',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'6px',fontSize:'11px',color:'#0a0a0a',outline:'none'}} />
+                              <button onClick={()=>handleAnswerForClient(q.id)} style={{padding:'6px 10px',background:'#22c55e',color:'#fff',border:'none',borderRadius:'6px',fontSize:'10px',cursor:'pointer',}}>Kaydet</button>
+                              <button onClick={()=>setAnswerEditing(null)} style={{padding:'6px 8px',background:'#f5f4f0',color:'#555',border:'none',borderRadius:'6px',fontSize:'10px',cursor:'pointer',}}>İptal</button>
                             </div>
                           ) : (
                             <div style={{display:'flex',alignItems:'center',gap:'8px',marginTop:'2px'}}>
                               <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)'}}>Cevap bekleniyor</div>
-                              <button onClick={()=>{setAnswerEditing(q.id);setAnswerText('')}} style={{fontSize:'10px',color:'#3b82f6',background:'none',border:'none',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>Cevabı Gir</button>
+                              <button onClick={()=>{setAnswerEditing(q.id);setAnswerText('')}} style={{fontSize:'10px',color:'#3b82f6',background:'none',border:'none',cursor:'pointer',}}>Cevabı Gir</button>
                             </div>
                           )}
                         </div>
                       ))}
                       <form onSubmit={handleQuestion} style={{display:'flex',gap:'6px',marginTop:'8px'}}>
                         <input value={question} onChange={e=>setQuestion(e.target.value)} placeholder="Soru sor..." style={{...inputStyle,flex:1,fontSize:'12px',padding:'8px 10px'}} />
-                        <button type="submit" style={{padding:'8px 14px',background:'#111113',color:'#fff',border:'none',borderRadius:'8px',fontSize:'11px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>Gönder</button>
+                        <button type="submit" style={{padding:'8px 14px',background:'#111113',color:'#fff',border:'none',borderRadius:'8px',fontSize:'11px',cursor:'pointer',}}>Gönder</button>
                       </form>
                     </div>
                     {/* ADMIN NOTES */}
@@ -561,8 +561,8 @@ export default function AdminBriefDetail() {
                       <div style={{display:'flex',gap:'6px',marginTop:'8px'}}>
                         <input value={newNote} onChange={e=>setNewNote(e.target.value)} placeholder="İç not ekle..."
                           onKeyDown={e=>{if(e.key==='Enter') handleAddNote()}}
-                          style={{flex:1,padding:'8px 10px',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'8px',fontSize:'12px',color:'#0a0a0a',fontFamily:'var(--font-dm-sans),sans-serif',outline:'none'}} />
-                        <button onClick={handleAddNote} style={{padding:'8px 12px',background:'#f59e0b',color:'#fff',border:'none',borderRadius:'8px',fontSize:'11px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>Ekle</button>
+                          style={{flex:1,padding:'8px 10px',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'8px',fontSize:'12px',color:'#0a0a0a',outline:'none'}} />
+                        <button onClick={handleAddNote} style={{padding:'8px 12px',background:'#f59e0b',color:'#fff',border:'none',borderRadius:'8px',fontSize:'11px',cursor:'pointer',}}>Ekle</button>
                       </div>
                     </div>
 
@@ -575,7 +575,7 @@ export default function AdminBriefDetail() {
               {(brief.status==='approved'||brief.status==='in_production')&&(
                 <div style={{marginTop:'24px',paddingTop:'20px',borderTop:'0.5px solid rgba(0,0,0,0.08)'}}>
                   <button onClick={()=>setShowClientApproveModal(true)} disabled={loading}
-                    style={{padding:'9px 20px',background:'#ef4444',color:'#fff',border:'none',borderRadius:'8px',fontSize:'12px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',fontWeight:'500'}}>
+                    style={{padding:'9px 20px',background:'#ef4444',color:'#fff',border:'none',borderRadius:'8px',fontSize:'12px',cursor:'pointer',fontWeight:'500'}}>
                     Müşteri Onayladı (Manuel)
                   </button>
                 </div>
@@ -583,7 +583,7 @@ export default function AdminBriefDetail() {
               {/* DELETE BRIEF */}
               <div style={{marginTop:'32px',paddingTop:'20px',borderTop:'0.5px solid rgba(0,0,0,0.08)'}}>
                 <button onClick={()=>setDeleteStep(1)}
-                  style={{padding:'9px 20px',background:'#fff',color:'#ef4444',border:'1px solid rgba(239,68,68,0.3)',borderRadius:'8px',fontSize:'12px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',fontWeight:'500'}}>
+                  style={{padding:'9px 20px',background:'#fff',color:'#ef4444',border:'1px solid rgba(239,68,68,0.3)',borderRadius:'8px',fontSize:'12px',cursor:'pointer',fontWeight:'500'}}>
                   Brief'i Sil
                 </button>
               </div>
@@ -599,9 +599,9 @@ export default function AdminBriefDetail() {
             <div style={{fontSize:'16px',fontWeight:'500',color:'#0a0a0a',marginBottom:'12px'}}>Brief'i Sil</div>
             <div style={{fontSize:'13px',color:'#555',lineHeight:1.7,marginBottom:'24px'}}>Bu brief'i silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.</div>
             <div style={{display:'flex',gap:'10px'}}>
-              <button onClick={()=>setDeleteStep(0)} style={{flex:1,padding:'12px',background:'#f5f4f0',color:'#555',border:'none',borderRadius:'10px',fontSize:'14px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>İptal</button>
+              <button onClick={()=>setDeleteStep(0)} style={{flex:1,padding:'12px',background:'#f5f4f0',color:'#555',border:'none',borderRadius:'10px',fontSize:'14px',cursor:'pointer',}}>İptal</button>
               <button onClick={()=>setDeleteStep(2)}
-                style={{flex:1,padding:'12px',background:'#ef4444',color:'#fff',border:'none',borderRadius:'10px',fontSize:'14px',fontWeight:'500',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                style={{flex:1,padding:'12px',background:'#ef4444',color:'#fff',border:'none',borderRadius:'10px',fontSize:'14px',fontWeight:'500',cursor:'pointer',}}>
                 Evet, Sil
               </button>
             </div>
@@ -617,9 +617,9 @@ export default function AdminBriefDetail() {
             <div style={{fontSize:'16px',fontWeight:'500',color:'#ef4444',marginBottom:'12px'}}>Son Onay</div>
             <div style={{fontSize:'13px',color:'#555',lineHeight:1.7,marginBottom:'24px'}}>Son kez soruyoruz — brief ve tüm ilişkili dosyalar kalıcı olarak silinecek. Devam etmek istiyor musunuz?</div>
             <div style={{display:'flex',gap:'10px'}}>
-              <button onClick={()=>setDeleteStep(0)} style={{flex:1,padding:'12px',background:'#f5f4f0',color:'#555',border:'none',borderRadius:'10px',fontSize:'14px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>Vazgeç</button>
+              <button onClick={()=>setDeleteStep(0)} style={{flex:1,padding:'12px',background:'#f5f4f0',color:'#555',border:'none',borderRadius:'10px',fontSize:'14px',cursor:'pointer',}}>Vazgeç</button>
               <button onClick={deleteBrief} disabled={deleting}
-                style={{flex:1,padding:'12px',background:'#ef4444',color:'#fff',border:'none',borderRadius:'10px',fontSize:'14px',fontWeight:'500',cursor:deleting?'not-allowed':'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                style={{flex:1,padding:'12px',background:'#ef4444',color:'#fff',border:'none',borderRadius:'10px',fontSize:'14px',fontWeight:'500',cursor:deleting?'not-allowed':'pointer',}}>
                 {deleting ? 'Siliniyor...' : 'Kalıcı Olarak Sil'}
               </button>
             </div>
@@ -638,9 +638,9 @@ export default function AdminBriefDetail() {
             <div style={{fontSize:'18px',fontWeight:'500',color:'#0a0a0a',marginBottom:'10px'}}>Dikkat</div>
             <div style={{fontSize:'13px',color:'rgba(255,255,255,0.4)',lineHeight:1.7,marginBottom:'24px'}}>Bu butonu yalnızca iş platform dışında ilerledi ve müşteri onay vermeden yayına girdi ya da platform dışından onay bildirdi ise kullanın. Devam etmek istiyor musunuz?</div>
             <div style={{display:'flex',gap:'10px'}}>
-              <button onClick={()=>setShowClientApproveModal(false)} style={{flex:1,padding:'12px',background:'#f5f4f0',color:'#555',border:'none',borderRadius:'10px',fontSize:'14px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>İptal</button>
+              <button onClick={()=>setShowClientApproveModal(false)} style={{flex:1,padding:'12px',background:'#f5f4f0',color:'#555',border:'none',borderRadius:'10px',fontSize:'14px',cursor:'pointer',}}>İptal</button>
               <button onClick={()=>{setShowClientApproveModal(false);handleClientApprove()}} disabled={loading}
-                style={{flex:1,padding:'12px',background:'#ef4444',color:'#fff',border:'none',borderRadius:'10px',fontSize:'14px',fontWeight:'500',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                style={{flex:1,padding:'12px',background:'#ef4444',color:'#fff',border:'none',borderRadius:'10px',fontSize:'14px',fontWeight:'500',cursor:'pointer',}}>
                 {loading?'İşleniyor...':'Evet, Onaylandı'}
               </button>
             </div>

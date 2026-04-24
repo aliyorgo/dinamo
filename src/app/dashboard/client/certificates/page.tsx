@@ -43,7 +43,7 @@ export default function CertificatesPage() {
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "var(--font-dm-sans),'DM Sans',system-ui,sans-serif", background: '#f5f4f0' }}>
+    <div style={{ display: 'flex', minHeight: '100vh',  background: '#f5f4f0' }}>
 
       {/* SIDEBAR */}
       <div style={{ width: '240px', background: '#0A0A0A', display: 'flex', flexDirection: 'column', flexShrink: 0, height: '100dvh', overflowY: 'auto' }}>
@@ -67,14 +67,14 @@ export default function CertificatesPage() {
           ].map(item => (
             <div key={item.href} onClick={() => router.push(item.href)}
               style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 8px', borderRadius: '8px', cursor: 'pointer', background: item.active ? 'rgba(255,255,255,0.08)' : 'transparent', marginBottom: '1px' }}>
-              <span style={{ fontSize: '12px', color: item.active ? '#fff' : 'rgba(255,255,255,0.4)', fontWeight: item.active ? '500' : '400' }}>{item.label}</span>
+              <span style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase' as const, color: item.active ? '#fff' : 'rgba(255,255,255,0.4)', fontWeight: '500' }}>{item.label}</span>
             </div>
           ))}
           <button onClick={handleLogout}
             onMouseEnter={e=>{(e.currentTarget.firstChild as HTMLElement).style.color='#FF4444'}}
             onMouseLeave={e=>{(e.currentTarget.firstChild as HTMLElement).style.color='#aaa'}}
             style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '6px 8px', marginTop: '16px', cursor: 'pointer', width: '100%', background: 'none', border: 'none' }}>
-            <span style={{ fontSize: '11px', color: '#aaa', fontFamily: 'var(--font-dm-sans),sans-serif', transition: 'color 0.15s' }}>Çıkış yap</span>
+            <span style={{ fontSize: '11px', color: '#aaa',  transition: 'color 0.15s' }}>Çıkış yap</span>
           </button>
           <img src='/powered_by_dcc.png' alt='Powered by DCC' style={{height:'20px',width:'auto',opacity:0.6,display:'block',margin:'8px 8px',cursor:'pointer'}} onClick={()=>window.open('https://dirtycheapcreative.com','_blank')} />
         </nav>
@@ -107,7 +107,7 @@ export default function CertificatesPage() {
                     </div>
                   </div>
                   <button onClick={() => handleDownload(b)}
-                    style={{ padding: '8px 16px', background: '#fff', border: '0.5px solid rgba(0,0,0,0.12)', borderRadius: '8px', fontSize: '12px', color: '#0a0a0a', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px', transition: 'border-color 0.2s' }}
+                    style={{ padding: '8px 16px', background: '#fff', border: '0.5px solid rgba(0,0,0,0.12)', borderRadius: '8px', fontSize: '12px', color: '#0a0a0a', cursor: 'pointer',  fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px', transition: 'border-color 0.2s' }}
                     onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(0,0,0,0.3)')}
                     onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(0,0,0,0.12)')}>
                     <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 1h5l4 4v9a1 1 0 01-1 1H4a1 1 0 01-1-1V2a1 1 0 011-1z" stroke="#0a0a0a" strokeWidth="1.2"/><path d="M9 1v4h4" stroke="#0a0a0a" strokeWidth="1.2"/></svg>

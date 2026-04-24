@@ -83,14 +83,14 @@ export default function AgencyCreditsPage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f4f0', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f4f0',  }}>
         <div style={{ color: '#888', fontSize: '14px' }}>Yukleniyor...</div>
       </div>
     )
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "var(--font-dm-sans),'DM Sans',system-ui,sans-serif" }}>
+    <div style={{ display: 'flex', minHeight: '100vh',  }}>
 
       {/* SIDEBAR */}
       <div style={{ width: '240px', background: '#0A0A0A', display: 'flex', flexDirection: 'column', flexShrink: 0, height: '100vh', position: 'sticky', top: 0 }}>
@@ -120,7 +120,7 @@ export default function AgencyCreditsPage() {
         </nav>
         <div style={{ padding: '10px 8px' }}>
           <button onClick={() => router.push('/dashboard/agency/studio/briefs/new')}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', width: '100%', padding: '9px 0', background: '#22c55e', color: '#111113', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', width: '100%', padding: '9px 0', background: '#22c55e', color: '#111113', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '600', cursor: 'pointer',  }}>
             <span style={{ fontSize: '15px', lineHeight: 1 }}>+</span> Brief Olustur
           </button>
         </div>
@@ -136,7 +136,7 @@ export default function AgencyCreditsPage() {
         </div>
         <div style={{ padding: '10px 8px', borderTop: '0.5px solid rgba(255,255,255,0.07)' }}>
           <button onClick={handleLogout} style={{ padding: '6px 8px', borderRadius: '7px', cursor: 'pointer', width: '100%', background: 'none', border: 'none' }}>
-            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-dm-sans),sans-serif' }}>Cikis yap</span>
+            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)',  }}>Cikis yap</span>
           </button>
         </div>
       </div>
@@ -182,7 +182,7 @@ export default function AgencyCreditsPage() {
                   </div>
                   <div style={{ marginTop: 'auto' }}>
                     <button onClick={() => canAfford && purchasePackage(pkg)} disabled={!canAfford || purchasing === pkg.id}
-                      style={{ width: '100%', padding: '10px', background: canAfford ? '#111113' : '#f5f4f0', color: canAfford ? '#fff' : '#aaa', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: canAfford && purchasing !== pkg.id ? 'pointer' : 'not-allowed', fontFamily: 'var(--font-dm-sans),sans-serif' }}>
+                      style={{ width: '100%', padding: '10px', background: canAfford ? '#111113' : '#f5f4f0', color: canAfford ? '#fff' : '#aaa', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: canAfford && purchasing !== pkg.id ? 'pointer' : 'not-allowed',  }}>
                       {purchasing === pkg.id ? 'Gonderiliyor...' : canAfford ? 'Satin Al' : 'Bakiye yetersiz'}
                     </button>
                   </div>

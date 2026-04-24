@@ -42,7 +42,7 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a', fontFamily: "var(--font-dm-sans),'DM Sans',system-ui,sans-serif" }}>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a',  }}>
       <div style={{ width: '100%', maxWidth: '380px', padding: '0 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: '48px' }}>
           <img src="/dinamo_logo.png" alt="Dinamo" style={{ height: '48px' }} />

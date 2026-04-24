@@ -100,7 +100,7 @@ export default function CreatorDashboard() {
   const totalCredits = earnings.reduce((s,e)=>s+e.credits,0)
 
   return (
-    <div style={{display:'flex',minHeight:'100vh',fontFamily:"var(--font-dm-sans),'DM Sans',system-ui,sans-serif"}}>
+    <div style={{display:'flex',minHeight:'100vh',}}>
 
       <div style={{width:'240px',background:'#0A0A0A',display:'flex',flexDirection:'column',flexShrink:0,height:'100vh',position:'sticky',top:0}}>
         <div style={{padding:'18px 16px 14px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
@@ -130,7 +130,7 @@ export default function CreatorDashboard() {
             {val:'profile',label:'Profil'},
           ].map(item=>(
             <button key={item.val} onClick={()=>setTab(item.val as any)}
-              style={{display:'flex',alignItems:'center',gap:'8px',padding:'7px 8px',borderRadius:'8px',cursor:'pointer',background:tab===item.val?'rgba(255,255,255,0.08)':'transparent',marginBottom:'1px',width:'100%',border:'none',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+              style={{display:'flex',alignItems:'center',gap:'8px',padding:'7px 8px',borderRadius:'8px',cursor:'pointer',background:tab===item.val?'rgba(255,255,255,0.08)':'transparent',marginBottom:'1px',width:'100%',border:'none',}}>
               <span style={{fontSize:'12px',color:tab===item.val?'#fff':'rgba(255,255,255,0.4)',fontWeight:tab===item.val?'500':'400'}}>{item.label}</span>
             </button>
           ))}
@@ -138,7 +138,7 @@ export default function CreatorDashboard() {
 
         <div style={{padding:'10px 8px',borderTop:'0.5px solid rgba(255,255,255,0.07)'}}>
           <button onClick={handleLogout} style={{display:'flex',alignItems:'center',gap:'7px',padding:'6px 8px',borderRadius:'7px',cursor:'pointer',width:'100%',background:'none',border:'none'}}>
-            <span style={{fontSize:'11px',color:'rgba(255,255,255,0.25)',fontFamily:'var(--font-dm-sans),sans-serif'}}>Çıkış yap</span>
+            <span style={{fontSize:'11px',color:'rgba(255,255,255,0.25)',}}>Çıkış yap</span>
           </button>
         </div>
       </div>
@@ -242,19 +242,19 @@ export default function CreatorDashboard() {
                 <div style={{marginBottom:'16px'}}>
                   <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'6px'}}>Telefon</div>
                   <input value={profile.phone} onChange={e=>setProfile({...profile,phone:e.target.value})} placeholder="05XX XXX XXXX"
-                    style={{width:'100%',boxSizing:'border-box',padding:'9px 13px',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a',fontFamily:'var(--font-dm-sans),sans-serif',outline:'none'}} />
+                    style={{width:'100%',boxSizing:'border-box',padding:'9px 13px',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a',outline:'none'}} />
                 </div>
                 <div style={{marginBottom:'16px'}}>
                   <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'6px'}}>IBAN</div>
                   <input value={profile.iban} onChange={e=>setProfile({...profile,iban:e.target.value})} placeholder="TR..."
-                    style={{width:'100%',boxSizing:'border-box',padding:'9px 13px',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a',fontFamily:'var(--font-dm-sans),sans-serif',outline:'none'}} />
+                    style={{width:'100%',boxSizing:'border-box',padding:'9px 13px',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a',outline:'none'}} />
                 </div>
                 <div style={{marginBottom:'16px'}}>
                   <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'8px'}}>Fatura Tipi</div>
                   <div style={{display:'flex',gap:'8px'}}>
                     {([['personal','Şahıs'],['company','Şirket']] as const).map(([val,label])=>(
                       <button key={val} onClick={()=>setProfile({...profile,entity_type:val})}
-                        style={{flex:1,padding:'9px',borderRadius:'8px',border:'1px solid',borderColor:profile.entity_type===val?'#111113':'rgba(0,0,0,0.12)',background:profile.entity_type===val?'#111113':'#fff',color:profile.entity_type===val?'#fff':'#555',fontSize:'12px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',fontWeight:'500'}}>
+                        style={{flex:1,padding:'9px',borderRadius:'8px',border:'1px solid',borderColor:profile.entity_type===val?'#111113':'rgba(0,0,0,0.12)',background:profile.entity_type===val?'#111113':'#fff',color:profile.entity_type===val?'#fff':'#555',fontSize:'12px',cursor:'pointer',fontWeight:'500'}}>
                         {label}
                       </button>
                     ))}
@@ -264,17 +264,17 @@ export default function CreatorDashboard() {
                   <div style={{marginBottom:'16px'}}>
                     <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'6px'}}>Vergi No</div>
                     <input value={profile.tax_no} onChange={e=>setProfile({...profile,tax_no:e.target.value})} placeholder="Vergi numarası"
-                      style={{width:'100%',boxSizing:'border-box',padding:'9px 13px',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a',fontFamily:'var(--font-dm-sans),sans-serif',outline:'none'}} />
+                      style={{width:'100%',boxSizing:'border-box',padding:'9px 13px',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a',outline:'none'}} />
                   </div>
                 )}
                 <div style={{marginBottom:'20px'}}>
                   <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'6px'}}>Adres</div>
                   <textarea value={profile.address} onChange={e=>setProfile({...profile,address:e.target.value})} placeholder="Açık adres" rows={3}
-                    style={{width:'100%',boxSizing:'border-box',padding:'9px 13px',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a',fontFamily:'var(--font-dm-sans),sans-serif',outline:'none',resize:'vertical'}} />
+                    style={{width:'100%',boxSizing:'border-box',padding:'9px 13px',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a',outline:'none',resize:'vertical'}} />
                 </div>
                 {profileMsg&&<div style={{fontSize:'12px',color:profileMsg.includes('Hata')?'#ef4444':'#22c55e',marginBottom:'12px'}}>{profileMsg}</div>}
                 <button onClick={handleProfileSave} disabled={profileSaving}
-                  style={{padding:'10px 24px',background:'#111113',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',fontWeight:'500'}}>
+                  style={{padding:'10px 24px',background:'#111113',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontWeight:'500'}}>
                   {profileSaving?'Kaydediliyor...':'Kaydet'}
                 </button>
               </div>
@@ -289,7 +289,7 @@ export default function CreatorDashboard() {
                 ) : (
                   <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
                     <span style={{fontSize:'12px',color:'#f59e0b'}}>Henüz onaylanmadı</span>
-                    <button onClick={()=>setShowAgreement(true)} style={{padding:'7px 16px',background:'#111113',color:'#fff',border:'none',borderRadius:'8px',fontSize:'11px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>Taahhütnameyi Oku</button>
+                    <button onClick={()=>setShowAgreement(true)} style={{padding:'7px 16px',background:'#111113',color:'#fff',border:'none',borderRadius:'8px',fontSize:'11px',cursor:'pointer',}}>Taahhütnameyi Oku</button>
                   </div>
                 )}
               </div>
@@ -319,7 +319,7 @@ export default function CreatorDashboard() {
                 <span style={{fontSize:'13px',color:'#0a0a0a'}}>Yukarıdaki taahhütnameyi okudum ve kabul ediyorum</span>
               </label>
               <button onClick={handleAgreementAccept} disabled={!agreementChecked}
-                style={{width:'100%',padding:'13px',background:agreementChecked?'#22c55e':'#ccc',color:'#fff',border:'none',borderRadius:'10px',fontSize:'14px',fontWeight:'500',cursor:agreementChecked?'pointer':'not-allowed',fontFamily:'var(--font-dm-sans),sans-serif',transition:'background 0.2s'}}>
+                style={{width:'100%',padding:'13px',background:agreementChecked?'#22c55e':'#ccc',color:'#fff',border:'none',borderRadius:'10px',fontSize:'14px',fontWeight:'500',cursor:agreementChecked?'pointer':'not-allowed',transition:'background 0.2s'}}>
                 Onaylıyorum
               </button>
             </div>

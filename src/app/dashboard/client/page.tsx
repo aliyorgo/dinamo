@@ -202,7 +202,7 @@ export default function ClientDashboard() {
   }
 
   return (
-    <div style={{display:'flex',minHeight:'100vh',fontFamily:"var(--font-dm-sans),'DM Sans',system-ui,sans-serif"}}>
+    <div style={{display:'flex',minHeight:'100vh',}}>
 
       {/* SIDEBAR */}
       <div style={{width:'240px',background:'#0A0A0A',display:'flex',flexDirection:'column',flexShrink:0,height:'100dvh',overflowY:'auto'}}>
@@ -228,14 +228,14 @@ export default function ClientDashboard() {
               onMouseEnter={e=>{if(!item.active){e.currentTarget.style.background='rgba(255,255,255,0.06)';e.currentTarget.style.borderLeft='2px solid #1DB81D';(e.currentTarget.firstChild as HTMLElement).style.color='#fff'}}}
               onMouseLeave={e=>{if(!item.active){e.currentTarget.style.background='transparent';e.currentTarget.style.borderLeft='2px solid transparent';(e.currentTarget.firstChild as HTMLElement).style.color='rgba(255,255,255,0.4)'}}}
               style={{display:'flex',alignItems:'center',gap:'8px',padding:'7px 8px',cursor:'pointer',background:item.active?'rgba(255,255,255,0.08)':'transparent',borderLeft:item.active?'2px solid #1DB81D':'2px solid transparent',marginBottom:'1px',transition:'all 0.15s ease'}}>
-              <span style={{fontSize:'12px',color:item.active?'#fff':'rgba(255,255,255,0.4)',fontWeight:item.active?'500':'400',transition:'color 0.15s ease'}}>{item.label}</span>
+              <span style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',color:item.active?'#fff':'rgba(255,255,255,0.4)',fontWeight:'500',transition:'color 0.15s ease'}}>{item.label}</span>
             </div>
           ))}
           <button onClick={handleLogout}
             onMouseEnter={e=>{(e.currentTarget.firstChild as HTMLElement).style.color='#FF4444'}}
             onMouseLeave={e=>{(e.currentTarget.firstChild as HTMLElement).style.color='#aaa'}}
             style={{display:'flex',alignItems:'center',gap:'7px',padding:'6px 8px',marginTop:'16px',cursor:'pointer',width:'100%',background:'none',border:'none'}}>
-            <span style={{fontSize:'11px',color:'#aaa',fontFamily:'var(--font-dm-sans),sans-serif',transition:'color 0.15s'}}>Çıkış yap</span>
+            <span style={{fontSize:'11px',color:'#aaa',transition:'color 0.15s'}}>Çıkış yap</span>
           </button>
           <img src="/powered_by_dcc.png" alt="Powered by DCC" style={{height:'20px',width:'auto',opacity:0.6,display:'block',margin:'8px 8px',cursor:'pointer'}} onClick={()=>window.open('https://dirtycheapcreative.com','_blank')} />
         </nav>
@@ -271,7 +271,7 @@ export default function ClientDashboard() {
           <button onClick={()=>router.push('/dashboard/client/brief/new')}
             onMouseEnter={e=>{e.currentTarget.style.opacity='0.85';e.currentTarget.style.transform='scale(0.98)'}}
             onMouseLeave={e=>{e.currentTarget.style.opacity='1';e.currentTarget.style.transform='scale(1)'}}
-            style={{background:'#111113',color:'#fff',border:'none',padding:'8px 18px',fontSize:'12px',fontFamily:'var(--font-dm-sans),sans-serif',cursor:'pointer',fontWeight:'500',flexShrink:0,transition:'all 0.15s ease'}}>
+            style={{background:'#111113',color:'#fff',border:'none',padding:'8px 18px',fontSize:'12px',cursor:'pointer',fontWeight:'500',flexShrink:0,transition:'all 0.15s ease'}}>
             + Yeni Brief
           </button>
           </div>
@@ -403,11 +403,11 @@ export default function ClientDashboard() {
                       <div style={{position:'absolute',top:'10px',right:'14px',fontSize:'9px',fontWeight:'600',color:'#f59e0b',background:'rgba(245,158,11,0.1)',padding:'2px 8px',borderRadius:'100px',letterSpacing:'0.5px'}}>TASLAK</div>
                       <div data-actions="" style={{display:'flex',gap:'6px',opacity:0,transition:'opacity 0.15s'}}>
                         <button onClick={()=>router.push(`/dashboard/client/brief/new?draft=${b.id}`)}
-                          style={{padding:'6px 14px',background:'#22c55e',color:'#fff',border:'none',borderRadius:'8px',fontSize:'11px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif',fontWeight:'500'}}>
+                          style={{padding:'6px 14px',background:'#22c55e',color:'#fff',border:'none',borderRadius:'8px',fontSize:'11px',cursor:'pointer',fontWeight:'500'}}>
                           Düzenle ve Gönder
                         </button>
                         <button onClick={()=>handleDeleteDraft(b.id)}
-                          style={{padding:'6px 14px',background:'none',border:'1px solid rgba(239,68,68,0.3)',color:'#ef4444',borderRadius:'8px',fontSize:'11px',cursor:'pointer',fontFamily:'var(--font-dm-sans),sans-serif'}}>
+                          style={{padding:'6px 14px',background:'none',border:'1px solid rgba(239,68,68,0.3)',color:'#ef4444',borderRadius:'8px',fontSize:'11px',cursor:'pointer',}}>
                           Sil
                         </button>
                       </div>
@@ -455,7 +455,7 @@ export default function ClientDashboard() {
                     <div style={{fontSize:'32px',fontWeight:'300',color:'#0a0a0a',letterSpacing:'-0.5px',marginBottom:'12px'}}>Hoş geldin, {userName.split(' ')[0]}!</div>
                     <div style={{fontSize:'14px',color:'#888',lineHeight:1.6,marginBottom:'28px'}}>İlk brief'ini oluştur, 24 saat içinde vidyon hazır olsun.</div>
                     <button onClick={()=>router.push('/dashboard/client/brief/new')}
-                      style={{background:'#22c55e',color:'#fff',border:'none',borderRadius:'10px',padding:'14px 32px',fontSize:'15px',fontFamily:'var(--font-dm-sans),sans-serif',cursor:'pointer',fontWeight:'500'}}>
+                      style={{background:'#22c55e',color:'#fff',border:'none',borderRadius:'10px',padding:'14px 32px',fontSize:'15px',cursor:'pointer',fontWeight:'500'}}>
                       İlk Brief'ini Oluştur
                     </button>
                   </div>
