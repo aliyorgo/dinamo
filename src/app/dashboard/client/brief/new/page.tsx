@@ -365,7 +365,7 @@ function NewBriefPage() {
                     {isDone?'✓':n}
                   </div>
                   <div style={{marginTop:'1px'}}>
-                    <div style={{fontSize:'11px',color:isDone?'#888':isCur?'#fff':'#666',fontWeight:isCur?'500':'400'}}>
+                    <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',color:isDone?'#888':isCur?'#fff':'#666',fontWeight:'500'}}>
                       {n===1&&form.campaign_name?form.campaign_name.substring(0,18)+(form.campaign_name.length>18?'…':''):s}
                     </div>
                     {isDone&&n===1&&form.video_type&&<div style={{fontSize:'9px',color:'rgba(255,255,255,0.2)',marginTop:'1px'}}>{form.video_type} · {form.format}</div>}
@@ -377,7 +377,7 @@ function NewBriefPage() {
           })}
           <div onClick={()=>router.push('/dashboard/client')} style={{display:'flex',alignItems:'center',gap:'7px',padding:'6px 8px',marginTop:'16px',cursor:'pointer'}}>
             <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="rgba(255,255,255,0.25)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            <span style={{fontSize:'11px',color:'#aaa',fontFamily:'var(--font-sans),Inter,sans-serif'}}>Projelerime dön</span>
+            <span style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',color:'#aaa'}}>Projelerime dön</span>
           </div>
         </div>
       </div>

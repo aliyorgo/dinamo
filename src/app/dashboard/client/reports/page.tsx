@@ -225,7 +225,7 @@ export default function ClientReportsPage() {
           ].map(item => (
             <div key={item.href} onClick={() => router.push(item.href)}
               style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 8px', borderRadius: '8px', cursor: 'pointer', background: (item as any).active ? 'rgba(255,255,255,0.08)' : 'transparent', marginBottom: '1px' }}>
-              <span style={{ fontSize: '12px', color: (item as any).active ? '#fff' : 'rgba(255,255,255,0.4)', fontWeight: (item as any).active ? '500' : '400' }}>{item.label}</span>
+              <span style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase' as const, color: (item as any).active ? '#fff' : 'rgba(255,255,255,0.4)', fontWeight: '500' }}>{item.label}</span>
             </div>
           ))}
           <button onClick={handleLogout}
