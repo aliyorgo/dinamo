@@ -421,7 +421,7 @@ function NewBriefPage() {
       fontSize: '12px',
       fontWeight: '600',
       textDecoration: 'none',
-      fontFamily: 'var(--font-dm-sans),sans-serif',
+      fontFamily: 'var(--font-sans),Inter,sans-serif',
       marginTop: 'auto',
     })
     return (
