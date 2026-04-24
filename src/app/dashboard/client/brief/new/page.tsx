@@ -558,7 +558,7 @@ function NewBriefPage() {
           {/* ADIM -1 — AI Modu */}
           {step===-1&&(
             <div>
-              <div style={{fontSize:'22px',fontFamily:'var(--font-serif),Georgia,serif',color:'var(--color-text-primary)',marginBottom:'8px'}}>Bize anlatın</div>
+              <div style={{fontSize:'22px',fontWeight:'500',letterSpacing:'-0.01em',color:'var(--color-text-primary)',marginBottom:'8px'}}>Bize anlatın</div>
               <div style={{fontSize:'14px',color:'#888',marginBottom:'24px',lineHeight:'1.6'}}>Ne aklınızdaysa yazın — gerisini biz halledelim.</div>
               <textarea
                 value={aiBriefInput}
@@ -580,7 +580,7 @@ function NewBriefPage() {
           {step===1&&(
             <div>
               <div className="label-caps" style={{marginBottom:'8px',color:'var(--color-text-secondary)'}}>01 — KAMPANYA ÖZETİ</div>
-              <div className="editorial" style={{fontSize:'22px',color:'var(--color-text-primary)',marginBottom:'28px'}}>Kampanyanıza bir isim verin</div>
+              <div style={{fontSize:'22px',fontWeight:'500',letterSpacing:'-0.01em',color:'var(--color-text-primary)',marginBottom:'28px'}}>Kampanyanıza bir isim verin</div>
               <div style={{marginBottom:'22px'}}>
                 <div style={{fontSize:'11px',color:'var(--color-text-secondary)',letterSpacing:'2px',textTransform:'uppercase',fontWeight:'500',marginBottom:'8px'}}>Kampanya Adı</div>
                 <input style={inputStyle} value={form.campaign_name} onChange={e=>setForm({...form,campaign_name:e.target.value})} placeholder="örn. Yaz Kampanyası 2025..." />
@@ -641,7 +641,7 @@ function NewBriefPage() {
           {step===2&&(
             <div>
               <div className="label-caps" style={{marginBottom:'8px',color:'var(--color-text-secondary)'}}>02 — HEDEF KİTLE</div>
-              <div className="editorial" style={{fontSize:'22px',color:'var(--color-text-primary)',marginBottom:'28px'}}>Kimi hedefliyorsunuz?</div>
+              <div style={{fontSize:'22px',fontWeight:'500',letterSpacing:'-0.01em',color:'var(--color-text-primary)',marginBottom:'28px'}}>Kimi hedefliyorsunuz?</div>
               <div style={{marginBottom:'22px'}}>
                 <div style={{fontSize:'11px',color:'var(--color-text-secondary)',letterSpacing:'2px',textTransform:'uppercase',fontWeight:'500',marginBottom:'8px'}}>Hedef Kitle</div>
                 <input style={inputStyle} value={form.target_audience} onChange={e=>setForm({...form,target_audience:e.target.value})} placeholder="örn. 25-40 yaş, online alışveriş yapan..." />
@@ -666,7 +666,7 @@ function NewBriefPage() {
           {step===3&&(
             <div>
               <div className="label-caps" style={{marginBottom:'8px',color:'var(--color-text-secondary)'}}>03 — BRİEF</div>
-              <div className="editorial" style={{fontSize:'22px',color:'var(--color-text-primary)',marginBottom:'8px'}}>Brief'inizi yazın</div>
+              <div style={{fontSize:'22px',fontWeight:'500',letterSpacing:'-0.01em',color:'var(--color-text-primary)',marginBottom:'8px'}}>Brief'inizi yazın</div>
               <div style={{fontSize:'13px',color:'#888',marginBottom:'24px',lineHeight:'1.6'}}>Ne anlatmak istiyorsunuz? Tonunuzu, mesajınızı, hikayenizi ve önemli detayları buraya yazın. Ne kadar detaylı olursa o kadar iyi.</div>
               <div style={{position:'relative'}}>
                 <textarea style={{...inputStyle,resize:'vertical',lineHeight:'1.7',paddingTop:'36px',opacity:expandLoading?0.5:1,transition:'opacity 0.2s'}} rows={10} value={form.message} onChange={e=>{setForm({...form,message:e.target.value});setPrevMessage(null)}} placeholder="Videonun mesajını, tonunu, hikayesini ve önemli detaylarını buraya yazın. Referans video veya reklam varsa linkini de ekleyebilirsiniz..." />
@@ -697,7 +697,7 @@ function NewBriefPage() {
           {step===4&&(
             <div>
               <div className="label-caps" style={{marginBottom:'8px',color:'var(--color-text-secondary)'}}>04 — SESLENDİRME</div>
-              <div className="editorial" style={{fontSize:'22px',color:'var(--color-text-primary)',marginBottom:'28px'}}>Seslendirme</div>
+              <div style={{fontSize:'22px',fontWeight:'500',letterSpacing:'-0.01em',color:'var(--color-text-primary)',marginBottom:'28px'}}>Seslendirme</div>
               <div style={{marginBottom:'22px'}}>
                 <div style={{fontSize:'11px',color:'var(--color-text-secondary)',letterSpacing:'2px',textTransform:'uppercase',fontWeight:'500',marginBottom:'8px'}}>Seslendirme Tipi</div>
                 <div>
@@ -742,7 +742,7 @@ function NewBriefPage() {
             return (
               <div>
                 <div className="label-caps" style={{marginBottom:'8px',color:'var(--color-text-secondary)'}}>05 — SON KONTROL</div>
-                <div className="editorial" style={{fontSize:'22px',color:'var(--color-text-primary)',marginBottom:'28px'}}>Son notlar</div>
+                <div style={{fontSize:'22px',fontWeight:'500',letterSpacing:'-0.01em',color:'var(--color-text-primary)',marginBottom:'28px'}}>Son notlar</div>
 
                 {/* BRIEF SUMMARY */}
                 <div style={{background:'#f0efeb',borderRadius:'16px',padding:'28px',marginBottom:'22px'}}>
