@@ -400,7 +400,7 @@ function NewBriefPage() {
   if (step === 99) {
     const aiEnabled = (clientUser as any)?.clients?.ai_video_enabled
     return (
-      <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'var(--color-background-secondary)'}}>
+      <div style={{minHeight:'100vh',display:'flex',alignItems:'flex-start',justifyContent:'center',background:'var(--color-background-secondary)',paddingTop:'80px',paddingBottom:'40px',overflowY:'auto'}}>
         <div style={{maxWidth:'720px',padding:'0 24px',width:'100%'}}>
           {/* Hero */}
           <div style={{textAlign:'center',marginBottom:'48px'}}>
