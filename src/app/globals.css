@@ -1,36 +1,148 @@
 @import "tailwindcss";
 
+/* ═══════ DESIGN TOKENS ═══════ */
+
 :root {
+  --color-background-primary: #ffffff;
+  --color-background-secondary: #fafaf7;
+  --color-background-tertiary: #f0efe8;
+  --color-text-primary: #0a0a0a;
+  --color-text-secondary: #6b6b66;
+  --color-text-tertiary: #9b9b95;
+  --color-border-primary: #0a0a0a;
+  --color-border-secondary: #6b6b66;
+  --color-border-tertiary: #e5e4db;
+  --color-accent: #4ade80;
+  --color-accent-hover: #22c55e;
+  --color-accent-foreground: #0a0a0a;
+
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0a0a0a;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-dm-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-sans);
+  --font-serif: var(--font-serif);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
+    --color-background-primary: #0a0a0a;
+    --color-background-secondary: #151512;
+    --color-background-tertiary: #1f1f1b;
+    --color-text-primary: #ffffff;
+    --color-text-secondary: #a0a09a;
+    --color-text-tertiary: #6b6b66;
+    --color-border-primary: #ffffff;
+    --color-border-secondary: #a0a09a;
+    --color-border-tertiary: #2a2a25;
+
     --background: #0a0a0a;
     --foreground: #ededed;
   }
 }
 
+/* ═══════ BASE RESET ═══════ */
+
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-dm-sans), 'DM Sans', system-ui, sans-serif;
+  font-family: var(--font-sans), 'Inter', system-ui, sans-serif;
 }
 
-/* Global: remove all border-radius */
+/* Border radius 0 globally */
 *, *::before, *::after {
   border-radius: 0 !important;
 }
 
-/* Dashboard scaling — everything 10% larger */
+/* Default border color */
+*, *::before, *::after {
+  border-color: var(--color-border-tertiary);
+}
+
+/* ═══════ TYPOGRAPHY ═══════ */
+
+.editorial {
+  font-family: var(--font-serif), Georgia, serif;
+}
+
+.label-caps {
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+/* ═══════ BUTTON BASE ═══════ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 18px;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-weight: 500;
+  font-family: var(--font-sans), 'Inter', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid #0a0a0a;
+  background: #0a0a0a;
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.btn:hover { opacity: 0.9; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-outline {
+  background: #ffffff;
+  color: #0a0a0a;
+  border: 1px solid #0a0a0a;
+}
+.btn-outline:hover {
+  background: #0a0a0a;
+  color: #ffffff;
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: #0a0a0a;
+}
+.btn-ghost:hover {
+  background: var(--color-background-tertiary);
+}
+
+/* ═══════ FORM BASE ═══════ */
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="file"]):not([type="range"]),
+textarea,
+select {
+  background: #ffffff;
+  border: 1px solid #0a0a0a;
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #0a0a0a;
+  font-family: var(--font-sans), 'Inter', sans-serif;
+  transition: border-width 0.1s ease;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="file"]):not([type="range"]):focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-width: 2px;
+  border-color: #0a0a0a;
+}
+
+/* ═══════ DASHBOARD ═══════ */
+
 .dashboard-scale {
   zoom: 1.1;
 }
@@ -50,7 +162,7 @@ body {
   height: 100dvh;
   overflow-y: auto;
   z-index: 50;
-  font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+  font-family: var(--font-sans), 'Inter', sans-serif;
 }
 
 .dinamo-sidebar > img,
@@ -62,14 +174,13 @@ body {
   margin-left: 240px;
 }
 
-/* Hide duplicate sidebar inside page content (layout already renders one) */
 .dinamo-main-content .dinamo-sidebar {
   display: none !important;
 }
 
 .dinamo-sidebar-light {
   background: #FFFFFF;
-  border-right: 1px solid #E8E8E4;
+  border-right: 1px solid var(--color-border-tertiary);
 }
 
 /* NAV */
@@ -91,33 +202,33 @@ body {
 }
 
 .dinamo-sidebar-light .dinamo-nav-link {
-  color: #666666;
+  color: var(--color-text-secondary);
 }
 
 .dinamo-nav-link:hover {
   background: rgba(255,255,255,0.06);
   color: #FFFFFF;
-  border-left: 2px solid #1DB81D;
+  border-left: 2px solid var(--color-accent);
 }
 
 .dinamo-sidebar-light .dinamo-nav-link:hover {
-  background: #F5F5F5;
-  color: #0A0A0A;
-  border-left: 2px solid #1DB81D;
+  background: var(--color-background-tertiary);
+  color: var(--color-text-primary);
+  border-left: 2px solid var(--color-accent);
 }
 
 .dinamo-nav-link.active {
   background: rgba(255,255,255,0.08);
   color: #FFFFFF;
   font-weight: 600;
-  border-left: 2px solid #1DB81D;
+  border-left: 2px solid var(--color-accent);
 }
 
 .dinamo-sidebar-light .dinamo-nav-link.active {
-  background: #F5F5F5;
-  color: #0A0A0A;
+  background: var(--color-background-tertiary);
+  color: var(--color-text-primary);
   font-weight: 600;
-  border-left: 2px solid #1DB81D;
+  border-left: 2px solid var(--color-accent);
 }
 
 /* SECTION DIVIDERS */
@@ -132,21 +243,21 @@ body {
 }
 
 .dinamo-sidebar-light .dinamo-nav-section {
-  color: #AAAAAA;
-  border-top: 1px solid #E8E8E4;
+  color: var(--color-text-tertiary);
+  border-top: 1px solid var(--color-border-tertiary);
 }
 
 /* USER BLOCK */
 .dinamo-user-block {
-  background: rgba(29,184,29,0.06);
-  border-left: 3px solid #1DB81D;
+  background: rgba(74,222,128,0.06);
+  border-left: 3px solid var(--color-accent);
   padding: 16px 20px;
   margin: 0 12px 8px;
   flex-shrink: 0;
 }
 
 .dinamo-sidebar-light .dinamo-user-block {
-  background: #F0F7F0;
+  background: rgba(74,222,128,0.04);
 }
 
 .dinamo-user-company {
@@ -157,7 +268,7 @@ body {
 }
 
 .dinamo-sidebar-light .dinamo-user-company {
-  color: #0A0A0A;
+  color: var(--color-text-primary);
 }
 
 .dinamo-user-name {
@@ -167,7 +278,7 @@ body {
 }
 
 .dinamo-sidebar-light .dinamo-user-name {
-  color: #888888;
+  color: var(--color-text-secondary);
 }
 
 /* SIGN OUT */
@@ -182,12 +293,12 @@ body {
   text-align: left;
   width: 100%;
   transition: color 0.15s ease;
-  font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+  font-family: var(--font-sans), 'Inter', sans-serif;
 }
 
 .dinamo-sidebar-light .dinamo-signout {
-  color: #AAAAAA;
-  border-top: 1px solid #E8E8E4;
+  color: var(--color-text-tertiary);
+  border-top: 1px solid var(--color-border-tertiary);
 }
 
 .dinamo-signout:hover {
