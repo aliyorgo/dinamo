@@ -1367,11 +1367,8 @@ function ClientBriefDetail() {
                 {/* CPS info banner */}
                 {!cpsBannerDismissed && (
                   <div style={{background:'#2a2a25',border:'1px solid #33332e',padding:'16px 18px',marginBottom:'16px',display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'16px'}}>
-                    <div style={{flex:1}}>
-                      <div style={{fontSize:'14px',fontWeight:'600',color:'#fff',marginBottom:'10px'}}>Creative Performance System</div>
-                      <div style={{fontSize:'12px',color:'rgba(255,255,255,0.6)',lineHeight:1.8,fontStyle:'italic'}}>
-                        Aynı brief'ten farklı yaratıcı yönler üretin. Hook'tan ton'a, her varyasyonu kontrol edin. AI otomatik plan oluşturur, ekip üretir.
-                      </div>
+                    <div style={{flex:1,fontSize:'13px',color:'#fff',lineHeight:1.65,fontStyle:'italic'}}>
+                      Creative Performance System ile aynı brief'ten farklı yaratıcı yönler üretin. Hook'tan ton'a varyasyonları kontrol edin. Test edin, kazanan içeriği bulun. İsterseniz AI otomatik plan oluşturur, ekip üretir. Yapım süresi ilk varyasyon için 24 saat garantilidir, tamamlanması 48 saat sürebilir.
                     </div>
                     <button onClick={()=>setCpsBannerDismissed(true)}
                       style={{width:'26px',height:'26px',flexShrink:0,border:'1px solid rgba(255,255,255,0.3)',background:'transparent',color:'#fff',fontSize:'14px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>&#215;</button>
