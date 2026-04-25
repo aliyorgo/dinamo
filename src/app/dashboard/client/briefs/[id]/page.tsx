@@ -91,9 +91,11 @@ function ClientBriefDetail() {
   const [reordering, setReordering] = useState(false)
   const [reorderType, setReorderType] = useState('')
   const [reorderSuccess, setReorderSuccess] = useState(false)
-  const [captions, setCaptions] = useState<{tiktok:string[],instagram:string[]}|null>(null)
-  const [captionsLoading, setCaptionsLoading] = useState(false)
-  const [copiedIdx, setCopiedIdx] = useState<string|null>(null)
+  const [captionText, setCaptionText] = useState('')
+  const [savedCaption, setSavedCaption] = useState('')
+  const [captionLoading, setCaptionLoading] = useState(false)
+  const [captionToast, setCaptionToast] = useState('')
+  const [showRegenerateConfirm, setShowRegenerateConfirm] = useState(false)
   const [generatingLink, setGeneratingLink] = useState(false)
   const [linkCopied, setLinkCopied] = useState(false)
   const [aiStageElapsed, setAiStageElapsed] = useState(0)
@@ -149,6 +151,7 @@ function ClientBriefDetail() {
     setCompanyName((cu as any)?.clients?.company_name || '')
     const { data: b } = await supabase.from('briefs').select('*, clients(ai_video_enabled)').eq('id', id).single()
     setBrief(b)
+    if (b?.caption) { setCaptionText(b.caption); setSavedCaption(b.caption) }
     const { data: q } = await supabase.from('brief_questions').select('*').eq('brief_id', id).order('asked_at')
     setQuestions(q || [])
     const { data: v } = await supabase.from('video_submissions').select('*').eq('brief_id', id).order('version', { ascending: true })
@@ -326,32 +329,34 @@ function ClientBriefDetail() {
     loadData()
   }
 
-  async function loadCaptions() {
-    if (!brief || captionsLoading || captions) return
-    setCaptionsLoading(true)
+  async function generateCaption() {
+    if (!brief || captionLoading) return
+    setCaptionLoading(true)
     try {
       const res = await fetch('/api/generate-captions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          campaign_name: brief.campaign_name,
-          message: brief.message,
-          cta: brief.cta,
-          target_audience: brief.target_audience,
-          brand_name: companyName,
-        })
+        body: JSON.stringify({ campaign_name: brief.campaign_name, message: brief.message, cta: brief.cta, target_audience: brief.target_audience, brand_name: companyName, clientId: brief.client_id })
       })
       const data = await res.json()
-      if (data.tiktok && data.instagram) setCaptions(data)
-      else if (data.error) console.error('[captions]', data.error)
-    } catch (err) { console.error('[captions] fetch error:', err) }
-    setCaptionsLoading(false)
+      if (data.caption) setCaptionText(data.caption)
+    } catch {}
+    setCaptionLoading(false)
   }
 
-  function copyCaption(text: string, key: string) {
-    navigator.clipboard.writeText(text)
-    setCopiedIdx(key)
-    setTimeout(() => setCopiedIdx(null), 1500)
+  async function handleCaptionAction() {
+    if (!captionText.trim()) return
+    const isDirty = captionText !== savedCaption
+    if (isDirty) {
+      await supabase.from('briefs').update({ caption: captionText }).eq('id', id)
+      setSavedCaption(captionText)
+      navigator.clipboard.writeText(captionText)
+      setCaptionToast('Kaydedildi ve kopyalandı')
+    } else {
+      navigator.clipboard.writeText(captionText)
+      setCaptionToast('Kopyalandı')
+    }
+    setTimeout(() => setCaptionToast(''), 3000)
   }
 
   function handleCertificateDownload() {
@@ -965,48 +970,29 @@ function ClientBriefDetail() {
               {/* SOSYAL MEDYA BAŞLIKLARI */}
               {brief.status === 'delivered' && (
                 <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'20px 24px',marginBottom:'16px'}}>
-                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px'}}>
-                    <div style={{fontSize:'11px',color:'#888',textTransform:'uppercase',letterSpacing:'0.5px'}}>Sosyal Medya Başlıkları</div>
-                    {!captions && (
-                      <button onClick={loadCaptions} disabled={captionsLoading}
-                        style={{fontSize:'11px',padding:'6px 14px',borderRadius:'8px',border:'none',background:'#111113',color:'#fff',cursor:'pointer',fontWeight:'500'}}>
-                        {captionsLoading ? 'Oluşturuluyor...' : 'Başlıkları Oluştur'}
-                      </button>
-                    )}
-                  </div>
-                  {captions && (
-                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px'}}>
-                      <div>
-                        <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'10px'}}>TikTok</div>
-                        {captions.tiktok.map((c, i) => {
-                          const key = `tt-${i}`
-                          return (
-                            <div key={key} style={{padding:'10px 12px',background:'#f5f4f0',borderRadius:'8px',marginBottom:'6px',display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'8px'}}>
-                              <div style={{fontSize:'12px',color:'#0a0a0a',lineHeight:'1.5',flex:1}}>{c}</div>
-                              <button onClick={() => copyCaption(c, key)}
-                                style={{fontSize:'10px',padding:'4px 10px',borderRadius:'6px',border:'0.5px solid rgba(0,0,0,0.12)',background:'#fff',color:copiedIdx===key?'#22c55e':'#555',cursor:'pointer',whiteSpace:'nowrap',flexShrink:0}}>
-                                {copiedIdx===key ? 'Kopyalandı' : 'Kopyala'}
-                              </button>
-                            </div>
-                          )
-                        })}
+                  <div style={{fontSize:'11px',letterSpacing:'2px',textTransform:'uppercase',fontWeight:'500',color:'var(--color-text-secondary)',marginBottom:'12px'}}>SOSYAL MEDYA CAPTION'I</div>
+                  {!captionText && !captionLoading ? (
+                    <button onClick={generateCaption} className="btn" style={{padding:'10px 20px'}}>
+                      CAPTION ÜRET
+                    </button>
+                  ) : (
+                    <>
+                      <textarea value={captionText} onChange={e => { if (e.target.value.length <= 2200) setCaptionText(e.target.value) }}
+                        maxLength={2200} rows={4} disabled={captionLoading}
+                        style={{width:'100%',padding:'12px',border:'1px solid #0a0a0a',fontSize:'14px',color:'#0a0a0a',lineHeight:'1.6',resize:'vertical',boxSizing:'border-box',opacity:captionLoading?0.5:1}}
+                        placeholder={captionLoading ? 'Üretiliyor...' : 'Caption yazın...'} />
+                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'8px'}}>
+                        <div style={{fontSize:'11px',letterSpacing:'1px',color:'var(--color-text-tertiary)'}}>{captionText.length} / 2200</div>
+                        <div style={{display:'flex',gap:'8px'}}>
+                          <button onClick={() => setShowRegenerateConfirm(true)} className="btn btn-outline" style={{padding:'6px 14px'}} disabled={captionLoading}>
+                            YENİDEN ÜRET
+                          </button>
+                          <button onClick={handleCaptionAction} className="btn" style={{padding:'6px 14px'}} disabled={!captionText.trim()}>
+                            {captionToast ? (captionToast + ' ✓') : (captionText !== savedCaption ? 'KAYDET VE KOPYALA' : 'KOPYALA')}
+                          </button>
+                        </div>
                       </div>
-                      <div>
-                        <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'10px'}}>Instagram</div>
-                        {captions.instagram.map((c, i) => {
-                          const key = `ig-${i}`
-                          return (
-                            <div key={key} style={{padding:'10px 12px',background:'#f5f4f0',borderRadius:'8px',marginBottom:'6px',display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'8px'}}>
-                              <div style={{fontSize:'12px',color:'#0a0a0a',lineHeight:'1.5',flex:1}}>{c}</div>
-                              <button onClick={() => copyCaption(c, key)}
-                                style={{fontSize:'10px',padding:'4px 10px',borderRadius:'6px',border:'0.5px solid rgba(0,0,0,0.12)',background:'#fff',color:copiedIdx===key?'#22c55e':'#555',cursor:'pointer',whiteSpace:'nowrap',flexShrink:0}}>
-                                {copiedIdx===key ? 'Kopyalandı' : 'Kopyala'}
-                              </button>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </div>
+                    </>
                   )}
                 </div>
               )}
@@ -1700,6 +1686,20 @@ function ClientBriefDetail() {
           </div>
         )
       })()}
+
+      {/* REGENERATE CONFIRM MODAL */}
+      {showRegenerateConfirm && (
+        <div onClick={() => setShowRegenerateConfirm(false)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.3)',backdropFilter:'blur(4px)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <div onClick={e => e.stopPropagation()} style={{background:'#fff',border:'1px solid #0a0a0a',padding:'24px',maxWidth:'400px',width:'90%'}}>
+            <div style={{fontSize:'15px',fontWeight:'500',color:'#0a0a0a',marginBottom:'8px'}}>Caption yeniden üretilsin mi?</div>
+            <div style={{fontSize:'13px',color:'#888',marginBottom:'20px',lineHeight:'1.5'}}>Mevcut caption silinecek ve AI tarafından yeni bir caption üretilecek.</div>
+            <div style={{display:'flex',gap:'8px',justifyContent:'flex-end'}}>
+              <button onClick={() => setShowRegenerateConfirm(false)} className="btn btn-outline" style={{padding:'8px 16px'}}>VAZGEÇ</button>
+              <button onClick={() => { setShowRegenerateConfirm(false); generateCaption() }} className="btn" style={{padding:'8px 16px'}}>YENİDEN ÜRET</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {staticImageModal && (
         <StaticImageGeneratorModal

@@ -7,7 +7,7 @@ export default async function SharePage({ params }: { params: { id: string } }) 
   const { id } = await params
 
   const { data: brief } = await supabase.from('briefs')
-    .select('id, campaign_name, message, video_type, format, created_at, static_images_url, static_image_files, client_id, clients(company_name)')
+    .select('id, campaign_name, message, video_type, format, created_at, static_images_url, static_image_files, caption, client_id, clients(company_name)')
     .eq('id', id).single()
 
   if (!brief) {

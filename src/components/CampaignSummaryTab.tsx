@@ -43,6 +43,7 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
   const [menuOpen, setMenuOpen] = useState<string | null>(null)
   const [linkCopied, setLinkCopied] = useState(false)
   const [zipping, setZipping] = useState(false)
+  const [captionCopied, setCaptionCopied] = useState(false)
 
   // Polling: auto-refresh when processing
   const hasProcessing = aiChildren.some(c => c.status === 'ai_processing') ||
@@ -281,7 +282,25 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
           )
         })()}
 
-        {totalVideos === 0 && !hasStaticImages && (
+        {/* CAPTION SECTION */}
+        {brief.caption && (
+          <div style={{ borderTop: '1px solid var(--color-border-tertiary)', paddingTop: '28px', marginBottom: '28px' }}>
+            <div style={{ maxWidth: '600px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <div style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: '600', color: 'var(--color-text-primary)' }}>CAPTION ÖNERİSİ</div>
+                <button onClick={() => { navigator.clipboard.writeText(brief.caption); setCaptionCopied(true); setTimeout(() => setCaptionCopied(false), 2000) }}
+                  className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '10px' }}>
+                  {captionCopied ? 'KOPYALANDİ ✓' : 'KOPYALA'}
+                </button>
+              </div>
+              <div style={{ background: '#fafaf7', border: '1px solid #0a0a0a', padding: '16px 18px' }}>
+                <div style={{ fontSize: '13px', color: '#0a0a0a', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>{brief.caption}</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {totalVideos === 0 && !hasStaticImages && !brief.caption && (
           <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--color-text-tertiary)', fontSize: '13px' }}>Henüz teslim edilen içerik yok</div>
         )}
       </div>
