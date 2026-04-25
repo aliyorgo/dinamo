@@ -97,6 +97,12 @@ export default function ClientDetailPage() {
   const [rulesTab, setRulesTab] = useState<'pending'|'active'|'add'>('pending')
   const [aiNotesInput, setAiNotesInput] = useState('')
 
+  // Brand research
+  const [researchModal, setResearchModal] = useState(false)
+  const [researchStep, setResearchStep] = useState<'searching'|'sources'|'processing'|'done'>('searching')
+  const [researchSources, setResearchSources] = useState<{url:string,type:string,title:string,checked:boolean}[]>([])
+  const [researchResult, setResearchResult] = useState(0)
+
   function showMsg(text: string, isError = false) {
     setMsg(text)
     setMsgColor(isError ? '#ef4444' : '#22c55e')
@@ -680,6 +686,20 @@ export default function ClientDetailPage() {
                   style={{ padding: '7px 16px', background: seedImporting || aiNotesInput.trim().length < 20 ? '#ccc' : '#111113', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '11px', fontWeight: '500', cursor: 'pointer',  }}>
                   {seedImporting ? 'Çıkarılıyor...' : 'Kural Çıkar'}
                 </button>
+                <button onClick={async () => {
+                  setResearchModal(true)
+                  setResearchStep('searching')
+                  setResearchSources([])
+                  try {
+                    const res = await fetch('/api/admin/brand-research', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brandName: client?.company_name || '' }) })
+                    const data = await res.json()
+                    setResearchSources((data.sources || []).map((s: any) => ({ ...s, checked: true })))
+                    setResearchStep('sources')
+                  } catch { setResearchStep('sources') }
+                }}
+                  style={{ padding: '7px 16px', background: '#fff', color: '#111113', border: '1px solid #111113', borderRadius: '6px', fontSize: '11px', fontWeight: '500', cursor: 'pointer', marginLeft: '8px' }}>
+                  Araştır
+                </button>
 
               {/* 3-TAB RULES */}
               <div style={{ display: 'flex', gap: '0', borderBottom: '1px solid var(--color-border-tertiary)', marginTop: '20px', marginBottom: '14px' }}>
@@ -1119,6 +1139,87 @@ export default function ClientDetailPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* RESEARCH MODAL */}
+      {researchModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          onClick={() => { if (researchStep !== 'searching' && researchStep !== 'processing') setResearchModal(false) }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', border: '1px solid #0a0a0a', padding: '28px', maxWidth: '520px', width: '90%', maxHeight: '80vh', overflowY: 'auto' }}>
+
+            {researchStep === 'searching' && (
+              <div style={{ textAlign: 'center', padding: '32px 0' }}>
+                <div className="spinner" style={{ width: '28px', height: '28px', border: '2px solid #ddd', borderTopColor: '#0a0a0a', margin: '0 auto 16px' }} />
+                <div style={{ fontSize: '13px', color: '#0a0a0a', fontWeight: '500' }}>Kaynaklar aranıyor...</div>
+                <div style={{ fontSize: '11px', color: '#888', marginTop: '4px' }}>{client?.company_name}</div>
+              </div>
+            )}
+
+            {researchStep === 'sources' && (
+              <>
+                <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a', marginBottom: '4px' }}>Bulunan Kaynaklar</div>
+                <div style={{ fontSize: '11px', color: '#888', marginBottom: '16px' }}>Kullanmak istediklerini seç</div>
+                {researchSources.length === 0 ? (
+                  <div style={{ fontSize: '12px', color: '#888', textAlign: 'center', padding: '20px 0' }}>Kaynak bulunamadı</div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
+                    {researchSources.map((s, i) => (
+                      <label key={i} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', padding: '10px 12px', border: '1px solid var(--color-border-tertiary)', cursor: 'pointer', background: s.checked ? '#fafaf7' : '#fff' }}>
+                        <input type="checkbox" checked={s.checked} onChange={() => setResearchSources(prev => prev.map((p, j) => j === i ? { ...p, checked: !p.checked } : p))}
+                          style={{ marginTop: '2px', accentColor: '#0a0a0a' }} />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '2px' }}>
+                            <span style={{ fontSize: '9px', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: '600', padding: '2px 6px', background: '#f0f0ed', color: '#555' }}>{s.type}</span>
+                          </div>
+                          <div style={{ fontSize: '12px', fontWeight: '500', color: '#0a0a0a', marginBottom: '2px' }}>{s.title || s.url}</div>
+                          <div style={{ fontSize: '10px', color: '#aaa', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.url}</div>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                )}
+                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                  <button onClick={() => setResearchModal(false)} style={{ padding: '8px 16px', background: '#fff', color: '#0a0a0a', border: '1px solid #0a0a0a', fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', cursor: 'pointer' }}>VAZGEÇ</button>
+                  <button disabled={!researchSources.some(s => s.checked)} onClick={async () => {
+                    setResearchStep('processing')
+                    const selectedUrls = researchSources.filter(s => s.checked).map(s => s.url)
+                    try {
+                      const res = await fetch('/api/admin/brand-research', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ clientId, urls: selectedUrls }) })
+                      const data = await res.json()
+                      // Refetch candidates
+                      const { data: cands } = await supabase.from('brand_learning_candidates').select('*').eq('client_id', clientId).eq('status', 'pending').order('created_at', { ascending: false })
+                      setLearningCandidates(cands || [])
+                      setResearchResult((cands || []).length)
+                      setResearchStep('done')
+                    } catch { setResearchStep('done') }
+                  }}
+                    style={{ padding: '8px 16px', background: researchSources.some(s => s.checked) ? '#0a0a0a' : '#ccc', color: '#fff', border: '1px solid #0a0a0a', fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', cursor: 'pointer' }}>
+                    DEVAM
+                  </button>
+                </div>
+              </>
+            )}
+
+            {researchStep === 'processing' && (
+              <div style={{ textAlign: 'center', padding: '32px 0' }}>
+                <div className="spinner" style={{ width: '28px', height: '28px', border: '2px solid #ddd', borderTopColor: '#0a0a0a', margin: '0 auto 16px' }} />
+                <div style={{ fontSize: '13px', color: '#0a0a0a', fontWeight: '500' }}>İçerikler işleniyor...</div>
+                <div style={{ fontSize: '11px', color: '#888', marginTop: '4px' }}>{researchSources.filter(s => s.checked).length} kaynak parse ediliyor</div>
+              </div>
+            )}
+
+            {researchStep === 'done' && (
+              <div style={{ textAlign: 'center', padding: '24px 0' }}>
+                <div style={{ width: '40px', height: '40px', background: '#E1F5EE', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px', fontSize: '18px' }}>✓</div>
+                <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a', marginBottom: '6px' }}>{researchResult} kural çıkarıldı</div>
+                <div style={{ fontSize: '12px', color: '#888', marginBottom: '20px' }}>Onay Bekleyen sekmesinden inceleyebilirsin</div>
+                <button onClick={() => { setResearchModal(false); setRulesTab('pending') }}
+                  style={{ padding: '8px 20px', background: '#0a0a0a', color: '#fff', border: '1px solid #0a0a0a', fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', cursor: 'pointer' }}>
+                  TAMAM
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
