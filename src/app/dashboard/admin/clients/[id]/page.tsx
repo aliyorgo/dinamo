@@ -96,6 +96,7 @@ export default function ClientDetailPage() {
   const [newRule, setNewRule] = useState({ text: '', condition: '', type: 'rule' })
   const [rulesTab, setRulesTab] = useState<'pending'|'active'|'add'>('pending')
   const [aiNotesInput, setAiNotesInput] = useState('')
+  const [inlineCredit, setInlineCredit] = useState<string|null>(null)
 
   // Brand research
   const [researchModal, setResearchModal] = useState(false)
@@ -486,16 +487,40 @@ export default function ClientDetailPage() {
                 {[
                   { label: 'Durum', value: st.label, color: st.color },
                   { label: 'E-posta', value: client?.contact_email || '\u2014' },
-                  { label: 'Havuz Kredisi', value: `${client?.credit_balance || 0}`, color: '#22c55e' },
+                  { label: 'Havuz Kredisi', value: `${client?.credit_balance || 0}`, color: '#22c55e', editable: true },
                   { label: 'Atanmis Kredi', value: `${totalAllocated}` },
                   { label: 'Toplam Kredi', value: `${(client?.credit_balance || 0) + totalAllocated}`, color: '#0a0a0a' },
                   { label: 'Ajans', value: agency ? agency.name : 'Direkt musteri' },
                   { label: 'Briefler', value: `${briefs.length}` },
                   { label: 'Olusturulma', value: client?.created_at ? new Date(client.created_at).toLocaleDateString('tr-TR') : '\u2014' },
-                ].map(row => (
-                  <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '0.5px solid rgba(0,0,0,0.05)' }}>
+                ].map((row: any) => (
+                  <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '0.5px solid rgba(0,0,0,0.05)' }}>
                     <span style={{ fontSize: '12px', color: '#888' }}>{row.label}</span>
-                    <span style={{ fontSize: '12px', fontWeight: '500', color: row.color || '#0a0a0a' }}>{row.value}</span>
+                    {row.editable ? (
+                      inlineCredit !== null ? (
+                        <form onSubmit={async (e) => {
+                          e.preventDefault()
+                          const val = parseInt(inlineCredit)
+                          if (isNaN(val) || val < 0) { setInlineCredit(null); return }
+                          const diff = val - (client?.credit_balance || 0)
+                          await supabase.from('clients').update({ credit_balance: val }).eq('id', clientId)
+                          if (diff !== 0) {
+                            await supabase.from('credit_transactions').insert({ client_id: clientId, amount: diff, type: diff > 0 ? 'top_up' : 'deduct', description: `Admin inline düzenleme (${diff > 0 ? '+' : ''}${diff})` })
+                            setTransactions(prev => [{ id: Date.now(), amount: diff, type: diff > 0 ? 'top_up' : 'deduct', description: `Admin inline düzenleme`, created_at: new Date().toISOString() }, ...prev])
+                          }
+                          setClient((prev: any) => ({ ...prev, credit_balance: val }))
+                          setInlineCredit(null)
+                          showMsg(diff > 0 ? `${diff} kredi eklendi.` : diff < 0 ? `${Math.abs(diff)} kredi düşüldü.` : 'Değişiklik yok.')
+                        }} style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                          <input type="number" value={inlineCredit} onChange={e => setInlineCredit(e.target.value)} autoFocus onBlur={() => setTimeout(() => setInlineCredit(null), 200)}
+                            style={{ width: '70px', padding: '2px 6px', border: '1px solid #0a0a0a', fontSize: '12px', fontWeight: '500', textAlign: 'right' }} />
+                        </form>
+                      ) : (
+                        <span onClick={() => setInlineCredit(String(client?.credit_balance || 0))} style={{ fontSize: '12px', fontWeight: '500', color: row.color || '#0a0a0a', cursor: 'pointer', borderBottom: '1px dashed #ccc' }}>{row.value}</span>
+                      )
+                    ) : (
+                      <span style={{ fontSize: '12px', fontWeight: '500', color: row.color || '#0a0a0a' }}>{row.value}</span>
+                    )}
                   </div>
                 ))}
               </div>

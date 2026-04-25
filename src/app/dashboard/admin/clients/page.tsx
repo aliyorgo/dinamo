@@ -18,7 +18,7 @@ export default function ClientsPage() {
   const [users, setUsers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [msg, setMsg] = useState('')
-  const [form, setForm] = useState({ company_name: '', credit_balance: 0, agency_id: '' })
+  const [form, setForm] = useState({ company_name: '', credit_balance: 0, agency_id: '', user_email: '', user_name: '', user_password: '' })
   const [userForm, setUserForm] = useState({ client_id: '', user_id: '', credit_balance: 0 })
   const [creating, setCreating] = useState(false)
   const [aiNotes, setAiNotes] = useState<Record<string,string>>({})
@@ -79,8 +79,31 @@ export default function ClientsPage() {
         description: 'Admin demo kredisi',
       })
     }
-    setMsg('Musteri olusturuldu.')
-    setForm({ company_name: '', credit_balance: 0, agency_id: '' })
+    // Non-agency: log initial credit transaction
+    if (!isAgency && newClient && form.credit_balance > 0) {
+      await supabase.from('credit_transactions').insert({
+        client_id: newClient.id,
+        amount: form.credit_balance,
+        type: 'top_up',
+        description: `Başlangıç kredisi (${form.credit_balance})`,
+      })
+    }
+    // Create user if email provided
+    if (form.user_email && newClient) {
+      try {
+        const userRes = await fetch('/api/admin/create-user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: form.user_name || form.company_name, email: form.user_email, password: form.user_password || 'dinamo2026', role: 'client' }),
+        })
+        const userData = await userRes.json()
+        if (userData.success && userData.userId) {
+          await supabase.from('client_users').insert({ client_id: newClient.id, user_id: userData.userId, allocated_credits: form.credit_balance || 0 })
+        }
+      } catch (e) { console.error('[admin] User creation error:', e) }
+    }
+    setMsg('Müşteri oluşturuldu.')
+    setForm({ company_name: '', credit_balance: 0, agency_id: '', user_email: '', user_name: '', user_password: '' })
     loadData()
     setCreating(false)
   }
@@ -187,9 +210,28 @@ export default function ClientsPage() {
                     30 demo kredi otomatik yuklenecek, status: Demo
                   </div>
                 )}
+                <div style={{ borderTop: '1px solid rgba(0,0,0,0.06)', paddingTop: '12px', marginTop: '4px', marginBottom: '12px' }}>
+                  <div style={{ fontSize: '10px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Kullanıcı (opsiyonel)</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                    <div>
+                      <label style={labelStyle}>Ad Soyad</label>
+                      <input value={form.user_name} onChange={e=>setForm({...form,user_name:e.target.value})} style={inputStyle} placeholder="Ad Soyad" />
+                    </div>
+                    <div>
+                      <label style={labelStyle}>E-posta</label>
+                      <input type="email" value={form.user_email} onChange={e=>setForm({...form,user_email:e.target.value})} style={inputStyle} placeholder="kullanici@email.com" />
+                    </div>
+                  </div>
+                  {form.user_email && (
+                    <div style={{ marginBottom: '8px' }}>
+                      <label style={labelStyle}>Şifre (boş = dinamo2026)</label>
+                      <input value={form.user_password} onChange={e=>setForm({...form,user_password:e.target.value})} style={inputStyle} placeholder="dinamo2026" />
+                    </div>
+                  )}
+                </div>
                 <button type="submit" disabled={creating}
                   style={{ width: '100%', padding: '9px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', cursor: creating ? 'not-allowed' : 'pointer',  }}>
-                  {creating ? 'Olusturuluyor...' : 'Musteri Olustur'}
+                  {creating ? 'Oluşturuluyor...' : 'Oluştur'}
                 </button>
               </form>
             </div>

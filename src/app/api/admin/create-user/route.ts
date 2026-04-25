@@ -23,5 +23,5 @@ export async function POST(request: Request) {
 
   if (dbError) return NextResponse.json({ error: dbError.message }, { status: 400 })
 
-  return NextResponse.json({ success: true })
+  return NextResponse.json({ success: true, userId: authData.user.id })
 }

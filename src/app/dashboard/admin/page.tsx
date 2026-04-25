@@ -1,7 +1,8 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
+import CountUp from 'react-countup'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
@@ -28,6 +29,11 @@ export default function AdminDashboard() {
   const [overdueBriefs, setOverdueBriefs] = useState<any[]>([])
   const [activityLogs, setActivityLogs] = useState<any[]>([])
 
+  async function loadLogs() {
+    const { data: logs } = await supabase.from('activity_logs').select('*').order('created_at', { ascending: false }).limit(15)
+    setActivityLogs(logs || [])
+  }
+
   useEffect(() => {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
@@ -50,24 +56,24 @@ export default function AdminDashboard() {
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
       const { count: dc } = await supabase.from('demo_requests').select('id', { count: 'exact', head: true }).gte('created_at', sevenDaysAgo)
       setDemoCount(dc || 0)
-      // Unanswered questions
       const { count: uq } = await supabase.from('brief_questions').select('id', { count: 'exact', head: true }).is('answer', null)
       setUnansweredCount(uq || 0)
-      // Videos awaiting admin approval
       const { count: ac } = await supabase.from('video_submissions').select('id', { count: 'exact', head: true }).eq('status', 'producer_approved')
       setApprovalCount(ac || 0)
-      // Overdue briefs (48h+ in submitted/in_production)
       const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString()
       const overdue = allBriefs.filter(br => ['submitted','read','in_production'].includes(br.status) && br.created_at < fortyEightHoursAgo)
       setOverdueBriefs(overdue)
-      // Activity logs
-      const { data: logs, error: logsErr } = await supabase.from('activity_logs').select('*').order('created_at', { ascending: false }).limit(10)
-      if (logsErr) console.error('[admin] activity_logs error:', logsErr.message)
-      setActivityLogs(logs || [])
+      await loadLogs()
       setLoading(false)
     }
     load()
   }, [router])
+
+  // Auto-refresh activity logs every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(loadLogs, 30000)
+    return () => clearInterval(interval)
+  }, [])
 
 
   return (
@@ -132,7 +138,7 @@ export default function AdminDashboard() {
                 ].map(card=>(
                   <div key={card.label} style={{background:'#fff',border:'1px solid var(--color-border-tertiary)',padding:'20px'}}>
                     <div style={{fontSize:'10px',letterSpacing:'2px',color:'var(--color-text-tertiary)',fontWeight:'500',marginBottom:'8px'}}>{card.label}</div>
-                    <div style={{fontSize:'28px',fontWeight:'500',color:card.color||'var(--color-text-primary)',letterSpacing:'-1px'}}>{card.value}</div>
+                    <div style={{fontSize:'28px',fontWeight:'500',color:card.color||'var(--color-text-primary)',letterSpacing:'-1px'}}><CountUp end={card.value} duration={1.2} /></div>
                   </div>
                 ))}
               </div>
@@ -163,11 +169,14 @@ export default function AdminDashboard() {
             </>
           )}
 
-          {/* ACTIVITY LOGS */}
+          {/* LIVE ACTIVITY TICKER */}
           {activityLogs.length > 0 && (
             <div style={{background:'#fff',border:'1px solid var(--color-border-tertiary)',padding:'16px 20px',marginTop:'16px'}}>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}}>
-                <div style={{fontSize:'11px',letterSpacing:'2px',textTransform:'uppercase',fontWeight:'500',color:'var(--color-text-primary)'}}>SON AKTİVİTELER</div>
+                <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                  <div style={{width:'6px',height:'6px',borderRadius:'50%',background:'#22c55e',animation:'pulse 2s infinite'}} />
+                  <div style={{fontSize:'11px',letterSpacing:'2px',textTransform:'uppercase',fontWeight:'500',color:'var(--color-text-primary)'}}>CANLI AKTİVİTE</div>
+                </div>
                 <a href="/dashboard/admin/activity" style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--color-text-secondary)',textDecoration:'none'}}>TÜMÜNÜ GÖR →</a>
               </div>
               {activityLogs.map((log: any, i: number) => {
