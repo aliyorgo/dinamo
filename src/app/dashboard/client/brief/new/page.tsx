@@ -329,7 +329,7 @@ function NewBriefPage() {
   const cost = calcCost()
   const balance = clientUser?.allocated_credits || 0
 
-  const steps = ['Kampanya & Format','Hedef & CTA','Brief Metni','Seslendirme','Dosya Yükleme','İnceleme & Gönder']
+  const steps = ['Kampanya & Format','Hedef & CTA','Brief Metni','Seslendirme','Dosya & Uyarılar','İnceleme & Gönder']
 
   function Sidebar() {
     return (
@@ -726,8 +726,8 @@ function NewBriefPage() {
           {/* STEP 5 — DOSYA YÜKLEME */}
           {step===5&&(
             <div>
-              <div className="label-caps" style={{marginBottom:'8px',color:'var(--color-text-secondary)'}}>05 — DOSYA YÜKLEME</div>
-              <div style={{fontSize:'22px',fontWeight:'500',letterSpacing:'-0.01em',color:'var(--color-text-primary)',marginBottom:'28px'}}>Materyaller & Referanslar</div>
+              <div className="label-caps" style={{marginBottom:'8px',color:'var(--color-text-secondary)'}}>05 — DOSYA & UYARILAR</div>
+              <div style={{fontSize:'22px',fontWeight:'500',letterSpacing:'-0.01em',color:'var(--color-text-primary)',marginBottom:'28px'}}>Materyaller, Referanslar & Uyarılar</div>
 
               {/* ROW 1: Product Image + Brand Materials side by side */}
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px',marginBottom:'16px'}}>
@@ -794,15 +794,24 @@ function NewBriefPage() {
                   <button type="button" onClick={() => { const url = refLinkInput.trim(); if (!url) return; if (!url.startsWith('http://') && !url.startsWith('https://')) { setRefLinkInput(''); return }; if (!form.reference_links.includes(url)) setForm({...form, reference_links: [...form.reference_links, url]}); setRefLinkInput('') }} className="btn btn-outline" style={{padding:'10px 18px',whiteSpace:'nowrap'}}>EKLE</button>
                 </div>
                 {form.reference_links.length > 0 && (
-                  <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>
-                    {form.reference_links.map((link, i) => (
-                      <div key={i} style={{display:'flex',alignItems:'center',gap:'8px',padding:'6px 10px',background:'var(--color-background-secondary)'}}>
-                        <a href={link} target="_blank" rel="noopener noreferrer" style={{flex:1,fontSize:'12px',color:'#0a0a0a',textDecoration:'none',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{link}</a>
-                        <button type="button" onClick={() => setForm({...form, reference_links: form.reference_links.filter((_,j) => j !== i)})} style={{fontSize:'14px',color:'#888',background:'none',border:'none',cursor:'pointer',padding:'0 4px',lineHeight:1}}>×</button>
-                      </div>
-                    ))}
+                  <div>
+                    <div style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'6px'}}>EKLENEN LİNKLER</div>
+                    <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>
+                      {form.reference_links.map((link, i) => (
+                        <div key={i} style={{display:'flex',alignItems:'center',gap:'8px',padding:'6px 10px',background:'var(--color-background-secondary)'}}>
+                          <a href={link} target="_blank" rel="noopener noreferrer" style={{flex:1,fontSize:'12px',color:'#0a0a0a',textDecoration:'none',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{link}</a>
+                          <button type="button" onClick={() => setForm({...form, reference_links: form.reference_links.filter((_,j) => j !== i)})} style={{fontSize:'14px',color:'#888',background:'none',border:'none',cursor:'pointer',padding:'0 4px',lineHeight:1}}>×</button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
+              </div>
+
+              {/* UYARILAR */}
+              <div style={{background:'#fff',border:'1px solid #0a0a0a',padding:'18px 22px',marginTop:'16px'}}>
+                <div className="label-caps" style={{marginBottom:'8px'}}>UYARILAR, HASSASİYETLER & EKLEMEK İSTEDİKLERİNİZ</div>
+                <textarea style={{...inputStyle,resize:'vertical',lineHeight:'1.7'}} rows={4} value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})} placeholder="Kaçınılması gereken içerik, hassas konular, marka kısıtlamaları veya eklemek istediğiniz herhangi bir bilgi..." />
               </div>
 
               <style>{`@media (max-width: 768px) { div[style*="grid-template-columns: 1fr 1fr"] { grid-template-columns: 1fr !important; } }`}</style>
@@ -868,12 +877,6 @@ function NewBriefPage() {
                   ) : (<div style={{fontSize:'12px',color:'#aaa'}}>Skor hesaplanamadı.</div>)}
                 </div>
 
-                {/* NOTES */}
-                <div style={{marginBottom:'22px'}}>
-                  <div className="label-caps" style={{marginBottom:'8px'}}>Uyarılar, Hassasiyetler & Eklemek İstedikleriniz</div>
-                  <textarea style={{...inputStyle,resize:'vertical',lineHeight:'1.7'}} rows={4} value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})} placeholder="Kaçınılması gereken içerik, hassas konular, marka kısıtlamaları veya eklemek istediğiniz herhangi bir bilgi..." />
-                </div>
-
                 {balance < cost && (
                   <div style={{background:'rgba(239,68,68,0.06)',border:'1px solid #ef4444',padding:'14px',fontSize:'13px',color:'#dc2626'}}>Yetersiz kredi. Bakiyeniz: {balance} kredi.</div>
                 )}
@@ -900,7 +903,7 @@ function NewBriefPage() {
               ):(
                 <div style={{display:'flex',gap:'8px'}}>
                   <button onClick={()=>handleSubmit(true)} disabled={submitting} className="btn btn-outline">
-                    {submitting?'...':'TASLAK'}
+                    {submitting?'...':'TASLAK KAYDET'}
                   </button>
                   <button onClick={()=>handleSubmit(false)} disabled={submitting||balance<cost} className="btn btn-accent">
                     {submitting?'GÖNDERİLİYOR...':'BRİEF GÖNDER →'}
