@@ -1070,12 +1070,23 @@ function ClientBriefDetail() {
               {/* ═══ AI EXPRESS TAB ═══ */}
               {activeTab === 'express' && <>
 
+              {/* AI EXPRESS CREDIT SUMMARY */}
+              {aiChildren.length > 0 && (() => {
+                const genCredits = aiChildren.length
+                const purchaseCredits = aiChildren.filter(c => c.status === 'delivered').length * 2
+                const total = genCredits + purchaseCredits
+                return total > 0 ? (
+                  <div style={{fontSize:'12px',color:'var(--color-text-secondary)',marginBottom:'12px'}}>
+                    Bu brief'te AI Express için toplam <strong style={{color:'var(--color-text-primary)'}}>{total} kredi</strong> harcandı
+                  </div>
+                ) : null
+              })()}
+
               {/* AI VIDEO STUDIO */}
               {brief && brief.status !== 'cancelled' && brief.status !== 'draft' && (
-                <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'20px 24px',marginBottom:'16px'}}>
+                <div style={{background:'#fff',border:'1px solid var(--color-border-tertiary)',padding:'20px 24px',marginBottom:'16px'}}>
                   <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:aiWarningDismissed?'16px':'10px'}}>
-                    <span style={{color:'#1DB81D',fontSize:'16px'}}>&#9889;</span>
-                    <div style={{fontSize:'14px',fontWeight:'600',color:'#0a0a0a'}}>AI Express</div>
+                    <div style={{fontSize:'14px',fontWeight:'600',color:'var(--color-text-primary)'}}>AI Express</div>
                   </div>
                   {!aiWarningDismissed && (
                     <div style={{background:'#2a2a25',border:'1px solid #33332e',padding:'16px 18px',marginBottom:'16px',display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'16px'}}>
@@ -1302,6 +1313,15 @@ function ClientBriefDetail() {
 
               {/* ═══ CPS TAB ═══ */}
               {activeTab === 'cps' && <>
+                {/* CPS CREDIT SUMMARY */}
+                {cpsChildren.length > 0 && (() => {
+                  const total = cpsChildren.reduce((s: number, c: any) => s + (c.credit_cost || 0), 0)
+                  return total > 0 ? (
+                    <div style={{fontSize:'12px',color:'var(--color-text-secondary)',marginBottom:'12px'}}>
+                      Bu brief'te CPS için toplam <strong style={{color:'var(--color-text-primary)'}}>{total} kredi</strong> harcandı
+                    </div>
+                  ) : null
+                })()}
                 {/* CPS info banner */}
                 {!cpsBannerDismissed && (
                   <div style={{background:'#2a2a25',border:'1px solid #33332e',padding:'16px 18px',marginBottom:'16px',display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'16px'}}>
