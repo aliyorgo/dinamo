@@ -13,35 +13,59 @@ interface ExtractionInput {
   text: string
 }
 
-const PROMPT_LITERAL = (sourceType: string, text: string) => `Bu metin bir müşterinin ${sourceType} içeriğidir. LITERAL yaklaş — metinde açıkça geçen kural veya yasakları çıkar. Fantezi yapma, genelleme yapma, yorum ekleme.
+const EXTRACTION_PROMPT = (text: string) => `Bu metin bir markaya ait kaynak (brief, admin notu, marka dokümanı, sektör bilgisi, müşteri yazışması). Senin işin: yüzeysel kural çıkarmak değil, MARKAYI ANLAMAK ve üretime fayda sağlayacak yorumlanmış yönlendirmeler çıkarmak.
 
-Her madde şu yapıda:
-- type: "rule" (pozitif talimat) veya "restriction" (yasak)
-- text: kısa net Türkçe cümle, max 100 karakter
-- condition: hangi koşulda geçerli, yoksa null
+ÖNCE METNİ ANLA (output'a yazma, mental olarak yap):
+- Markanın sektörü ve kategorisi ne (kozmetik, FMCG, bebek ürünleri, hizmet, B2B, lüks, vs.)
+- Hedef kitlesi kim (yaş, demografi, gelir seviyesi, hayat tarzı)
+- Marka pozisyonu nasıl (premium, kitle, yerli, küresel, sürdürülebilir, vs.)
+- Sektörün konvansiyonları ve riskleri ne (örn: bebek ürünlerinde hızlı kesim olmaz, alkol kategorisinde aile vurgusu yapılmaz, sağlık iddialarında abartı yasak)
 
-Duplicate ve çok benzer kurallar üretme, tek madde olarak ver. Metinde açık bir kural yoksa boş array döndür. Sadece JSON array döndür, açıklama yazma, markdown code fence yok.
+SONRA 3 TİP ÇIKTI ÜRET:
 
-Metin:
-"${text}"
+"rule" — pozitif yaratıcı yönlendirme. Spesifik literal kural değil, üst seviye yaklaşım.
+"restriction" — yapılmayacak şey, yasak, sınır.
+"insight" — markanın DNA'sından türeyen yaratıcı görselleştirme ipucu.
 
-JSON array:`
+YORUMLAMA DERİNLİĞİ:
+Metinde "genç hissi" yazıyorsa "genç hissi ver" diye yazma. Bunu "hızlı kesimler, modern müzik, sokak estetiği, yatay kamera hareketleri" gibi somut yaratıcı yönlendirmeye çevir.
+Metinde "el yapımı zanaat" yazıyorsa "el yapımı vurgula" yerine "dokulu yüzeyler, doğal ışık, el hareketi yakın çekimleri" yaz.
+Metinde "lüks marka" yazıyorsa "lüks görünüm" değil "yavaş tempo, derin gölgeler, minimal hareket, sade kompozisyon" yaz.
+Metinde "anne hedef kitle" yazıyorsa "anneler için" değil "sıcak ışık, yumuşak ev içi sahneler, samimi yakın planlar" yaz.
 
-const PROMPT_INTERPRETIVE = (text: string) => `Bu metin admin tarafından yazılan/yapıştırılan bir marka bilgi kaynağıdır (wiki, analiz, marka dosyası, sektör bilgisi, serbest notlar). YORUMSAL yaklaş — bu bilgiyi işleyerek markaya dair faydalı çıktılar üret.
+Tüm output somut, üretilebilir, görsel terimlere çevrilmiş olsun. Soyut kalmasın.
 
-3 tip çıktı üretebilirsin:
-- type "rule": açık pozitif talimat ("Mavi rengi ön plana çıkar")
-- type "restriction": açık yasak ("Erkek figürü gösterme")
-- type "insight": bu bilgiden türeyen yaratıcı yönlendirme — markanın DNA'sından görselleştirme ipuçları çıkar, "Marka ne hissi vermeli, nasıl görünmeli" sorusunu cevapla. Örnek: metin "el yapımı zanaat" bahsediyorsa insight "Dokulu yüzeyler, doğal ışık ve el hareketi vurgulanmalı"
+CONDITION KULLAN:
+Bir kural/insight her brief için geçerli olmayabilir. Koşul varsa belirt:
+- Kategori bazlı: "Eğer ürün kozmetik kategorisinde ise"
+- Zaman bazlı: "Eğer sevgililer günü dönemi ise"
+- Ürün bazlı: "Eğer alkollü içecek ise"
+- Demografi bazlı: "Eğer hedef 50+ kitle ise"
+- Format bazlı: "Eğer dikey video ise"
+Genel geçer kural ise condition null bırak.
 
-Her madde:
+SEKTÖR BİLGİSİNİ KULLAN:
+Markanın sektörünü anladıktan sonra o sektörün bilinen pattern'larını ve risklerini kullan. Bebek ürünleri → yumuşak ışık. Lüks otomotiv → yavaş kamera, derin gölge. Hızlı tüketim → renkli, yüksek tempo. Sağlık ürünü → sade, güvenilir ton, abartı yok. Bu bilgiyi prompt'tan değil, kendi bilgi tabanından getir.
+
+KISITLAR:
 - type: "rule" | "restriction" | "insight"
 - text: max 150 karakter
-- condition: opsiyonel, yoksa null
+- condition: opsiyonel string veya null
+- Renk kodları (#hex) veya "ana renk X" tarzı kurallar ÜRETME — renkler ayrı yönetiliyor
+- Duplicate üretme
+- Faydasız şişme bilgi üretme
+- Soyut, yorumlanmamış cümle çıkarma — hep somut görsel/davranışsal terimlere çevir
+- Ham metni kopyalama
 
-Insight'lar yaratıcı ve kreatif olsun, markanın ruhunu yakalasın. Ham metni olduğu gibi kopyalama, mutlaka işle ve yorum üret. Duplicate üretme. Faydasız şişme bilgi çıkarma — sadece üretime fayda verecek olanlar.
+ÖRNEK ÇIKTILAR:
 
-ÖNEMLİ: Renk kodları (#f58f00 gibi) veya "ana renk olarak X kullan" / "ikincil renk" / "logo rengi" tarzı kurallar ÜRETME. Renkler sistem tarafından ayrı yönetiliyor, kural olmaları gerekmiyor. Sadece tonsal, stil ve davranışsal yaklaşımları kural yap.
+[
+  { "type": "rule", "text": "Yumuşak doğal ışık, sakin tempo, hızlı kesimsiz akış", "condition": "Eğer hedef kitle anne veya bebek ise" },
+  { "type": "restriction", "text": "Erkek figürü gösterme", "condition": "Eğer ürün iç giyim/mayo ise" },
+  { "type": "insight", "text": "Dokulu yüzeyler, doğal ışık ve el hareketi yakın çekimleri", "condition": null },
+  { "type": "rule", "text": "Yavaş kamera hareketleri, derin gölgeler, minimal kompozisyon", "condition": "Eğer marka lüks segment ise" },
+  { "type": "restriction", "text": "Sağlık iddiası yapma, fayda abartısından kaçın", "condition": null }
+]
 
 Sadece JSON array döndür.
 
@@ -54,11 +78,10 @@ export async function extractBrandRuleCandidate({ clientId, sourceType, sourceId
   console.log(`[brand-learning] Called: source=${sourceType}, clientId=${clientId?.slice(0,8)}, textLen=${text?.length}`)
   if (!text || text.trim().length < 20) { console.log('[brand-learning] Skipped: text too short'); return }
 
-  const isInterpretive = ['admin_notes', 'seed_import'].includes(sourceType)
-  const prompt = isInterpretive ? PROMPT_INTERPRETIVE(text) : PROMPT_LITERAL(sourceType, text)
+  const prompt = EXTRACTION_PROMPT(text)
 
   try {
-    console.log(`[brand-learning] Calling Claude (${isInterpretive ? 'interpretive' : 'literal'})...`)
+    console.log(`[brand-learning] Calling Claude (interpretive, source=${sourceType})...`)
     const apiKey = process.env.ANTHROPIC_API_KEY
     if (!apiKey) { console.error('[brand-learning] ANTHROPIC_API_KEY missing!'); return }
 
