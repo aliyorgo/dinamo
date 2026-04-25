@@ -6,7 +6,6 @@ import { useParams, useRouter } from 'next/navigation'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
-
 interface Submission { id:string; version:number; status:string; video_url:string; submitted_at:string; producer_notes:string|null }
 
 async function recordCreatorEarning(briefId: string, submissionId: string) {
@@ -29,6 +28,18 @@ async function deductClientCredits(briefId: string) {
   const newBal = Math.max(0, cu.credit_balance - (b.credit_cost||0))
   await supabase.from('client_users').update({ credit_balance: newBal }).eq('id', b.client_user_id)
   await supabase.from('credit_transactions').insert({ client_id: b.client_id, client_user_id: b.client_user_id, brief_id: briefId, amount: -(b.credit_cost||0), type:'deduct', description:`${b.campaign_name} — teslim` })
+}
+
+const STATUS_BADGE: Record<string,{label:string,bg:string,border:string}> = {
+  submitted: { label: 'YENİ İŞ', bg: 'rgba(156,163,175,0.12)', border: '#9ca3af' },
+  read: { label: 'OKUNDU', bg: 'rgba(156,163,175,0.12)', border: '#9ca3af' },
+  in_production: { label: 'ÜRETİMDE', bg: 'rgba(245,158,11,0.12)', border: '#f59e0b' },
+  revision: { label: 'REVİZYON', bg: 'rgba(239,68,68,0.12)', border: '#ef4444' },
+  approved: { label: 'ONAY BEKLİYOR', bg: 'rgba(59,130,246,0.12)', border: '#3b82f6' },
+  delivered: { label: 'TAMAMLANDI', bg: 'rgba(34,197,94,0.12)', border: '#22c55e' },
+  cancelled: { label: 'İPTAL', bg: 'rgba(0,0,0,0.06)', border: '#888' },
+  ai_processing: { label: 'AI ÜRETİYOR', bg: 'rgba(245,158,11,0.12)', border: '#f59e0b' },
+  ai_completed: { label: 'AI HAZIR', bg: 'rgba(59,130,246,0.12)', border: '#3b82f6' },
 }
 
 export default function AdminBriefDetail() {
@@ -59,15 +70,23 @@ export default function AdminBriefDetail() {
   const [sharedFields, setSharedFields] = useState<string[]>(['message','cta','target_audience','voiceover_text','notes'])
   const [voUpload, setVoUpload] = useState(false)
   const voFileRef = useRef<HTMLInputElement>(null)
-  const [deleteStep, setDeleteStep] = useState(0) // 0=hidden, 1=first confirm, 2=second confirm
+  const [deleteStep, setDeleteStep] = useState(0)
   const [deleting, setDeleting] = useState(false)
+  // Child briefs
+  const [cpsChildren, setCpsChildren] = useState<any[]>([])
+  const [aiChildren, setAiChildren] = useState<any[]>([])
+  // Collapsible sections
+  const [briefOpen, setBriefOpen] = useState(true)
+  const [cpsOpen, setCpsOpen] = useState<Record<string,boolean>>({})
+  const [aiOpen, setAiOpen] = useState<Record<string,boolean>>({})
+  const [showAssignForm, setShowAssignForm] = useState(false)
 
   useEffect(() => { loadData() }, [id])
 
   async function loadData() {
     const { data: { user } } = await supabase.auth.getUser()
     if (user) { const { data: ud } = await supabase.from('users').select('name').eq('id', user.id).single(); setUserName(ud?.name||'') }
-    const { data: b } = await supabase.from('briefs').select('*, clients(company_name), client_users(*, users(email, name))').eq('id', id).single()
+    const { data: b } = await supabase.from('briefs').select('*, clients(company_name, logo_url, font_url), client_users(*, users(email, name))').eq('id', id).single()
     setBrief(b); setEditForm(b||{})
     if (b?.client_users?.users?.email) setClientEmail(b.client_users.users.email)
     const { data: s } = await supabase.from('video_submissions').select('*').eq('brief_id', id).order('submitted_at', { ascending: false })
@@ -82,567 +101,472 @@ export default function AdminBriefDetail() {
     if (pb) {
       setForwardForm({ producer_note: pb.producer_note||'', assigned_creator_id: pb.assigned_creator_id||'', assigned_voice_artist_id: pb.assigned_voice_artist_id||'' })
       if (pb.shared_fields) setSharedFields(pb.shared_fields)
-    }
+      setShowAssignForm(false)
+    } else { setShowAssignForm(true) }
     const { data: notes } = await supabase.from('brief_notes').select('*, users:created_by(name)').eq('brief_id', id).order('created_at', { ascending: false })
     setAdminNotes(notes || [])
     const { data: insp } = await supabase.from('brief_inspirations').select('*').eq('brief_id', id).order('created_at', { ascending: false })
     setInspirations(insp || [])
+    // CPS children
+    const { data: cps } = await supabase.from('briefs').select('*, video_submissions(id, video_url, status, version, submitted_at)').eq('parent_brief_id', id).eq('brief_type', 'cps_child').order('mvc_order', { ascending: true })
+    setCpsChildren(cps || [])
+    // AI Express children
+    const rootId = b?.root_campaign_id || id
+    const { data: ai } = await supabase.from('briefs').select('id, campaign_name, status, ai_video_url, created_at').eq('root_campaign_id', rootId).neq('id', id).ilike('campaign_name', '%Full AI%').order('created_at', { ascending: true })
+    setAiChildren(ai || [])
   }
 
+  // All business logic functions preserved
   async function handleVoiceoverUpload() {
-    const file = voFileRef.current?.files?.[0]
-    if (!file) return
+    const file = voFileRef.current?.files?.[0]; if (!file) return
     const allowed = ['audio/mpeg','audio/wav','audio/x-wav','audio/mp4','audio/x-m4a','audio/m4a']
     if (!allowed.some(t => file.type.includes(t.split('/')[1])) && !file.name.match(/\.(mp3|wav|m4a)$/i)) { setMsg('Desteklenen formatlar: mp3, wav, m4a'); return }
     if (file.size > 50 * 1024 * 1024) { setMsg('Maksimum dosya boyutu: 50MB'); return }
     setVoUpload(true)
-    const ext = file.name.split('.').pop() || 'mp3'
-    const path = `voiceover_${id}.${ext}`
+    const ext = file.name.split('.').pop() || 'mp3'; const path = `voiceover_${id}.${ext}`
     const { error: upErr } = await supabase.storage.from('voiceovers').upload(path, file, { upsert: true })
     if (upErr) { setMsg('Yükleme hatası: ' + upErr.message); setVoUpload(false); return }
     const { data: urlData } = supabase.storage.from('voiceovers').getPublicUrl(path)
     await supabase.from('briefs').update({ voiceover_file_url: urlData.publicUrl }).eq('id', id)
     setBrief((prev: any) => ({ ...prev, voiceover_file_url: urlData.publicUrl }))
-    if (voFileRef.current) voFileRef.current.value = ''
-    setMsg('Seslendirme dosyası yüklendi.')
-    setVoUpload(false)
+    if (voFileRef.current) voFileRef.current.value = ''; setMsg('Seslendirme dosyası yüklendi.'); setVoUpload(false)
   }
-
   async function handleVoiceoverDelete() {
-    if (!brief?.voiceover_file_url) return
-    const path = brief.voiceover_file_url.split('/voiceovers/')[1]
+    if (!brief?.voiceover_file_url) return; const path = brief.voiceover_file_url.split('/voiceovers/')[1]
     if (path) await supabase.storage.from('voiceovers').remove([decodeURIComponent(path)])
     await supabase.from('briefs').update({ voiceover_file_url: null }).eq('id', id)
-    setBrief((prev: any) => ({ ...prev, voiceover_file_url: null }))
-    setMsg('Seslendirme dosyası silindi.')
+    setBrief((prev: any) => ({ ...prev, voiceover_file_url: null })); setMsg('Seslendirme dosyası silindi.')
   }
-
   async function generateInspirations() {
-    setInspLoading(true)
-    // Delete unstarred, keep starred
-    await supabase.from('brief_inspirations').delete().eq('brief_id', id).eq('is_starred', false)
-    const starred = inspirations.filter(i => i.is_starred)
-    const { data: { user } } = await supabase.auth.getUser()
+    setInspLoading(true); await supabase.from('brief_inspirations').delete().eq('brief_id', id).eq('is_starred', false)
+    const starred = inspirations.filter(i => i.is_starred); const { data: { user } } = await supabase.auth.getUser()
     const res = await fetch('/api/generate-inspirations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: id, user_id: user?.id }) })
-    const data = await res.json()
-    setInspirations([...starred, ...(data.inspirations || [])])
-    setInspLoading(false)
+    const data = await res.json(); setInspirations([...starred, ...(data.inspirations || [])]); setInspLoading(false)
   }
-
-  async function toggleStar(inspId: string, current: boolean) {
-    await supabase.from('brief_inspirations').update({ is_starred: !current }).eq('id', inspId)
-    setInspirations(prev => prev.map(i => i.id === inspId ? { ...i, is_starred: !current } : i))
-  }
-
-  async function handleAnswerForClient(qId: string) {
-    if (!answerText.trim()) return
-    await supabase.from('brief_questions').update({ answer: answerText, answered_at: new Date().toISOString() }).eq('id', qId)
-    setAnswerEditing(null); setAnswerText(''); loadData()
-  }
-
-  async function handleAddNote() {
-    if (!newNote.trim()) return
-    const { data: { user } } = await supabase.auth.getUser()
-    await supabase.from('brief_notes').insert({ brief_id: id, note: newNote, created_by: user?.id })
-    setNewNote('')
-    const { data: notes } = await supabase.from('brief_notes').select('*, users:created_by(name)').eq('brief_id', id).order('created_at', { ascending: false })
-    setAdminNotes(notes || [])
-  }
-
-  function toggleSharedField(f: string) {
-    setSharedFields(prev => prev.includes(f) ? prev.filter(x => x !== f) : [...prev, f])
-  }
-
+  async function toggleStar(inspId: string, current: boolean) { await supabase.from('brief_inspirations').update({ is_starred: !current }).eq('id', inspId); setInspirations(prev => prev.map(i => i.id === inspId ? { ...i, is_starred: !current } : i)) }
+  async function handleAnswerForClient(qId: string) { if (!answerText.trim()) return; await supabase.from('brief_questions').update({ answer: answerText, answered_at: new Date().toISOString() }).eq('id', qId); setAnswerEditing(null); setAnswerText(''); loadData() }
+  async function handleAddNote() { if (!newNote.trim()) return; const { data: { user } } = await supabase.auth.getUser(); await supabase.from('brief_notes').insert({ brief_id: id, note: newNote, created_by: user?.id }); setNewNote(''); const { data: notes } = await supabase.from('brief_notes').select('*, users:created_by(name)').eq('brief_id', id).order('created_at', { ascending: false }); setAdminNotes(notes || []) }
+  function toggleSharedField(f: string) { setSharedFields(prev => prev.includes(f) ? prev.filter(x => x !== f) : [...prev, f]) }
   async function handleApprove(submissionId: string) {
-    setLoading(true); setMsg('')
-    const { data: { user } } = await supabase.auth.getUser()
+    setLoading(true); setMsg(''); const { data: { user } } = await supabase.auth.getUser()
     await supabase.from('video_submissions').update({ status:'admin_approved' }).eq('id', submissionId)
     await supabase.from('approvals').insert({ video_submission_id: submissionId, approved_by: user?.id, role:'admin' })
     await supabase.from('briefs').update({ status:'approved' }).eq('id', id)
-    if (clientEmail && brief) {
-      await fetch('/api/notify', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ to: clientEmail, subject: `${brief.campaign_name} — Videonuz Hazır`, html: `<p>Merhaba,</p><p><strong>${brief.campaign_name}</strong> kampanyanız için hazırlanan video onaylandı. Dinamo panelinden inceleyebilirsiniz.</p><p>İyi çalışmalar,<br/>Dinamo</p>` }) }).catch(()=>null)
-    }
-    setMsg('Video onaylandı, müşteriye iletildi.')
-    loadData(); setLoading(false)
+    if (clientEmail && brief) { await fetch('/api/notify', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ to: clientEmail, subject: `${brief.campaign_name} — Videonuz Hazır`, html: `<p>Merhaba,</p><p><strong>${brief.campaign_name}</strong> kampanyanız için hazırlanan video onaylandı. Dinamo panelinden inceleyebilirsiniz.</p><p>İyi çalışmalar,<br/>Dinamo</p>` }) }).catch(()=>null) }
+    setMsg('Video onaylandı, müşteriye iletildi.'); loadData(); setLoading(false)
   }
-
   async function handleClientApprove() {
-    setLoading(true)
-    await deductClientCredits(id)
+    setLoading(true); await deductClientCredits(id)
     const latestSub = submissions.find(s => s.status === 'admin_approved' || s.status === 'producer_approved') || submissions[0]
     if (latestSub) await recordCreatorEarning(id, latestSub.id)
-
-    // Copy video to delivered-videos bucket and save public_link
     let publicLink = ''
-    if (latestSub?.video_url) {
-      const srcPath = latestSub.video_url.split('/videos/')[1]
-      if (srcPath) {
-        const decodedPath = decodeURIComponent(srcPath)
-        const { data: fileData, error: dlErr } = await supabase.storage.from('videos').download(decodedPath)
-        if (fileData && !dlErr) {
-          const destPath = decodedPath
-          const { error: upErr } = await supabase.storage.from('delivered-videos').upload(destPath, fileData, { upsert: true })
-          if (!upErr) {
-            const { data: urlData } = supabase.storage.from('delivered-videos').getPublicUrl(destPath)
-            publicLink = urlData.publicUrl
-            console.log('[ClientApprove] Video copied, public_link:', publicLink)
-          } else {
-            publicLink = latestSub.video_url
-            console.log('[ClientApprove] Upload to delivered-videos failed:', upErr.message)
-          }
-        } else {
-          publicLink = latestSub.video_url
-          console.log('[ClientApprove] Download failed, using original URL:', dlErr?.message)
-        }
-      }
-    }
-
+    if (latestSub?.video_url) { const srcPath = latestSub.video_url.split('/videos/')[1]; if (srcPath) { const decodedPath = decodeURIComponent(srcPath); const { data: fileData, error: dlErr } = await supabase.storage.from('videos').download(decodedPath); if (fileData && !dlErr) { const { error: upErr } = await supabase.storage.from('delivered-videos').upload(decodedPath, fileData, { upsert: true }); if (!upErr) { const { data: urlData } = supabase.storage.from('delivered-videos').getPublicUrl(decodedPath); publicLink = urlData.publicUrl } else publicLink = latestSub.video_url } else publicLink = latestSub.video_url } }
     await supabase.from('briefs').update({ status:'delivered', public_link: publicLink || null }).eq('id', id)
-    setMsg('Müşteri adına onaylandı, kredi kesildi, creator kazancı oluşturuldu.')
-    loadData(); setLoading(false)
+    setMsg('Müşteri adına onaylandı, kredi kesildi, creator kazancı oluşturuldu.'); loadData(); setLoading(false)
   }
-
   async function handleRevision(submissionId: string) {
-    const note = revisionNotes[submissionId]
-    if (!note?.trim()) { setMsg('Revizyon notu zorunludur.'); return }
-    setLoading(true)
-    // Delete unpaid earnings for this brief
+    const note = revisionNotes[submissionId]; if (!note?.trim()) { setMsg('Revizyon notu zorunludur.'); return }; setLoading(true)
     const { data: existingEarnings } = await supabase.from('creator_earnings').select('id, paid').eq('brief_id', id)
-    if (existingEarnings) {
-      const unpaid = existingEarnings.filter(e => !e.paid)
-      const paid = existingEarnings.filter(e => e.paid)
-      if (unpaid.length > 0) await supabase.from('creator_earnings').delete().in('id', unpaid.map(e => e.id))
-      if (paid.length > 0) console.warn(`Brief ${id}: ${paid.length} paid earning(s) found during revision, not deleted.`)
-    }
+    if (existingEarnings) { const unpaid = existingEarnings.filter(e => !e.paid); if (unpaid.length > 0) await supabase.from('creator_earnings').delete().in('id', unpaid.map(e => e.id)) }
     await supabase.from('video_submissions').update({ status:'revision_requested', producer_notes: note }).eq('id', submissionId)
     await supabase.from('briefs').update({ status:'revision' }).eq('id', id)
     await supabase.from('brief_questions').insert({ brief_id: id, question: `İÇ REVİZYON: ${note}` })
-    setMsg('Revizyon talebi gönderildi.')
-    loadData(); setLoading(false)
+    setMsg('Revizyon talebi gönderildi.'); loadData(); setLoading(false)
   }
-
   async function handleForward(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault(); setLoading(true); setMsg('')
-    const { data: { user } } = await supabase.auth.getUser()
+    e.preventDefault(); setLoading(true); setMsg(''); const { data: { user } } = await supabase.auth.getUser()
     const creatorId = forwardForm.assigned_creator_id && forwardForm.assigned_creator_id.length > 10 ? forwardForm.assigned_creator_id : null
     const voiceId = forwardForm.assigned_voice_artist_id && forwardForm.assigned_voice_artist_id.length > 10 ? forwardForm.assigned_voice_artist_id : null
     await supabase.from('producer_briefs').delete().eq('brief_id', id)
     const { error } = await supabase.from('producer_briefs').insert({ brief_id: id, producer_id: user?.id, producer_note: forwardForm.producer_note, assigned_creator_id: creatorId, assigned_voice_artist_id: voiceId, shared_fields: sharedFields, forwarded_at: new Date().toISOString() })
     if (error) { setMsg('Hata: '+error.message); setLoading(false); return }
     await supabase.from('briefs').update({ status:'in_production' }).eq('id', id)
-    setMsg("Creator'a iletildi.")
-    loadData(); setLoading(false)
+    setMsg("Creator'a iletildi."); loadData(); setLoading(false)
   }
-
   async function handleQuestion(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault(); if (!question.trim()) return
-    const { data: { user } } = await supabase.auth.getUser()
+    e.preventDefault(); if (!question.trim()) return; const { data: { user } } = await supabase.auth.getUser()
     await supabase.from('brief_questions').insert({ brief_id: id, question, asked_by: user?.id })
     await supabase.from('briefs').update({ question_sent_at: new Date().toISOString() }).eq('id', id)
-    // Notify client via email
-    if (clientEmail && brief) {
-      await fetch('/api/notify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-        to: clientEmail,
-        subject: `${brief.campaign_name} hakkında bir soru var`,
-        html: `<p>Merhaba,</p><p>Prodüktörünüz <strong>${brief.campaign_name}</strong> brief'iniz hakkında soru sordu.</p><p>Dinamo'ya giriş yaparak yanıtlayabilirsiniz.</p><p>İyi çalışmalar,<br/>Dinamo</p>`
-      })}).catch(() => null)
-    }
+    if (clientEmail && brief) { await fetch('/api/notify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ to: clientEmail, subject: `${brief.campaign_name} hakkında bir soru var`, html: `<p>Merhaba,</p><p>Prodüktörünüz <strong>${brief.campaign_name}</strong> brief'iniz hakkında soru sordu.</p><p>Dinamo'ya giriş yaparak yanıtlayabilirsiniz.</p><p>İyi çalışmalar,<br/>Dinamo</p>` })}).catch(() => null) }
     setQuestion(''); loadData()
   }
-
   async function handleEdit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault(); setLoading(true)
     const { error } = await supabase.from('briefs').update({ campaign_name: editForm.campaign_name, video_type: editForm.video_type, message: editForm.message, cta: editForm.cta, target_audience: editForm.target_audience, notes: editForm.notes, credit_cost: parseInt(editForm.credit_cost) }).eq('id', id)
     if (error) { setMsg('Hata: '+error.message); setLoading(false); return }
     setMsg('Brief güncellendi.'); setEditMode(false); loadData(); setLoading(false)
   }
-
-  async function handleCancel() {
-    if (!confirm('Bu briefi iptal etmek istediğinizden emin misiniz?')) return
-    await supabase.from('briefs').update({ status:'cancelled' }).eq('id', id)
-    router.push('/dashboard/admin/briefs')
-  }
-
-  async function deleteBrief() {
-    setDeleting(true)
-    try {
-      const res = await fetch(`/api/briefs/${id}`, { method: 'DELETE' })
-      const data = await res.json()
-      if (!res.ok || data.error) {
-        setMsg(data.error || 'Silme hatasi')
-        setDeleting(false)
-        setDeleteStep(0)
-        return
-      }
-      router.push('/dashboard/admin/briefs')
-    } catch (err: any) {
-      setMsg('Silme hatasi: ' + (err.message || 'Bilinmeyen hata'))
-      setDeleting(false)
-      setDeleteStep(0)
-    }
-  }
-
+  async function handleCancel() { if (!confirm('Bu briefi iptal etmek istediğinizden emin misiniz?')) return; await supabase.from('briefs').update({ status:'cancelled' }).eq('id', id); router.push('/dashboard/admin/briefs') }
+  async function deleteBrief() { setDeleting(true); try { const res = await fetch(`/api/briefs/${id}`, { method: 'DELETE' }); const data = await res.json(); if (!res.ok || data.error) { setMsg(data.error || 'Silme hatası'); setDeleting(false); setDeleteStep(0); return }; router.push('/dashboard/admin/briefs') } catch (err: any) { setMsg('Silme hatası: ' + (err.message || '')); setDeleting(false); setDeleteStep(0) } }
 
   const videoRef = useRef<HTMLVideoElement>(null)
-  function parseTimecode(text: string): { tc: number|null, clean: string } {
-    const match = text.match(/^\[(\d{2}):(\d{2})\.(\d)\]\s*/)
-    if (!match) return { tc: null, clean: text }
-    return { tc: parseInt(match[1])*60 + parseInt(match[2]) + parseInt(match[3])/10, clean: text.replace(match[0], '') }
-  }
+  function parseTimecode(text: string): { tc: number|null, clean: string } { const match = text.match(/^\[(\d{2}):(\d{2})\.(\d)\]\s*/); if (!match) return { tc: null, clean: text }; return { tc: parseInt(match[1])*60 + parseInt(match[2]) + parseInt(match[3])/10, clean: text.replace(match[0], '') } }
   function seekTo(seconds: number) { if (videoRef.current) { videoRef.current.currentTime = seconds; videoRef.current.play() } }
 
   const clientRevisions = questions.filter(q => q.question.startsWith('REVİZYON:'))
   const visibleQ = questions.filter(q => !q.question.startsWith('REVİZYON:') && !q.question.startsWith('İÇ REVİZYON:'))
   const assigned = creators.find(c => c.id === forwardForm.assigned_creator_id)
-  const [showAssignForm, setShowAssignForm] = useState(!forwardForm.assigned_creator_id)
+  const sb = STATUS_BADGE[brief?.status] || STATUS_BADGE.submitted
 
-  const inputStyle: React.CSSProperties = { width:'100%', boxSizing:'border-box', background:'#fff', border:'0.5px solid rgba(0,0,0,0.12)', borderRadius:'10px', padding:'9px 13px', fontSize:'13px', color:'#0a0a0a',  outline:'none' }
-  const statusBadge = (s: string) => ({ fontSize:'10px' as const, padding:'3px 10px', borderRadius:'100px', fontWeight:'500' as const,
-    background: s==='pending'?'rgba(0,0,0,0.05)':s==='producer_approved'||s==='admin_approved'?'rgba(34,197,94,0.1)':s==='revision_requested'?'rgba(239,68,68,0.1)':'rgba(0,0,0,0.05)',
-    color: s==='pending'?'#888':s==='producer_approved'||s==='admin_approved'?'#22c55e':s==='revision_requested'?'#ef4444':'#888' })
+  // Status badge component
+  function Badge({ status }: { status: string }) {
+    const b = STATUS_BADGE[status] || STATUS_BADGE.submitted
+    return <span style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', padding: '3px 8px', background: b.bg, border: `1px solid ${b.border}`, color: '#0a0a0a' }}>{b.label}</span>
+  }
+
+  // Brief info card (reusable for main + CPS)
+  function BriefInfoCard({ b, open, toggle, label }: { b: any, open: boolean, toggle: () => void, label: string }) {
+    const meta = [
+      { k: 'HOOK', v: b.hook }, { k: 'HERO', v: b.hero }, { k: 'TON', v: b.tone || b.cps_ton },
+      { k: 'HEDEF', v: b.target_audience }, { k: 'MECRA', v: Array.isArray(b.platforms) ? b.platforms.join(', ') : null },
+      { k: 'CTA', v: b.cta }, { k: 'SÜRE', v: b.video_type }, { k: 'FORMAT', v: b.format },
+    ].filter(m => m.v)
+    return (
+      <div style={{ background: '#fff', border: '1px solid #0a0a0a', padding: '20px 22px', marginBottom: '16px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }} onClick={toggle}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div className="label-caps">{label}</div>
+            <Badge status={b.status} />
+          </div>
+          <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', letterSpacing: '1px' }}>{open ? 'KAPAT' : 'DETAY'}</span>
+        </div>
+        {!open && b.message && <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginTop: '10px', lineHeight: '1.5', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{b.message}</div>}
+        {open && (
+          <div style={{ marginTop: '16px' }}>
+            {b.message && <div style={{ fontSize: '14px', color: '#0a0a0a', lineHeight: '1.7', marginBottom: '16px' }}>{b.message}</div>}
+            {meta.length > 0 && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '12px', marginBottom: '16px' }}>
+                {meta.map(m => (
+                  <div key={m.k}>
+                    <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '4px' }}>{m.k}</div>
+                    <div style={{ fontSize: '13px', color: '#0a0a0a' }}>{m.v}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {b.voiceover_text && (
+              <div style={{ borderLeft: '3px solid #22c55e', padding: '10px 14px', background: 'rgba(34,197,94,0.04)', marginBottom: '16px' }}>
+                <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '4px' }}>SESLENDİRME METNİ</div>
+                <div style={{ fontSize: '13px', color: '#0a0a0a', fontStyle: 'italic', lineHeight: '1.6' }}>{b.voiceover_text}</div>
+              </div>
+            )}
+            {b.notes && (
+              <div style={{ marginBottom: '16px' }}>
+                <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '4px' }}>NOTLAR</div>
+                <div style={{ fontSize: '13px', color: '#0a0a0a', lineHeight: '1.5' }}>{b.notes}</div>
+              </div>
+            )}
+            {(b.clients?.logo_url || b.clients?.font_url) && (
+              <div style={{ display: 'flex', gap: '10px' }}>
+                {b.clients?.logo_url && <a href={b.clients.logo_url} target="_blank" className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '10px' }}>LOGO ↓</a>}
+                {b.clients?.font_url && <a href={b.clients.font_url} target="_blank" className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '10px' }}>FONT ↓</a>}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  if (!brief) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', color: 'var(--color-text-tertiary)' }}>Yükleniyor...</div>
 
   return (
     <>
-        {/* HEADER */}
-        <div style={{padding:'14px 28px',background:'#fff',borderBottom:'0.5px solid rgba(0,0,0,0.08)',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
+      {/* STICKY HEADER */}
+      <div style={{ position: 'sticky', top: 0, zIndex: 20, background: '#fff', borderBottom: '1px solid var(--color-border-tertiary)', padding: '14px 28px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', flexWrap: 'wrap', maxWidth: '1100px' }}>
           <div>
-            <div style={{fontSize:'16px',fontWeight:'500',color:'#0a0a0a',letterSpacing:'-0.3px'}}>{brief?.campaign_name}</div>
-            {brief && <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',marginTop:'2px'}}>{brief.clients?.company_name} · {brief.video_type} · {brief.format} · {brief.credit_cost} kredi</div>}
+            <div className="label-caps" style={{ marginBottom: '4px' }}>{brief.clients?.company_name}</div>
+            <div style={{ fontSize: '20px', fontWeight: '500', color: 'var(--color-text-primary)', letterSpacing: '-0.5px', marginBottom: '6px' }}>{brief.campaign_name}</div>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <Badge status={brief.status} />
+              <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>{brief.video_type} · {brief.format} · {brief.credit_cost} kredi</span>
+              {assigned && <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>· {assigned.users?.name}</span>}
+              {cpsChildren.length > 0 && <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>· {cpsChildren.length} CPS yön</span>}
+              {aiChildren.length > 0 && <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>· {aiChildren.length} AI Express</span>}
+            </div>
           </div>
-          <div style={{display:'flex',gap:'8px'}}>
-            <button onClick={()=>setEditMode(!editMode)} style={{padding:'6px 14px',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'8px',background:'#fff',color:'#555',fontSize:'11px',cursor:'pointer',}}>{editMode?'İptal':'Düzenle'}</button>
-            <button onClick={handleCancel} style={{padding:'6px 14px',border:'0.5px solid #ef4444',borderRadius:'8px',background:'#fff',color:'#ef4444',fontSize:'11px',cursor:'pointer',}}>İptal Et</button>
+          <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+            <button onClick={() => setEditMode(!editMode)} className="btn btn-outline" style={{ padding: '8px 16px' }}>{editMode ? 'İPTAL' : 'DÜZENLE'}</button>
+            <button onClick={handleCancel} className="btn btn-outline" style={{ padding: '8px 16px', color: '#ef4444', borderColor: '#ef4444' }}>İPTAL ET</button>
+            {submissions.some(s => s.status === 'pending' || s.status === 'producer_approved') && (
+              <button onClick={() => { const s = submissions.find(s => s.status === 'pending' || s.status === 'producer_approved'); if (s) handleApprove(s.id) }} disabled={loading} className="btn" style={{ padding: '8px 16px' }}>
+                {loading ? 'İŞLENİYOR...' : 'ONAYLA & İLET'}
+              </button>
+            )}
           </div>
         </div>
+      </div>
 
-        <div className="dinamo-main-content" style={{flex:1,padding:'24px 28px'}}>
-          {brief && (
-            <>
-              {msg && <div style={{padding:'10px 16px',background:msg.startsWith('Hata')||msg.includes('zorunlu')?'#fef2f2':'#e8f7e8',borderRadius:'8px',fontSize:'12px',color:msg.startsWith('Hata')||msg.includes('zorunlu')?'#ef4444':'#22c55e',marginBottom:'16px'}}>{msg}</div>}
+      {/* MAIN CONTENT */}
+      <div style={{ padding: '24px 28px', maxWidth: '1100px' }}>
+        {msg && <div style={{ padding: '10px 16px', background: msg.startsWith('Hata') || msg.includes('zorunlu') ? 'rgba(239,68,68,0.08)' : 'rgba(34,197,94,0.08)', border: `1px solid ${msg.startsWith('Hata') || msg.includes('zorunlu') ? '#ef4444' : '#22c55e'}`, fontSize: '12px', color: '#0a0a0a', marginBottom: '16px' }}>{msg}</div>}
 
-              {clientRevisions.length > 0 && (
-                <div style={{background:'#fff',border:'2px solid #ef4444',borderRadius:'12px',padding:'14px 20px',marginBottom:'16px'}}>
-                  <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'10px'}}>
-                    <div style={{width:'7px',height:'7px',borderRadius:'50%',background:'#ef4444'}}></div>
-                    <div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>Müşteri Revizyonu</div>
-                  </div>
-                  {clientRevisions.map((r,i)=>{
-                    const {tc,clean}=parseTimecode(r.question.replace('REVİZYON: ',''))
-                    return (
-                      <div key={r.id} style={{padding:'8px 12px',background:'#fef2f2',borderRadius:'8px',marginBottom:'4px',fontSize:'13px',color:'#0a0a0a',display:'flex',alignItems:'flex-start',gap:'8px'}}>
-                        {tc!==null&&<button onClick={()=>seekTo(tc)} style={{fontSize:'10px',padding:'2px 8px',borderRadius:'100px',background:'rgba(245,158,11,0.15)',color:'#f59e0b',border:'none',cursor:'pointer',fontFamily:'monospace',fontWeight:'500',flexShrink:0,marginTop:'2px'}}>▶ {Math.floor(tc/60)}:{String(Math.floor(tc%60)).padStart(2,'0')}</button>}
-                        <span>{clean}</span>
-                      </div>
-                    )
-                  })}
+        {/* CLIENT REVISIONS ALERT */}
+        {clientRevisions.length > 0 && (
+          <div style={{ background: '#fff', border: '2px solid #ef4444', padding: '14px 20px', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+              <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#ef4444' }} />
+              <div className="label-caps" style={{ color: '#ef4444' }}>MÜŞTERİ REVİZYONU</div>
+            </div>
+            {clientRevisions.map(r => {
+              const { tc, clean } = parseTimecode(r.question.replace('REVİZYON: ', ''))
+              return (
+                <div key={r.id} style={{ padding: '8px 12px', background: 'rgba(239,68,68,0.06)', marginBottom: '4px', fontSize: '13px', color: '#0a0a0a', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                  {tc !== null && <button onClick={() => seekTo(tc)} style={{ fontSize: '10px', padding: '2px 8px', background: 'rgba(245,158,11,0.15)', color: '#f59e0b', border: 'none', cursor: 'pointer', fontFamily: 'monospace', fontWeight: '500', flexShrink: 0, marginTop: '2px' }}>▶ {Math.floor(tc / 60)}:{String(Math.floor(tc % 60)).padStart(2, '0')}</button>}
+                  <span>{clean}</span>
                 </div>
-              )}
+              )
+            })}
+          </div>
+        )}
 
-
-              {/* Edit mode full form */}
-              {editMode && (
-                <form onSubmit={handleEdit} style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'20px 24px',marginBottom:'16px'}}>
-                  <div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a',marginBottom:'16px'}}>Brief Düzenle</div>
-                  {[{key:'campaign_name',label:'Kampanya Adı',type:'text'},{key:'video_type',label:'Video Tipi',type:'text'},{key:'message',label:'Mesaj',type:'textarea'},{key:'cta',label:'CTA',type:'text'},{key:'target_audience',label:'Hedef Kitle',type:'text'},{key:'notes',label:'Notlar',type:'textarea'},{key:'credit_cost',label:'Kredi',type:'number'}].map(f=>(
-                    <div key={f.key} style={{marginBottom:'14px'}}>
-                      <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'6px'}}>{f.label}</div>
-                      {f.type==='textarea'?<textarea value={editForm[f.key]||''} onChange={e=>setEditForm({...editForm,[f.key]:e.target.value})} rows={3} style={{...inputStyle,resize:'vertical'}} />:<input type={f.type} value={editForm[f.key]||''} onChange={e=>setEditForm({...editForm,[f.key]:e.target.value})} style={inputStyle} />}
-                    </div>
-                  ))}
-                  <button type="submit" disabled={loading} className="btn" style={{padding:"9px 20px"}}>{loading?'Kaydediliyor...':'Kaydet'}</button>
-                </form>
-              )}
-
-              {/* TWO COLUMN LAYOUT */}
-              {!editMode && (
-                <div style={{display:'grid',gridTemplateColumns:'2fr 1fr',gap:'20px'}}>
-                  {/* LEFT — VIDEOS */}
-                  <div>
-                    {submissions.length === 0 ? (
-                      <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'32px',textAlign:'center',color:'rgba(255,255,255,0.4)',fontSize:'13px'}}>Henüz video yüklenmedi.</div>
-                    ) : submissions.map((s) => (
-                      <div key={s.id} style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',overflow:'hidden',marginBottom:'12px'}}>
-                        <div style={{padding:'12px 16px',borderBottom:'0.5px solid rgba(0,0,0,0.06)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                          <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
-                            <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>Versiyon {s.version}</div>
-                            <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)'}}>{new Date(s.submitted_at).toLocaleDateString('tr-TR',{day:'numeric',month:'short'})}</div>
-                          </div>
-                          <span style={statusBadge(s.status)}>{s.status==='pending'?'Bekliyor':s.status==='producer_approved'?'Prodüktör Onayı':s.status==='admin_approved'?'Onaylandı':s.status==='revision_requested'?'Revizyon':s.status}</span>
-                        </div>
-                        <div style={{padding:'16px'}}>
-                          <div style={{borderRadius:'10px',overflow:'hidden',maxWidth:brief.format==='9:16'?'660px':brief.format==='1:1'?'900px':'100%'}}>
-                            <video ref={s.id===submissions[0]?.id?videoRef:undefined} controls style={{width:'100%',borderRadius:'10px',display:'block',maxHeight:'600px',objectFit:'contain',background:'black'}}>
-                              <source src={s.video_url} />
-                            </video>
-                          </div>
-                        </div>
-                        {(s.status==='pending'||s.status==='producer_approved')&&(
-                          <div style={{padding:'0 16px 16px'}}>
-                            <div style={{display:'flex',gap:'8px',marginBottom:'10px'}}>
-                              <button onClick={()=>handleApprove(s.id)} disabled={loading}
-                                style={{flex:1,padding:'11px',background:'#22c55e',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontWeight:'500'}}>
-                                {loading?'İşleniyor...':'Onayla → Müşteriye İlet'}
-                              </button>
-                              <button onClick={()=>handleApprove(s.id)} disabled={loading}
-                                style={{width:'44px',height:'44px',background:'#22c55e',color:'#fff',border:'none',borderRadius:'8px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round"><path d="M14 9V5a3 3 0 00-6 0v1M5 21h14a2 2 0 002-2v-5a2 2 0 00-2-2H5a2 2 0 00-2 2v5a2 2 0 002 2z"/></svg>
-                              </button>
-                            </div>
-                            <textarea value={revisionNotes[s.id]||''} onChange={e=>setRevisionNotes(prev=>({...prev,[s.id]:e.target.value}))}
-                              placeholder="Revizyon notu yazın..." rows={2} style={{...inputStyle,resize:'vertical',marginBottom:'8px',fontSize:'12px'}} />
-                            <button onClick={()=>handleRevision(s.id)} disabled={loading}
-                              style={{padding:'8px 16px',background:'#fff',color:'#ef4444',border:'0.5px solid #ef4444',borderRadius:'8px',fontSize:'12px',cursor:'pointer',}}>
-                              Revizyon İste
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* RIGHT — SIDEBAR */}
-                  <div>
-                    {!editMode && (
-                      <div style={{marginBottom:'12px'}}>
-                        <ProductionStudio briefId={id} source="admin" userRole="admin" />
-                      </div>
-                    )}
-                    {/* CREATOR CARD */}
-                    <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'16px',marginBottom:'12px'}}>
-                      {assigned ? (
-                        <div>
-                          <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'8px'}}>
-                            <div style={{width:'44px',height:'44px',borderRadius:'50%',background:'#22c55e',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px',fontWeight:'500',color:'#fff',flexShrink:0}}>
-                              {(assigned.users?.name||'?').split(' ').map((w:string)=>w[0]).join('').slice(0,2).toUpperCase()}
-                            </div>
-                            <div style={{flex:1}}>
-                              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                                <div style={{fontSize:'16px',fontWeight:'500',color:'#0a0a0a'}}>{assigned.users?.name}</div>
-                                <span style={{fontSize:'9px',padding:'3px 10px',borderRadius:'100px',background:'rgba(34,197,94,0.1)',color:'#22c55e',fontWeight:'500'}}>Atandı</span>
-                              </div>
-                              <div style={{marginTop:'4px',display:'flex',flexDirection:'column',gap:'2px'}}>
-                                {assigned.users?.email && <a href={`mailto:${assigned.users.email}`} style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',textDecoration:'none'}}>{assigned.users.email}</a>}
-                                {assigned.phone && <a href={`tel:${assigned.phone}`} style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',textDecoration:'none'}}>{assigned.phone}</a>}
-                              </div>
-                            </div>
-                          </div>
-                          <button onClick={()=>setShowAssignForm(!showAssignForm)} style={{fontSize:'11px',color:'#3b82f6',background:'none',border:'none',cursor:'pointer',padding:0}}>
-                            {showAssignForm?'Gizle':'Değiştir'}
-                          </button>
-                        </div>
-                      ) : (
-                        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'10px'}}>
-                          <div style={{fontSize:'13px',color:'#555'}}>Creator atanmadı</div>
-                          <span style={{fontSize:'9px',padding:'3px 10px',borderRadius:'100px',background:'rgba(245,158,11,0.1)',color:'#f59e0b',fontWeight:'500'}}>Atanmadı</span>
-                        </div>
-                      )}
-                      {(showAssignForm || !assigned) && (
-                        <form onSubmit={handleForward} style={{marginTop:'10px'}}>
-                          <div style={{marginBottom:'8px'}}>
-                            <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>Creator</div>
-                            <select value={forwardForm.assigned_creator_id} onChange={e=>setForwardForm({...forwardForm,assigned_creator_id:e.target.value})} style={{...inputStyle,fontSize:'12px',padding:'8px 10px'}}>
-                              <option value="">Seçin</option>
-                              {creators.map(c=><option key={c.id} value={c.id}>{c.users?.name}</option>)}
-                            </select>
-                          </div>
-                          {brief.voiceover_type==='real'&&(
-                            <div style={{marginBottom:'8px'}}>
-                              <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>Seslendirme</div>
-                              <select value={forwardForm.assigned_voice_artist_id} onChange={e=>setForwardForm({...forwardForm,assigned_voice_artist_id:e.target.value})} style={{...inputStyle,fontSize:'12px',padding:'8px 10px'}}>
-                                <option value="">Seçin</option>
-                                {voiceArtists.map(va=><option key={va.id} value={va.id}>{va.users?.name}</option>)}
-                              </select>
-                            </div>
-                          )}
-                          <div style={{marginBottom:'10px'}}>
-                            <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'6px'}}>Creator'a İletilecek Alanlar</div>
-                            {[
-                              {field:'message',label:'Mesaj'},
-                              {field:'cta',label:'CTA'},
-                              {field:'target_audience',label:'Hedef Kitle'},
-                              {field:'voiceover_text',label:'Seslendirme Metni'},
-                              {field:'notes',label:'Notlar'},
-                            ].filter(f => brief[f.field]).map(f=>(
-                              <label key={f.field} style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'4px',cursor:'pointer',fontSize:'12px',color:'#0a0a0a'}}>
-                                <input type="checkbox" checked={sharedFields.includes(f.field)} onChange={()=>toggleSharedField(f.field)} style={{accentColor:'#22c55e'}} />
-                                {f.label}
-                              </label>
-                            ))}
-                            <div style={{fontSize:'10px',color:'rgba(255,255,255,0.25)',marginTop:'4px'}}>Format ve prodüktör notu her zaman iletilir.</div>
-                          </div>
-                          <div style={{marginBottom:'8px'}}>
-                            <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>Not</div>
-                            <textarea value={forwardForm.producer_note} onChange={e=>setForwardForm({...forwardForm,producer_note:e.target.value})} rows={2} style={{...inputStyle,resize:'vertical',fontSize:'12px',padding:'8px 10px'}} />
-                          </div>
-                          <button type="submit" disabled={loading} style={{width:'100%',padding:'8px',background:'#111113',color:'#fff',border:'none',borderRadius:'8px',fontSize:'12px',cursor:'pointer',fontWeight:'500'}}>
-                            {loading?'İletiliyor...':assigned?'Güncelle':"Creator'a İlet"}
-                          </button>
-                        </form>
-                      )}
-                    </div>
-
-                    {/* BRIEF INFO */}
-                    <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'16px',marginBottom:'12px'}}>
-                      <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'12px'}}>Brief</div>
-                      {[{label:'Müşteri',value:brief.client_users?.users?.name},{label:'Email',value:clientEmail},{label:'Mecralar',value:brief.platforms&&Array.isArray(brief.platforms)&&brief.platforms.length>0?brief.platforms.join(', '):null},{label:'Mesaj',value:brief.message},{label:'CTA',value:brief.cta},{label:'Hedef Kitle',value:brief.target_audience},{label:'Seslendirme',value:brief.voiceover_type==='real'?`Gerçek Seslendirme${brief.voiceover_gender==='male'?' · Erkek':brief.voiceover_gender==='female'?' · Kadın':''}`:brief.voiceover_type==='ai'?`AI Seslendirme${brief.voiceover_gender==='male'?' · Erkek':brief.voiceover_gender==='female'?' · Kadın':''}`:null},{label:'Seslendirme Metni',value:brief.voiceover_text},{label:'Notlar',value:brief.notes}].filter(f=>f.value).map(f=>(
-                        <div key={f.label} style={{marginBottom:'10px',paddingBottom:'10px',borderBottom:'0.5px solid rgba(0,0,0,0.06)'}}>
-                          <div style={{fontSize:'9px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'3px'}}>{f.label}</div>
-                          <div style={{fontSize:'12px',color:'#0a0a0a',lineHeight:'1.5'}}>{f.value}</div>
-                        </div>
-                      ))}
-                      <div style={{display:'flex',gap:'8px',marginTop:'4px'}}>
-                        {brief.clients?.logo_url&&<a href={brief.clients.logo_url} target="_blank" style={{fontSize:'11px',color:'#22c55e',textDecoration:'none'}}>Logo ↓</a>}
-                        {brief.clients?.font_url&&<a href={brief.clients.font_url} target="_blank" style={{fontSize:'11px',color:'#22c55e',textDecoration:'none'}}>Font ↓</a>}
-                      </div>
-                    </div>
-
-                    {/* VOICEOVER UPLOAD */}
-                    {brief.voiceover_type==='real'&&(
-                      <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'16px',marginBottom:'12px'}}>
-                        <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'10px'}}>{brief.voiceover_gender==='male'?'Erkek':'Kadın'} Seslendirme Dosyası</div>
-                        {brief.voiceover_file_url ? (
-                          <div>
-                            <audio controls src={brief.voiceover_file_url} style={{width:'100%',marginBottom:'8px',borderRadius:'8px'}} />
-                            <div style={{display:'flex',gap:'6px'}}>
-                              <a href={brief.voiceover_file_url} download target="_blank" style={{fontSize:'11px',color:'#22c55e',textDecoration:'none'}}>İndir ↓</a>
-                              <button onClick={handleVoiceoverDelete} style={{fontSize:'11px',color:'#ef4444',background:'none',border:'none',cursor:'pointer',}}>Sil</button>
-                            </div>
-                          </div>
-                        ) : (
-                          <div>
-                            <input ref={voFileRef} type="file" accept=".mp3,.wav,.m4a,audio/*" style={{fontSize:'12px',color:'#0a0a0a',marginBottom:'8px'}} />
-                            <button onClick={handleVoiceoverUpload} disabled={voUpload}
-                              className="btn" style={{padding:"7px 16px"}}>
-                              {voUpload?'Yükleniyor...':'Yükle'}
-                            </button>
-                            <div style={{fontSize:'10px',color:'rgba(255,255,255,0.25)',marginTop:'6px'}}>mp3, wav, m4a — maks 50MB</div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* QUESTIONS */}
-                    <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'16px'}}>
-                      <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'10px'}}>Sorular</div>
-                      {visibleQ.length===0&&<div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',marginBottom:'10px'}}>Henüz soru yok.</div>}
-                      {visibleQ.map(q=>(
-                        <div key={q.id} style={{marginBottom:'6px',padding:'8px 10px',background:'#f5f4f0',borderRadius:'8px'}}>
-                          <div style={{fontSize:'12px',color:'#0a0a0a',marginBottom:'2px'}}>{q.question}</div>
-                          {q.answer ? (
-                            <div style={{fontSize:'11px',color:'#22c55e'}}>↳ {q.answer}</div>
-                          ) : answerEditing === q.id ? (
-                            <div style={{display:'flex',gap:'6px',marginTop:'4px'}}>
-                              <input value={answerText} onChange={e=>setAnswerText(e.target.value)} placeholder="Cevabı girin..." style={{flex:1,padding:'6px 10px',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'6px',fontSize:'11px',color:'#0a0a0a',outline:'none'}} />
-                              <button onClick={()=>handleAnswerForClient(q.id)} style={{padding:'6px 10px',background:'#22c55e',color:'#fff',border:'none',borderRadius:'6px',fontSize:'10px',cursor:'pointer',}}>Kaydet</button>
-                              <button onClick={()=>setAnswerEditing(null)} style={{padding:'6px 8px',background:'#f5f4f0',color:'#555',border:'none',borderRadius:'6px',fontSize:'10px',cursor:'pointer',}}>İptal</button>
-                            </div>
-                          ) : (
-                            <div style={{display:'flex',alignItems:'center',gap:'8px',marginTop:'2px'}}>
-                              <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)'}}>Cevap bekleniyor</div>
-                              <button onClick={()=>{setAnswerEditing(q.id);setAnswerText('')}} style={{fontSize:'10px',color:'#3b82f6',background:'none',border:'none',cursor:'pointer',}}>Cevabı Gir</button>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                      <form onSubmit={handleQuestion} style={{display:'flex',gap:'6px',marginTop:'8px'}}>
-                        <input value={question} onChange={e=>setQuestion(e.target.value)} placeholder="Soru sor..." style={{...inputStyle,flex:1,fontSize:'12px',padding:'8px 10px'}} />
-                        <button type="submit" style={{padding:'8px 14px',background:'#111113',color:'#fff',border:'none',borderRadius:'8px',fontSize:'11px',cursor:'pointer',}}>Gönder</button>
-                      </form>
-                    </div>
-                    {/* ADMIN NOTES */}
-                    <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'16px',marginTop:'12px'}}>
-                      <div style={{fontSize:'10px',color:'#f59e0b',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'10px'}}>İç Notlar (sadece admin)</div>
-                      {adminNotes.map(n=>(
-                        <div key={n.id} style={{marginBottom:'6px',padding:'8px 10px',background:'rgba(245,158,11,0.04)',borderRadius:'8px',border:'0.5px solid rgba(245,158,11,0.1)'}}>
-                          <div style={{fontSize:'12px',color:'#0a0a0a'}}>{n.note}</div>
-                          <div style={{fontSize:'10px',color:'rgba(255,255,255,0.25)',marginTop:'3px'}}>{n.users?.name} · {new Date(n.created_at).toLocaleDateString('tr-TR')}</div>
-                        </div>
-                      ))}
-                      <div style={{display:'flex',gap:'6px',marginTop:'8px'}}>
-                        <input value={newNote} onChange={e=>setNewNote(e.target.value)} placeholder="İç not ekle..."
-                          onKeyDown={e=>{if(e.key==='Enter') handleAddNote()}}
-                          style={{flex:1,padding:'8px 10px',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'8px',fontSize:'12px',color:'#0a0a0a',outline:'none'}} />
-                        <button onClick={handleAddNote} style={{padding:'8px 12px',background:'#f59e0b',color:'#fff',border:'none',borderRadius:'8px',fontSize:'11px',cursor:'pointer',}}>Ekle</button>
-                      </div>
-                    </div>
-
-                  </div>
-                </div>
-              )}
-
-
-              {/* MANUAL CLIENT APPROVE — bottom */}
-              {(brief.status==='approved'||brief.status==='in_production')&&(
-                <div style={{marginTop:'24px',paddingTop:'20px',borderTop:'0.5px solid rgba(0,0,0,0.08)'}}>
-                  <button onClick={()=>setShowClientApproveModal(true)} disabled={loading}
-                    style={{padding:'9px 20px',background:'#ef4444',color:'#fff',border:'none',borderRadius:'8px',fontSize:'12px',cursor:'pointer',fontWeight:'500'}}>
-                    Müşteri Onayladı (Manuel)
-                  </button>
-                </div>
-              )}
-              {/* DELETE BRIEF */}
-              <div style={{marginTop:'32px',paddingTop:'20px',borderTop:'0.5px solid rgba(0,0,0,0.08)'}}>
-                <button onClick={()=>setDeleteStep(1)}
-                  style={{padding:'9px 20px',background:'#fff',color:'#ef4444',border:'1px solid rgba(239,68,68,0.3)',borderRadius:'8px',fontSize:'12px',cursor:'pointer',fontWeight:'500'}}>
-                  Brief'i Sil
-                </button>
+        {/* EDIT FORM */}
+        {editMode && (
+          <form onSubmit={handleEdit} style={{ background: '#fff', border: '1px solid #0a0a0a', padding: '20px 22px', marginBottom: '16px' }}>
+            <div className="label-caps" style={{ marginBottom: '16px' }}>BRIEF DÜZENLE</div>
+            {[{ key: 'campaign_name', label: 'Kampanya Adı', type: 'text' }, { key: 'video_type', label: 'Video Tipi', type: 'text' }, { key: 'message', label: 'Mesaj', type: 'textarea' }, { key: 'cta', label: 'CTA', type: 'text' }, { key: 'target_audience', label: 'Hedef Kitle', type: 'text' }, { key: 'notes', label: 'Notlar', type: 'textarea' }, { key: 'credit_cost', label: 'Kredi', type: 'number' }].map(f => (
+              <div key={f.key} style={{ marginBottom: '14px' }}>
+                <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '6px' }}>{f.label}</div>
+                {f.type === 'textarea' ? <textarea value={editForm[f.key] || ''} onChange={e => setEditForm({ ...editForm, [f.key]: e.target.value })} rows={3} style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--color-border-tertiary)', fontSize: '13px', color: '#0a0a0a', resize: 'vertical', boxSizing: 'border-box' }} /> : <input type={f.type} value={editForm[f.key] || ''} onChange={e => setEditForm({ ...editForm, [f.key]: e.target.value })} style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--color-border-tertiary)', fontSize: '13px', color: '#0a0a0a', boxSizing: 'border-box' }} />}
               </div>
-            </>
-          )}
-        </div>
+            ))}
+            <button type="submit" disabled={loading} className="btn" style={{ padding: '9px 20px' }}>{loading ? 'Kaydediliyor...' : 'Kaydet'}</button>
+          </form>
+        )}
 
-      {/* DELETE CONFIRM — STEP 1 */}
-      {deleteStep === 1 && (
-        <div style={{position:'fixed',inset:0,zIndex:150,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={()=>setDeleteStep(0)}>
-          <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.5)'}} />
-          <div style={{position:'relative',background:'#fff',borderRadius:'16px',padding:'32px',width:'420px',maxWidth:'90vw',boxShadow:'0 20px 60px rgba(0,0,0,0.3)'}} onClick={e=>e.stopPropagation()}>
-            <div style={{fontSize:'16px',fontWeight:'500',color:'#0a0a0a',marginBottom:'12px'}}>Brief'i Sil</div>
-            <div style={{fontSize:'13px',color:'#555',lineHeight:1.7,marginBottom:'24px'}}>Bu brief'i silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.</div>
-            <div style={{display:'flex',gap:'10px'}}>
-              <button onClick={()=>setDeleteStep(0)} style={{flex:1,padding:'12px',background:'#f5f4f0',color:'#555',border:'none',borderRadius:'10px',fontSize:'14px',cursor:'pointer',}}>İptal</button>
-              <button onClick={()=>setDeleteStep(2)}
-                style={{flex:1,padding:'12px',background:'#ef4444',color:'#fff',border:'none',borderRadius:'10px',fontSize:'14px',fontWeight:'500',cursor:'pointer',}}>
-                Evet, Sil
-              </button>
+        {!editMode && (
+          <>
+            {/* 1) ANA VIDEO BRIEF */}
+            <BriefInfoCard b={brief} open={briefOpen} toggle={() => setBriefOpen(!briefOpen)} label="ANA VİDEO BRIEF" />
+
+            {/* 2) CPS BRIEF'LERİ */}
+            {cpsChildren.length > 0 && (
+              <div style={{ marginBottom: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <div className="label-caps">CPS BRIEF'LERİ · {cpsChildren.length} YÖN</div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(cpsChildren.length, 3)}, 1fr)`, gap: '12px' }}>
+                  {cpsChildren.map(child => (
+                    <BriefInfoCard key={child.id} b={{ ...child, clients: brief.clients }} open={!!cpsOpen[child.id]} toggle={() => setCpsOpen(prev => ({ ...prev, [child.id]: !prev[child.id] }))} label={child.cps_hook || `YÖN ${child.mvc_order || ''}`} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 3) AI EXPRESS */}
+            {aiChildren.length > 0 && (
+              <div style={{ marginBottom: '16px' }}>
+                <div className="label-caps" style={{ marginBottom: '12px' }}>AI EXPRESS · {aiChildren.length} VERSİYON</div>
+                {aiChildren.map((child, i) => (
+                  <div key={child.id} style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '14px 18px', marginBottom: '8px', cursor: 'pointer' }} onClick={() => setAiOpen(prev => ({ ...prev, [child.id]: !prev[child.id] }))}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>Versiyon {i + 1}</span>
+                        <Badge status={child.status} />
+                      </div>
+                      <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>{aiOpen[child.id] ? 'KAPAT' : 'DETAY'}</span>
+                    </div>
+                    {aiOpen[child.id] && child.ai_video_url && (
+                      <div style={{ marginTop: '12px' }}>
+                        <video controls style={{ width: '100%', maxHeight: '400px', objectFit: 'contain', background: '#000', display: 'block' }}><source src={child.ai_video_url} /></video>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* 4) ÜRETİM & ONAY */}
+            <div style={{ marginBottom: '16px' }}>
+              <div className="label-caps" style={{ marginBottom: '12px' }}>ÜRETİM & ONAY</div>
+
+              {/* Creator Assignment */}
+              <div style={{ background: '#fff', border: '1px solid #0a0a0a', padding: '16px 18px', marginBottom: '12px' }}>
+                {assigned ? (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div style={{ width: '36px', height: '36px', background: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: '500', color: '#fff', flexShrink: 0 }}>{(assigned.users?.name || '?').split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()}</div>
+                      <div>
+                        <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a' }}>{assigned.users?.name}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>{assigned.users?.email}{assigned.phone ? ` · ${assigned.phone}` : ''}</div>
+                      </div>
+                    </div>
+                    <button onClick={() => setShowAssignForm(!showAssignForm)} className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '10px' }}>{showAssignForm ? 'GİZLE' : 'DEĞİŞTİR'}</button>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>Creator atanmadı</span>
+                    <Badge status="submitted" />
+                  </div>
+                )}
+                {(showAssignForm || !assigned) && (
+                  <form onSubmit={handleForward} style={{ marginTop: '12px', borderTop: '1px solid var(--color-border-tertiary)', paddingTop: '12px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: brief.voiceover_type === 'real' ? '1fr 1fr' : '1fr', gap: '8px', marginBottom: '10px' }}>
+                      <div>
+                        <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '4px' }}>CREATOR</div>
+                        <select value={forwardForm.assigned_creator_id} onChange={e => setForwardForm({ ...forwardForm, assigned_creator_id: e.target.value })} style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--color-border-tertiary)', fontSize: '12px', color: '#0a0a0a', boxSizing: 'border-box' }}>
+                          <option value="">Seçin</option>
+                          {creators.map(c => <option key={c.id} value={c.id}>{c.users?.name}</option>)}
+                        </select>
+                      </div>
+                      {brief.voiceover_type === 'real' && (
+                        <div>
+                          <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '4px' }}>SESLENDİRME</div>
+                          <select value={forwardForm.assigned_voice_artist_id} onChange={e => setForwardForm({ ...forwardForm, assigned_voice_artist_id: e.target.value })} style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--color-border-tertiary)', fontSize: '12px', color: '#0a0a0a', boxSizing: 'border-box' }}>
+                            <option value="">Seçin</option>
+                            {voiceArtists.map(va => <option key={va.id} value={va.id}>{va.users?.name}</option>)}
+                          </select>
+                        </div>
+                      )}
+                    </div>
+                    <div style={{ marginBottom: '10px' }}>
+                      <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '6px' }}>İLETİLECEK ALANLAR</div>
+                      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                        {[{ field: 'message', label: 'Mesaj' }, { field: 'cta', label: 'CTA' }, { field: 'target_audience', label: 'Hedef Kitle' }, { field: 'voiceover_text', label: 'Seslendirme' }, { field: 'notes', label: 'Notlar' }].filter(f => brief[f.field]).map(f => (
+                          <label key={f.field} style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px', color: '#0a0a0a' }}>
+                            <input type="checkbox" checked={sharedFields.includes(f.field)} onChange={() => toggleSharedField(f.field)} style={{ accentColor: '#0a0a0a' }} /> {f.label}
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                    <textarea value={forwardForm.producer_note} onChange={e => setForwardForm({ ...forwardForm, producer_note: e.target.value })} rows={2} placeholder="Prodüktör notu..." style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--color-border-tertiary)', fontSize: '12px', color: '#0a0a0a', resize: 'vertical', boxSizing: 'border-box', marginBottom: '8px' }} />
+                    <button type="submit" disabled={loading} className="btn" style={{ padding: '8px 16px' }}>{loading ? 'İletiliyor...' : assigned ? 'Güncelle' : "CREATOR'A İLET"}</button>
+                  </form>
+                )}
+              </div>
+
+              {/* Voiceover Upload */}
+              {brief.voiceover_type === 'real' && (
+                <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '14px 18px', marginBottom: '12px' }}>
+                  <div className="label-caps" style={{ marginBottom: '8px' }}>{brief.voiceover_gender === 'male' ? 'ERKEK' : 'KADIN'} SESLENDİRME DOSYASI</div>
+                  {brief.voiceover_file_url ? (
+                    <div>
+                      <audio controls src={brief.voiceover_file_url} style={{ width: '100%', marginBottom: '8px' }} />
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <a href={brief.voiceover_file_url} download target="_blank" className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '10px', textDecoration: 'none' }}>İNDİR ↓</a>
+                        <button onClick={handleVoiceoverDelete} className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '10px', color: '#ef4444', borderColor: '#ef4444' }}>SİL</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <input ref={voFileRef} type="file" accept=".mp3,.wav,.m4a,audio/*" style={{ fontSize: '12px', color: '#0a0a0a', marginBottom: '8px' }} />
+                      <button onClick={handleVoiceoverUpload} disabled={voUpload} className="btn" style={{ padding: '7px 16px' }}>{voUpload ? 'Yükleniyor...' : 'YÜKLE'}</button>
+                      <div style={{ fontSize: '10px', color: 'var(--color-text-tertiary)', marginTop: '6px' }}>mp3, wav, m4a — maks 50MB</div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Video Submissions */}
+              {submissions.length === 0 ? (
+                <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '32px', textAlign: 'center', color: 'var(--color-text-tertiary)', fontSize: '13px' }}>Henüz video yüklenmedi.</div>
+              ) : submissions.map(s => (
+                <div key={s.id} style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', marginBottom: '12px', overflow: 'hidden' }}>
+                  <div style={{ padding: '12px 18px', borderBottom: '1px solid var(--color-border-tertiary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>Versiyon {s.version}</span>
+                      <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>{new Date(s.submitted_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}</span>
+                    </div>
+                    <Badge status={s.status === 'pending' ? 'submitted' : s.status === 'producer_approved' || s.status === 'admin_approved' ? 'delivered' : s.status === 'revision_requested' ? 'revision' : 'submitted'} />
+                  </div>
+                  <div style={{ padding: '16px 18px' }}>
+                    <video ref={s.id === submissions[0]?.id ? videoRef : undefined} controls style={{ width: '100%', maxHeight: '500px', objectFit: 'contain', background: '#000', display: 'block' }}><source src={s.video_url} /></video>
+                  </div>
+                  {(s.status === 'pending' || s.status === 'producer_approved') && (
+                    <div style={{ padding: '0 18px 16px' }}>
+                      <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+                        <button onClick={() => handleApprove(s.id)} disabled={loading} className="btn" style={{ flex: 1, padding: '10px' }}>{loading ? 'İşleniyor...' : 'ONAYLA → MÜŞTERİYE İLET'}</button>
+                      </div>
+                      <textarea value={revisionNotes[s.id] || ''} onChange={e => setRevisionNotes(prev => ({ ...prev, [s.id]: e.target.value }))} placeholder="Revizyon notu yazın..." rows={2} style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--color-border-tertiary)', fontSize: '12px', color: '#0a0a0a', resize: 'vertical', boxSizing: 'border-box', marginBottom: '8px' }} />
+                      <button onClick={() => handleRevision(s.id)} disabled={loading} className="btn btn-outline" style={{ padding: '8px 16px', color: '#ef4444', borderColor: '#ef4444' }}>REVİZYON İSTE</button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* 5) Q&A */}
+            <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '16px 18px', marginBottom: '16px' }}>
+              <div className="label-caps" style={{ marginBottom: '10px' }}>SORULAR & CEVAPLAR</div>
+              {visibleQ.length === 0 && <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', marginBottom: '10px' }}>Henüz soru yok.</div>}
+              {visibleQ.map(q => (
+                <div key={q.id} style={{ marginBottom: '6px', padding: '8px 10px', background: 'var(--color-background-secondary)' }}>
+                  <div style={{ fontSize: '12px', color: '#0a0a0a', marginBottom: '2px' }}>{q.question}</div>
+                  {q.answer ? (
+                    <div style={{ fontSize: '11px', color: '#22c55e' }}>↳ {q.answer}</div>
+                  ) : answerEditing === q.id ? (
+                    <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
+                      <input value={answerText} onChange={e => setAnswerText(e.target.value)} placeholder="Cevabı girin..." style={{ flex: 1, padding: '6px 10px', border: '1px solid var(--color-border-tertiary)', fontSize: '11px', color: '#0a0a0a' }} />
+                      <button onClick={() => handleAnswerForClient(q.id)} className="btn" style={{ padding: '5px 10px', fontSize: '10px' }}>Kaydet</button>
+                      <button onClick={() => setAnswerEditing(null)} className="btn btn-ghost" style={{ padding: '5px 8px', fontSize: '10px' }}>İptal</button>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px' }}>
+                      <div style={{ fontSize: '10px', color: 'var(--color-text-tertiary)' }}>Cevap bekleniyor</div>
+                      <button onClick={() => { setAnswerEditing(q.id); setAnswerText('') }} style={{ fontSize: '10px', color: '#0a0a0a', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>Cevabı Gir</button>
+                    </div>
+                  )}
+                </div>
+              ))}
+              <form onSubmit={handleQuestion} style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
+                <input value={question} onChange={e => setQuestion(e.target.value)} placeholder="Soru sor..." style={{ flex: 1, padding: '8px 10px', border: '1px solid var(--color-border-tertiary)', fontSize: '12px', color: '#0a0a0a' }} />
+                <button type="submit" className="btn" style={{ padding: '8px 14px' }}>GÖNDER</button>
+              </form>
+            </div>
+
+            {/* 6) ADMIN NOTLARI */}
+            <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '16px 18px', marginBottom: '16px' }}>
+              <div className="label-caps" style={{ color: '#f59e0b', marginBottom: '10px' }}>İÇ NOTLAR (SADECE ADMİN)</div>
+              {adminNotes.map(n => (
+                <div key={n.id} style={{ marginBottom: '6px', padding: '8px 10px', background: 'rgba(245,158,11,0.04)', border: '1px solid rgba(245,158,11,0.15)' }}>
+                  <div style={{ fontSize: '12px', color: '#0a0a0a' }}>{n.note}</div>
+                  <div style={{ fontSize: '10px', color: 'var(--color-text-tertiary)', marginTop: '3px' }}>{n.users?.name} · {new Date(n.created_at).toLocaleDateString('tr-TR')}</div>
+                </div>
+              ))}
+              <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
+                <input value={newNote} onChange={e => setNewNote(e.target.value)} placeholder="İç not ekle..." onKeyDown={e => { if (e.key === 'Enter') handleAddNote() }}
+                  style={{ flex: 1, padding: '8px 10px', border: '1px solid var(--color-border-tertiary)', fontSize: '12px', color: '#0a0a0a' }} />
+                <button onClick={handleAddNote} className="btn" style={{ padding: '8px 14px', background: '#f59e0b' }}>EKLE</button>
+              </div>
+            </div>
+
+            {/* BOTTOM ACTIONS */}
+            {(brief.status === 'approved' || brief.status === 'in_production') && (
+              <div style={{ paddingTop: '16px', borderTop: '1px solid var(--color-border-tertiary)', marginBottom: '16px' }}>
+                <button onClick={() => setShowClientApproveModal(true)} disabled={loading} className="btn" style={{ padding: '9px 20px', background: '#ef4444' }}>MÜŞTERİ ONAYLADI (MANUEL)</button>
+              </div>
+            )}
+            <div style={{ paddingTop: '16px', borderTop: '1px solid var(--color-border-tertiary)' }}>
+              <button onClick={() => setDeleteStep(1)} className="btn btn-outline" style={{ padding: '9px 20px', color: '#ef4444', borderColor: 'rgba(239,68,68,0.3)' }}>BRIEF'İ SİL</button>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* DELETE CONFIRM MODALS */}
+      {deleteStep >= 1 && (
+        <div onClick={() => setDeleteStep(0)} style={{ position: 'fixed', inset: 0, zIndex: 150, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', border: '1px solid #0a0a0a', padding: '28px', width: '420px', maxWidth: '90vw' }}>
+            <div style={{ fontSize: '16px', fontWeight: '500', color: deleteStep === 2 ? '#ef4444' : '#0a0a0a', marginBottom: '12px' }}>{deleteStep === 2 ? 'Son Onay' : "Brief'i Sil"}</div>
+            <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: 1.7, marginBottom: '24px' }}>{deleteStep === 2 ? 'Brief ve tüm ilişkili dosyalar kalıcı olarak silinecek.' : 'Bu briefi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.'}</div>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={() => setDeleteStep(0)} className="btn btn-outline" style={{ flex: 1, padding: '10px' }}>İptal</button>
+              <button onClick={deleteStep === 2 ? deleteBrief : () => setDeleteStep(2)} disabled={deleting} className="btn" style={{ flex: 1, padding: '10px', background: '#ef4444' }}>{deleting ? 'Siliniyor...' : deleteStep === 2 ? 'Kalıcı Olarak Sil' : 'Evet, Sil'}</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* DELETE CONFIRM — STEP 2 (final) */}
-      {deleteStep === 2 && (
-        <div style={{position:'fixed',inset:0,zIndex:150,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={()=>setDeleteStep(0)}>
-          <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.5)'}} />
-          <div style={{position:'relative',background:'#fff',borderRadius:'16px',padding:'32px',width:'420px',maxWidth:'90vw',boxShadow:'0 20px 60px rgba(0,0,0,0.3)'}} onClick={e=>e.stopPropagation()}>
-            <div style={{fontSize:'16px',fontWeight:'500',color:'#ef4444',marginBottom:'12px'}}>Son Onay</div>
-            <div style={{fontSize:'13px',color:'#555',lineHeight:1.7,marginBottom:'24px'}}>Son kez soruyoruz — brief ve tüm ilişkili dosyalar kalıcı olarak silinecek. Devam etmek istiyor musunuz?</div>
-            <div style={{display:'flex',gap:'10px'}}>
-              <button onClick={()=>setDeleteStep(0)} style={{flex:1,padding:'12px',background:'#f5f4f0',color:'#555',border:'none',borderRadius:'10px',fontSize:'14px',cursor:'pointer',}}>Vazgeç</button>
-              <button onClick={deleteBrief} disabled={deleting}
-                style={{flex:1,padding:'12px',background:'#ef4444',color:'#fff',border:'none',borderRadius:'10px',fontSize:'14px',fontWeight:'500',cursor:deleting?'not-allowed':'pointer',}}>
-                {deleting ? 'Siliniyor...' : 'Kalıcı Olarak Sil'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* CLIENT APPROVE CONFIRM MODAL */}
+      {/* CLIENT APPROVE MODAL */}
       {showClientApproveModal && (
-        <div style={{position:'fixed',inset:0,zIndex:150,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={()=>setShowClientApproveModal(false)}>
-          <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.4)',backdropFilter:'blur(4px)'}} />
-          <div onClick={e=>e.stopPropagation()} style={{position:'relative',background:'#fff',borderRadius:'16px',padding:'32px',width:'100%',maxWidth:'420px',textAlign:'center'}}>
-            <div style={{width:'48px',height:'48px',borderRadius:'50%',background:'rgba(239,68,68,0.1)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px'}}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round"><path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
-            </div>
-            <div style={{fontSize:'18px',fontWeight:'500',color:'#0a0a0a',marginBottom:'10px'}}>Dikkat</div>
-            <div style={{fontSize:'13px',color:'rgba(255,255,255,0.4)',lineHeight:1.7,marginBottom:'24px'}}>Bu butonu yalnızca iş platform dışında ilerledi ve müşteri onay vermeden yayına girdi ya da platform dışından onay bildirdi ise kullanın. Devam etmek istiyor musunuz?</div>
-            <div style={{display:'flex',gap:'10px'}}>
-              <button onClick={()=>setShowClientApproveModal(false)} style={{flex:1,padding:'12px',background:'#f5f4f0',color:'#555',border:'none',borderRadius:'10px',fontSize:'14px',cursor:'pointer',}}>İptal</button>
-              <button onClick={()=>{setShowClientApproveModal(false);handleClientApprove()}} disabled={loading}
-                style={{flex:1,padding:'12px',background:'#ef4444',color:'#fff',border:'none',borderRadius:'10px',fontSize:'14px',fontWeight:'500',cursor:'pointer',}}>
-                {loading?'İşleniyor...':'Evet, Onaylandı'}
-              </button>
+        <div onClick={() => setShowClientApproveModal(false)} style={{ position: 'fixed', inset: 0, zIndex: 150, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', border: '1px solid #0a0a0a', padding: '28px', width: '420px', maxWidth: '90vw', textAlign: 'center' }}>
+            <div style={{ fontSize: '18px', fontWeight: '500', color: '#0a0a0a', marginBottom: '10px' }}>Dikkat</div>
+            <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: 1.7, marginBottom: '24px' }}>Bu butonu yalnızca iş platform dışında ilerledi ve müşteri onay vermeden yayına girdi ya da platform dışından onay bildirdi ise kullanın.</div>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={() => setShowClientApproveModal(false)} className="btn btn-outline" style={{ flex: 1, padding: '10px' }}>İptal</button>
+              <button onClick={() => { setShowClientApproveModal(false); handleClientApprove() }} disabled={loading} className="btn" style={{ flex: 1, padding: '10px', background: '#ef4444' }}>{loading ? 'İşleniyor...' : 'Evet, Onaylandı'}</button>
             </div>
           </div>
         </div>
