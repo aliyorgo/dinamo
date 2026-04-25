@@ -56,7 +56,7 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
         </div>
         <div style={{ fontSize: '12px', color: 'var(--color-text-primary)', fontWeight: '500', marginTop: '6px', marginBottom: '4px' }}>{label}</div>
         <div style={{ display: 'flex', gap: '4px' }}>
-          <a href={url} download target="_blank" rel="noopener noreferrer"
+          <a href={url} download
             style={{ flex: 1, textAlign: 'center', padding: '5px 8px', border: '1px solid #0a0a0a', fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: '#0a0a0a', textDecoration: 'none', cursor: 'pointer' }}>
             İNDİR ↓
           </a>
@@ -162,7 +162,7 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
           <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderTop: '1px solid var(--color-border-tertiary)', paddingTop: '28px' }}>
               <div style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: '600', color: 'var(--color-text-primary)' }}>GÖRSELLER · 5 FORMAT</div>
-              <a href={brief.static_images_url} target="_blank" rel="noopener noreferrer"
+              <a href={brief.static_images_url}
                 style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-secondary)', textDecoration: 'underline', cursor: 'pointer' }}>
                 GÖRSELLERİ İNDİR
               </a>
@@ -199,10 +199,10 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
                           <div style={{ fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: '500', color: 'var(--color-text-tertiary)', marginTop: '4px', marginBottom: '4px' }}>{f.label}</div>
                           {url && (
                             <div style={{ display: 'flex', gap: '4px' }}>
-                              <a href={url} download target="_blank" rel="noopener noreferrer"
+                              <a href={url} download
                                 style={{ flex: 1, textAlign: 'center', padding: '4px 6px', border: '1px solid #0a0a0a', fontSize: '8px', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: '500', color: '#0a0a0a', textDecoration: 'none' }}>YAZILI</a>
                               {noTextUrl && (
-                                <a href={noTextUrl} download target="_blank" rel="noopener noreferrer"
+                                <a href={noTextUrl} download
                                   style={{ flex: 1, textAlign: 'center', padding: '4px 6px', border: '1px solid var(--color-border-tertiary)', fontSize: '8px', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: '500', color: 'var(--color-text-secondary)', textDecoration: 'none' }}>YAZISIZ</a>
                               )}
                             </div>
@@ -212,7 +212,7 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
                     })}
                   </div>
                   <div style={{ marginTop: '12px' }}>
-                    <a href={brief.static_images_url} target="_blank" rel="noopener noreferrer"
+                    <a href={brief.static_images_url}
                       style={{ display: 'inline-flex', padding: '8px 16px', border: '1px solid #0a0a0a', fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: '#0a0a0a', textDecoration: 'none' }}>
                       TÜMÜNÜ ZIP İNDİR ↓
                     </a>
