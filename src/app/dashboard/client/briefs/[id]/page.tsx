@@ -1078,7 +1078,7 @@ function ClientBriefDetail() {
                     <div style={{fontSize:'14px',fontWeight:'600',color:'#0a0a0a'}}>AI Express</div>
                   </div>
                   {!aiWarningDismissed && (
-                    <div style={{background:'#1f1f1b',border:'1px solid #2a2a25',padding:'16px 18px',marginBottom:'16px',display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'16px'}}>
+                    <div style={{background:'#2a2a25',border:'1px solid #33332e',padding:'16px 18px',marginBottom:'16px',display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'16px'}}>
                       <div style={{fontSize:'13px',color:'#fff',lineHeight:1.7,fontStyle:'italic',flex:1}}>
                         Yayına çıkmadan önce fikir geliştirmek ve test etmek için tasarlanmıştır. Deneysel bir özelliktir — sonuçlar garanti edilmez. Bu videolar tamamen yazdığınız brief'den yola çıkarak yapay zeka tarafından üretilmektedir. Fikir, görsel, ses ve müzik tamamen AI tarafından oluşturulur. Ekrandaki yazılar sosyal medyada native text olarak eklenmelidir. Dinamo sadece marka bilgileri ile AI prompt'larına müdahale eder.
                       </div>
@@ -1304,7 +1304,7 @@ function ClientBriefDetail() {
               {activeTab === 'cps' && <>
                 {/* CPS info banner */}
                 {!cpsBannerDismissed && (
-                  <div style={{background:'#1f1f1b',border:'1px solid #2a2a25',padding:'16px 18px',marginBottom:'16px',display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'16px'}}>
+                  <div style={{background:'#2a2a25',border:'1px solid #33332e',padding:'16px 18px',marginBottom:'16px',display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'16px'}}>
                     <div style={{flex:1}}>
                       <div style={{fontSize:'14px',fontWeight:'600',color:'#fff',marginBottom:'10px'}}>Creative Performance System</div>
                       <div style={{fontSize:'12px',color:'rgba(255,255,255,0.6)',lineHeight:1.8,fontStyle:'italic'}}>
