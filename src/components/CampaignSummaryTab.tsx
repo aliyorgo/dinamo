@@ -160,14 +160,28 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
               <div style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: '600', color: 'var(--color-text-primary)' }}>VİDEOLAR · {totalVideos}</div>
             </div>
 
-            {/* Main Video */}
+            {/* Main Video + Caption */}
             {approvedVideos.length > 0 && (
               <div style={{ marginBottom: '28px' }}>
                 <div style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '10px' }}>ANA VİDEO · {approvedVideos.length} video</div>
-                <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-                  {approvedVideos.map((v: any, i: number) => (
-                    <VideoThumb key={v.id} id={`main-${v.id}`} url={v.video_url} label={`V${v.version}`} width={280} />
-                  ))}
+                <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
+                  <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                    {approvedVideos.map((v: any, i: number) => (
+                      <VideoThumb key={v.id} id={`main-${v.id}`} url={v.video_url} label={`V${v.version}`} width={280} />
+                    ))}
+                  </div>
+                  {brief.caption && (
+                    <div style={{ flex: '1 1 260px', maxWidth: '360px', border: '1px solid #0a0a0a', background: '#fff', padding: '16px 18px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                        <div style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: 'var(--color-text-tertiary)' }}>CAPTION ÖNERİSİ</div>
+                        <button onClick={() => { navigator.clipboard.writeText(brief.caption); setCaptionCopied(true); setTimeout(() => setCaptionCopied(false), 2000) }}
+                          className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '10px' }}>
+                          {captionCopied ? 'KOPYALANDİ ✓' : 'KOPYALA'}
+                        </button>
+                      </div>
+                      <div style={{ fontSize: '13px', color: '#0a0a0a', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>{brief.caption}</div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -282,25 +296,7 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
           )
         })()}
 
-        {/* CAPTION SECTION */}
-        {brief.caption && (
-          <div style={{ borderTop: '1px solid var(--color-border-tertiary)', paddingTop: '28px', marginBottom: '28px' }}>
-            <div style={{ maxWidth: '600px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <div style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: '600', color: 'var(--color-text-primary)' }}>CAPTION ÖNERİSİ</div>
-                <button onClick={() => { navigator.clipboard.writeText(brief.caption); setCaptionCopied(true); setTimeout(() => setCaptionCopied(false), 2000) }}
-                  className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '10px' }}>
-                  {captionCopied ? 'KOPYALANDİ ✓' : 'KOPYALA'}
-                </button>
-              </div>
-              <div style={{ background: '#fafaf7', border: '1px solid #0a0a0a', padding: '16px 18px' }}>
-                <div style={{ fontSize: '13px', color: '#0a0a0a', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>{brief.caption}</div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {totalVideos === 0 && !hasStaticImages && !brief.caption && (
+        {totalVideos === 0 && !hasStaticImages && (
           <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--color-text-tertiary)', fontSize: '13px' }}>Henüz teslim edilen içerik yok</div>
         )}
       </div>
