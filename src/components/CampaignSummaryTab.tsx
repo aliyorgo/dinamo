@@ -29,6 +29,14 @@ interface Props {
   aiChildren: any[]
   cpsChildren: any[]
   onRefresh?: () => void
+  captionText: string
+  setCaptionText: (v: string) => void
+  savedCaption: string
+  captionLoading: boolean
+  captionToast: string
+  onGenerateCaption: () => void
+  onCaptionAction: () => void
+  onRegenerateConfirm: () => void
 }
 
 function slugify(name: string): string {
@@ -38,12 +46,11 @@ function slugify(name: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '')
 }
 
-export default function CampaignSummaryTab({ brief, companyName, videos, aiChildren, cpsChildren, onRefresh }: Props) {
+export default function CampaignSummaryTab({ brief, companyName, videos, aiChildren, cpsChildren, onRefresh, captionText, setCaptionText, savedCaption, captionLoading, captionToast, onGenerateCaption, onCaptionAction, onRegenerateConfirm }: Props) {
   const [lightbox, setLightbox] = useState<{ type: 'video' | 'image'; url: string } | null>(null)
   const [menuOpen, setMenuOpen] = useState<string | null>(null)
   const [linkCopied, setLinkCopied] = useState(false)
   const [zipping, setZipping] = useState(false)
-  const [captionCopied, setCaptionCopied] = useState(false)
 
   // Polling: auto-refresh when processing
   const hasProcessing = aiChildren.some(c => c.status === 'ai_processing') ||
@@ -170,16 +177,28 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
                       <VideoThumb key={v.id} id={`main-${v.id}`} url={v.video_url} label={`V${v.version}`} width={280} />
                     ))}
                   </div>
-                  {brief.caption && (
+                  {brief.status === 'delivered' && (
                     <div style={{ flex: '1 1 260px', maxWidth: '360px', border: '1px solid #0a0a0a', background: '#fff', padding: '16px 18px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                        <div style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: 'var(--color-text-tertiary)' }}>CAPTION ÖNERİSİ</div>
-                        <button onClick={() => { navigator.clipboard.writeText(brief.caption); setCaptionCopied(true); setTimeout(() => setCaptionCopied(false), 2000) }}
-                          className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '10px' }}>
-                          {captionCopied ? 'KOPYALANDİ ✓' : 'KOPYALA'}
-                        </button>
-                      </div>
-                      <div style={{ fontSize: '13px', color: '#0a0a0a', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>{brief.caption}</div>
+                      <div style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: 'var(--color-text-tertiary)', marginBottom: '10px' }}>SOSYAL MEDYA CAPTION'I</div>
+                      {!captionText && !captionLoading ? (
+                        <button onClick={onGenerateCaption} className="btn" style={{ padding: '8px 16px' }}>CAPTION ÜRET</button>
+                      ) : (
+                        <>
+                          <textarea value={captionText} onChange={e => { if (e.target.value.length <= 2200) setCaptionText(e.target.value) }}
+                            maxLength={2200} rows={4} disabled={captionLoading}
+                            style={{ width: '100%', padding: '10px', border: '1px solid #0a0a0a', fontSize: '13px', color: '#0a0a0a', lineHeight: '1.6', resize: 'vertical', boxSizing: 'border-box', opacity: captionLoading ? 0.5 : 1 }}
+                            placeholder={captionLoading ? 'Üretiliyor...' : 'Caption yazın...'} />
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
+                            <div style={{ fontSize: '10px', letterSpacing: '1px', color: 'var(--color-text-tertiary)' }}>{captionText.length} / 2200</div>
+                            <div style={{ display: 'flex', gap: '6px' }}>
+                              <button onClick={onRegenerateConfirm} className="btn btn-outline" style={{ padding: '4px 10px', fontSize: '10px' }} disabled={captionLoading}>YENİDEN ÜRET</button>
+                              <button onClick={onCaptionAction} className="btn" style={{ padding: '4px 10px', fontSize: '10px' }} disabled={!captionText.trim()}>
+                                {captionToast ? (captionToast + ' ✓') : (captionText !== savedCaption ? 'KAYDET VE KOPYALA' : 'KOPYALA')}
+                              </button>
+                            </div>
+                          </div>
+                        </>
+                      )}
                     </div>
                   )}
                 </div>

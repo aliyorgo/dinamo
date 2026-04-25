@@ -1526,7 +1526,9 @@ function ClientBriefDetail() {
 
               {/* ═══ SUMMARY TAB ═══ */}
               {activeTab === 'summary' && brief && (
-                <CampaignSummaryTab brief={brief} companyName={companyName} videos={videos} aiChildren={aiChildren} cpsChildren={cpsChildren} onRefresh={loadData} />
+                <CampaignSummaryTab brief={brief} companyName={companyName} videos={videos} aiChildren={aiChildren} cpsChildren={cpsChildren} onRefresh={loadData}
+                  captionText={captionText} setCaptionText={setCaptionText} savedCaption={savedCaption} captionLoading={captionLoading} captionToast={captionToast}
+                  onGenerateCaption={generateCaption} onCaptionAction={handleCaptionAction} onRegenerateConfirm={() => setShowRegenerateConfirm(true)} />
               )}
 
             </>
