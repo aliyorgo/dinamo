@@ -299,7 +299,13 @@ export default function CreditsPage() {
               style={{ padding: '12px 16px', borderBottom: '1px solid #F0F0EE', cursor: 'pointer', borderLeft: selectedId === c.id ? '3px solid #1DB81D' : '3px solid transparent', background: selectedId === c.id ? '#F8FFF8' : 'transparent', transition: 'all 0.1s' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>{c.company_name}</span>
-                <span style={{ fontSize: '11px', fontWeight: '600', color: '#1DB81D' }}>{c.credit_balance || 0}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: '600', color: '#1DB81D' }}>{c.credit_balance || 0}</span>
+                  <span onClick={e => { e.stopPropagation(); router.push(`/dashboard/admin/clients/${c.id}`) }}
+                    style={{ fontSize: '10px', color: '#aaa', cursor: 'pointer', padding: '2px 6px', border: '1px solid #e8e7e3', borderRadius: '4px' }}
+                    onMouseEnter={e => { (e.target as HTMLElement).style.color = '#0a0a0a'; (e.target as HTMLElement).style.borderColor = '#0a0a0a' }}
+                    onMouseLeave={e => { (e.target as HTMLElement).style.color = '#aaa'; (e.target as HTMLElement).style.borderColor = '#e8e7e3' }}>→</span>
+                </div>
               </div>
               <div style={{ fontSize: '11px', color: '#aaa', marginTop: '2px' }}>{c.client_users?.[0]?.count || 0} kullanıcı</div>
             </div>
@@ -323,7 +329,11 @@ export default function CreditsPage() {
             {/* SECTION 1 — CREDIT POOL */}
             <div style={{ marginBottom: '32px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#0a0a0a', margin: 0 }}>{selected?.company_name}</h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#0a0a0a', margin: 0 }}>{selected?.company_name}</h2>
+                  <span onClick={() => router.push(`/dashboard/admin/clients/${selectedId}`)}
+                    style={{ fontSize: '11px', color: '#888', cursor: 'pointer', textDecoration: 'underline', letterSpacing: '0.5px' }}>Detay →</span>
+                </div>
                 <button onClick={() => setShowCreditLoad(!showCreditLoad)} style={{ ...btnPrimary, background: '#1DB81D', color: '#0a0a0a', fontWeight: '600' }}>Kredi Yükle</button>
               </div>
 
