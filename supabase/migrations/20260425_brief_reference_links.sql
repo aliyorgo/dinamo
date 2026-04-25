@@ -1,1 +1,1 @@
-ALTER TABLE briefs ADD COLUMN IF NOT EXISTS reference_links TEXT[] DEFAULT '{}';
+ALTER TABLE briefs ADD COLUMN IF NOT EXISTS reference_links JSONB DEFAULT '[]'::jsonb;
