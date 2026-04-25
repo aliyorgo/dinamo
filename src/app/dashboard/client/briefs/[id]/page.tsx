@@ -85,7 +85,7 @@ function ClientBriefDetail() {
   const [showAiGenerate, setShowAiGenerate] = useState(false)
   const [aiGenerating, setAiGenerating] = useState(false)
   const [aiWarningDismissed, setAiWarningDismissed] = useState(false)
-  const [cpsBannerDismissed, setCpsBannerDismissed] = useState(() => typeof window !== 'undefined' && localStorage.getItem('cps_banner_dismissed') === '1')
+  const [cpsBannerDismissed, setCpsBannerDismissed] = useState(false)
   const [activeTab, setActiveTab] = useState<'hybrid'|'cps'|'express'>(searchParams.get('tab') === 'express' ? 'express' : searchParams.get('tab') === 'cps' ? 'cps' : 'hybrid')
   const [briefExpanded, setBriefExpanded] = useState(false)
   const [autoGenerateTriggered, setAutoGenerateTriggered] = useState(false)
@@ -1373,7 +1373,7 @@ function ClientBriefDetail() {
                         Aynı brief'ten farklı yaratıcı yönler üretin. Hook'tan ton'a, her varyasyonu kontrol edin. AI otomatik plan oluşturur, ekip üretir.
                       </div>
                     </div>
-                    <button onClick={()=>{setCpsBannerDismissed(true);localStorage.setItem('cps_banner_dismissed','1')}}
+                    <button onClick={()=>setCpsBannerDismissed(true)}
                       style={{width:'26px',height:'26px',flexShrink:0,border:'1px solid rgba(255,255,255,0.3)',background:'transparent',color:'#fff',fontSize:'14px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>&#215;</button>
                   </div>
                 )}
