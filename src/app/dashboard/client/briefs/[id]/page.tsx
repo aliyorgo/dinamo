@@ -96,6 +96,7 @@ function ClientBriefDetail() {
   const [captionLoading, setCaptionLoading] = useState(false)
   const [captionToast, setCaptionToast] = useState('')
   const [showRegenerateConfirm, setShowRegenerateConfirm] = useState(false)
+  const captionRef = useRef<HTMLTextAreaElement>(null)
   const [generatingLink, setGeneratingLink] = useState(false)
   const [linkCopied, setLinkCopied] = useState(false)
   const [aiStageElapsed, setAiStageElapsed] = useState(0)
@@ -977,7 +978,7 @@ function ClientBriefDetail() {
                     </button>
                   ) : (
                     <>
-                      <textarea value={captionText} onChange={e => { if (e.target.value.length <= 2200) setCaptionText(e.target.value) }}
+                      <textarea ref={captionRef} value={captionText} onChange={e => { if (e.target.value.length <= 2200) setCaptionText(e.target.value) }}
                         maxLength={2200} rows={4} disabled={captionLoading}
                         style={{width:'100%',padding:'12px',border:'1px solid #0a0a0a',fontSize:'14px',color:'#0a0a0a',lineHeight:'1.6',resize:'vertical',boxSizing:'border-box',opacity:captionLoading?0.5:1}}
                         placeholder={captionLoading ? 'Üretiliyor...' : 'Caption yazın...'} />
