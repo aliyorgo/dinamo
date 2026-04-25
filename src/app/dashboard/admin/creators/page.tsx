@@ -214,6 +214,21 @@ export default function AdminCreators() {
                       {creator.iban&&<div><div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',letterSpacing:'0.5px',marginBottom:'2px'}}>IBAN</div><div style={{fontSize:'13px',color:'#0a0a0a',fontFamily:'monospace'}}>{creator.iban}</div></div>}
                       {creator.entity_type&&<div><div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',letterSpacing:'0.5px',marginBottom:'2px'}}>TİP</div><div style={{fontSize:'13px',color:'#0a0a0a'}}>{creator.entity_type==='company'?`Şirket${creator.tax_no?' · VN: '+creator.tax_no:''}`:'Şahıs'}</div></div>}
                       {creator.address&&<div><div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',letterSpacing:'0.5px',marginBottom:'2px'}}>ADRES</div><div style={{fontSize:'13px',color:'#0a0a0a'}}>{creator.address}</div></div>}
+                      <div>
+                        <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',letterSpacing:'0.5px',marginBottom:'2px'}}>KREDİ KURU (₺)</div>
+                        <div style={{display:'flex',gap:'6px',alignItems:'center'}}>
+                          <input type="number" step="0.01" defaultValue={creator.custom_credit_rate || ''} placeholder="Sistem default"
+                            onBlur={async (e) => {
+                              const val = e.target.value ? parseFloat(e.target.value) : null
+                              await supabase.from('creators').update({ custom_credit_rate: val }).eq('id', creator.id)
+                              setCreators(prev => prev.map(c => c.id === creator.id ? { ...c, custom_credit_rate: val } : c))
+                              setMsg(val ? `Custom kur: ${val} ₺` : 'Sistem default kuruna dönüldü.')
+                              setTimeout(() => setMsg(''), 2000)
+                            }}
+                            style={{width:'90px',padding:'5px 8px',border:'1px solid #e8e7e3',borderRadius:'6px',fontSize:'13px',color:'#0a0a0a',textAlign:'right'}} />
+                          <span style={{fontSize:'11px',color:'#aaa'}}>{creator.custom_credit_rate ? 'Custom' : 'Default'}</span>
+                        </div>
+                      </div>
                     </div>
 
                     {pendingAmount > 0 && (() => {

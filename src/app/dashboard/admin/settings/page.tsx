@@ -13,7 +13,15 @@ export default function SettingsPage() {
   const [pkgEdits, setPkgEdits] = useState<Record<string,{name:string,credits:string,price_tl:string}>>({})
   const [newPkg, setNewPkg] = useState({name:'',credits:'',price_tl:''})
 
-  useEffect(() => { loadSettings() }, [])
+  // User management
+  const [admins, setAdmins] = useState<any[]>([])
+  const [producers, setProducers] = useState<any[]>([])
+  const [userForm, setUserForm] = useState({ name: '', email: '', password: '', role: 'admin' })
+  const [userSaving, setUserSaving] = useState(false)
+  const [editingUser, setEditingUser] = useState<any>(null)
+  const [editForm, setEditForm] = useState({ name: '', email: '', password: '' })
+
+  useEffect(() => { loadSettings(); loadUsers() }, [])
 
   async function loadSettings() {
     const { data } = await supabase.from('admin_settings').select('*')
@@ -25,6 +33,45 @@ export default function SettingsPage() {
     const edits: Record<string,{name:string,credits:string,price_tl:string}> = {}
     pkgs?.forEach(p => { edits[p.id] = { name: p.name, credits: String(p.credits), price_tl: String(p.price_tl || 0) } })
     setPkgEdits(edits)
+  }
+
+  async function loadUsers() {
+    const { data } = await supabase.from('users').select('*').in('role', ['admin', 'producer']).order('created_at', { ascending: false })
+    setAdmins((data || []).filter(u => u.role === 'admin'))
+    setProducers((data || []).filter(u => u.role === 'producer'))
+  }
+
+  async function createUser(role: string) {
+    setUserSaving(true)
+    const res = await fetch('/api/admin/create-user', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...userForm, role }) })
+    const data = await res.json()
+    setUserSaving(false)
+    if (data.error) { setMsg(data.error); return }
+    setUserForm({ name: '', email: '', password: '', role: 'admin' })
+    setMsg('Kullanıcı oluşturuldu.')
+    loadUsers()
+    setTimeout(() => setMsg(''), 3000)
+  }
+
+  async function updateUser() {
+    if (!editingUser) return
+    setUserSaving(true)
+    const res = await fetch('/api/admin/update-user', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: editingUser.id, name: editForm.name, email: editForm.email, password: editForm.password || undefined, role: editingUser.role }) })
+    const data = await res.json()
+    setUserSaving(false)
+    if (data.error) { setMsg(data.error); return }
+    setEditingUser(null)
+    setMsg('Kullanıcı güncellendi.')
+    loadUsers()
+    setTimeout(() => setMsg(''), 3000)
+  }
+
+  async function deleteUser(user: any) {
+    if (!confirm(`"${user.name}" kullanıcısını silmek istediğinizden emin misiniz?`)) return
+    await fetch('/api/admin/delete-user', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: user.id }) })
+    setMsg('Kullanıcı silindi.')
+    loadUsers()
+    setTimeout(() => setMsg(''), 3000)
   }
 
   async function saveSetting(key: string, value: string) {
@@ -162,6 +209,47 @@ export default function SettingsPage() {
             </button>
           </div>
         </div>
+        {/* ADMIN KULLANICILARI */}
+        {(['admin', 'producer'] as const).map(role => {
+          const list = role === 'admin' ? admins : producers
+          const label = role === 'admin' ? 'ADMİN KULLANICILARI' : 'PRODÜKTÖR KULLANICILARI'
+          return (
+            <div key={role} style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',overflow:'hidden',marginTop:'32px'}}>
+              <div style={{padding:'16px 24px',borderBottom:'1px solid #e8e7e3',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                <div style={{fontSize:'12px',color:'rgba(255,255,255,0.4)',letterSpacing:'1px',fontFamily:'monospace'}}>{label}</div>
+                <div style={{fontSize:'11px',color:'#888'}}>{list.length} kişi</div>
+              </div>
+              {list.map(u => (
+                <div key={u.id} style={{padding:'12px 24px',borderBottom:'1px solid #f0f0ee',display:'flex',alignItems:'center',gap:'12px'}}>
+                  {editingUser?.id === u.id ? (
+                    <>
+                      <input value={editForm.name} onChange={e=>setEditForm({...editForm,name:e.target.value})} placeholder="Ad" style={{flex:1,padding:'6px 10px',border:'1px solid #e8e7e3',borderRadius:'6px',fontSize:'13px'}} />
+                      <input value={editForm.email} onChange={e=>setEditForm({...editForm,email:e.target.value})} placeholder="Email" style={{flex:1,padding:'6px 10px',border:'1px solid #e8e7e3',borderRadius:'6px',fontSize:'13px'}} />
+                      <input value={editForm.password} onChange={e=>setEditForm({...editForm,password:e.target.value})} placeholder="Yeni şifre (boş = değişmez)" style={{flex:1,padding:'6px 10px',border:'1px solid #e8e7e3',borderRadius:'6px',fontSize:'13px'}} />
+                      <button onClick={updateUser} disabled={userSaving} style={{padding:'5px 12px',background:'#0a0a0a',color:'#fff',border:'none',borderRadius:'6px',fontSize:'11px',cursor:'pointer'}}>Kaydet</button>
+                      <button onClick={()=>setEditingUser(null)} style={{padding:'5px 12px',background:'#fff',color:'#888',border:'1px solid #e8e7e3',borderRadius:'6px',fontSize:'11px',cursor:'pointer'}}>İptal</button>
+                    </>
+                  ) : (
+                    <>
+                      <div style={{flex:1}}>
+                        <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{u.name || '—'}</div>
+                        <div style={{fontSize:'11px',color:'#888'}}>{u.email}</div>
+                      </div>
+                      <button onClick={()=>{setEditingUser(u);setEditForm({name:u.name||'',email:u.email||'',password:''})}} style={{padding:'4px 10px',background:'#fff',color:'#555',border:'1px solid #e8e7e3',borderRadius:'6px',fontSize:'10px',cursor:'pointer'}}>Düzenle</button>
+                      <button onClick={()=>deleteUser(u)} style={{padding:'4px 10px',background:'#fff',color:'#ef4444',border:'1px solid rgba(239,68,68,0.3)',borderRadius:'6px',fontSize:'10px',cursor:'pointer'}}>Sil</button>
+                    </>
+                  )}
+                </div>
+              ))}
+              <div style={{padding:'12px 24px',borderTop:'1px solid #e8e7e3',background:'#fafaf8',display:'flex',gap:'8px',alignItems:'center'}}>
+                <input value={role === userForm.role ? userForm.name : ''} onChange={e=>setUserForm({...userForm,name:e.target.value,role})} placeholder="Ad Soyad" style={{flex:1,padding:'7px 10px',border:'1px solid #e8e7e3',borderRadius:'6px',fontSize:'13px'}} />
+                <input value={role === userForm.role ? userForm.email : ''} onChange={e=>setUserForm({...userForm,email:e.target.value,role})} placeholder="Email" style={{flex:1,padding:'7px 10px',border:'1px solid #e8e7e3',borderRadius:'6px',fontSize:'13px'}} />
+                <input value={role === userForm.role ? userForm.password : ''} onChange={e=>setUserForm({...userForm,password:e.target.value,role})} placeholder="Şifre" style={{width:'120px',padding:'7px 10px',border:'1px solid #e8e7e3',borderRadius:'6px',fontSize:'13px'}} />
+                <button onClick={()=>createUser(role)} disabled={userSaving||!(role===userForm.role&&userForm.email)} style={{padding:'7px 14px',background:'#22c55e',color:'#fff',border:'none',borderRadius:'6px',fontSize:'11px',cursor:'pointer',fontWeight:'500',opacity:!(role===userForm.role&&userForm.email)?0.4:1,whiteSpace:'nowrap'}}>+ Ekle</button>
+              </div>
+            </div>
+          )
+        })}
     </div>
   )
 }

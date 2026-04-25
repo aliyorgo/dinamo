@@ -10,9 +10,7 @@ const navLinks: Record<string, NavItem[]> = {
   admin: [
     { href: '/dashboard/admin', label: 'Genel Bakış' },
     { href: '/dashboard/admin/briefs', label: 'Briefler' },
-    { href: '/dashboard/admin/credits', label: 'Kredi Yönetimi' },
-    { href: '/dashboard/admin/clients', label: 'Müşteriler' },
-    { href: '/dashboard/admin/users', label: 'Kullanıcılar' },
+    { href: '/dashboard/admin/credits', label: 'Müşteriler' },
     { href: '/dashboard/admin/agencies', label: 'Ajanslar' },
     { href: '/dashboard/admin/creators', label: "Creator'lar" },
     { href: '/dashboard/admin/reports', label: 'Raporlar' },

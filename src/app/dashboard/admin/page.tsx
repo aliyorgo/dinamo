@@ -92,7 +92,7 @@ export default function AdminDashboard() {
                   {[
                     approvalCount > 0 ? { label: `${approvalCount} video onay bekliyor`, href: '/dashboard/admin/briefs', color: '#ef4444', urgent: true } : null,
                     unansweredCount > 0 ? { label: `${unansweredCount} cevaplanmamış müşteri sorusu`, href: '/dashboard/admin/briefs', color: '#f59e0b', urgent: false } : null,
-                    demoCount > 0 ? { label: `${demoCount} yeni demo talebi (son 7 gün)`, href: '/dashboard/admin/users', color: '#3b82f6', urgent: false } : null,
+                    demoCount > 0 ? { label: `${demoCount} yeni demo talebi (son 7 gün)`, href: '/dashboard/admin/creators', color: '#3b82f6', urgent: false } : null,
                     pendingCount > 0 ? { label: `${pendingCount} bekleyen creator başvurusu`, href: '/dashboard/admin/creators', color: '#f59e0b', urgent: false } : null,
                   ].filter(Boolean).map((item: any) => (
                     <div key={item.label} onClick={() => router.push(item.href)}
