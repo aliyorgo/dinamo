@@ -623,6 +623,13 @@ function ClientBriefDetail() {
               {/* ═══ HYBRID TAB ═══ */}
               {activeTab === 'hybrid' && <>
 
+              {/* CREDIT BOX */}
+              {(brief.credit_cost || 0) > 0 && (
+                <div style={{display:'flex',justifyContent:'flex-end',marginBottom:'12px'}}>
+                  <div style={{display:'inline-flex',padding:'6px 14px',border:'1px solid #0a0a0a',fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'#0a0a0a'}}>{brief.credit_cost} KREDİ</div>
+                </div>
+              )}
+
               {/* DRAFT BANNER */}
               {brief.status === 'draft' && (
                 <div style={{background:'#fffbeb',border:'1.5px dashed #f59e0b',borderRadius:'12px',padding:'14px 18px',marginBottom:'16px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
@@ -1080,11 +1087,6 @@ function ClientBriefDetail() {
                       </div>
                     )}
 
-                    {/* Credit */}
-                    <div style={{borderTop:'1px solid var(--color-border-tertiary)',paddingTop:'14px',marginTop:'14px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                      <span style={{fontSize:'10px',letterSpacing:'2px',textTransform:'uppercase',color:'var(--color-text-tertiary)',fontWeight:'500'}}>KREDİ</span>
-                      <span style={{fontSize:'15px',fontWeight:'500',color:'var(--color-text-primary)'}}>{brief.credit_cost} kredi</span>
-                    </div>
                   </div>
                 )}
               </div>
@@ -1107,14 +1109,12 @@ function ClientBriefDetail() {
               {/* ═══ AI EXPRESS TAB ═══ */}
               {activeTab === 'express' && <>
 
-              {/* AI EXPRESS CREDIT SUMMARY */}
+              {/* AI EXPRESS CREDIT BOX */}
               {aiChildren.length > 0 && (() => {
-                const genCredits = aiChildren.length
-                const purchaseCredits = aiChildren.filter(c => c.status === 'delivered').length * 2
-                const total = genCredits + purchaseCredits
+                const total = aiChildren.length + aiChildren.filter(c => c.status === 'delivered').length * 2
                 return total > 0 ? (
-                  <div style={{fontSize:'12px',color:'var(--color-text-secondary)',marginBottom:'12px'}}>
-                    Bu brief'te AI Express için toplam <strong style={{color:'var(--color-text-primary)'}}>{total} kredi</strong> harcandı
+                  <div style={{display:'flex',justifyContent:'flex-end',marginBottom:'12px'}}>
+                    <div style={{display:'inline-flex',padding:'6px 14px',border:'1px solid #0a0a0a',fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'#0a0a0a'}}>{total} KREDİ</div>
                   </div>
                 ) : null
               })()}
@@ -1350,12 +1350,12 @@ function ClientBriefDetail() {
 
               {/* ═══ CPS TAB ═══ */}
               {activeTab === 'cps' && <>
-                {/* CPS CREDIT SUMMARY */}
+                {/* CPS CREDIT BOX */}
                 {cpsChildren.length > 0 && (() => {
                   const total = cpsChildren.reduce((s: number, c: any) => s + (c.credit_cost || 0), 0)
                   return total > 0 ? (
-                    <div style={{fontSize:'12px',color:'var(--color-text-secondary)',marginBottom:'12px'}}>
-                      Bu brief'te CPS için toplam <strong style={{color:'var(--color-text-primary)'}}>{total} kredi</strong> harcandı
+                    <div style={{display:'flex',justifyContent:'flex-end',marginBottom:'12px'}}>
+                      <div style={{display:'inline-flex',padding:'6px 14px',border:'1px solid #0a0a0a',fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'#0a0a0a'}}>{total} KREDİ</div>
                     </div>
                   ) : null
                 })()}
