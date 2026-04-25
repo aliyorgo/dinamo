@@ -90,7 +90,7 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
       {/* STICKY SUMMARY BAR */}
       <div style={{ position: 'sticky', top: 0, zIndex: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 28px', background: 'var(--color-background-secondary)', borderBottom: '1px solid var(--color-border-tertiary)' }}>
         <div>
-          <div style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-secondary)', fontWeight: '500' }}>KAMPANYA ADI</div>
+          <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--color-text-primary)' }}>{brief.campaign_name}</div>
           <div style={{ fontSize: '13px', color: 'var(--color-text-primary)', marginTop: '4px' }}>
             <strong>{totalVideos}</strong><span style={{ color: 'var(--color-text-tertiary)' }}> onaylı çıktı</span>
             {draftCount > 0 && <><span style={{ color: 'var(--color-text-tertiary)' }}> · </span><strong>{draftCount}</strong><span style={{ color: 'var(--color-text-tertiary)' }}> taslak</span></>}
@@ -169,11 +169,17 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px' }}>
               {['9:16 Reel', '4:5 IG', '1:1 Kare', '16:9 Yatay', '1200x628'].map((fmt, i) => (
-                <div key={fmt} style={{ border: '1px solid var(--color-border-tertiary)', background: '#f5f4f0', aspectRatio: ['9/16', '4/5', '1/1', '16/9', '1.91/1'][i], display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-                  <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>{fmt}</span>
-                  <div style={{ position: 'absolute', bottom: '6px', left: '6px', padding: '2px 6px', background: '#fff', border: '1px solid #0a0a0a', fontSize: '8px', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: '500' }}>{fmt.split(' ')[0]}</div>
+                <div key={fmt} style={{ border: '1px solid var(--color-border-tertiary)', background: '#f5f4f0', aspectRatio: ['9/16', '4/5', '1/1', '16/9', '1.91/1'][i], display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px', position: 'relative' }}>
+                  <div style={{ fontSize: '20px', color: 'var(--color-text-tertiary)', opacity: 0.4 }}>&#9634;</div>
+                  <span style={{ fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: '500', color: 'var(--color-text-tertiary)' }}>{fmt}</span>
                 </div>
               ))}
+            </div>
+            <div style={{ marginTop: '12px' }}>
+              <a href={brief.static_images_url} target="_blank" rel="noopener noreferrer"
+                style={{ display: 'inline-flex', padding: '8px 16px', border: '1px solid #0a0a0a', fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: '#0a0a0a', textDecoration: 'none', cursor: 'pointer' }}>
+                ZIP İNDİR ↓
+              </a>
             </div>
           </>
         )}
