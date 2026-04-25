@@ -13,7 +13,6 @@ interface Props {
 export default function SharePageClient({ brief, clientName, videos, aiChildren, cpsChildren }: Props) {
   const [lightbox, setLightbox] = useState<{ type: 'video' | 'image'; url: string } | null>(null)
   const [zipping, setZipping] = useState(false)
-  const [zipLabel, setZipLabel] = useState('')
 
   const totalVideos = videos.length + aiChildren.length + cpsChildren.length
   const hasStaticImages = !!brief.static_images_url || !!brief.static_image_files
@@ -62,12 +61,12 @@ export default function SharePageClient({ brief, clientName, videos, aiChildren,
             </div>
           </div>
           <button onClick={async () => {
-            if (zipping) return; setZipping(true); setZipLabel('BAŞLANIYOR...')
-            try { await downloadCampaignZip(brief.id, (p) => setZipLabel(`${p.detail} %${p.pct}`)) } catch {}
-            setZipping(false); setZipLabel('')
+            if (zipping) return; setZipping(true)
+            try { await downloadCampaignZip(brief.id) } catch {}
+            setZipping(false)
           }} disabled={zipping}
             style={{ padding: '12px 24px', background: '#0a0a0a', color: '#fff', border: '1px solid #0a0a0a', fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', cursor: zipping ? 'wait' : 'pointer', opacity: zipping ? 0.6 : 1 }}>
-            {zipping ? zipLabel || 'HAZIRLANIYOR...' : 'TÜMÜNÜ ZİP İNDİR ↓'}
+            {zipping ? 'HAZIRLANIYOR...' : 'TÜMÜNÜ ZİP İNDİR ↓'}
           </button>
         </div>
       </div>

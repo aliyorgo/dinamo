@@ -43,7 +43,6 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
   const [menuOpen, setMenuOpen] = useState<string | null>(null)
   const [linkCopied, setLinkCopied] = useState(false)
   const [zipping, setZipping] = useState(false)
-  const [zipLabel, setZipLabel] = useState('')
 
   // Polling: auto-refresh when processing
   const hasProcessing = aiChildren.some(c => c.status === 'ai_processing') ||
@@ -137,12 +136,12 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
           </button>
           <button onClick={async () => {
             if (zipping) return
-            setZipping(true); setZipLabel('BAŞLANIYOR...')
-            try { await downloadCampaignZip(brief.id, (p) => setZipLabel(`${p.detail} %${p.pct}`)) } catch (e) { console.error(e) }
-            setZipping(false); setZipLabel('')
+            setZipping(true)
+            try { await downloadCampaignZip(brief.id) } catch (e) { console.error(e) }
+            setZipping(false)
           }} disabled={zipping}
             style={{ padding: '8px 14px', border: '1px solid #0a0a0a', background: '#0a0a0a', color: '#fff', fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', cursor: zipping ? 'wait' : 'pointer', opacity: zipping ? 0.6 : 1 }}>
-            {zipping ? zipLabel || 'HAZIRLANIYOR...' : 'TÜMÜNÜ ZİP İNDİR ↓'}
+            {zipping ? 'HAZIRLANIYOR...' : 'TÜMÜNÜ ZİP İNDİR ↓'}
           </button>
           <div style={{ padding: '7px 14px', border: '1px solid #f5a623', background: 'rgba(245,166,35,0.1)', fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '600', color: '#0a0a0a' }}>
             TOPLAM {totalCredits} KREDİ
