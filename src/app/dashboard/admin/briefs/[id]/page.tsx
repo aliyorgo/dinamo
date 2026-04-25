@@ -126,22 +126,38 @@ export default function AdminBriefDetail() {
 
   // CPS child creator assignment
   async function forwardCpsChild(childId: string) {
-    const form = cpsCreatorForms[childId]; if (!form?.creator_id) return; setLoading(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    await supabase.from('producer_briefs').delete().eq('brief_id', childId)
-    await supabase.from('producer_briefs').insert({ brief_id: childId, producer_id: user?.id, assigned_creator_id: form.creator_id, producer_note: form.note, shared_fields: sharedFields, forwarded_at: new Date().toISOString() })
-    await supabase.from('briefs').update({ status: 'in_production' }).eq('id', childId)
-    setMsg('CPS yön iletildi.'); loadData(); setLoading(false)
+    const form = cpsCreatorForms[childId]
+    console.log('[CPS] forwardCpsChild called:', childId, 'form:', form)
+    if (!form?.creator_id) { console.log('[CPS] No creator_id, aborting'); setMsg('Creator seçilmedi.'); return }
+    setLoading(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      const { error: delErr } = await supabase.from('producer_briefs').delete().eq('brief_id', childId)
+      if (delErr) console.log('[CPS] delete error:', delErr.message)
+      const { error: insErr } = await supabase.from('producer_briefs').insert({ brief_id: childId, producer_id: user?.id, assigned_creator_id: form.creator_id, producer_note: form.note || '', shared_fields: sharedFields, forwarded_at: new Date().toISOString() })
+      if (insErr) { console.error('[CPS] insert error:', insErr.message); setMsg('Hata: ' + insErr.message); setLoading(false); return }
+      const { error: upErr } = await supabase.from('briefs').update({ status: 'in_production' }).eq('id', childId)
+      if (upErr) console.log('[CPS] status update error:', upErr.message)
+      setMsg('CPS yön iletildi.')
+    } catch (err: any) { console.error('[CPS] forwardCpsChild error:', err); setMsg('Hata: ' + err.message) }
+    loadData(); setLoading(false)
   }
   async function forwardAllCps(creatorId: string) {
-    if (!creatorId) return; setLoading(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    for (const child of cpsChildren) {
-      await supabase.from('producer_briefs').delete().eq('brief_id', child.id)
-      await supabase.from('producer_briefs').insert({ brief_id: child.id, producer_id: user?.id, assigned_creator_id: creatorId, shared_fields: sharedFields, forwarded_at: new Date().toISOString() })
-      await supabase.from('briefs').update({ status: 'in_production' }).eq('id', child.id)
-    }
-    setMsg(`${cpsChildren.length} CPS yön topluca iletildi.`); loadData(); setLoading(false)
+    console.log('[CPS] forwardAllCps called:', creatorId, 'children:', cpsChildren.length)
+    if (!creatorId) { setMsg('Creator seçilmedi.'); return }
+    setLoading(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      for (const child of cpsChildren) {
+        const { error: delErr } = await supabase.from('producer_briefs').delete().eq('brief_id', child.id)
+        if (delErr) console.log('[CPS] bulk delete error:', delErr.message)
+        const { error: insErr } = await supabase.from('producer_briefs').insert({ brief_id: child.id, producer_id: user?.id, assigned_creator_id: creatorId, shared_fields: sharedFields, forwarded_at: new Date().toISOString() })
+        if (insErr) { console.error('[CPS] bulk insert error:', insErr.message); setMsg('Hata: ' + insErr.message); setLoading(false); return }
+        await supabase.from('briefs').update({ status: 'in_production' }).eq('id', child.id)
+      }
+      setMsg(`${cpsChildren.length} CPS yön topluca iletildi.`)
+    } catch (err: any) { console.error('[CPS] forwardAllCps error:', err); setMsg('Hata: ' + err.message) }
+    loadData(); setLoading(false)
   }
   async function approveCpsSubmission(childId: string, subId: string) {
     setLoading(true); const { data: { user } } = await supabase.auth.getUser()
