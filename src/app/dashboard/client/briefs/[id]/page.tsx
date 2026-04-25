@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import { generateCertificatePDF } from '@/lib/generate-certificate'
 import StaticImageGeneratorModal from '@/components/StaticImageGeneratorModal'
+import CampaignSummaryTab from '@/components/CampaignSummaryTab'
 import VideoLoadingBox from '@/components/VideoLoadingBox'
 import { logClientActivity } from '@/lib/log-client'
 
@@ -86,7 +87,7 @@ function ClientBriefDetail() {
   const [aiGenerating, setAiGenerating] = useState(false)
   const [aiWarningDismissed, setAiWarningDismissed] = useState(false)
   const [cpsBannerDismissed, setCpsBannerDismissed] = useState(false)
-  const [activeTab, setActiveTab] = useState<'hybrid'|'cps'|'express'>(searchParams.get('tab') === 'express' ? 'express' : searchParams.get('tab') === 'cps' ? 'cps' : 'hybrid')
+  const [activeTab, setActiveTab] = useState<'hybrid'|'cps'|'express'|'summary'>(searchParams.get('tab') === 'express' ? 'express' : searchParams.get('tab') === 'cps' ? 'cps' : searchParams.get('tab') === 'summary' ? 'summary' : 'hybrid')
   const [briefExpanded, setBriefExpanded] = useState(false)
   const [autoGenerateTriggered, setAutoGenerateTriggered] = useState(false)
   const [cpsChildren, setCpsChildren] = useState<any[]>([])
@@ -587,24 +588,30 @@ function ClientBriefDetail() {
 
         {/* TABS */}
         <div style={{display:'flex',gap:0,background:'#fff',paddingLeft:'28px',borderBottom:'1px solid rgba(0,0,0,0.08)'}}>
-          {[
-            {key:'hybrid' as const, label:'Ana Video'},
-            {key:'cps' as const, label:'CPS'},
-            {key:'express' as const, label:'AI Express'},
-          ].map((t,ti)=>{
-            const isActive = activeTab === t.key
-            return (
-              <button key={t.key} onClick={()=>setActiveTab(t.key)}
-                style={{padding:'12px 24px',border:'none',borderBottom:isActive?'2px solid #1DB81D':'2px solid transparent',borderRight:ti<2?'1px solid rgba(0,0,0,0.06)':'none',background:isActive?'#0a0a0a':'#fff',color:isActive?'#fff':'#555',fontSize:'14px',fontWeight:'600',cursor:'pointer',transition:'all 0.15s'}}
-                onMouseEnter={e=>{if(!isActive)e.currentTarget.style.background='#f5f5f5'}}
-                onMouseLeave={e=>{if(!isActive)e.currentTarget.style.background='#fff'}}>
-                {t.label}
-                {t.key==='express' && <span style={{marginLeft:'4px',fontSize:'9px',padding:'1px 5px',background:'#1DB81D',color:'#fff',borderRadius:'3px',fontWeight:'600',verticalAlign:'middle'}}>Beta</span>}
-                {t.key==='express' && aiChildren.length > 0 && <span style={{marginLeft:'6px',fontSize:'10px',color:isActive?'#1DB81D':'#1DB81D',fontWeight:'600'}}>{aiChildren.filter(c=>c.ai_video_url).length}</span>}
-                {t.key==='cps' && cpsChildren.length > 0 && <span style={{marginLeft:'6px',fontSize:'10px',color:isActive?'#8bb4f6':'#3b82f6',fontWeight:'600'}}>{cpsChildren.length}</span>}
-              </button>
-            )
-          })}
+          {(() => {
+            const hasSummary = aiChildren.length > 0 || cpsChildren.length > 0 || !!brief?.static_images_url
+            const tabs = [
+              {key:'hybrid' as const, label:'Ana Video'},
+              {key:'cps' as const, label:'CPS'},
+              {key:'express' as const, label:'AI Express'},
+              ...(hasSummary ? [{key:'summary' as const, label:'Kampanya Özeti'}] : []),
+            ]
+            return tabs.map((t,ti)=>{
+              const isActive = activeTab === t.key
+              const isSummary = t.key === 'summary'
+              return (
+                <button key={t.key} onClick={()=>setActiveTab(t.key)}
+                  style={{padding:'12px 24px',border:'none',borderBottom:isActive?(isSummary?'2px solid #f5a623':'2px solid #0a0a0a'):'2px solid transparent',borderRight:ti<tabs.length-1?'1px solid rgba(0,0,0,0.06)':'none',background:isActive?(isSummary?'rgba(245,166,35,0.06)':'#0a0a0a'):'#fff',color:isActive?(isSummary?'#0a0a0a':'#fff'):'#555',fontSize:'14px',fontWeight:'600',cursor:'pointer',transition:'all 0.15s'}}
+                  onMouseEnter={e=>{if(!isActive)e.currentTarget.style.background='#f5f5f5'}}
+                  onMouseLeave={e=>{if(!isActive)e.currentTarget.style.background='#fff'}}>
+                  {t.label}
+                  {t.key==='express' && <span style={{marginLeft:'4px',fontSize:'9px',padding:'1px 5px',background:'#1DB81D',color:'#fff',fontWeight:'600',verticalAlign:'middle'}}>Beta</span>}
+                  {t.key==='express' && aiChildren.length > 0 && <span style={{marginLeft:'6px',fontSize:'10px',color:'#1DB81D',fontWeight:'600'}}>{aiChildren.filter(c=>c.ai_video_url).length}</span>}
+                  {t.key==='cps' && cpsChildren.length > 0 && <span style={{marginLeft:'6px',fontSize:'10px',color:'#3b82f6',fontWeight:'600'}}>{cpsChildren.length}</span>}
+                </button>
+              )
+            })
+          })()}
         </div>
 
         <div style={{flex:1,padding:'24px 28px'}}>
@@ -1516,6 +1523,11 @@ function ClientBriefDetail() {
                 )}
 
               </>}
+
+              {/* ═══ SUMMARY TAB ═══ */}
+              {activeTab === 'summary' && brief && (
+                <CampaignSummaryTab brief={brief} companyName={companyName} videos={videos} aiChildren={aiChildren} cpsChildren={cpsChildren} />
+              )}
 
             </>
           )}
