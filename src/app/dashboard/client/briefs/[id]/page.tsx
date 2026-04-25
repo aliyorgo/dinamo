@@ -102,6 +102,14 @@ function ClientBriefDetail() {
 
   useEffect(() => { loadData() }, [id])
 
+  // Refetch on summary tab activation + window focus
+  useEffect(() => { if (activeTab === 'summary') loadData() }, [activeTab])
+  useEffect(() => {
+    const onFocus = () => { if (activeTab === 'summary') loadData() }
+    window.addEventListener('focus', onFocus)
+    return () => window.removeEventListener('focus', onFocus)
+  }, [activeTab])
+
   // Auto-generate AI Express from URL param
   useEffect(() => {
     if (autoGenerateTriggered) return
@@ -914,21 +922,11 @@ function ClientBriefDetail() {
                         <div style={{background:'#f5f4f0',border:'0.5px solid rgba(0,0,0,0.08)',borderRadius:'10px',padding:'14px 16px',position:'relative'}}>
                           <span style={{position:'absolute',top:'10px',left:'12px',fontSize:'8px',fontWeight:'600',color:'#888',background:'rgba(0,0,0,0.05)',padding:'2px 7px',borderRadius:'3px',letterSpacing:'0.5px'}}>BETA</span>
                           <div style={{display:'flex',gap:'6px',flexWrap:'wrap',marginTop:'20px'}}>
-                            {brief.static_images_url ? (
-                              <>
-                                <a href={brief.static_images_url} target="_blank" rel="noopener noreferrer"
-                                  onClick={()=>logClientActivity({ actionType: 'static_images.downloaded', userName, clientName: companyName, clientId: brief.client_id, targetType: 'brief', targetId: id, targetLabel: brief.campaign_name })}
-                                  style={{fontSize:'11px',color:'#1DB81D',textDecoration:'none',border:'0.5px solid rgba(29,184,29,0.3)',borderRadius:'6px',padding:'6px 14px',display:'inline-flex',alignItems:'center',gap:'4px',}}>
-                                  Görsel İndir
-                                </a>
-                                <button onClick={()=>setStaticImageModal({ briefId: id, videoUrl: currentVideo?.video_url || brief.ai_video_url })}
-                                  style={{fontSize:'11px',color:'#555',background:'none',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'6px',padding:'6px 14px',cursor:'pointer',}}>
-                                  Yeni Görsel Oluştur
-                                </button>
-                              </>
+                            {brief.static_image_files ? (
+                              <div style={{fontSize:'11px',color:'var(--color-text-secondary)',padding:'6px 0'}}>Görseller hazır · <span onClick={()=>setActiveTab('summary')} style={{color:'#0a0a0a',textDecoration:'underline',cursor:'pointer'}}>Kampanya Özeti'nde görüntüle</span></div>
                             ) : (
                               <button onClick={()=>setStaticImageModal({ briefId: id, videoUrl: currentVideo?.video_url || brief.ai_video_url })}
-                                style={{width:'100%',padding:'10px',background:'#fff',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'8px',fontSize:'12px',color:'#0a0a0a',cursor:'pointer',fontWeight:'500',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px'}}>
+                                style={{width:'100%',padding:'10px',background:'#fff',border:'1px solid #0a0a0a',fontSize:'12px',color:'#0a0a0a',cursor:'pointer',fontWeight:'500',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px'}}>
                                 Görsel Oluştur
                               </button>
                             )}
@@ -1244,21 +1242,11 @@ function ClientBriefDetail() {
                                     style={{fontSize:'11px',color:'#555',background:'none',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'6px',padding:'5px 12px',cursor:'pointer',}}>
                                     Telif Belgesi
                                   </button>
-                                  {child.static_images_url ? (
-                                    <>
-                                      <a href={child.static_images_url} target="_blank" rel="noopener noreferrer"
-                                        onClick={()=>logClientActivity({ actionType: 'static_images.downloaded', userName, clientName: companyName, clientId: brief?.client_id, targetType: 'brief', targetId: child.id, targetLabel: child.campaign_name })}
-                                        style={{fontSize:'11px',color:'#1DB81D',textDecoration:'none',border:'0.5px solid rgba(29,184,29,0.3)',borderRadius:'6px',padding:'5px 12px',display:'inline-flex',alignItems:'center',gap:'4px',}}>
-                                        Görsel İndir
-                                      </a>
-                                      <button onClick={()=>setStaticImageModal({ briefId: child.id, videoUrl: child.ai_video_url })}
-                                        style={{fontSize:'11px',color:'#555',background:'none',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'6px',padding:'5px 12px',cursor:'pointer',}}>
-                                        Yeni Görsel Oluştur
-                                      </button>
-                                    </>
+                                  {child.static_image_files ? (
+                                    <span style={{fontSize:'11px',color:'var(--color-text-secondary)'}}>Görseller hazır · <span onClick={()=>setActiveTab('summary')} style={{color:'#0a0a0a',textDecoration:'underline',cursor:'pointer'}}>Özet</span></span>
                                   ) : (
                                     <button onClick={()=>setStaticImageModal({ briefId: child.id, videoUrl: child.ai_video_url })}
-                                      style={{fontSize:'11px',color:'#0a0a0a',background:'none',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'6px',padding:'5px 12px',cursor:'pointer',}}>
+                                      style={{fontSize:'11px',color:'#0a0a0a',background:'none',border:'1px solid #0a0a0a',padding:'5px 12px',cursor:'pointer'}}>
                                       Görsel Oluştur
                                     </button>
                                   )}

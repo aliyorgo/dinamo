@@ -58,7 +58,10 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
 
   const totalVideos = approvedVideos.length + deliveredAi.length + deliveredCps.length
   const draftCount = aiChildren.filter(c => c.status !== 'delivered' && c.ai_video_url).length + cpsChildren.filter((c: any) => !c.video_submissions?.length).length
-  const hasStaticImages = !!brief.static_images_url
+  const hasStaticImages = !!brief.static_images_url || !!brief.static_image_files
+  const aiWithImages = aiChildren.filter(c => c.static_image_files && (Array.isArray(c.static_image_files) ? c.static_image_files.length > 0 : Object.keys(c.static_image_files).length > 0))
+  const hasAnyImages = hasStaticImages || aiWithImages.length > 0
+  // TODO: CPS child görsel üretimi sonraki fazda — cpsChildren.filter(c => c.static_image_files) eklenecek
 
   const totalCredits = (brief.credit_cost || 0) +
     aiChildren.length + deliveredAi.length * 2 +
@@ -186,33 +189,53 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
           </>
         )}
 
-        {/* IMAGES SECTION */}
-        {hasStaticImages && (
-          <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderTop: '1px solid var(--color-border-tertiary)', paddingTop: '28px' }}>
-              <div style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: '600', color: 'var(--color-text-primary)' }}>GÖRSELLER · 5 FORMAT</div>
-              <a href={brief.static_images_url}
-                style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-secondary)', textDecoration: 'underline', cursor: 'pointer' }}>
-                GÖRSELLERİ İNDİR
-              </a>
-            </div>
-            {(() => {
-              const raw = brief.static_image_files
-              // Support both array (new: multi-frame) and object (old: single-frame)
-              const frames: any[] = Array.isArray(raw) ? raw : (raw && typeof raw === 'object' && Object.keys(raw).length > 0) ? [raw] : []
-              const formats = [
-                { key: '9x16', label: '9:16 Reel', aspect: '9/16' },
-                { key: '4x5', label: '4:5 IG', aspect: '4/5' },
-                { key: '1x1', label: '1:1 Kare', aspect: '1/1' },
-                { key: '16x9', label: '16:9 Yatay', aspect: '16/9' },
-                { key: '1200x628', label: '1200x628', aspect: '1.91/1' },
-              ]
-              return (
-                <>
-                  {frames.length > 0 ? frames.map((frameFiles: any, fi: number) => (
-                    <div key={fi} style={{ marginBottom: fi < frames.length - 1 ? '24px' : '0' }}>
-                      {frames.length > 1 && (
-                        <div style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', fontWeight: '500', marginBottom: '8px' }}>FRAME {fi + 1} · 5 FORMAT</div>
+        {/* IMAGES SECTION — grouped by source */}
+        {hasAnyImages && (() => {
+          const formats = [
+            { key: '9x16', label: '9:16 Reel', aspect: '9/16' },
+            { key: '4x5', label: '4:5 IG', aspect: '4/5' },
+            { key: '1x1', label: '1:1 Kare', aspect: '1/1' },
+            { key: '16x9', label: '16:9 Yatay', aspect: '16/9' },
+            { key: '1200x628', label: '1200x628', aspect: '1.91/1' },
+          ]
+          function parseFrames(raw: any): any[] {
+            return Array.isArray(raw) ? raw : (raw && typeof raw === 'object' && Object.keys(raw).length > 0) ? [raw] : []
+          }
+          // Build grouped sources
+          const sources: { label: string; frames: any[]; zipUrl?: string }[] = []
+          const mainFrames = parseFrames(brief.static_image_files)
+          if (mainFrames.length > 0) sources.push({ label: 'ANA VIDEODAN', frames: mainFrames, zipUrl: brief.static_images_url })
+          aiWithImages.forEach((child: any, ci: number) => {
+            const idx = aiChildren.indexOf(child)
+            const frames = parseFrames(child.static_image_files)
+            if (frames.length > 0) sources.push({ label: `AI EXPRESS V${idx + 1}'DEN`, frames, zipUrl: child.static_images_url })
+          })
+          const totalImageSets = sources.reduce((s, src) => s + src.frames.length, 0)
+
+          return (
+            <>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderTop: '1px solid var(--color-border-tertiary)', paddingTop: '28px' }}>
+                <div style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: '600', color: 'var(--color-text-primary)' }}>GÖRSELLER · TOPLAM {totalImageSets}</div>
+              </div>
+
+              {sources.map((src, si) => (
+                <div key={si} style={{ marginBottom: '28px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                    <div style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', fontWeight: '500' }}>
+                      {src.label} · {src.frames.length > 1 ? `${src.frames.length} GÖRSEL ·` : ''} 5 FORMAT
+                    </div>
+                    {src.zipUrl && (
+                      <button onClick={() => downloadFile(src.zipUrl!, `gorseller_${slugify(src.label)}.zip`)}
+                        style={{ fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--color-text-secondary)', background: 'none', border: 'none', textDecoration: 'underline', cursor: 'pointer' }}>
+                        ZIP İNDİR
+                      </button>
+                    )}
+                  </div>
+
+                  {src.frames.map((frameFiles: any, fi: number) => (
+                    <div key={fi} style={{ marginBottom: fi < src.frames.length - 1 ? '20px' : '0' }}>
+                      {src.frames.length > 1 && (
+                        <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '6px' }}>FRAME {fi + 1}</div>
                       )}
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px' }}>
                         {formats.map(f => {
@@ -222,14 +245,8 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
                             <div key={f.key}>
                               <div onClick={() => url && setLightbox({ type: 'image', url })}
                                 style={{ border: '1px solid var(--color-border-tertiary)', background: '#f5f4f0', aspectRatio: f.aspect, overflow: 'hidden', cursor: url ? 'pointer' : 'default' }}>
-                                {url ? (
-                                  <img src={url} alt={f.label} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                                ) : (
-                                  <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
-                                    <div style={{ fontSize: '16px', color: 'var(--color-text-tertiary)', opacity: 0.3 }}>&#9634;</div>
-                                    <span style={{ fontSize: '9px', color: 'var(--color-text-tertiary)' }}>{f.label}</span>
-                                  </div>
-                                )}
+                                {url ? <img src={url} alt={f.label} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                                  : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: '9px', color: 'var(--color-text-tertiary)' }}>{f.label}</span></div>}
                               </div>
                               <div style={{ fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: '500', color: 'var(--color-text-tertiary)', marginTop: '4px', marginBottom: '4px' }}>{f.label}</div>
                               {url && (
@@ -243,20 +260,16 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
                         })}
                       </div>
                     </div>
-                  )) : (
-                    <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--color-text-tertiary)', fontSize: '12px' }}>Görsel dosyaları eski formatta — ZIP olarak indirin</div>
-                  )}
-                  <div style={{ marginTop: '12px' }}>
-                    <a href={brief.static_images_url}
-                      style={{ display: 'inline-flex', padding: '8px 16px', border: '1px solid #0a0a0a', fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: '#0a0a0a', textDecoration: 'none' }}>
-                      TÜMÜNÜ ZIP İNDİR ↓
-                    </a>
-                  </div>
-                </>
-              )
-            })()}
-          </>
-        )}
+                  ))}
+                </div>
+              ))}
+
+              {sources.length === 0 && (
+                <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--color-text-tertiary)', fontSize: '12px' }}>Görsel dosyaları eski formatta — ZIP olarak indirin</div>
+              )}
+            </>
+          )
+        })()}
 
         {totalVideos === 0 && !hasStaticImages && (
           <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--color-text-tertiary)', fontSize: '13px' }}>Henüz teslim edilen içerik yok</div>
