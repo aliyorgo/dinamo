@@ -1078,11 +1078,11 @@ function ClientBriefDetail() {
                     <div style={{fontSize:'14px',fontWeight:'600',color:'#0a0a0a'}}>AI Express</div>
                   </div>
                   {!aiWarningDismissed && (
-                    <div style={{background:'#1F1F1F',borderRadius:'8px',padding:'16px 18px',marginBottom:'16px',display:'flex',alignItems:'flex-start',gap:'12px',position:'relative'}}>
-                      <div style={{fontSize:'13px',color:'#fff',lineHeight:1.7,flex:1}}>
+                    <div style={{background:'#1f1f1b',border:'1px solid #2a2a25',padding:'16px 18px',marginBottom:'16px',display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'16px'}}>
+                      <div style={{fontSize:'13px',color:'#fff',lineHeight:1.7,fontStyle:'italic',flex:1}}>
                         Yayına çıkmadan önce fikir geliştirmek ve test etmek için tasarlanmıştır. Deneysel bir özelliktir — sonuçlar garanti edilmez. Bu videolar tamamen yazdığınız brief'den yola çıkarak yapay zeka tarafından üretilmektedir. Fikir, görsel, ses ve müzik tamamen AI tarafından oluşturulur. Ekrandaki yazılar sosyal medyada native text olarak eklenmelidir. Dinamo sadece marka bilgileri ile AI prompt'larına müdahale eder.
                       </div>
-                      <button onClick={()=>setAiWarningDismissed(true)} className="btn-ghost" style={{padding:"0 2px",flexShrink:0}}>&#215;</button>
+                      <button onClick={()=>setAiWarningDismissed(true)} style={{width:'26px',height:'26px',flexShrink:0,border:'1px solid rgba(255,255,255,0.3)',background:'transparent',color:'#fff',fontSize:'14px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>&#215;</button>
                     </div>
                   )}
 
@@ -1304,13 +1304,15 @@ function ClientBriefDetail() {
               {activeTab === 'cps' && <>
                 {/* CPS info banner */}
                 {!cpsBannerDismissed && (
-                  <div style={{background:'#1F1F1F',borderRadius:'8px',padding:'18px 20px',marginBottom:'16px',position:'relative'}}>
-                    <button onClick={()=>{setCpsBannerDismissed(true);localStorage.setItem('cps_banner_dismissed','1')}}
-                      style={{position:'absolute',top:'12px',right:'14px',background:'none',border:'none',cursor:'pointer',color:'rgba(255,255,255,0.5)',fontSize:'20px',lineHeight:1,padding:'0 2px'}}>&#215;</button>
-                    <div style={{fontSize:'14px',fontWeight:'600',color:'#fff',marginBottom:'10px'}}>Creative Performance System</div>
-                    <div style={{fontSize:'12px',color:'rgba(255,255,255,0.6)',lineHeight:1.8}}>
-                      Aynı brief'ten farklı yaratıcı yönler üretin. Hook'tan ton'a, her varyasyonu kontrol edin. AI otomatik plan oluşturur, ekip üretir.
+                  <div style={{background:'#1f1f1b',border:'1px solid #2a2a25',padding:'16px 18px',marginBottom:'16px',display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'16px'}}>
+                    <div style={{flex:1}}>
+                      <div style={{fontSize:'14px',fontWeight:'600',color:'#fff',marginBottom:'10px'}}>Creative Performance System</div>
+                      <div style={{fontSize:'12px',color:'rgba(255,255,255,0.6)',lineHeight:1.8,fontStyle:'italic'}}>
+                        Aynı brief'ten farklı yaratıcı yönler üretin. Hook'tan ton'a, her varyasyonu kontrol edin. AI otomatik plan oluşturur, ekip üretir.
+                      </div>
                     </div>
+                    <button onClick={()=>{setCpsBannerDismissed(true);localStorage.setItem('cps_banner_dismissed','1')}}
+                      style={{width:'26px',height:'26px',flexShrink:0,border:'1px solid rgba(255,255,255,0.3)',background:'transparent',color:'#fff',fontSize:'14px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>&#215;</button>
                   </div>
                 )}
 
