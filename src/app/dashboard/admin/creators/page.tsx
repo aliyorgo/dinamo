@@ -16,6 +16,29 @@ export default function AdminCreators() {
   const [msg, setMsg] = useState('')
   const [pendingApplicants, setPendingApplicants] = useState<any[]>([])
   const [authInfo, setAuthInfo] = useState<Record<string,{last_sign_in_at:string|null}>>({})
+  const [showAddCreator, setShowAddCreator] = useState(false)
+  const [addForm, setAddForm] = useState({ name: '', email: '', password: '', phone: '' })
+  const [addSaving, setAddSaving] = useState(false)
+
+  async function createCreator() {
+    setAddSaving(true)
+    const res = await fetch('/api/admin/create-user', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: addForm.name, email: addForm.email, password: addForm.password || 'dinamo2026', role: 'creator' }) })
+    const data = await res.json()
+    if (data.error) { setMsg('Hata: ' + data.error); setAddSaving(false); return }
+    if (data.userId) {
+      await supabase.from('creators').insert({ user_id: data.userId, phone: addForm.phone || null, is_active: true })
+      await supabase.from('users').update({ status: 'active' }).eq('id', data.userId)
+    }
+    setMsg('Creator oluşturuldu.')
+    setAddForm({ name: '', email: '', password: '', phone: '' }); setShowAddCreator(false); setAddSaving(false)
+    loadData(); setTimeout(() => setMsg(''), 3000)
+  }
+
+  async function deleteCreator(creator: any) {
+    if (!confirm(`"${creator.users?.name}" creator'ı silmek istediğinizden emin misiniz?`)) return
+    await supabase.from('creators').update({ is_active: false }).eq('id', creator.id)
+    setMsg('Creator deaktive edildi.'); loadData(); setTimeout(() => setMsg(''), 3000)
+  }
 
   function formatLastLogin(d: string|null) {
     if (!d) return 'Henüz giriş yapılmadı'
@@ -123,9 +146,38 @@ export default function AdminCreators() {
 
   return (
     <div style={{padding:'48px'}}>
-        <h1 style={{fontSize:'28px',fontWeight:'300',letterSpacing:'-1px',margin:'0 0 32px',color:'#0a0a0a'}}>Creator Ödemeleri</h1>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'32px'}}>
+          <h1 style={{fontSize:'28px',fontWeight:'300',letterSpacing:'-1px',margin:0,color:'#0a0a0a'}}>Creator Yönetimi</h1>
+          <button onClick={()=>setShowAddCreator(!showAddCreator)} className="btn" style={{padding:'8px 20px'}}>+ YENİ CREATOR EKLE</button>
+        </div>
 
-        {msg && <div style={{padding:'12px 16px',background:msg.includes('Hata')?'#fef2f2':'#e8f7e8',borderRadius:'8px',fontSize:'13px',color:msg.includes('Hata')?'#e24b4a':'#1db81d',marginBottom:'24px'}}>{msg}</div>}
+        {msg && <div style={{padding:'10px 16px',background:msg.includes('Hata')?'rgba(239,68,68,0.08)':'rgba(34,197,94,0.08)',border:`1px solid ${msg.includes('Hata')?'#ef4444':'#22c55e'}`,fontSize:'12px',color:'#0a0a0a',marginBottom:'16px'}}>{msg}</div>}
+
+        {showAddCreator && (
+          <div style={{background:'#fff',border:'1px solid #0a0a0a',padding:'20px 22px',marginBottom:'16px'}}>
+            <div className="label-caps" style={{marginBottom:'12px'}}>YENİ CREATOR</div>
+            <div style={{display:'flex',gap:'8px',alignItems:'flex-end',flexWrap:'wrap'}}>
+              <div style={{flex:1,minWidth:'120px'}}>
+                <div style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'4px'}}>AD SOYAD</div>
+                <input value={addForm.name} onChange={e=>setAddForm({...addForm,name:e.target.value})} style={{width:'100%',padding:'8px 10px',border:'1px solid #0a0a0a',fontSize:'13px',boxSizing:'border-box'}} />
+              </div>
+              <div style={{flex:1,minWidth:'140px'}}>
+                <div style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'4px'}}>E-POSTA</div>
+                <input type="email" value={addForm.email} onChange={e=>setAddForm({...addForm,email:e.target.value})} style={{width:'100%',padding:'8px 10px',border:'1px solid #0a0a0a',fontSize:'13px',boxSizing:'border-box'}} />
+              </div>
+              <div style={{width:'120px'}}>
+                <div style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'4px'}}>ŞİFRE</div>
+                <input value={addForm.password} onChange={e=>setAddForm({...addForm,password:e.target.value})} placeholder="dinamo2026" style={{width:'100%',padding:'8px 10px',border:'1px solid #0a0a0a',fontSize:'13px',boxSizing:'border-box'}} />
+              </div>
+              <div style={{width:'120px'}}>
+                <div style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'4px'}}>TELEFON</div>
+                <input value={addForm.phone} onChange={e=>setAddForm({...addForm,phone:e.target.value})} style={{width:'100%',padding:'8px 10px',border:'1px solid #0a0a0a',fontSize:'13px',boxSizing:'border-box'}} />
+              </div>
+              <button onClick={createCreator} disabled={addSaving||!addForm.email||!addForm.name} className="btn" style={{padding:'8px 20px'}}>{addSaving?'...':'OLUŞTUR'}</button>
+              <button onClick={()=>setShowAddCreator(false)} className="btn btn-outline" style={{padding:'8px 14px'}}>İPTAL</button>
+            </div>
+          </div>
+        )}
 
         {pendingApplicants.length > 0 && (
           <div style={{background:'#fff',border:'2px solid #f59e0b',borderRadius:'12px',overflow:'hidden',marginBottom:'24px'}}>
@@ -202,7 +254,10 @@ export default function AdminCreators() {
                       <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',fontFamily:'monospace',marginBottom:'2px'}}>BEKLEYEN</div>
                       <div style={{fontSize:'16px',fontWeight:'300',color:pendingAmount>0?'#f59e0b':'#888'}}>{pendingAmount.toLocaleString('tr-TR')} ₺</div>
                     </div>
-                    <div style={{fontSize:'18px',color:'rgba(255,255,255,0.4)'}}>{isSelected?'↑':'↓'}</div>
+                    <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                      <button onClick={e=>{e.stopPropagation();deleteCreator(creator)}} className="btn btn-outline" style={{padding:'4px 10px',fontSize:'10px',color:'#ef4444',borderColor:'rgba(239,68,68,0.3)'}}>SİL</button>
+                      <div style={{fontSize:'18px',color:'rgba(255,255,255,0.4)'}}>{isSelected?'↑':'↓'}</div>
+                    </div>
                   </div>
                 </div>
 

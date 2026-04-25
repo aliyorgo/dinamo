@@ -20,6 +20,7 @@ export default function SettingsPage() {
   const [userSaving, setUserSaving] = useState(false)
   const [editingUser, setEditingUser] = useState<any>(null)
   const [editForm, setEditForm] = useState({ name: '', email: '', password: '' })
+  const [addingRole, setAddingRole] = useState<string|null>(null)
 
   useEffect(() => { loadSettings(); loadUsers() }, [])
 
@@ -241,11 +242,20 @@ export default function SettingsPage() {
                   )}
                 </div>
               ))}
-              <div style={{padding:'12px 24px',borderTop:'1px solid #e8e7e3',background:'#fafaf8',display:'flex',gap:'8px',alignItems:'center'}}>
-                <input value={role === userForm.role ? userForm.name : ''} onChange={e=>setUserForm({...userForm,name:e.target.value,role})} placeholder="Ad Soyad" style={{flex:1,padding:'7px 10px',border:'1px solid #e8e7e3',borderRadius:'6px',fontSize:'13px'}} />
-                <input value={role === userForm.role ? userForm.email : ''} onChange={e=>setUserForm({...userForm,email:e.target.value,role})} placeholder="Email" style={{flex:1,padding:'7px 10px',border:'1px solid #e8e7e3',borderRadius:'6px',fontSize:'13px'}} />
-                <input value={role === userForm.role ? userForm.password : ''} onChange={e=>setUserForm({...userForm,password:e.target.value,role})} placeholder="Şifre" style={{width:'120px',padding:'7px 10px',border:'1px solid #e8e7e3',borderRadius:'6px',fontSize:'13px'}} />
-                <button onClick={()=>createUser(role)} disabled={userSaving||!(role===userForm.role&&userForm.email)} style={{padding:'7px 14px',background:'#22c55e',color:'#fff',border:'none',borderRadius:'6px',fontSize:'11px',cursor:'pointer',fontWeight:'500',opacity:!(role===userForm.role&&userForm.email)?0.4:1,whiteSpace:'nowrap'}}>+ Ekle</button>
+              <div style={{padding:'12px 24px',borderTop:'1px solid #e8e7e3'}}>
+                {addingRole === role ? (
+                  <div style={{display:'flex',gap:'8px',alignItems:'center',flexWrap:'wrap'}}>
+                    <input value={role === userForm.role ? userForm.name : ''} onChange={e=>setUserForm({...userForm,name:e.target.value,role})} placeholder="Ad Soyad" style={{flex:1,minWidth:'120px',padding:'7px 10px',border:'1px solid #0a0a0a',fontSize:'13px'}} />
+                    <input value={role === userForm.role ? userForm.email : ''} onChange={e=>setUserForm({...userForm,email:e.target.value,role})} placeholder="Email" style={{flex:1,minWidth:'140px',padding:'7px 10px',border:'1px solid #0a0a0a',fontSize:'13px'}} />
+                    <input value={role === userForm.role ? userForm.password : ''} onChange={e=>setUserForm({...userForm,password:e.target.value,role})} placeholder="Şifre (boş = dinamo2026)" style={{width:'160px',padding:'7px 10px',border:'1px solid #0a0a0a',fontSize:'13px'}} />
+                    <button onClick={async () => { await createUser(role); setAddingRole(null) }} disabled={userSaving||!(role===userForm.role&&userForm.email)} className="btn" style={{padding:'7px 16px',whiteSpace:'nowrap'}}>OLUŞTUR</button>
+                    <button onClick={()=>setAddingRole(null)} className="btn btn-outline" style={{padding:'7px 12px'}}>İPTAL</button>
+                  </div>
+                ) : (
+                  <button onClick={()=>{setAddingRole(role);setUserForm({name:'',email:'',password:'',role})}} className="btn" style={{padding:'8px 20px',width:'100%'}}>
+                    + YENİ {role === 'admin' ? 'ADMİN' : 'PRODÜKTÖR'} EKLE
+                  </button>
+                )}
               </div>
             </div>
           )
