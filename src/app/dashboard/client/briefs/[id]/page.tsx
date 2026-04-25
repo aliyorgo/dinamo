@@ -1040,9 +1040,14 @@ function ClientBriefDetail() {
               <div style={{background:'#fff',border:'1px solid #0a0a0a',padding:'18px 20px',marginBottom:'16px'}}>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'16px'}}>
                   <div style={{flex:1,minWidth:0}}>
-                    <div style={{fontSize:'11px',letterSpacing:'2px',textTransform:'uppercase',fontWeight:'500',color:'var(--color-text-secondary)',marginBottom:'8px'}}>BRİEF ÖZETİ</div>
+                    <div style={{fontSize:'11px',letterSpacing:'2px',textTransform:'uppercase',fontWeight:'500',color:'var(--color-text-secondary)',marginBottom:'8px'}}>BRİEF DETAYLARI</div>
                     {!briefExpanded && (
-                      <div style={{fontSize:'14px',color:'var(--color-text-primary)',lineHeight:1.65,overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical' as any}}>{brief.message}</div>
+                      <>
+                        <div style={{fontSize:'14px',color:'var(--color-text-primary)',lineHeight:1.65,overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical' as any,marginBottom:'8px'}}>{brief.message}</div>
+                        <div style={{fontSize:'12px',color:'var(--color-text-secondary)'}}>
+                          {[brief.target_audience, brief.video_type, Array.isArray(brief.format)?brief.format.join(', '):brief.format, brief.cta].filter(Boolean).join(' · ')}
+                        </div>
+                      </>
                     )}
                   </div>
                   <button onClick={()=>setBriefExpanded(!briefExpanded)}
