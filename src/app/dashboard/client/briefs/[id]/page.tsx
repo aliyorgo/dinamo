@@ -11,6 +11,25 @@ import { logClientActivity } from '@/lib/log-client'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
+async function downloadFile(url: string, filename: string) {
+  try {
+    const res = await fetch(url)
+    if (!res.ok) throw new Error('fail')
+    const blob = await res.blob()
+    const blobUrl = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = blobUrl; a.download = filename
+    document.body.appendChild(a); a.click(); document.body.removeChild(a)
+    window.URL.revokeObjectURL(blobUrl)
+  } catch { window.open(url, '_blank') }
+}
+
+function slugify(s: string) {
+  const m: Record<string,string> = {'ğ':'g','ü':'u','ş':'s','ı':'i','ö':'o','ç':'c','Ğ':'G','Ü':'U','Ş':'S','İ':'I','Ö':'O','Ç':'C'}
+  let r = s; for (const [k,v] of Object.entries(m)) r = r.replace(new RegExp(k,'g'),v)
+  return r.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'')
+}
+
 const statusLabel: Record<string,string> = {
   draft:'Taslak', submitted:'İnceleniyor', read:'İncelendi', in_production:'Üretimde',
   revision:'Revizyon', approved:'Onay Bekliyor', delivered:'Teslim Edildi', cancelled:'İptal Edildi',
@@ -922,8 +941,11 @@ function ClientBriefDetail() {
                         <div style={{background:'#f5f4f0',border:'0.5px solid rgba(0,0,0,0.08)',borderRadius:'10px',padding:'14px 16px',position:'relative'}}>
                           <span style={{position:'absolute',top:'10px',left:'12px',fontSize:'8px',fontWeight:'600',color:'#888',background:'rgba(0,0,0,0.05)',padding:'2px 7px',borderRadius:'3px',letterSpacing:'0.5px'}}>BETA</span>
                           <div style={{display:'flex',gap:'6px',flexWrap:'wrap',marginTop:'20px'}}>
-                            {brief.static_image_files ? (
-                              <div style={{fontSize:'11px',color:'var(--color-text-secondary)',padding:'6px 0'}}>Görseller hazır · <span onClick={()=>setActiveTab('summary')} style={{color:'#0a0a0a',textDecoration:'underline',cursor:'pointer'}}>Kampanya Özeti'nde görüntüle</span></div>
+                            {brief.static_images_url ? (
+                              <button onClick={()=>downloadFile(brief.static_images_url, `${slugify(brief.campaign_name)}_gorseller.zip`)}
+                                style={{padding:'8px 16px',border:'1px solid #0a0a0a',background:'transparent',fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'#0a0a0a',cursor:'pointer'}}>
+                                GÖRSEL İNDİR ↓
+                              </button>
                             ) : (
                               <button onClick={()=>setStaticImageModal({ briefId: id, videoUrl: currentVideo?.video_url || brief.ai_video_url })}
                                 style={{width:'100%',padding:'10px',background:'#fff',border:'1px solid #0a0a0a',fontSize:'12px',color:'#0a0a0a',cursor:'pointer',fontWeight:'500',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px'}}>
@@ -1242,8 +1264,11 @@ function ClientBriefDetail() {
                                     style={{fontSize:'11px',color:'#555',background:'none',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'6px',padding:'5px 12px',cursor:'pointer',}}>
                                     Telif Belgesi
                                   </button>
-                                  {child.static_image_files ? (
-                                    <span style={{fontSize:'11px',color:'var(--color-text-secondary)'}}>Görseller hazır · <span onClick={()=>setActiveTab('summary')} style={{color:'#0a0a0a',textDecoration:'underline',cursor:'pointer'}}>Özet</span></span>
+                                  {child.static_images_url ? (
+                                    <button onClick={()=>downloadFile(child.static_images_url, `gorseller_v${idx+1}.zip`)}
+                                      style={{fontSize:'11px',color:'#0a0a0a',background:'none',border:'1px solid #0a0a0a',padding:'5px 12px',cursor:'pointer',letterSpacing:'1px',textTransform:'uppercase'}}>
+                                      GÖRSEL İNDİR ↓
+                                    </button>
                                   ) : (
                                     <button onClick={()=>setStaticImageModal({ briefId: child.id, videoUrl: child.ai_video_url })}
                                       style={{fontSize:'11px',color:'#0a0a0a',background:'none',border:'1px solid #0a0a0a',padding:'5px 12px',cursor:'pointer'}}>
