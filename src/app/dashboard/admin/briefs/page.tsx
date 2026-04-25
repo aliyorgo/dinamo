@@ -25,7 +25,7 @@ export default function BriefsPage() {
   useEffect(() => { loadData() }, [])
 
   async function loadData() {
-    const { data } = await supabase.from('briefs').select('*, clients(company_name)').order('created_at', { ascending: false })
+    const { data } = await supabase.from('briefs').select('*, clients(company_name)').is('parent_brief_id', null).eq('brief_type', 'primary').order('created_at', { ascending: false })
     setBriefs(data || [])
     const { data: c } = await supabase.from('creators').select('*, users(name)').eq('is_active', true)
     setCreators(c || [])

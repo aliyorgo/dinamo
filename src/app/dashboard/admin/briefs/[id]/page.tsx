@@ -80,6 +80,9 @@ export default function AdminBriefDetail() {
   const [cpsOpen, setCpsOpen] = useState<Record<string,boolean>>({})
   const [aiOpen, setAiOpen] = useState<Record<string,boolean>>({})
   const [showAssignForm, setShowAssignForm] = useState(false)
+  // CPS per-child creator forms
+  const [cpsCreatorForms, setCpsCreatorForms] = useState<Record<string,{creator_id:string,note:string,open:boolean}>>({})
+  const [cpsRevNotes, setCpsRevNotes] = useState<Record<string,Record<string,string>>>({})
 
   useEffect(() => { loadData() }, [id])
 
@@ -112,8 +115,46 @@ export default function AdminBriefDetail() {
     setCpsChildren(cps || [])
     // AI Express children
     const rootId = b?.root_campaign_id || id
-    const { data: ai } = await supabase.from('briefs').select('id, campaign_name, status, ai_video_url, created_at').eq('root_campaign_id', rootId).neq('id', id).ilike('campaign_name', '%Full AI%').order('created_at', { ascending: true })
+    const { data: ai } = await supabase.from('briefs').select('id, campaign_name, status, ai_video_url, created_at').eq('parent_brief_id', id).in('brief_type', ['express_clone']).order('created_at', { ascending: true })
+    // Fallback: also check by campaign name for legacy data
+    if (!ai?.length) {
+      const { data: ai2 } = await supabase.from('briefs').select('id, campaign_name, status, ai_video_url, created_at').eq('root_campaign_id', rootId).neq('id', id).ilike('campaign_name', '%Full AI%').order('created_at', { ascending: true })
+      setAiChildren(ai2 || []); return
+    }
     setAiChildren(ai || [])
+  }
+
+  // CPS child creator assignment
+  async function forwardCpsChild(childId: string) {
+    const form = cpsCreatorForms[childId]; if (!form?.creator_id) return; setLoading(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    await supabase.from('producer_briefs').delete().eq('brief_id', childId)
+    await supabase.from('producer_briefs').insert({ brief_id: childId, producer_id: user?.id, assigned_creator_id: form.creator_id, producer_note: form.note, shared_fields: sharedFields, forwarded_at: new Date().toISOString() })
+    await supabase.from('briefs').update({ status: 'in_production' }).eq('id', childId)
+    setMsg('CPS yön iletildi.'); loadData(); setLoading(false)
+  }
+  async function forwardAllCps(creatorId: string) {
+    if (!creatorId) return; setLoading(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    for (const child of cpsChildren) {
+      await supabase.from('producer_briefs').delete().eq('brief_id', child.id)
+      await supabase.from('producer_briefs').insert({ brief_id: child.id, producer_id: user?.id, assigned_creator_id: creatorId, shared_fields: sharedFields, forwarded_at: new Date().toISOString() })
+      await supabase.from('briefs').update({ status: 'in_production' }).eq('id', child.id)
+    }
+    setMsg(`${cpsChildren.length} CPS yön topluca iletildi.`); loadData(); setLoading(false)
+  }
+  async function approveCpsSubmission(childId: string, subId: string) {
+    setLoading(true); const { data: { user } } = await supabase.auth.getUser()
+    await supabase.from('video_submissions').update({ status: 'admin_approved' }).eq('id', subId)
+    await supabase.from('approvals').insert({ video_submission_id: subId, approved_by: user?.id, role: 'admin' })
+    await supabase.from('briefs').update({ status: 'approved' }).eq('id', childId)
+    setMsg('CPS video onaylandı.'); loadData(); setLoading(false)
+  }
+  async function reviseCpsSubmission(childId: string, subId: string) {
+    const note = cpsRevNotes[childId]?.[subId]; if (!note?.trim()) { setMsg('Revizyon notu zorunludur.'); return }; setLoading(true)
+    await supabase.from('video_submissions').update({ status: 'revision_requested', producer_notes: note }).eq('id', subId)
+    await supabase.from('briefs').update({ status: 'revision' }).eq('id', childId)
+    setMsg('CPS revizyon talebi gönderildi.'); loadData(); setLoading(false)
   }
 
   // All business logic functions preserved
@@ -285,6 +326,15 @@ export default function AdminBriefDetail() {
               {cpsChildren.length > 0 && <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>· {cpsChildren.length} CPS yön</span>}
               {aiChildren.length > 0 && <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>· {aiChildren.length} AI Express</span>}
             </div>
+            {(() => {
+              const all = [brief, ...cpsChildren, ...aiChildren]
+              const newCount = all.filter(b => ['submitted','read'].includes(b.status)).length
+              const prodCount = all.filter(b => ['in_production','ai_processing'].includes(b.status)).length
+              const doneCount = all.filter(b => ['delivered','ai_completed'].includes(b.status)).length
+              const revCount = all.filter(b => b.status === 'revision').length
+              const parts = [newCount && `${newCount} yeni`, prodCount && `${prodCount} üretimde`, doneCount && `${doneCount} tamamlandı`, revCount && `${revCount} revizyon`].filter(Boolean)
+              return parts.length > 0 ? <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', marginTop: '2px' }}>{parts.join(' · ')}</div> : null
+            })()}
           </div>
           <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
             <button onClick={() => setEditMode(!editMode)} className="btn btn-outline" style={{ padding: '8px 16px' }}>{editMode ? 'İPTAL' : 'DÜZENLE'}</button>
@@ -345,11 +395,67 @@ export default function AdminBriefDetail() {
               <div style={{ marginBottom: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                   <div className="label-caps">CPS BRIEF'LERİ · {cpsChildren.length} YÖN</div>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <select id="cps-bulk-creator" style={{ padding: '6px 10px', border: '1px solid var(--color-border-tertiary)', fontSize: '11px' }}>
+                      <option value="">Creator seç...</option>
+                      {creators.map(c => <option key={c.id} value={c.id}>{c.users?.name}</option>)}
+                    </select>
+                    <button onClick={() => { const sel = (document.getElementById('cps-bulk-creator') as HTMLSelectElement)?.value; if (sel) forwardAllCps(sel) }} disabled={loading} className="btn btn-outline" style={{ padding: '6px 14px', fontSize: '10px' }}>TOPLUCA İLET</button>
+                  </div>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(cpsChildren.length, 3)}, 1fr)`, gap: '12px' }}>
-                  {cpsChildren.map(child => (
-                    <BriefInfoCard key={child.id} b={{ ...child, clients: brief.clients }} open={!!cpsOpen[child.id]} toggle={() => setCpsOpen(prev => ({ ...prev, [child.id]: !prev[child.id] }))} label={child.cps_hook || `YÖN ${child.mvc_order || ''}`} />
-                  ))}
+                  {cpsChildren.map(child => {
+                    const isOpen = !!cpsOpen[child.id]
+                    const childSubs = child.video_submissions || []
+                    const cf = cpsCreatorForms[child.id] || { creator_id: '', note: '', open: false }
+                    return (
+                      <div key={child.id} style={{ background: '#fff', border: '1px solid #0a0a0a', padding: '16px 18px' }}>
+                        {/* Header */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginBottom: isOpen ? '12px' : 0 }} onClick={() => setCpsOpen(prev => ({ ...prev, [child.id]: !prev[child.id] }))}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '13px', fontWeight: '500' }}>{child.cps_hook || `YÖN ${child.mvc_order || ''}`}</span>
+                            <Badge status={child.status} />
+                          </div>
+                          <span style={{ fontSize: '10px', color: 'var(--color-text-tertiary)' }}>{isOpen ? 'KAPAT' : 'DETAY'}</span>
+                        </div>
+                        {isOpen && (
+                          <>
+                            {/* Brief detail */}
+                            {child.message && <div style={{ fontSize: '12px', color: '#0a0a0a', lineHeight: '1.5', marginBottom: '10px' }}>{child.message}</div>}
+                            {child.cps_ton && <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', marginBottom: '10px' }}>Ton: {child.cps_ton}</div>}
+                            {/* Creator assign */}
+                            <div style={{ borderTop: '1px solid var(--color-border-tertiary)', paddingTop: '10px', marginBottom: '10px' }}>
+                              <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '4px' }}>CREATOR ATA</div>
+                              <div style={{ display: 'flex', gap: '6px' }}>
+                                <select value={cf.creator_id} onChange={e => setCpsCreatorForms(prev => ({ ...prev, [child.id]: { ...cf, creator_id: e.target.value, open: true } }))} style={{ flex: 1, padding: '6px 8px', border: '1px solid var(--color-border-tertiary)', fontSize: '11px' }}>
+                                  <option value="">Seçin</option>
+                                  {creators.map(c => <option key={c.id} value={c.id}>{c.users?.name}</option>)}
+                                </select>
+                                <button onClick={() => forwardCpsChild(child.id)} disabled={loading || !cf.creator_id} className="btn" style={{ padding: '5px 10px', fontSize: '10px' }}>İLET</button>
+                              </div>
+                            </div>
+                            {/* Video submissions */}
+                            {childSubs.length > 0 && childSubs.map((sub: any) => (
+                              <div key={sub.id} style={{ borderTop: '1px solid var(--color-border-tertiary)', paddingTop: '10px', marginBottom: '8px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                                  <span style={{ fontSize: '11px', fontWeight: '500' }}>V{sub.version}</span>
+                                  <Badge status={sub.status === 'pending' ? 'submitted' : sub.status === 'admin_approved' ? 'delivered' : sub.status === 'revision_requested' ? 'revision' : 'submitted'} />
+                                </div>
+                                <video controls style={{ width: '100%', maxHeight: '200px', objectFit: 'contain', background: '#000', display: 'block', marginBottom: '6px' }}><source src={sub.video_url} /></video>
+                                {(sub.status === 'pending' || sub.status === 'producer_approved') && (
+                                  <div>
+                                    <button onClick={() => approveCpsSubmission(child.id, sub.id)} disabled={loading} className="btn" style={{ padding: '4px 10px', fontSize: '10px', width: '100%', marginBottom: '4px' }}>ONAYLA</button>
+                                    <textarea value={cpsRevNotes[child.id]?.[sub.id] || ''} onChange={e => setCpsRevNotes(prev => ({ ...prev, [child.id]: { ...(prev[child.id] || {}), [sub.id]: e.target.value } }))} placeholder="Revizyon notu..." rows={1} style={{ width: '100%', padding: '4px 8px', border: '1px solid var(--color-border-tertiary)', fontSize: '10px', resize: 'vertical', boxSizing: 'border-box', marginBottom: '4px' }} />
+                                    <button onClick={() => reviseCpsSubmission(child.id, sub.id)} disabled={loading} className="btn btn-outline" style={{ padding: '4px 10px', fontSize: '10px', color: '#ef4444', borderColor: '#ef4444' }}>REVİZYON</button>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </>
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             )}

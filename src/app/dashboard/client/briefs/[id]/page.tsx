@@ -301,6 +301,7 @@ function ClientBriefDetail() {
       voiceover_text: brief.voiceover_text, notes: brief.notes, languages: brief.languages,
       product_image_url: mode === 'product' ? (brief.product_image_url || null) : null,
       pipeline_type: mode,
+      brief_type: 'express_clone',
       credit_cost: 1, client_id: brief.client_id, client_user_id: brief.client_user_id,
       root_campaign_id: brief.root_campaign_id || id,
       status: 'ai_processing', ai_video_status: 'processing_concept',
