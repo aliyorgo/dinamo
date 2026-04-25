@@ -693,7 +693,7 @@ export default function ClientDetailPage() {
                   try {
                     const res = await fetch('/api/admin/brand-research', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brandName: client?.company_name || '' }) })
                     const data = await res.json()
-                    setResearchSources((data.sources || []).map((s: any) => ({ ...s, checked: true })))
+                    setResearchSources((data.sources || []).map((s: any) => ({ ...s, checked: false })))
                     setResearchStep('sources')
                   } catch { setResearchStep('sources') }
                 }}
@@ -1159,7 +1159,15 @@ export default function ClientDetailPage() {
             {researchStep === 'sources' && (
               <>
                 <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a', marginBottom: '4px' }}>Bulunan Kaynaklar</div>
-                <div style={{ fontSize: '11px', color: '#888', marginBottom: '16px' }}>Kullanmak istediklerini seç</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <div style={{ fontSize: '11px', color: '#888' }}>Kullanmak istediklerini seç</div>
+                  {researchSources.length > 0 && (
+                    <button onClick={() => { const allChecked = researchSources.every(s => s.checked); setResearchSources(prev => prev.map(s => ({ ...s, checked: !allChecked }))) }}
+                      style={{ fontSize: '10px', color: '#0a0a0a', background: 'none', border: 'none', textDecoration: 'underline', cursor: 'pointer', letterSpacing: '1px', textTransform: 'uppercase' }}>
+                      {researchSources.every(s => s.checked) ? 'Tümünü Kaldır' : 'Tümünü Seç'}
+                    </button>
+                  )}
+                </div>
                 {researchSources.length === 0 ? (
                   <div style={{ fontSize: '12px', color: '#888', textAlign: 'center', padding: '20px 0' }}>Kaynak bulunamadı</div>
                 ) : (
@@ -1190,7 +1198,7 @@ export default function ClientDetailPage() {
                       // Refetch candidates
                       const { data: cands } = await supabase.from('brand_learning_candidates').select('*').eq('client_id', clientId).eq('status', 'pending').order('created_at', { ascending: false })
                       setLearningCandidates(cands || [])
-                      setResearchResult((cands || []).length)
+                      setResearchResult(data.inserted || 0)
                       setResearchStep('done')
                     } catch { setResearchStep('done') }
                   }}

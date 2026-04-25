@@ -147,14 +147,14 @@ export async function PUT(req: NextRequest) {
     const combinedText = contents.join('\n\n---\n\n')
 
     // Use existing extraction pipeline
-    await extractBrandRuleCandidate({
+    const stats = await extractBrandRuleCandidate({
       clientId,
       sourceType: 'seed_import',
       sourceId: `research_${Date.now()}`,
       text: combinedText.slice(0, 25000),
     })
 
-    return NextResponse.json({ ok: true, sourceCount: contents.length })
+    return NextResponse.json({ ok: true, sourceCount: contents.length, ...stats })
   } catch (err: any) {
     console.error('[brand-research] PUT error:', err.message)
     return NextResponse.json({ error: err.message }, { status: 500 })

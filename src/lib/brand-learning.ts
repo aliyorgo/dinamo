@@ -74,16 +74,17 @@ Metin:
 
 JSON array:`
 
-export async function extractBrandRuleCandidate({ clientId, sourceType, sourceId, text }: ExtractionInput) {
+export async function extractBrandRuleCandidate({ clientId, sourceType, sourceId, text }: ExtractionInput): Promise<{ extracted: number; inserted: number; duplicates: number; errors: number }> {
+  const stats = { extracted: 0, inserted: 0, duplicates: 0, errors: 0 }
   console.log(`[brand-learning] Called: source=${sourceType}, clientId=${clientId?.slice(0,8)}, textLen=${text?.length}`)
-  if (!text || text.trim().length < 20) { console.log('[brand-learning] Skipped: text too short'); return }
+  if (!text || text.trim().length < 20) { console.log('[brand-learning] Skipped: text too short'); return stats }
 
   const prompt = EXTRACTION_PROMPT(text)
 
   try {
     console.log(`[brand-learning] Calling Claude (interpretive, source=${sourceType})...`)
     const apiKey = process.env.ANTHROPIC_API_KEY
-    if (!apiKey) { console.error('[brand-learning] ANTHROPIC_API_KEY missing!'); return }
+    if (!apiKey) { console.error('[brand-learning] ANTHROPIC_API_KEY missing!'); return stats }
 
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -97,7 +98,7 @@ export async function extractBrandRuleCandidate({ clientId, sourceType, sourceId
 
     if (!res.ok) {
       console.error(`[brand-learning] Claude API error ${res.status}:`, (await res.text()).slice(0, 200))
-      return
+      return stats
     }
 
     const data = await res.json()
@@ -109,27 +110,29 @@ export async function extractBrandRuleCandidate({ clientId, sourceType, sourceId
       candidates = JSON.parse(raw.replace(/```json|```/g, '').trim())
     } catch {
       console.error('[brand-learning] JSON parse failed:', raw.slice(0, 100))
-      return
+      return stats
     }
 
     if (!Array.isArray(candidates) || !candidates.length) {
       console.log('[brand-learning] No candidates extracted')
-      return
+      return stats
     }
 
-    console.log(`[brand-learning] ${candidates.length} candidates found`)
+    stats.extracted = candidates.length
+    console.log(`[brand-learning] ${candidates.length} candidates from Claude`)
 
     for (const c of candidates) {
       if (!c.text) continue
       const ruleType = c.type || 'rule'
       const existing = await findSimilarCandidate(clientId, c.text)
       if (existing) {
+        stats.duplicates++
         const newSourceIds = [...(existing.source_ids || []), sourceId]
         const newSnippets = [...(existing.source_snippets || []), text.slice(0, 200)]
         const { error: upErr } = await supabase.from('brand_learning_candidates')
           .update({ source_ids: newSourceIds, source_snippets: newSnippets })
           .eq('id', existing.id)
-        if (upErr) console.error('[brand-learning] Update error:', upErr.message)
+        if (upErr) { console.error('[brand-learning] Update error:', upErr.message); stats.errors++ }
       } else {
         const { error: insErr } = await supabase.from('brand_learning_candidates').insert({
           client_id: clientId,
@@ -142,13 +145,15 @@ export async function extractBrandRuleCandidate({ clientId, sourceType, sourceId
           type: ruleType,
           temporal: false,
         })
-        if (insErr) console.error('[brand-learning] Insert error:', insErr.message)
-        else console.log(`[brand-learning] New ${ruleType}: ${c.text.slice(0, 50)}`)
+        if (insErr) { console.error('[brand-learning] Insert error:', insErr.message); stats.errors++ }
+        else { stats.inserted++; console.log(`[brand-learning] New ${ruleType}: ${c.text.slice(0, 50)}`) }
       }
     }
-    console.log(`[brand-learning] Done: ${candidates.length} for ${clientId.slice(0, 8)}`)
+    console.log(`[brand-learning] Done: ${stats.extracted} extracted, ${stats.inserted} inserted, ${stats.duplicates} duplicates, ${stats.errors} errors`)
+    return stats
   } catch (err: any) {
     console.error('[brand-learning] extraction failed:', err.message)
+    return stats
   }
 }
 
