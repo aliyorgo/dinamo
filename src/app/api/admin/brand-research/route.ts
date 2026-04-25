@@ -11,27 +11,16 @@ export async function POST(req: NextRequest) {
 
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'x-api-key': ANTHROPIC_API_KEY, 'anthropic-version': '2025-04-14', 'Content-Type': 'application/json' },
+      headers: { 'x-api-key': ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1500,
-        tools: [{ type: 'web_search_20250305' }],
-        messages: [{ role: 'user', content: `"${brandName}" markası hakkında güvenilir kaynak URL'leri bul. Şu kaynak tiplerini ara:
-- Wikipedia sayfası
-- Resmi web sitesi (about/hakkımızda sayfası)
-- LinkedIn şirket sayfası
-- Instagram veya Twitter/X profili
-- Güvenilir marka analiz makaleleri
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+        messages: [{ role: 'user', content: `"${brandName}" markası/şirketi hakkında güvenilir kaynak URL'leri bul. Resmi web sitesi, LinkedIn şirket sayfası, Wikipedia, sosyal medya profilleri ve marka analiz makaleleri ara.
 
-Sadece gerçek, erişilebilir URL'ler döndür. Her URL için kaynak tipini belirt.
+Her kaynak için JSON objesi döndür: { "url": "...", "type": "Resmi Site" | "LinkedIn" | "Wikipedia" | "Sosyal Medya" | "Analiz", "title": "..." }
 
-JSON array olarak döndür, başka bir şey yazma:
-[
-  { "url": "https://...", "type": "Wikipedia", "title": "..." },
-  { "url": "https://...", "type": "Resmi Site", "title": "..." }
-]
-
-Bulamadığın kaynak tiplerini atla. Sadece JSON array döndür.` }],
+Sadece JSON array döndür, başka açıklama yazma.` }],
       }),
     })
 
@@ -60,7 +49,13 @@ Bulamadığın kaynak tiplerini atla. Sadece JSON array döndür.` }],
       if (block.type === 'web_search_tool_result' && block.content) {
         for (const result of block.content) {
           if (result.type === 'web_search_result' && result.url) {
-            citationUrls.push({ url: result.url, type: 'Web', title: result.title || result.url })
+            const url = result.url as string
+            let type = 'Web'
+            if (url.includes('linkedin.com')) type = 'LinkedIn'
+            else if (url.includes('wikipedia.org')) type = 'Wikipedia'
+            else if (url.includes('instagram.com') || url.includes('twitter.com') || url.includes('x.com') || url.includes('facebook.com')) type = 'Sosyal Medya'
+            else if (url.includes(brandName.toLowerCase().replace(/\s+/g, ''))) type = 'Resmi Site'
+            citationUrls.push({ url, type, title: result.title || url })
           }
         }
       }
