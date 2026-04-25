@@ -120,14 +120,42 @@ export default function SharePageClient({ brief, clientName, videos, aiChildren,
                 ZIP İNDİR
               </a>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px' }}>
-              {['9:16 Reel', '4:5 IG', '1:1 Kare', '16:9 Yatay', '1200x628'].map((fmt, i) => (
-                <div key={fmt} style={{ border: '1px solid var(--color-border-tertiary)', background: '#f5f4f0', aspectRatio: ['9/16', '4/5', '1/1', '16/9', '1.91/1'][i], display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
-                  <div style={{ fontSize: '16px', color: 'var(--color-text-tertiary)', opacity: 0.3 }}>&#9634;</div>
-                  <span style={{ fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: '500', color: 'var(--color-text-tertiary)' }}>{fmt}</span>
+            {(() => {
+              const raw = brief.static_image_files
+              const frames: any[] = Array.isArray(raw) ? raw : (raw && typeof raw === 'object' && Object.keys(raw).length > 0) ? [raw] : []
+              const formats = [
+                { key: '9x16', label: '9:16 Reel', aspect: '9/16' },
+                { key: '4x5', label: '4:5 IG', aspect: '4/5' },
+                { key: '1x1', label: '1:1 Kare', aspect: '1/1' },
+                { key: '16x9', label: '16:9 Yatay', aspect: '16/9' },
+                { key: '1200x628', label: '1200x628', aspect: '1.91/1' },
+              ]
+              return frames.length > 0 ? frames.map((ff: any, fi: number) => (
+                <div key={fi} style={{ marginBottom: fi < frames.length - 1 ? '20px' : '0' }}>
+                  {frames.length > 1 && <div style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', fontWeight: '500', marginBottom: '8px' }}>FRAME {fi + 1}</div>}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px' }}>
+                    {formats.map(f => {
+                      const url = ff[f.key]?.with_text
+                      return (
+                        <div key={f.key} onClick={() => url && setLightbox({ type: 'image', url })}
+                          style={{ border: '1px solid var(--color-border-tertiary)', background: '#f5f4f0', aspectRatio: f.aspect, overflow: 'hidden', cursor: url ? 'pointer' : 'default' }}>
+                          {url ? <img src={url} alt={f.label} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: '9px', color: 'var(--color-text-tertiary)' }}>{f.label}</span></div>}
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
-              ))}
-            </div>
+              )) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px' }}>
+                  {formats.map(f => (
+                    <div key={f.key} style={{ border: '1px solid var(--color-border-tertiary)', background: '#f5f4f0', aspectRatio: f.aspect, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <span style={{ fontSize: '9px', color: 'var(--color-text-tertiary)' }}>{f.label}</span>
+                    </div>
+                  ))}
+                </div>
+              )
+            })()}
           </div>
         )}
 
@@ -147,7 +175,9 @@ export default function SharePageClient({ brief, clientName, videos, aiChildren,
           <button onClick={() => setLightbox(null)}
             style={{ position: 'absolute', top: '20px', right: '20px', width: '36px', height: '36px', border: '1px solid rgba(255,255,255,0.3)', background: 'transparent', color: '#fff', fontSize: '18px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1001 }}>&#215;</button>
           <div onClick={e => e.stopPropagation()}>
-            <video src={lightbox.url} controls autoPlay style={{ maxWidth: '90vw', maxHeight: '90vh', display: 'block' }} />
+            {lightbox.type === 'video'
+              ? <video src={lightbox.url} controls autoPlay style={{ maxWidth: '90vw', maxHeight: '90vh', display: 'block' }} />
+              : <img src={lightbox.url} alt="" style={{ maxWidth: '90vw', maxHeight: '90vh', objectFit: 'contain', display: 'block' }} />}
           </div>
         </div>
       )}

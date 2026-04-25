@@ -1526,7 +1526,7 @@ function ClientBriefDetail() {
 
               {/* ═══ SUMMARY TAB ═══ */}
               {activeTab === 'summary' && brief && (
-                <CampaignSummaryTab brief={brief} companyName={companyName} videos={videos} aiChildren={aiChildren} cpsChildren={cpsChildren} />
+                <CampaignSummaryTab brief={brief} companyName={companyName} videos={videos} aiChildren={aiChildren} cpsChildren={cpsChildren} onRefresh={loadData} />
               )}
 
             </>

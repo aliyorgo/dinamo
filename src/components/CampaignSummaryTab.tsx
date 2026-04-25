@@ -1,6 +1,25 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createClient } from '@supabase/supabase-js'
 import { generateCertificatePDF } from '@/lib/generate-certificate'
+
+const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+
+async function downloadFile(url: string, filename: string) {
+  try {
+    const res = await fetch(url)
+    if (!res.ok) throw new Error('Download failed')
+    const blob = await res.blob()
+    const blobUrl = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = blobUrl
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    window.URL.revokeObjectURL(blobUrl)
+  } catch { window.open(url, '_blank') }
+}
 
 interface Props {
   brief: any
@@ -8,6 +27,7 @@ interface Props {
   videos: any[]
   aiChildren: any[]
   cpsChildren: any[]
+  onRefresh?: () => void
 }
 
 function slugify(name: string): string {
@@ -17,11 +37,20 @@ function slugify(name: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '')
 }
 
-export default function CampaignSummaryTab({ brief, companyName, videos, aiChildren, cpsChildren }: Props) {
+export default function CampaignSummaryTab({ brief, companyName, videos, aiChildren, cpsChildren, onRefresh }: Props) {
   const [lightbox, setLightbox] = useState<{ type: 'video' | 'image'; url: string } | null>(null)
   const [menuOpen, setMenuOpen] = useState<string | null>(null)
   const [linkCopied, setLinkCopied] = useState(false)
   const [zipping, setZipping] = useState(false)
+
+  // Polling: auto-refresh when processing
+  const hasProcessing = aiChildren.some(c => c.status === 'ai_processing') ||
+    brief.static_images_job_status === 'processing' || brief.static_images_job_status === 'pending'
+  useEffect(() => {
+    if (!hasProcessing || !onRefresh) return
+    const interval = setInterval(onRefresh, 8000)
+    return () => clearInterval(interval)
+  }, [hasProcessing, onRefresh])
 
   const approvedVideos = videos.filter(v => ['producer_approved', 'admin_approved'].includes(v.status))
   const deliveredAi = aiChildren.filter(c => c.status === 'delivered' && c.ai_video_url)
@@ -56,10 +85,10 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
         </div>
         <div style={{ fontSize: '12px', color: 'var(--color-text-primary)', fontWeight: '500', marginTop: '6px', marginBottom: '4px' }}>{label}</div>
         <div style={{ display: 'flex', gap: '4px' }}>
-          <a href={url} download
-            style={{ flex: 1, textAlign: 'center', padding: '5px 8px', border: '1px solid #0a0a0a', fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: '#0a0a0a', textDecoration: 'none', cursor: 'pointer' }}>
+          <button onClick={() => downloadFile(url, `${label.replace(/\s+/g,'_')}.mp4`)}
+            style={{ flex: 1, textAlign: 'center', padding: '5px 8px', border: '1px solid #0a0a0a', fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: '#0a0a0a', background: 'transparent', cursor: 'pointer' }}>
             İNDİR ↓
-          </a>
+          </button>
           <div style={{ position: 'relative' }}>
             <button onClick={() => setMenuOpen(menuOpen === id ? null : id)}
               style={{ width: '30px', height: '100%', border: '1px solid #0a0a0a', background: 'transparent', fontSize: '14px', cursor: 'pointer', color: '#0a0a0a' }}>⋯</button>
@@ -205,8 +234,8 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
                               <div style={{ fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: '500', color: 'var(--color-text-tertiary)', marginTop: '4px', marginBottom: '4px' }}>{f.label}</div>
                               {url && (
                                 <div style={{ display: 'flex', gap: '4px' }}>
-                                  <a href={url} download style={{ flex: 1, textAlign: 'center', padding: '4px 6px', border: '1px solid #0a0a0a', fontSize: '8px', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: '500', color: '#0a0a0a', textDecoration: 'none' }}>YAZILI</a>
-                                  {noTextUrl && <a href={noTextUrl} download style={{ flex: 1, textAlign: 'center', padding: '4px 6px', border: '1px solid var(--color-border-tertiary)', fontSize: '8px', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: '500', color: 'var(--color-text-secondary)', textDecoration: 'none' }}>YAZISIZ</a>}
+                                  <button onClick={() => downloadFile(url, `yazili_${f.key}.jpg`)} style={{ flex: 1, textAlign: 'center', padding: '4px 6px', border: '1px solid #0a0a0a', fontSize: '8px', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: '500', color: '#0a0a0a', background: 'transparent', cursor: 'pointer' }}>YAZILI</button>
+                                  {noTextUrl && <button onClick={() => downloadFile(noTextUrl, `yazisiz_${f.key}.jpg`)} style={{ flex: 1, textAlign: 'center', padding: '4px 6px', border: '1px solid var(--color-border-tertiary)', fontSize: '8px', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: '500', color: 'var(--color-text-secondary)', background: 'transparent', cursor: 'pointer' }}>YAZISIZ</button>}
                                 </div>
                               )}
                             </div>
