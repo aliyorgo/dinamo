@@ -43,6 +43,7 @@ function NewBriefPage() {
   const [productUploading, setProductUploading] = useState(false)
   const [showProductUpload, setShowProductUpload] = useState(false)
   const [refLinkInput, setRefLinkInput] = useState('')
+  const [brandFiles, setBrandFiles] = useState<{name:string}[]>([])
 
   const [form, setForm] = useState({
     campaign_name: '',
@@ -119,7 +120,7 @@ function NewBriefPage() {
 
   // Fetch brief score when entering step 5
   useEffect(() => {
-    if (step !== 5) { setBriefScore(null); return }
+    if (step !== 6) { setBriefScore(null); return }
     if (scoreLoading) return
     setScoreLoading(true)
     fetch('/api/brief-score', {
@@ -328,7 +329,7 @@ function NewBriefPage() {
   const cost = calcCost()
   const balance = clientUser?.allocated_credits || 0
 
-  const steps = ['Kampanya & Format','Hedef & CTA','Brief Metni','Seslendirme','Son Kontrol']
+  const steps = ['Kampanya & Format','Hedef & CTA','Brief Metni','Seslendirme','Dosya Yükleme','İnceleme & Gönder']
 
   function Sidebar() {
     return (
@@ -476,9 +477,9 @@ function NewBriefPage() {
           {step > 0 && (
             <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
               <div style={{width:'120px',height:'4px',background:'var(--color-background-tertiary)'}}>
-                <div style={{width:`${(step/5)*100}%`,height:'100%',background:'#0a0a0a',transition:'width 0.3s ease'}} />
+                <div style={{width:`${(step/6)*100}%`,height:'100%',background:'#0a0a0a',transition:'width 0.3s ease'}} />
               </div>
-              <div style={{fontSize:'11px',letterSpacing:'1px',color:'var(--color-text-tertiary)'}}>{step}/5</div>
+              <div style={{fontSize:'11px',letterSpacing:'1px',color:'var(--color-text-tertiary)'}}>{step}/6</div>
             </div>
           )}
         </div>
@@ -722,81 +723,127 @@ function NewBriefPage() {
           )}
 
           {/* ADIM 5 */}
-          {step===5&&(()=>{
+          {/* STEP 5 — DOSYA YÜKLEME */}
+          {step===5&&(
+            <div>
+              <div className="label-caps" style={{marginBottom:'8px',color:'var(--color-text-secondary)'}}>05 — DOSYA YÜKLEME</div>
+              <div style={{fontSize:'22px',fontWeight:'500',letterSpacing:'-0.01em',color:'var(--color-text-primary)',marginBottom:'28px'}}>Materyaller & Referanslar</div>
+
+              {/* ROW 1: Product Image + Brand Materials side by side */}
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px',marginBottom:'16px'}}>
+
+                {/* ÜRÜN GÖRSELİ */}
+                <div style={{background:'#fff',border:'1px solid #0a0a0a',padding:'22px'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'8px'}}>
+                    <div className="label-caps">ÜRÜN GÖRSELİ</div>
+                    <span style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'2px 6px',border:'1px solid #22c55e',color:'#22c55e'}}>BETA</span>
+                  </div>
+                  <div style={{fontSize:'12px',color:'var(--color-text-tertiary)',lineHeight:'1.5',marginBottom:'14px'}}>Ürününüzün gerçek fotoğrafını videoda kullanmak istiyorsanız buraya yükleyin. AI üretimde baz alınır.</div>
+                  {productImageUrl ? (
+                    <div style={{display:'flex',alignItems:'center',gap:'12px',padding:'12px',border:'1px solid var(--color-border-tertiary)'}}>
+                      <img src={productImageUrl} alt="Ürün" style={{width:'48px',height:'48px',objectFit:'cover',border:'1px solid var(--color-border-tertiary)'}} />
+                      <div style={{flex:1}}>
+                        <div style={{fontSize:'12px',color:'#22c55e',fontWeight:'500'}}>Yüklendi</div>
+                      </div>
+                      <button onClick={()=>setProductImageUrl(null)} style={{fontSize:'11px',color:'#ef4444',background:'none',border:'none',cursor:'pointer'}}>Kaldır</button>
+                    </div>
+                  ) : (
+                    <div onClick={()=>productImageRef.current?.click()} style={{border:'1px dashed #0a0a0a',padding:'28px',textAlign:'center',cursor:'pointer'}}>
+                      <div style={{fontSize:'24px',color:'var(--color-text-tertiary)',marginBottom:'6px'}}>+</div>
+                      <div style={{fontSize:'12px',color:'var(--color-text-secondary)',marginBottom:'4px'}}>Ürün fotoğrafını sürükle veya tıkla</div>
+                      <div style={{fontSize:'10px',color:'var(--color-text-tertiary)'}}>JPG, PNG · max 10MB</div>
+                    </div>
+                  )}
+                  <input ref={productImageRef} type="file" accept=".jpg,.jpeg,.png,.webp" onChange={handleProductImageUpload} style={{display:'none'}} />
+                  {productUploading && <div style={{fontSize:'11px',color:'#888',marginTop:'8px'}}>Yükleniyor...</div>}
+                </div>
+
+                {/* MARKA MATERYALLERİ */}
+                <div style={{background:'#fff',border:'1px solid #0a0a0a',padding:'22px'}}>
+                  <div className="label-caps" style={{marginBottom:'8px'}}>MARKA MATERYALLERİ</div>
+                  <div style={{fontSize:'12px',color:'var(--color-text-tertiary)',lineHeight:'1.5',marginBottom:'14px'}}>Logo, font, ses, grafik, badge gibi marka materyallerini yükleyin. Uygun olanlar üretimde kullanılır.</div>
+                  <div onClick={()=>filesRef.current?.click()} style={{border:'1px dashed #0a0a0a',padding:'28px',textAlign:'center',cursor:'pointer'}}>
+                    <div style={{fontSize:'24px',color:'var(--color-text-tertiary)',marginBottom:'6px'}}>+</div>
+                    <div style={{fontSize:'12px',color:'var(--color-text-secondary)',marginBottom:'4px'}}>Dosyaları sürükle veya tıkla</div>
+                    <div style={{fontSize:'10px',color:'var(--color-text-tertiary)'}}>Logo, font, ses, görsel · birden fazla seçilebilir</div>
+                  </div>
+                  <input ref={filesRef} type="file" multiple onChange={() => { const files = filesRef.current?.files; if (files) setBrandFiles(Array.from(files).map(f => ({name:f.name}))) }} style={{display:'none'}} />
+                  {brandFiles.length > 0 && (
+                    <div style={{marginTop:'10px',display:'flex',flexDirection:'column',gap:'4px'}}>
+                      {brandFiles.map((f,i) => (
+                        <div key={i} style={{display:'flex',alignItems:'center',gap:'8px',padding:'6px 10px',background:'var(--color-background-secondary)'}}>
+                          <span style={{flex:1,fontSize:'12px',color:'#0a0a0a',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{f.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* ROW 2: Reference Video Links — full width */}
+              <div style={{background:'#fff',border:'1px solid #0a0a0a',padding:'18px 22px'}}>
+                <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'8px'}}>
+                  <div className="label-caps">REFERANS VİDEO LİNKİ</div>
+                  <span style={{fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:'#9b9b95'}}>OPSİYONEL</span>
+                </div>
+                <div style={{fontSize:'12px',color:'var(--color-text-tertiary)',lineHeight:'1.5',marginBottom:'12px'}}>Üretmek istediğiniz tarzı yansıtan bir referans varsa link bırakın. YouTube, TikTok, Vimeo, Instagram destekli.</div>
+                <div style={{display:'flex',gap:'8px',marginBottom:form.reference_links.length > 0 ? '10px' : '0'}}>
+                  <input value={refLinkInput} onChange={e => setRefLinkInput(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); const url = refLinkInput.trim(); if (!url) return; if (!url.startsWith('http://') && !url.startsWith('https://')) { setRefLinkInput(''); return }; if (!form.reference_links.includes(url)) setForm({...form, reference_links: [...form.reference_links, url]}); setRefLinkInput('') } }}
+                    placeholder="https://..." style={{flex:1,padding:'10px 14px',border:'1px solid #0a0a0a',fontSize:'14px',color:'#0a0a0a',boxSizing:'border-box'}} />
+                  <button type="button" onClick={() => { const url = refLinkInput.trim(); if (!url) return; if (!url.startsWith('http://') && !url.startsWith('https://')) { setRefLinkInput(''); return }; if (!form.reference_links.includes(url)) setForm({...form, reference_links: [...form.reference_links, url]}); setRefLinkInput('') }} className="btn btn-outline" style={{padding:'10px 18px',whiteSpace:'nowrap'}}>EKLE</button>
+                </div>
+                {form.reference_links.length > 0 && (
+                  <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>
+                    {form.reference_links.map((link, i) => (
+                      <div key={i} style={{display:'flex',alignItems:'center',gap:'8px',padding:'6px 10px',background:'var(--color-background-secondary)'}}>
+                        <a href={link} target="_blank" rel="noopener noreferrer" style={{flex:1,fontSize:'12px',color:'#0a0a0a',textDecoration:'none',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{link}</a>
+                        <button type="button" onClick={() => setForm({...form, reference_links: form.reference_links.filter((_,j) => j !== i)})} style={{fontSize:'14px',color:'#888',background:'none',border:'none',cursor:'pointer',padding:'0 4px',lineHeight:1}}>×</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <style>{`@media (max-width: 768px) { div[style*="grid-template-columns: 1fr 1fr"] { grid-template-columns: 1fr !important; } }`}</style>
+            </div>
+          )}
+
+          {/* STEP 6 — İNCELEME & GÖNDER */}
+          {step===6&&(()=>{
             const durMap:Record<string,string>={'Bumper / Pre-roll':'6 sn','Story / Reels':'15 sn','Feed Video':'30 sn','Long Form':'60 sn'}
             const dur=durMap[form.video_type]||'—'
             const wordCount=form.message?form.message.trim().split(/\s+/).length:0
             return (
               <div>
-                <div className="label-caps" style={{marginBottom:'8px',color:'var(--color-text-secondary)'}}>05 — SON KONTROL</div>
-                <div style={{fontSize:'22px',fontWeight:'500',letterSpacing:'-0.01em',color:'var(--color-text-primary)',marginBottom:'28px'}}>Son notlar</div>
+                <div className="label-caps" style={{marginBottom:'8px',color:'var(--color-text-secondary)'}}>06 — İNCELEME & GÖNDER</div>
+                <div style={{fontSize:'22px',fontWeight:'500',letterSpacing:'-0.01em',color:'var(--color-text-primary)',marginBottom:'28px'}}>Son kontrol</div>
 
                 {/* BRIEF SUMMARY */}
-                <div style={{background:'#f0efeb',borderRadius:'16px',padding:'28px',marginBottom:'22px'}}>
+                <div style={{background:'#f0efeb',padding:'28px',marginBottom:'22px'}}>
                   <div style={{fontSize:'22px',fontWeight:'600',color:'#0a0a0a',marginBottom:'4px'}}>{form.campaign_name}</div>
                   <div style={{fontSize:'13px',color:'#888',marginBottom:'12px'}}>{form.video_type} · {form.format} · {dur}</div>
                   {form.platforms.length>0&&(
                     <div style={{display:'flex',gap:'6px',flexWrap:'wrap',marginBottom:'16px'}}>
-                      {form.platforms.map(p=>(
-                        <span key={p} style={{fontSize:'10px',padding:'3px 10px',borderRadius:'100px',background:'rgba(34,197,94,0.08)',color:'#22c55e',fontWeight:'500'}}>{p}</span>
-                      ))}
+                      {form.platforms.map(p=>(<span key={p} style={{fontSize:'10px',padding:'3px 10px',background:'rgba(34,197,94,0.08)',color:'#22c55e',fontWeight:'500'}}>{p}</span>))}
                     </div>
                   )}
-
-                  {/* 4 STAT BOXES */}
                   <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',marginBottom:'16px'}}>
-                    {[
-                      {label:'Süre',value:dur},
-                      {label:'Format',value:form.format||'—'},
-                      {label:'Brief',value:`${wordCount} kelime`},
-                      {label:'Hazırlayan',value:userName.split(' ')[0]||'—'},
-                    ].map(s=>(
-                      <div key={s.label} style={{background:'#fff',borderRadius:'8px',padding:'12px'}}>
+                    {[{label:'Süre',value:dur},{label:'Format',value:form.format||'—'},{label:'Brief',value:`${wordCount} kelime`},{label:'Hazırlayan',value:userName.split(' ')[0]||'—'}].map(s=>(
+                      <div key={s.label} style={{background:'#fff',padding:'12px'}}>
                         <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>{s.label}</div>
                         <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a'}}>{s.value}</div>
                       </div>
                     ))}
                   </div>
-
-                  {/* BRIEF TEXT */}
-                  {form.message&&(
-                    <div style={{marginTop:'20px'}}>
-                      <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'6px'}}>Brief Metni</div>
-                      <div style={{fontSize:'14px',color:'#333',lineHeight:1.7}}>{form.message}</div>
-                    </div>
-                  )}
-                  {form.has_cta==='yes'&&form.cta&&(
-                    <div style={{marginTop:'14px'}}>
-                      <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>CTA</div>
-                      <div style={{fontSize:'14px',color:'#333',lineHeight:1.7}}>{form.cta}</div>
-                    </div>
-                  )}
-                  {form.target_audience&&(
-                    <div style={{marginTop:'14px'}}>
-                      <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>Hedef Kitle</div>
-                      <div style={{fontSize:'14px',color:'#333',lineHeight:1.7}}>{form.target_audience}</div>
-                    </div>
-                  )}
-                  {form.voiceover_type!=='none'&&(
-                    <div style={{marginTop:'14px'}}>
-                      <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>Seslendirme</div>
-                      <div style={{fontSize:'14px',color:'#333'}}>{form.voiceover_type==='real'?'Gerçek Seslendirme':'AI Seslendirme'}{form.voiceover_gender?` (${form.voiceover_gender==='male'?'Erkek':'Kadın'})`:''}</div>
-                    </div>
-                  )}
-                  {form.languages.length>0&&(
-                    <div style={{marginTop:'14px'}}>
-                      <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'6px'}}>Yabancı Dil Versiyonları</div>
-                      <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
-                        {form.languages.map(lid=>{
-                          const langMap:Record<string,{label:string,flag:string}>={en:{label:'İngilizce',flag:'🇬🇧'},de:{label:'Almanca',flag:'🇩🇪'},fr:{label:'Fransızca',flag:'🇫🇷'},ru:{label:'Rusça',flag:'🇷🇺'},ar:{label:'Arapça',flag:'🇸🇦'},it:{label:'İtalyanca',flag:'🇮🇹'},es:{label:'İspanyolca',flag:'🇪🇸'}}
-                          const l=langMap[lid]
-                          return l?<span key={lid} style={{fontSize:'12px',padding:'4px 12px',borderRadius:'100px',background:'rgba(34,197,94,0.08)',color:'#22c55e',fontWeight:'500'}}>{l.flag} {l.label}</span>:null
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* CREDIT */}
+                  {form.message&&(<div style={{marginTop:'20px'}}><div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'6px'}}>Brief Metni</div><div style={{fontSize:'14px',color:'#333',lineHeight:1.7}}>{form.message}</div></div>)}
+                  {form.has_cta==='yes'&&form.cta&&(<div style={{marginTop:'14px'}}><div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>CTA</div><div style={{fontSize:'14px',color:'#333',lineHeight:1.7}}>{form.cta}</div></div>)}
+                  {form.target_audience&&(<div style={{marginTop:'14px'}}><div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>Hedef Kitle</div><div style={{fontSize:'14px',color:'#333',lineHeight:1.7}}>{form.target_audience}</div></div>)}
+                  {form.voiceover_type!=='none'&&(<div style={{marginTop:'14px'}}><div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>Seslendirme</div><div style={{fontSize:'14px',color:'#333'}}>{form.voiceover_type==='real'?'Gerçek Seslendirme':'AI Seslendirme'}{form.voiceover_gender?` (${form.voiceover_gender==='male'?'Erkek':'Kadın'})`:''}</div></div>)}
+                  {form.languages.length>0&&(<div style={{marginTop:'14px'}}><div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'6px'}}>Yabancı Dil Versiyonları</div><div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>{form.languages.map(lid=>{const langMap:Record<string,{label:string,flag:string}>={en:{label:'İngilizce',flag:'🇬🇧'},de:{label:'Almanca',flag:'🇩🇪'},fr:{label:'Fransızca',flag:'🇫🇷'},ru:{label:'Rusça',flag:'🇷🇺'},ar:{label:'Arapça',flag:'🇸🇦'},it:{label:'İtalyanca',flag:'🇮🇹'},es:{label:'İspanyolca',flag:'🇪🇸'}};const l=langMap[lid];return l?<span key={lid} style={{fontSize:'12px',padding:'4px 12px',background:'rgba(34,197,94,0.08)',color:'#22c55e',fontWeight:'500'}}>{l.flag} {l.label}</span>:null})}</div></div>)}
+                  {productImageUrl&&(<div style={{marginTop:'14px'}}><div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>Ürün Görseli</div><div style={{fontSize:'12px',color:'#22c55e'}}>Yüklendi</div></div>)}
+                  {brandFiles.length>0&&(<div style={{marginTop:'14px'}}><div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>Marka Materyalleri</div><div style={{fontSize:'12px',color:'#0a0a0a'}}>{brandFiles.length} dosya</div></div>)}
+                  {form.reference_links.length>0&&(<div style={{marginTop:'14px'}}><div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>Referans Linkler</div><div style={{display:'flex',flexDirection:'column',gap:'2px'}}>{form.reference_links.map((l,i)=>(<a key={i} href={l} target="_blank" rel="noopener noreferrer" style={{fontSize:'12px',color:'#0a0a0a'}}>{l}</a>))}</div></div>)}
                   <div style={{marginTop:'20px',background:'var(--color-background-secondary)',border:'1px solid #0a0a0a',padding:'14px 18px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                     <span style={{fontSize:'14px',color:'var(--color-text-secondary)'}}>Toplam Kredi</span>
                     <span style={{fontSize:'15px',fontWeight:'500',color:'var(--color-text-primary)'}}>{cost} kredi</span>
@@ -805,12 +852,9 @@ function NewBriefPage() {
 
                 {/* BRIEF SCORE */}
                 <div style={{background:'#fff',border:'1px solid var(--color-border-tertiary)',padding:'20px',marginBottom:'22px',minHeight:'140px'}}>
-                  <div style={{fontSize:'11px',color:'var(--color-text-secondary)',letterSpacing:'2px',textTransform:'uppercase',fontWeight:'500',marginBottom:'14px'}}>BRİEF KALİTE SKORU</div>
+                  <div className="label-caps" style={{marginBottom:'14px'}}>BRİEF KALİTE SKORU</div>
                   {scoreLoading ? (
-                    <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'10px',padding:'24px 0'}}>
-                      <div style={{width:'14px',height:'14px',border:'2px solid #4ade80',borderTop:'2px solid transparent',animation:'spin 1s linear infinite'}} className="spinner"></div>
-                      <span style={{fontSize:'13px',color:'var(--color-text-tertiary)'}}>Hesaplanıyor...</span>
-                    </div>
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'10px',padding:'24px 0'}}><div style={{width:'14px',height:'14px',border:'2px solid #4ade80',borderTop:'2px solid transparent',animation:'spin 1s linear infinite'}} className="spinner"></div><span style={{fontSize:'13px',color:'var(--color-text-tertiary)'}}>Hesaplanıyor...</span></div>
                   ) : briefScore ? (
                     <div>
                       <div style={{display:'flex',alignItems:'baseline',gap:'8px',marginBottom:'16px'}}>
@@ -818,121 +862,20 @@ function NewBriefPage() {
                         <div style={{fontSize:'13px',color:'#aaa'}}>/100</div>
                       </div>
                       <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
-                        {briefScore.criteria?.map((c: any)=>(
-                          <div key={c.key}>
-                            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'4px'}}>
-                              <span style={{fontSize:'12px',color:'#0a0a0a',fontWeight:'500'}}>{c.label}</span>
-                              <span style={{fontSize:'12px',color:c.score>=80?'#22c55e':c.score>=60?'#f59e0b':'#ef4444',fontWeight:'500'}}>{c.score}</span>
-                            </div>
-                            <div style={{width:'100%',height:'4px',background:'rgba(0,0,0,0.06)',borderRadius:'2px',overflow:'hidden'}}>
-                              <div style={{width:`${c.score}%`,height:'100%',borderRadius:'2px',background:c.score>=80?'#22c55e':c.score>=60?'#f59e0b':'#ef4444',transition:'width 0.6s ease'}} />
-                            </div>
-                            {c.tip && <div style={{fontSize:'11px',color:'#999',fontStyle:'italic',marginTop:'4px',lineHeight:'1.4'}}>{c.tip}</div>}
-                          </div>
-                        ))}
+                        {briefScore.criteria?.map((c: any)=>(<div key={c.key}><div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'4px'}}><span style={{fontSize:'12px',color:'#0a0a0a',fontWeight:'500'}}>{c.label}</span><span style={{fontSize:'12px',color:c.score>=80?'#22c55e':c.score>=60?'#f59e0b':'#ef4444',fontWeight:'500'}}>{c.score}</span></div><div style={{width:'100%',height:'4px',background:'rgba(0,0,0,0.06)',overflow:'hidden'}}><div style={{width:`${c.score}%`,height:'100%',background:c.score>=80?'#22c55e':c.score>=60?'#f59e0b':'#ef4444',transition:'width 0.6s ease'}} /></div>{c.tip&&<div style={{fontSize:'11px',color:'#999',fontStyle:'italic',marginTop:'4px',lineHeight:'1.4'}}>{c.tip}</div>}</div>))}
                       </div>
                     </div>
-                  ) : (
-                    <div style={{fontSize:'12px',color:'#aaa'}}>Skor hesaplanamadı.</div>
-                  )}
+                  ) : (<div style={{fontSize:'12px',color:'#aaa'}}>Skor hesaplanamadı.</div>)}
                 </div>
 
                 {/* NOTES */}
                 <div style={{marginBottom:'22px'}}>
-                  <div style={{fontSize:'11px',color:'var(--color-text-secondary)',letterSpacing:'2px',textTransform:'uppercase',fontWeight:'500',marginBottom:'8px'}}>Uyarılar, Hassasiyetler & Eklemek İstedikleriniz</div>
+                  <div className="label-caps" style={{marginBottom:'8px'}}>Uyarılar, Hassasiyetler & Eklemek İstedikleriniz</div>
                   <textarea style={{...inputStyle,resize:'vertical',lineHeight:'1.7'}} rows={4} value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})} placeholder="Kaçınılması gereken içerik, hassas konular, marka kısıtlamaları veya eklemek istediğiniz herhangi bir bilgi..." />
                 </div>
 
-                {/* FILES */}
-                <div style={{marginBottom:'22px'}}>
-                  <div style={{fontSize:'11px',color:'var(--color-text-secondary)',letterSpacing:'2px',textTransform:'uppercase',fontWeight:'500',marginBottom:'8px'}}>Referans Dosyalar</div>
-                  <div style={{background:'#f5f4f0',borderRadius:'10px',padding:'16px',display:'flex',alignItems:'center',gap:'12px'}}>
-                    <input ref={filesRef} type="file" multiple style={{fontSize:'12px',color:'#0a0a0a',flex:1}} />
-                  </div>
-                  <div style={{fontSize:'10px',color:'#aaa',marginTop:'6px'}}>Opsiyonel. Logo, referans video, moodboard vb.</div>
-                </div>
-
-                {/* PRODUCT IMAGE */}
-                <div style={{marginBottom:'22px'}}>
-                  <label style={{display:'flex',alignItems:'center',gap:'8px',cursor:'pointer',marginBottom:(showProductUpload||productImageUrl)?'12px':'0'}}>
-                    <input type="checkbox" checked={showProductUpload || !!productImageUrl} onChange={e=>{if(e.target.checked){setShowProductUpload(true)}else{setShowProductUpload(false);setProductImageUrl(null)}}} style={{accentColor:'#22c55e'}} />
-                    <span style={{fontSize:'13px',color:'#0a0a0a'}}>Bu kampanya için ürün görselim var</span>
-                  </label>
-                  {(productImageUrl || productUploading) ? (
-                    productImageUrl ? (
-                      <div style={{display:'flex',alignItems:'center',gap:'12px',background:'#f5f4f0',borderRadius:'10px',padding:'12px 16px'}}>
-                        <img src={productImageUrl} alt="Ürün" style={{width:'48px',height:'48px',objectFit:'cover',borderRadius:'8px',border:'0.5px solid rgba(0,0,0,0.1)'}} />
-                        <div style={{flex:1}}>
-                          <div style={{fontSize:'12px',color:'#22c55e',fontWeight:'500'}}>Yüklendi</div>
-                          <div style={{fontSize:'10px',color:'#888',marginTop:'2px'}}>AI video ürününüzü kullanarak oluşturulacak</div>
-                        </div>
-                        <button onClick={()=>setProductImageUrl(null)} style={{fontSize:'11px',color:'#ef4444',background:'none',border:'none',cursor:'pointer',fontFamily:'var(--font-sans),Inter,sans-serif'}}>Kaldır</button>
-                      </div>
-                    ) : (
-                      <div style={{fontSize:'11px',color:'#888',padding:'12px'}}>Yükleniyor...</div>
-                    )
-                  ) : null}
-                  {!productImageUrl && !productUploading && showProductUpload && (
-                    <div style={{marginTop:'8px',display:'flex',gap:'8px',alignItems:'flex-start'}}>
-                      <div style={{flex:1}}>
-                        <input placeholder="Görsel URL yapıştır (jpg, png, webp)" onBlur={e=>{const v=e.target.value.trim();if(v&&/\.(jpg|jpeg|png|webp)/i.test(v)){setProductImageUrl(v);e.target.value=''}}}
-                          style={{...inputStyle,fontSize:'12px',padding:'9px 12px'}} />
-                      </div>
-                      <div style={{fontSize:'11px',color:'#aaa',lineHeight:'36px'}}>veya</div>
-                      <div>
-                        <input ref={productImageRef} type="file" accept=".jpg,.jpeg,.png,.webp" onChange={handleProductImageUpload}
-                          style={{fontSize:'11px',width:'130px'}} disabled={productUploading} />
-                      </div>
-                    </div>
-                  )}
-                  <div style={{fontSize:'10px',color:'#aaa',marginTop:'6px'}}>Ürün görseli yüklerseniz AI video ürününüzü kullanarak oluşturur. JPG, PNG, WebP — max 10MB</div>
-                </div>
-
-                {/* REFERANS VİDEO LİNKİ */}
-                <div style={{background:'#fff',border:'1px solid #0a0a0a',padding:'18px 22px',marginBottom:'22px'}}>
-                  <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'8px'}}>
-                    <div style={{fontSize:'11px',color:'var(--color-text-secondary)',letterSpacing:'2px',textTransform:'uppercase',fontWeight:'500'}}>REFERANS VİDEO LİNKİ</div>
-                    <span style={{fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:'#9b9b95'}}>OPSİYONEL</span>
-                  </div>
-                  <div style={{fontSize:'12px',color:'var(--color-text-tertiary)',lineHeight:'1.5',marginBottom:'12px'}}>Üretmek istediğiniz tarzı yansıtan bir referans varsa link bırakın. YouTube, TikTok, Vimeo, Instagram destekli.</div>
-                  <div style={{display:'flex',gap:'8px',marginBottom:form.reference_links.length > 0 ? '10px' : '0'}}>
-                    <input value={refLinkInput} onChange={e => setRefLinkInput(e.target.value)}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault()
-                          const url = refLinkInput.trim()
-                          if (!url) return
-                          if (!url.startsWith('http://') && !url.startsWith('https://')) { setRefLinkInput(''); return }
-                          if (!form.reference_links.includes(url)) setForm({...form, reference_links: [...form.reference_links, url]})
-                          setRefLinkInput('')
-                        }
-                      }}
-                      placeholder="https://..." style={{flex:1,padding:'10px 14px',border:'1px solid #0a0a0a',fontSize:'14px',color:'#0a0a0a',boxSizing:'border-box'}} />
-                    <button type="button" onClick={() => {
-                      const url = refLinkInput.trim()
-                      if (!url) return
-                      if (!url.startsWith('http://') && !url.startsWith('https://')) { setRefLinkInput(''); return }
-                      if (!form.reference_links.includes(url)) setForm({...form, reference_links: [...form.reference_links, url]})
-                      setRefLinkInput('')
-                    }} className="btn btn-outline" style={{padding:'10px 18px',whiteSpace:'nowrap'}}>EKLE</button>
-                  </div>
-                  {form.reference_links.length > 0 && (
-                    <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>
-                      {form.reference_links.map((link, i) => (
-                        <div key={i} style={{display:'flex',alignItems:'center',gap:'8px',padding:'6px 10px',background:'var(--color-background-secondary)'}}>
-                          <a href={link} target="_blank" rel="noopener noreferrer" style={{flex:1,fontSize:'12px',color:'#0a0a0a',textDecoration:'none',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{link}</a>
-                          <button type="button" onClick={() => setForm({...form, reference_links: form.reference_links.filter((_,j) => j !== i)})}
-                            style={{fontSize:'14px',color:'#888',background:'none',border:'none',cursor:'pointer',padding:'0 4px',lineHeight:1}}>×</button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
                 {balance < cost && (
-                  <div style={{background:'#fef2f2',border:'0.5px solid #fca5a5',borderRadius:'10px',padding:'14px',fontSize:'13px',color:'#dc2626'}}>
-                    Yetersiz kredi. Bakiyeniz: {balance} kredi.
-                  </div>
+                  <div style={{background:'rgba(239,68,68,0.06)',border:'1px solid #ef4444',padding:'14px',fontSize:'13px',color:'#dc2626'}}>Yetersiz kredi. Bakiyeniz: {balance} kredi.</div>
                 )}
               </div>
             )
@@ -944,7 +887,7 @@ function NewBriefPage() {
                 className="btn btn-outline">
                 {step===1?'İPTAL':'GERİ'}
               </button>
-              {step<5?(
+              {step<6?(
                 <button onClick={()=>setStep(step+1)}
                   disabled={
                     (step===1&&(!form.campaign_name||!form.video_type||!form.format))||
