@@ -167,20 +167,59 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
                 GÖRSELLERİ İNDİR
               </a>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px' }}>
-              {['9:16 Reel', '4:5 IG', '1:1 Kare', '16:9 Yatay', '1200x628'].map((fmt, i) => (
-                <div key={fmt} style={{ border: '1px solid var(--color-border-tertiary)', background: '#f5f4f0', aspectRatio: ['9/16', '4/5', '1/1', '16/9', '1.91/1'][i], display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px', position: 'relative' }}>
-                  <div style={{ fontSize: '20px', color: 'var(--color-text-tertiary)', opacity: 0.4 }}>&#9634;</div>
-                  <span style={{ fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: '500', color: 'var(--color-text-tertiary)' }}>{fmt}</span>
-                </div>
-              ))}
-            </div>
-            <div style={{ marginTop: '12px' }}>
-              <a href={brief.static_images_url} target="_blank" rel="noopener noreferrer"
-                style={{ display: 'inline-flex', padding: '8px 16px', border: '1px solid #0a0a0a', fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: '#0a0a0a', textDecoration: 'none', cursor: 'pointer' }}>
-                ZIP İNDİR ↓
-              </a>
-            </div>
+            {(() => {
+              const files = brief.static_image_files || {}
+              const formats = [
+                { key: '9x16', label: '9:16 Reel', aspect: '9/16' },
+                { key: '4x5', label: '4:5 IG', aspect: '4/5' },
+                { key: '1x1', label: '1:1 Kare', aspect: '1/1' },
+                { key: '16x9', label: '16:9 Yatay', aspect: '16/9' },
+                { key: '1200x628', label: '1200x628', aspect: '1.91/1' },
+              ]
+              const hasFiles = Object.keys(files).length > 0
+              return (
+                <>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px' }}>
+                    {formats.map(f => {
+                      const url = files[f.key]?.with_text
+                      const noTextUrl = files[f.key]?.no_text
+                      return (
+                        <div key={f.key}>
+                          <div onClick={() => url && setLightbox({ type: 'image', url })}
+                            style={{ border: '1px solid var(--color-border-tertiary)', background: '#f5f4f0', aspectRatio: f.aspect, overflow: 'hidden', cursor: url ? 'pointer' : 'default', position: 'relative' }}>
+                            {url ? (
+                              <img src={url} alt={f.label} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                            ) : (
+                              <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                                <div style={{ fontSize: '16px', color: 'var(--color-text-tertiary)', opacity: 0.3 }}>&#9634;</div>
+                                <span style={{ fontSize: '9px', color: 'var(--color-text-tertiary)' }}>{f.label}</span>
+                              </div>
+                            )}
+                          </div>
+                          <div style={{ fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: '500', color: 'var(--color-text-tertiary)', marginTop: '4px', marginBottom: '4px' }}>{f.label}</div>
+                          {url && (
+                            <div style={{ display: 'flex', gap: '4px' }}>
+                              <a href={url} download target="_blank" rel="noopener noreferrer"
+                                style={{ flex: 1, textAlign: 'center', padding: '4px 6px', border: '1px solid #0a0a0a', fontSize: '8px', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: '500', color: '#0a0a0a', textDecoration: 'none' }}>YAZILI</a>
+                              {noTextUrl && (
+                                <a href={noTextUrl} download target="_blank" rel="noopener noreferrer"
+                                  style={{ flex: 1, textAlign: 'center', padding: '4px 6px', border: '1px solid var(--color-border-tertiary)', fontSize: '8px', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: '500', color: 'var(--color-text-secondary)', textDecoration: 'none' }}>YAZISIZ</a>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                  <div style={{ marginTop: '12px' }}>
+                    <a href={brief.static_images_url} target="_blank" rel="noopener noreferrer"
+                      style={{ display: 'inline-flex', padding: '8px 16px', border: '1px solid #0a0a0a', fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: '#0a0a0a', textDecoration: 'none' }}>
+                      TÜMÜNÜ ZIP İNDİR ↓
+                    </a>
+                  </div>
+                </>
+              )
+            })()}
           </>
         )}
 
