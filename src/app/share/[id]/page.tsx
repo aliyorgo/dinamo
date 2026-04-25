@@ -43,13 +43,27 @@ export default async function SharePage({ params }: { params: { id: string } }) 
     .order('mvc_order', { ascending: true })
 
   const clientName = (brief.clients as any)?.company_name || ''
-  const deliveryDate = new Date(brief.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })
+
+  // Format date server-side with manual Turkish month names — no locale dependency
+  const TR_MONTHS = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık']
+  let deliveryDate = ''
+  try {
+    const d = new Date(brief.created_at)
+    if (!isNaN(d.getTime())) {
+      deliveryDate = `${d.getDate()} ${TR_MONTHS[d.getMonth()]} ${d.getFullYear()}`
+    }
+  } catch {}
+  if (!deliveryDate) deliveryDate = '—'
+
+  // Extract caption as plain string to avoid serialization issues
+  const caption = typeof brief.caption === 'string' ? brief.caption : ''
 
   return (
     <SharePageClient
       brief={brief}
       clientName={clientName}
       deliveryDate={deliveryDate}
+      caption={caption}
       videos={videos || []}
       aiChildren={(aiChildren || []).filter(c => c.ai_video_url)}
       cpsChildren={(cpsChildren || []).filter((c: any) => c.video_submissions?.length > 0)}

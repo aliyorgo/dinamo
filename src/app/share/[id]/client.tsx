@@ -6,16 +6,17 @@ interface Props {
   brief: any
   clientName: string
   deliveryDate: string
+  caption: string
   videos: any[]
   aiChildren: any[]
   cpsChildren: any[]
 }
 
-export default function SharePageClient({ brief, clientName, deliveryDate, videos, aiChildren, cpsChildren }: Props) {
+export default function SharePageClient({ brief, clientName, deliveryDate, caption, videos, aiChildren, cpsChildren }: Props) {
   const [lightbox, setLightbox] = useState<{ type: 'video' | 'image'; url: string } | null>(null)
   const [zipping, setZipping] = useState(false)
-
   const [captionCopied, setCaptionCopied] = useState(false)
+
   const totalVideos = videos.length + aiChildren.length + cpsChildren.length
   const hasStaticImages = !!brief.static_images_url || !!brief.static_image_files
   const aiWithImages = aiChildren.filter((c: any) => c.static_image_files && (Array.isArray(c.static_image_files) ? c.static_image_files.length > 0 : Object.keys(c.static_image_files).length > 0))
@@ -38,6 +39,22 @@ export default function SharePageClient({ brief, clientName, deliveryDate, video
           style={{ display: 'block', textAlign: 'center', padding: '6px 12px', border: '1px solid #0a0a0a', fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: '#0a0a0a', textDecoration: 'none' }}>
           İNDİR ↓
         </a>
+      </div>
+    )
+  }
+
+  function CaptionBox() {
+    if (!caption) return null
+    return (
+      <div style={{ flex: '1 1 240px', maxWidth: '320px', border: '1px solid #0a0a0a', background: '#fff', padding: '16px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+          <div style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: 'var(--color-text-tertiary)' }}>CAPTION</div>
+          <button onClick={() => { navigator.clipboard.writeText(caption); setCaptionCopied(true); setTimeout(() => setCaptionCopied(false), 2000) }}
+            style={{ padding: '4px 12px', border: '1px solid #0a0a0a', background: 'transparent', fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: '#0a0a0a', cursor: 'pointer' }}>
+            {captionCopied ? 'KOPYALANDİ ✓' : 'KOPYALA'}
+          </button>
+        </div>
+        <div style={{ fontSize: '13px', color: 'var(--color-text-primary)', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>{caption}</div>
       </div>
     )
   }
@@ -89,16 +106,7 @@ export default function SharePageClient({ brief, clientName, deliveryDate, video
                       <VideoThumb key={v.id} url={v.video_url} label={`V${v.version}`} width={260} />
                     ))}
                   </div>
-                  {brief.caption && (
-                    <div style={{ flex: '1 1 240px', maxWidth: '320px', border: '1px solid var(--color-border-tertiary)', background: '#fff', padding: '16px' }}>
-                      <div style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: 'var(--color-text-tertiary)', marginBottom: '10px' }}>CAPTION</div>
-                      <div style={{ fontSize: '13px', color: 'var(--color-text-primary)', lineHeight: '1.6', whiteSpace: 'pre-wrap', marginBottom: '12px' }}>{brief.caption}</div>
-                      <button onClick={() => { navigator.clipboard.writeText(brief.caption); setCaptionCopied(true); setTimeout(() => setCaptionCopied(false), 2000) }}
-                        style={{ padding: '6px 14px', border: '1px solid #0a0a0a', background: 'transparent', fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: '#0a0a0a', cursor: 'pointer' }}>
-                        {captionCopied ? 'KOPYALANDİ ✓' : 'KOPYALA'}
-                      </button>
-                    </div>
-                  )}
+                  <CaptionBox />
                 </div>
               </div>
             )}
