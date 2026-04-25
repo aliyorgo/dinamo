@@ -87,6 +87,7 @@ function ClientBriefDetail() {
   const [aiWarningDismissed, setAiWarningDismissed] = useState(false)
   const [cpsBannerDismissed, setCpsBannerDismissed] = useState(() => typeof window !== 'undefined' && localStorage.getItem('cps_banner_dismissed') === '1')
   const [activeTab, setActiveTab] = useState<'hybrid'|'cps'|'express'>(searchParams.get('tab') === 'express' ? 'express' : searchParams.get('tab') === 'cps' ? 'cps' : 'hybrid')
+  const [briefExpanded, setBriefExpanded] = useState(false)
   const [autoGenerateTriggered, setAutoGenerateTriggered] = useState(false)
   const [cpsChildren, setCpsChildren] = useState<any[]>([])
   const [cpsPackage, setCpsPackage] = useState<number>(0)
@@ -1028,28 +1029,64 @@ function ClientBriefDetail() {
 
 
 
-              {/* BRIEF DETAILS */}
-              <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'20px 24px',marginBottom:'16px'}}>
-                <div style={{fontSize:'11px',color:'#888',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'16px'}}>Brief Detayları</div>
-                {[
-                  {label:'Video Tipi', value: brief.video_type},
-                  {label:'Format', value: Array.isArray(brief.format)?brief.format.join(', '):brief.format},
-                  {label:'Mesaj', value: brief.message},
-                  {label:'CTA', value: brief.cta},
-                  {label:'Hedef Kitle', value: brief.target_audience},
-                  {label:'Seslendirme', value: brief.voiceover_type==='real'?'Gerçek Seslendirme':brief.voiceover_type==='ai'?`AI Seslendirme${brief.voiceover_gender==='male'?' (Erkek)':brief.voiceover_gender==='female'?' (Kadın)':''}`:null},
-                  {label:'Seslendirme Metni', value: brief.voiceover_text},
-                  {label:'Notlar', value: brief.notes},
-                ].filter(f=>f.value).map(f=>(
-                  <div key={f.label} style={{marginBottom:'12px',paddingBottom:'12px',borderBottom:'0.5px solid rgba(0,0,0,0.06)'}}>
-                    <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>{f.label}</div>
-                    <div style={{fontSize:'13px',color:'#0a0a0a',lineHeight:'1.6'}}>{f.value}</div>
+              {/* BRIEF DETAILS — COLLAPSIBLE */}
+              <div style={{background:'#fff',border:'1px solid #0a0a0a',padding:'18px 20px',marginBottom:'16px'}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'16px'}}>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontSize:'11px',letterSpacing:'2px',textTransform:'uppercase',fontWeight:'500',color:'var(--color-text-secondary)',marginBottom:'8px'}}>BRİEF ÖZETİ</div>
+                    {!briefExpanded && (
+                      <div style={{fontSize:'14px',color:'var(--color-text-primary)',lineHeight:1.65,overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical' as any}}>{brief.message}</div>
+                    )}
                   </div>
-                ))}
-                <div style={{background:'#f5f4f0',borderRadius:'8px',padding:'12px 16px'}}>
-                  <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'8px'}}>Kredi</div>
-                  <div style={{fontSize:'16px',fontWeight:'500',color:'#0a0a0a'}}>{brief.credit_cost} kredi</div>
+                  <button onClick={()=>setBriefExpanded(!briefExpanded)}
+                    style={{flexShrink:0,padding:'6px 12px',fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',cursor:'pointer',border:'1px solid #0a0a0a',background:briefExpanded?'#0a0a0a':'transparent',color:briefExpanded?'#fff':'#0a0a0a',transition:'all 0.15s'}}>
+                    {briefExpanded ? 'KAPAT ▴' : 'DETAY ▾'}
+                  </button>
                 </div>
+
+                {briefExpanded && (
+                  <div style={{marginTop:'16px',transition:'all 0.2s ease'}}>
+                    {/* Full message */}
+                    <div style={{fontSize:'14px',color:'var(--color-text-primary)',lineHeight:1.65,marginBottom:'16px'}}>{brief.message}</div>
+
+                    {/* Metadata grid */}
+                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr',gap:'12px',borderTop:'1px solid var(--color-border-tertiary)',paddingTop:'14px'}}>
+                      {[
+                        {label:'HEDEF',value:brief.target_audience},
+                        {label:'TİP',value:brief.video_type},
+                        {label:'FORMAT',value:Array.isArray(brief.format)?brief.format.join(', '):brief.format},
+                        {label:'CTA',value:brief.cta},
+                      ].filter(m=>m.value).map(m=>(
+                        <div key={m.label}>
+                          <div style={{fontSize:'10px',letterSpacing:'2px',color:'var(--color-text-tertiary)',fontWeight:'500',marginBottom:'4px'}}>{m.label}</div>
+                          <div style={{fontSize:'13px',color:'var(--color-text-primary)'}}>{m.value}</div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Voiceover */}
+                    {brief.voiceover_text && (
+                      <div style={{borderTop:'1px solid var(--color-border-tertiary)',paddingTop:'14px',marginTop:'14px'}}>
+                        <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--color-text-secondary)',fontWeight:'500',marginBottom:'8px'}}>SESLENDİRME METNİ</div>
+                        <div style={{borderLeft:'3px solid #4ade80',paddingLeft:'14px',fontSize:'14px',fontStyle:'italic',color:'var(--color-text-primary)',lineHeight:1.65}}>{brief.voiceover_text}</div>
+                      </div>
+                    )}
+
+                    {/* Notes */}
+                    {brief.notes && (
+                      <div style={{borderTop:'1px solid var(--color-border-tertiary)',paddingTop:'14px',marginTop:'14px'}}>
+                        <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--color-text-secondary)',fontWeight:'500',marginBottom:'8px'}}>NOTLAR</div>
+                        <div style={{fontSize:'14px',color:'var(--color-text-primary)',lineHeight:1.65}}>{brief.notes}</div>
+                      </div>
+                    )}
+
+                    {/* Credit */}
+                    <div style={{borderTop:'1px solid var(--color-border-tertiary)',paddingTop:'14px',marginTop:'14px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                      <span style={{fontSize:'10px',letterSpacing:'2px',textTransform:'uppercase',color:'var(--color-text-tertiary)',fontWeight:'500'}}>KREDİ</span>
+                      <span style={{fontSize:'15px',fontWeight:'500',color:'var(--color-text-primary)'}}>{brief.credit_cost} kredi</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* ANSWERED Q */}
