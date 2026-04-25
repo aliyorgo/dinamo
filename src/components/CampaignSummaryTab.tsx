@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { generateCertificatePDF } from '@/lib/generate-certificate'
+import { downloadCampaignZip } from '@/lib/campaign-zip'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
@@ -132,6 +133,15 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
           <button onClick={copyLink}
             style={{ padding: '8px 14px', border: '1px solid #0a0a0a', background: 'transparent', fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: '#0a0a0a', cursor: 'pointer' }}>
             {linkCopied ? 'KOPYALANDI ✓' : 'PAYLAŞIM LİNKİ'}
+          </button>
+          <button onClick={async () => {
+            if (zipping) return
+            setZipping(true)
+            try { await downloadCampaignZip(brief.id) } catch (e) { console.error(e) }
+            setZipping(false)
+          }} disabled={zipping}
+            style={{ padding: '8px 14px', border: '1px solid #0a0a0a', background: '#0a0a0a', color: '#fff', fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', cursor: zipping ? 'wait' : 'pointer', opacity: zipping ? 0.6 : 1 }}>
+            {zipping ? 'HAZIRLANIYOR...' : 'TÜMÜNÜ ZİP İNDİR ↓'}
           </button>
           <div style={{ padding: '7px 14px', border: '1px solid #f5a623', background: 'rgba(245,166,35,0.1)', fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '600', color: '#0a0a0a' }}>
             TOPLAM {totalCredits} KREDİ

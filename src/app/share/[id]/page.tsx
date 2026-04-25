@@ -31,7 +31,7 @@ export default async function SharePage({ params }: { params: { id: string } }) 
 
   const rootId = brief.id
   const { data: aiChildren } = await supabase.from('briefs')
-    .select('id, campaign_name, ai_video_url, status, cps_hook')
+    .select('id, campaign_name, ai_video_url, status, cps_hook, static_image_files, static_images_url')
     .eq('root_campaign_id', rootId)
     .ilike('campaign_name', '%Full AI%')
     .eq('status', 'delivered')
