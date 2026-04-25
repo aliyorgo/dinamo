@@ -42,6 +42,7 @@ function NewBriefPage() {
   const [productImageUrl, setProductImageUrl] = useState<string | null>(null)
   const [productUploading, setProductUploading] = useState(false)
   const [showProductUpload, setShowProductUpload] = useState(false)
+  const [refLinkInput, setRefLinkInput] = useState('')
 
   const [form, setForm] = useState({
     campaign_name: '',
@@ -58,6 +59,7 @@ function NewBriefPage() {
     notes: '',
     extra_topic: '',
     languages: [] as string[],
+    reference_links: [] as string[],
   })
 
   useEffect(() => {
@@ -107,6 +109,7 @@ function NewBriefPage() {
             notes: b.notes || '',
             extra_topic: '',
             languages: b.languages || [],
+            reference_links: b.reference_links || [],
           })
           setStep(1)
         }
@@ -250,6 +253,7 @@ function NewBriefPage() {
       languages: form.languages.length > 0 ? form.languages : [],
       credit_cost: cost,
       product_image_url: productImageUrl || null,
+      reference_links: form.reference_links.length > 0 ? form.reference_links : [],
     }
 
     let newBrief: any = null
@@ -882,6 +886,47 @@ function NewBriefPage() {
                     </div>
                   )}
                   <div style={{fontSize:'10px',color:'#aaa',marginTop:'6px'}}>Ürün görseli yüklerseniz AI video ürününüzü kullanarak oluşturur. JPG, PNG, WebP — max 10MB</div>
+                </div>
+
+                {/* REFERANS VİDEO LİNKİ */}
+                <div style={{background:'#fff',border:'1px solid #0a0a0a',padding:'18px 22px',marginBottom:'22px'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'8px'}}>
+                    <div style={{fontSize:'11px',color:'var(--color-text-secondary)',letterSpacing:'2px',textTransform:'uppercase',fontWeight:'500'}}>REFERANS VİDEO LİNKİ</div>
+                    <span style={{fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:'#9b9b95'}}>OPSİYONEL</span>
+                  </div>
+                  <div style={{fontSize:'12px',color:'var(--color-text-tertiary)',lineHeight:'1.5',marginBottom:'12px'}}>Üretmek istediğiniz tarzı yansıtan bir referans varsa link bırakın. YouTube, TikTok, Vimeo, Instagram destekli.</div>
+                  <div style={{display:'flex',gap:'8px',marginBottom:form.reference_links.length > 0 ? '10px' : '0'}}>
+                    <input value={refLinkInput} onChange={e => setRefLinkInput(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault()
+                          const url = refLinkInput.trim()
+                          if (!url) return
+                          if (!url.startsWith('http://') && !url.startsWith('https://')) { setRefLinkInput(''); return }
+                          if (!form.reference_links.includes(url)) setForm({...form, reference_links: [...form.reference_links, url]})
+                          setRefLinkInput('')
+                        }
+                      }}
+                      placeholder="https://..." style={{flex:1,padding:'10px 14px',border:'1px solid #0a0a0a',fontSize:'14px',color:'#0a0a0a',boxSizing:'border-box'}} />
+                    <button type="button" onClick={() => {
+                      const url = refLinkInput.trim()
+                      if (!url) return
+                      if (!url.startsWith('http://') && !url.startsWith('https://')) { setRefLinkInput(''); return }
+                      if (!form.reference_links.includes(url)) setForm({...form, reference_links: [...form.reference_links, url]})
+                      setRefLinkInput('')
+                    }} className="btn btn-outline" style={{padding:'10px 18px',whiteSpace:'nowrap'}}>EKLE</button>
+                  </div>
+                  {form.reference_links.length > 0 && (
+                    <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>
+                      {form.reference_links.map((link, i) => (
+                        <div key={i} style={{display:'flex',alignItems:'center',gap:'8px',padding:'6px 10px',background:'var(--color-background-secondary)'}}>
+                          <a href={link} target="_blank" rel="noopener noreferrer" style={{flex:1,fontSize:'12px',color:'#0a0a0a',textDecoration:'none',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{link}</a>
+                          <button type="button" onClick={() => setForm({...form, reference_links: form.reference_links.filter((_,j) => j !== i)})}
+                            style={{fontSize:'14px',color:'#888',background:'none',border:'none',cursor:'pointer',padding:'0 4px',lineHeight:1}}>×</button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {balance < cost && (
