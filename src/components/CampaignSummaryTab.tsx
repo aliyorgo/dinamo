@@ -36,7 +36,7 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
     cpsChildren.reduce((s: number, c: any) => s + (c.credit_cost || 0), 0)
 
   function copyLink() {
-    const url = `${window.location.origin}/video/${brief.id}`
+    const url = `${window.location.origin}/share/${brief.id}`
     navigator.clipboard.writeText(url)
     setLinkCopied(true)
     setTimeout(() => setLinkCopied(false), 2000)
