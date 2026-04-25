@@ -717,7 +717,7 @@ function ClientBriefDetail() {
                           <button onClick={handleAiPurchase} disabled={(clientUser?.allocated_credits||0)<2} className="btn btn-accent" style={{padding:'12px 24px'}}>
                             SATIN AL
                           </button>
-                          <span style={{fontSize:'11px',color:'#888'}}>2 kredi</span>
+                          <span style={{fontSize:'13px',color:'#888'}}>2 kredi</span>
                         </div>
                         <button onClick={handleAiDiscard}
                           style={{width:'100%',padding:'10px',background:'#fff',color:'#555',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'10px',fontSize:'12px',cursor:'pointer',}}>
@@ -1261,7 +1261,7 @@ function ClientBriefDetail() {
                                   <button onClick={()=>handleStudioPurchase(child)} disabled={(clientUser?.allocated_credits||0)<2} className="btn btn-accent" style={{padding:'6px 16px'}}>
                                     SATIN AL
                                   </button>
-                                  <span style={{fontSize:'10px',color:'#888'}}>2 kredi</span>
+                                  <span style={{fontSize:'13px',color:'#888'}}>2 kredi</span>
                                 </>
                               )}
                             </div>
@@ -1343,7 +1343,7 @@ function ClientBriefDetail() {
                           onMouseLeave={e=>{if((clientUser?.allocated_credits||0)>=1)e.currentTarget.style.background='#0a0a0a'}}>
                           {aiChildren.length > 0 ? 'Yeni Versiyon Üret' : 'Full AI Video Üret'}
                         </button>
-                        <div style={{fontSize:'10px',color:'#999',textAlign:'center',marginTop:'6px'}}>{aiChildren.length > 0 ? '~5 dakika · 1 kredi' : '~5 dakika · İlk deneme ücretsiz · 2 kredi satın alma'}</div>
+                        <div style={{fontSize:'13px',color:'#999',textAlign:'center',marginTop:'6px'}}>{aiChildren.length > 0 ? '~5 dakika · 1 kredi' : '~5 dakika · İlk deneme ücretsiz · 2 kredi satın alma'}</div>
                       </div>
                     )}
                   </div>}
