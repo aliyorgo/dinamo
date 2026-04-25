@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
 
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'x-api-key': ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
+      headers: { 'x-api-key': ANTHROPIC_API_KEY, 'anthropic-version': '2025-04-14', 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1500,
@@ -43,10 +43,30 @@ Bulamadığın kaynak tiplerini atla. Sadece JSON array döndür.` }],
 
     const data = await res.json()
 
+    console.log('[brand-research] stop_reason:', data.stop_reason)
+    console.log('[brand-research] content blocks:', JSON.stringify((data.content || []).map((b: any) => ({ type: b.type, text: b.type === 'text' ? b.text?.slice(0, 200) : undefined }))))
+
     // Extract text from response (may have multiple content blocks due to web search)
     let text = ''
     for (const block of data.content || []) {
       if (block.type === 'text') text += block.text
+    }
+
+    console.log('[brand-research] extracted text:', text.slice(0, 500))
+
+    // Also collect URLs from web_search_tool_result blocks (citations)
+    const citationUrls: any[] = []
+    for (const block of data.content || []) {
+      if (block.type === 'web_search_tool_result' && block.content) {
+        for (const result of block.content) {
+          if (result.type === 'web_search_result' && result.url) {
+            citationUrls.push({ url: result.url, type: 'Web', title: result.title || result.url })
+          }
+        }
+      }
+    }
+    if (citationUrls.length > 0) {
+      console.log('[brand-research] citation URLs found:', citationUrls.length)
     }
 
     let sources: any[] = []
@@ -61,6 +81,19 @@ Bulamadığın kaynak tiplerini atla. Sadece JSON array döndür.` }],
     }
 
     if (!Array.isArray(sources)) sources = []
+
+    // If Claude didn't return JSON sources but we have citation URLs, use those
+    if (sources.length === 0 && citationUrls.length > 0) {
+      sources = citationUrls
+    }
+
+    // Also merge citation URLs into sources if they add new ones
+    if (citationUrls.length > 0 && sources.length > 0) {
+      const existingUrls = new Set(sources.map((s: any) => s.url))
+      for (const c of citationUrls) {
+        if (!existingUrls.has(c.url)) sources.push(c)
+      }
+    }
 
     // Deduplicate by URL
     const seen = new Set<string>()
