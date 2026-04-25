@@ -43,11 +43,13 @@ export default async function SharePage({ params }: { params: { id: string } }) 
     .order('mvc_order', { ascending: true })
 
   const clientName = (brief.clients as any)?.company_name || ''
+  const deliveryDate = new Date(brief.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })
 
   return (
     <SharePageClient
       brief={brief}
       clientName={clientName}
+      deliveryDate={deliveryDate}
       videos={videos || []}
       aiChildren={(aiChildren || []).filter(c => c.ai_video_url)}
       cpsChildren={(cpsChildren || []).filter((c: any) => c.video_submissions?.length > 0)}

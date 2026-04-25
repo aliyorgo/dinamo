@@ -5,12 +5,13 @@ import { downloadCampaignZip } from '@/lib/campaign-zip'
 interface Props {
   brief: any
   clientName: string
+  deliveryDate: string
   videos: any[]
   aiChildren: any[]
   cpsChildren: any[]
 }
 
-export default function SharePageClient({ brief, clientName, videos, aiChildren, cpsChildren }: Props) {
+export default function SharePageClient({ brief, clientName, deliveryDate, videos, aiChildren, cpsChildren }: Props) {
   const [lightbox, setLightbox] = useState<{ type: 'video' | 'image'; url: string } | null>(null)
   const [zipping, setZipping] = useState(false)
 
@@ -19,7 +20,6 @@ export default function SharePageClient({ brief, clientName, videos, aiChildren,
   const hasStaticImages = !!brief.static_images_url || !!brief.static_image_files
   const aiWithImages = aiChildren.filter((c: any) => c.static_image_files && (Array.isArray(c.static_image_files) ? c.static_image_files.length > 0 : Object.keys(c.static_image_files).length > 0))
   const hasAnyImages = hasStaticImages || aiWithImages.length > 0
-  const deliveryDate = new Date(brief.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })
 
   function VideoThumb({ url, label, width = 200 }: { url: string; label: string; width?: number }) {
     return (
@@ -185,7 +185,7 @@ export default function SharePageClient({ brief, clientName, videos, aiChildren,
 
       {/* FOOTER */}
       <div style={{ padding: '24px 28px', borderTop: '1px solid var(--color-border-tertiary)', textAlign: 'center' }}>
-        <div style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)' }}>DCC FİLM TARAFINDAN ÜRETİLDİ · {new Date().getFullYear()}</div>
+        <div style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)' }}>DCC FİLM TARAFINDAN ÜRETİLDİ · 2026</div>
       </div>
 
       {/* LIGHTBOX */}
