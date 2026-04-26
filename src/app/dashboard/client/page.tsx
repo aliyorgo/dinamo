@@ -457,29 +457,34 @@ export default function ClientDashboard() {
               {/* 2) ONAY BEKLEYEN */}
               {catApproval.length > 0 && (
                 <div>
-                  <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'#f5a623',marginBottom:'10px'}}>ONAY BEKLEYEN · {catApproval.length}</div>
+                  <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'#f5a623',marginBottom:'10px'}}>ONAY BEKLEYEN · {catApproval.reduce((s, b) => {
+                    const cpsKids = cpsChildrenMap[b.root_campaign_id] || cpsChildrenMap[b.id] || []
+                    return s + (b.status === 'approved' ? 1 : 0) + cpsKids.filter((k: any) => k.status === 'approved').length
+                  }, 0)}</div>
                   <div className="approval-grid" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px'}}>
-                    {catApproval.map(b => {
+                    {catApproval.flatMap(b => {
                       const cpsKids = cpsChildrenMap[b.root_campaign_id] || cpsChildrenMap[b.id] || []
                       const cpsPending = cpsKids.filter((k: any) => k.status === 'approved')
-                      return (
-                        <div key={b.id}>
-                          {b.status === 'approved' && (
-                            <div onClick={() => router.push(`/dashboard/client/briefs/${b.id}`)}
-                              style={{padding:'12px 14px',background:'#fff',borderLeft:'3px solid #f5a623',border:'1px solid #e5e4db',cursor:'pointer',display:'flex',alignItems:'center',gap:'10px',marginBottom:'6px'}}>
-                              {videoMap[b.id] && <div style={{width:'32px',height:'56px',overflow:'hidden',background:'#0a0a0a',flexShrink:0}}><video src={videoMap[b.id]+'#t=0.1'} muted playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'cover'}} /></div>}
-                              <div><div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name}</div><div style={{fontSize:'10px',color:'#888',marginTop:'2px'}}>Ana Video</div></div>
-                            </div>
-                          )}
-                          {cpsPending.map((k: any) => (
-                            <div key={k.id} onClick={() => router.push(`/dashboard/client/briefs/${b.id}?tab=cps`)}
-                              style={{padding:'12px 14px',background:'#fff',borderLeft:'3px solid #f5a623',border:'1px solid #e5e4db',cursor:'pointer',display:'flex',alignItems:'center',gap:'10px',marginBottom:'6px'}}>
-                              <div style={{width:'32px',height:'32px',background:'rgba(245,166,35,0.1)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><span style={{fontSize:'12px',fontWeight:'600',color:'#f5a623'}}>{k.mvc_order || '?'}</span></div>
-                              <div><div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name}</div><div style={{fontSize:'10px',color:'#888',marginTop:'2px'}}>CPS {k.cps_hook ? `· ${k.cps_hook}` : `Yön ${k.mvc_order || ''}`}</div></div>
-                            </div>
-                          ))}
-                        </div>
-                      )
+                      const cards: React.ReactNode[] = []
+                      if (b.status === 'approved') {
+                        cards.push(
+                          <div key={`main-${b.id}`} onClick={() => router.push(`/dashboard/client/briefs/${b.id}`)}
+                            style={{padding:'12px 14px',background:'#fff',borderLeft:'3px solid #f5a623',border:'1px solid #e5e4db',cursor:'pointer',display:'flex',alignItems:'center',gap:'10px'}}>
+                            {videoMap[b.id] && <div style={{width:'32px',height:'56px',overflow:'hidden',background:'#0a0a0a',flexShrink:0}}><video src={videoMap[b.id]+'#t=0.1'} muted playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'cover'}} /></div>}
+                            <div><div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name}</div><div style={{fontSize:'10px',color:'#888',marginTop:'2px'}}>Ana Video</div></div>
+                          </div>
+                        )
+                      }
+                      cpsPending.forEach((k: any) => {
+                        cards.push(
+                          <div key={`cps-${k.id}`} onClick={() => router.push(`/dashboard/client/briefs/${b.id}?tab=cps`)}
+                            style={{padding:'12px 14px',background:'#fff',borderLeft:'3px solid #f5a623',border:'1px solid #e5e4db',cursor:'pointer',display:'flex',alignItems:'center',gap:'10px'}}>
+                            <div style={{width:'32px',height:'32px',background:'rgba(245,166,35,0.1)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><span style={{fontSize:'12px',fontWeight:'600',color:'#f5a623'}}>{k.mvc_order || '?'}</span></div>
+                            <div><div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name}</div><div style={{fontSize:'10px',color:'#888',marginTop:'2px'}}>CPS {k.cps_hook ? `· ${k.cps_hook}` : `Yön ${k.mvc_order || ''}`}</div></div>
+                          </div>
+                        )
+                      })
+                      return cards
                     })}
                   </div>
                 </div>
