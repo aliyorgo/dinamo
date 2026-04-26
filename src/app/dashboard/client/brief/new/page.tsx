@@ -469,10 +469,10 @@ function NewBriefPage() {
   }
 
   return (
-    <div style={{display:'flex',height:'100dvh',overflow:'hidden',fontFamily:"var(--font-sans),'Inter',system-ui,sans-serif"}}>
+    <div style={{display:'flex',minHeight:'100dvh',fontFamily:"var(--font-sans),'Inter',system-ui,sans-serif"}}>
       <Sidebar/>
-      <div style={{flex:1,display:'flex',flexDirection:'column',background:'var(--color-background-secondary)',minHeight:0,overflow:'hidden'}}>
-        <div style={{padding:'14px 28px',background:'#fff',borderBottom:'1px solid var(--color-border-tertiary)',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
+      <div style={{flex:1,display:'flex',flexDirection:'column',background:'var(--color-background-secondary)',minWidth:0}}>
+        <div style={{padding:'14px 28px',background:'#fff',borderBottom:'1px solid var(--color-border-tertiary)',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0,position:'sticky',top:0,zIndex:5}}>
           <div style={{fontSize:'11px',letterSpacing:'1px',textTransform:'uppercase',color:'var(--color-text-secondary)'}}>Yeni Brief{step > 0 ? <> / <span style={{color:'var(--color-text-primary)',fontWeight:'500'}}>{steps[step-1]}</span></> : ''}</div>
           {step > 0 && (
             <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
@@ -484,7 +484,7 @@ function NewBriefPage() {
           )}
         </div>
 
-        <div style={{flex:1,overflowY:'auto',padding:'32px 40px',maxWidth:'640px'}}>
+        <div style={{flex:1,padding:'32px 40px',maxWidth:'640px'}}>
 
           {/* ADIM 0 — Mod Seçimi */}
           {step===0&&(
@@ -722,85 +722,88 @@ function NewBriefPage() {
             </div>
           )}
 
-          {/* ADIM 5 */}
-          {/* STEP 5 — DOSYA YÜKLEME */}
+          {/* STEP 5 — UYARILAR & MATERYALLER */}
           {step===5&&(
             <div>
-              <div className="label-caps" style={{marginBottom:'8px',color:'var(--color-text-secondary)'}}>05 — DOSYA & UYARILAR</div>
-              <div style={{fontSize:'22px',fontWeight:'500',letterSpacing:'-0.01em',color:'var(--color-text-primary)',marginBottom:'28px'}}>Materyaller, Referanslar & Uyarılar</div>
+              <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'8px'}}>
+                <div className="label-caps" style={{color:'var(--color-text-secondary)'}}>05 — UYARILAR & MATERYALLER</div>
+                <span style={{fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:'#9b9b95'}}>OPSİYONEL</span>
+              </div>
+              <div style={{fontSize:'22px',fontWeight:'500',letterSpacing:'-0.01em',color:'var(--color-text-primary)',marginBottom:'24px'}}>Son eklemeler</div>
 
-              {/* ROW 1: Product Image + Brand Materials side by side */}
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px',marginBottom:'16px'}}>
+              {/* 1) UYARILAR — EN ÜSTTE */}
+              <div style={{background:'#fff',border:'1px solid #0a0a0a',padding:'16px 20px',marginBottom:'16px'}}>
+                <div className="label-caps" style={{marginBottom:'8px'}}>UYARILAR & HASSASİYETLER</div>
+                <textarea style={{...inputStyle,resize:'vertical',lineHeight:'1.7'}} rows={3} value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})} placeholder="Kaçınılması gereken içerik, hassas konular, marka kısıtlamaları..." />
+              </div>
 
+              {/* 2) ÜRÜN GÖRSELİ + MARKA MATERYALLERİ — YAN YANA */}
+              <div className="step5-grid" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px',marginBottom:'16px'}}>
                 {/* ÜRÜN GÖRSELİ */}
-                <div style={{background:'#fff',border:'1px solid #0a0a0a',padding:'22px'}}>
-                  <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'8px'}}>
+                <div style={{background:'#fff',border:'1px solid #0a0a0a',padding:'16px 20px'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'6px'}}>
                     <div className="label-caps">ÜRÜN GÖRSELİ</div>
-                    <span style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'2px 6px',border:'1px solid #22c55e',color:'#22c55e'}}>BETA</span>
+                    <span style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'1px 5px',border:'1px solid #22c55e',color:'#22c55e'}}>BETA</span>
                   </div>
-                  <div style={{fontSize:'12px',color:'var(--color-text-tertiary)',lineHeight:'1.5',marginBottom:'14px'}}>Ürününüzün gerçek fotoğrafını videoda kullanmak istiyorsanız buraya yükleyin. AI üretimde baz alınır.</div>
+                  <div style={{fontSize:'11px',color:'var(--color-text-tertiary)',lineHeight:'1.4',marginBottom:'10px'}}>Ürün fotoğrafını yükleyin, AI videoda baz alınır.</div>
                   {productImageUrl ? (
-                    <div style={{display:'flex',alignItems:'center',gap:'12px',padding:'12px',border:'1px solid var(--color-border-tertiary)'}}>
-                      <img src={productImageUrl} alt="Ürün" style={{width:'48px',height:'48px',objectFit:'cover',border:'1px solid var(--color-border-tertiary)'}} />
-                      <div style={{flex:1}}>
-                        <div style={{fontSize:'12px',color:'#22c55e',fontWeight:'500'}}>Yüklendi</div>
-                      </div>
+                    <div style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px',border:'1px solid var(--color-border-tertiary)'}}>
+                      <img src={productImageUrl} alt="Ürün" style={{width:'40px',height:'40px',objectFit:'cover',border:'1px solid var(--color-border-tertiary)'}} />
+                      <div style={{flex:1,fontSize:'12px',color:'#22c55e',fontWeight:'500'}}>Yüklendi</div>
                       <button onClick={()=>setProductImageUrl(null)} style={{fontSize:'11px',color:'#ef4444',background:'none',border:'none',cursor:'pointer'}}>Kaldır</button>
                     </div>
                   ) : (
-                    <div onClick={()=>productImageRef.current?.click()} style={{border:'1px dashed #0a0a0a',padding:'28px',textAlign:'center',cursor:'pointer'}}>
-                      <div style={{fontSize:'24px',color:'var(--color-text-tertiary)',marginBottom:'6px'}}>+</div>
-                      <div style={{fontSize:'12px',color:'var(--color-text-secondary)',marginBottom:'4px'}}>Ürün fotoğrafını sürükle veya tıkla</div>
-                      <div style={{fontSize:'10px',color:'var(--color-text-tertiary)'}}>JPG, PNG · max 10MB</div>
+                    <div onClick={()=>productImageRef.current?.click()} style={{border:'1px dashed #0a0a0a',padding:'18px',textAlign:'center',cursor:'pointer'}}>
+                      <div style={{fontSize:'20px',color:'var(--color-text-tertiary)',marginBottom:'4px'}}>+</div>
+                      <div style={{fontSize:'11px',color:'var(--color-text-secondary)'}}>Sürükle veya tıkla</div>
+                      <div style={{fontSize:'10px',color:'var(--color-text-tertiary)',marginTop:'2px'}}>JPG, PNG · max 10MB</div>
                     </div>
                   )}
                   <input ref={productImageRef} type="file" accept=".jpg,.jpeg,.png,.webp" onChange={handleProductImageUpload} style={{display:'none'}} />
-                  {productUploading && <div style={{fontSize:'11px',color:'#888',marginTop:'8px'}}>Yükleniyor...</div>}
+                  {productUploading && <div style={{fontSize:'11px',color:'#888',marginTop:'6px'}}>Yükleniyor...</div>}
                 </div>
 
                 {/* MARKA MATERYALLERİ */}
-                <div style={{background:'#fff',border:'1px solid #0a0a0a',padding:'22px'}}>
-                  <div className="label-caps" style={{marginBottom:'8px'}}>MARKA MATERYALLERİ</div>
-                  <div style={{fontSize:'12px',color:'var(--color-text-tertiary)',lineHeight:'1.5',marginBottom:'14px'}}>Logo, font, ses, grafik, badge gibi marka materyallerini yükleyin. Uygun olanlar üretimde kullanılır.</div>
-                  <div onClick={()=>filesRef.current?.click()} style={{border:'1px dashed #0a0a0a',padding:'28px',textAlign:'center',cursor:'pointer'}}>
-                    <div style={{fontSize:'24px',color:'var(--color-text-tertiary)',marginBottom:'6px'}}>+</div>
-                    <div style={{fontSize:'12px',color:'var(--color-text-secondary)',marginBottom:'4px'}}>Dosyaları sürükle veya tıkla</div>
-                    <div style={{fontSize:'10px',color:'var(--color-text-tertiary)'}}>Logo, font, ses, görsel · birden fazla seçilebilir</div>
+                <div style={{background:'#fff',border:'1px solid #0a0a0a',padding:'16px 20px'}}>
+                  <div className="label-caps" style={{marginBottom:'6px'}}>MARKA MATERYALLERİ</div>
+                  <div style={{fontSize:'11px',color:'var(--color-text-tertiary)',lineHeight:'1.4',marginBottom:'10px'}}>Logo, font, ses, grafik yükleyin.</div>
+                  <div onClick={()=>filesRef.current?.click()} style={{border:'1px dashed #0a0a0a',padding:'18px',textAlign:'center',cursor:'pointer'}}>
+                    <div style={{fontSize:'20px',color:'var(--color-text-tertiary)',marginBottom:'4px'}}>+</div>
+                    <div style={{fontSize:'11px',color:'var(--color-text-secondary)'}}>Sürükle veya tıkla</div>
+                    <div style={{fontSize:'10px',color:'var(--color-text-tertiary)',marginTop:'2px'}}>Birden fazla seçilebilir</div>
                   </div>
                   <input ref={filesRef} type="file" multiple onChange={() => { const files = filesRef.current?.files; if (files) setBrandFiles(Array.from(files).map(f => ({name:f.name}))) }} style={{display:'none'}} />
                   {brandFiles.length > 0 && (
-                    <div style={{marginTop:'10px',display:'flex',flexDirection:'column',gap:'4px'}}>
+                    <div style={{marginTop:'8px',display:'flex',flexDirection:'column',gap:'3px'}}>
                       {brandFiles.map((f,i) => (
-                        <div key={i} style={{display:'flex',alignItems:'center',gap:'8px',padding:'6px 10px',background:'var(--color-background-secondary)'}}>
-                          <span style={{flex:1,fontSize:'12px',color:'#0a0a0a',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{f.name}</span>
-                        </div>
+                        <div key={i} style={{padding:'4px 8px',background:'var(--color-background-secondary)',fontSize:'11px',color:'#0a0a0a',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{f.name}</div>
                       ))}
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* ROW 2: Reference Video Links — full width */}
-              <div style={{background:'#fff',border:'1px solid #0a0a0a',padding:'18px 22px'}}>
-                <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'8px'}}>
+              {/* 3) REFERANS VİDEO LİNKİ — FULL WIDTH */}
+              <div style={{background:'#fff',border:'1px solid #0a0a0a',padding:'16px 20px'}}>
+                <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'6px'}}>
                   <div className="label-caps">REFERANS VİDEO LİNKİ</div>
                   <span style={{fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:'#9b9b95'}}>OPSİYONEL</span>
                 </div>
-                <div style={{fontSize:'12px',color:'var(--color-text-tertiary)',lineHeight:'1.5',marginBottom:'12px'}}>Üretmek istediğiniz tarzı yansıtan bir referans varsa link bırakın. YouTube, TikTok, Vimeo, Instagram destekli.</div>
+                <div style={{fontSize:'11px',color:'var(--color-text-tertiary)',lineHeight:'1.4',marginBottom:'10px'}}>Tarzı yansıtan referans link. YouTube, TikTok, Vimeo, Instagram.</div>
                 <div style={{display:'flex',gap:'8px',marginBottom:form.reference_links.length > 0 ? '10px' : '0'}}>
                   <input value={refLinkInput} onChange={e => setRefLinkInput(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); const url = refLinkInput.trim(); if (!url) return; if (!url.startsWith('http://') && !url.startsWith('https://')) { setRefLinkInput(''); return }; if (!form.reference_links.includes(url)) setForm({...form, reference_links: [...form.reference_links, url]}); setRefLinkInput('') } }}
-                    placeholder="https://..." style={{flex:1,padding:'10px 14px',border:'1px solid #0a0a0a',fontSize:'14px',color:'#0a0a0a',boxSizing:'border-box'}} />
-                  <button type="button" onClick={() => { const url = refLinkInput.trim(); if (!url) return; if (!url.startsWith('http://') && !url.startsWith('https://')) { setRefLinkInput(''); return }; if (!form.reference_links.includes(url)) setForm({...form, reference_links: [...form.reference_links, url]}); setRefLinkInput('') }} className="btn btn-outline" style={{padding:'10px 18px',whiteSpace:'nowrap'}}>EKLE</button>
+                    placeholder="https://..." style={{flex:1,padding:'8px 12px',border:'1px solid #0a0a0a',fontSize:'13px',color:'#0a0a0a',boxSizing:'border-box'}} />
+                  <button type="button" onClick={() => { const url = refLinkInput.trim(); if (!url) return; if (!url.startsWith('http://') && !url.startsWith('https://')) { setRefLinkInput(''); return }; if (!form.reference_links.includes(url)) setForm({...form, reference_links: [...form.reference_links, url]}); setRefLinkInput('') }} className="btn btn-outline" style={{padding:'8px 16px',whiteSpace:'nowrap'}}>EKLE</button>
                 </div>
                 {form.reference_links.length > 0 && (
                   <div>
-                    <div style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'6px'}}>EKLENEN LİNKLER</div>
-                    <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>
+                    <div style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'4px'}}>EKLENEN LİNKLER</div>
+                    <div style={{display:'flex',flexDirection:'column',gap:'4px'}}>
                       {form.reference_links.map((link, i) => (
-                        <div key={i} style={{display:'flex',alignItems:'center',gap:'8px',padding:'6px 10px',background:'var(--color-background-secondary)'}}>
-                          <a href={link} target="_blank" rel="noopener noreferrer" style={{flex:1,fontSize:'12px',color:'#0a0a0a',textDecoration:'none',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{link}</a>
-                          <button type="button" onClick={() => setForm({...form, reference_links: form.reference_links.filter((_,j) => j !== i)})} style={{fontSize:'14px',color:'#888',background:'none',border:'none',cursor:'pointer',padding:'0 4px',lineHeight:1}}>×</button>
+                        <div key={i} style={{display:'flex',alignItems:'center',gap:'8px',padding:'5px 8px',background:'var(--color-background-secondary)'}}>
+                          <a href={link} target="_blank" rel="noopener noreferrer" style={{flex:1,fontSize:'11px',color:'#0a0a0a',textDecoration:'none',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{link}</a>
+                          <button type="button" onClick={() => setForm({...form, reference_links: form.reference_links.filter((_,j) => j !== i)})} style={{fontSize:'13px',color:'#888',background:'none',border:'none',cursor:'pointer',padding:'0 4px',lineHeight:1}}>×</button>
                         </div>
                       ))}
                     </div>
@@ -808,13 +811,7 @@ function NewBriefPage() {
                 )}
               </div>
 
-              {/* UYARILAR */}
-              <div style={{background:'#fff',border:'1px solid #0a0a0a',padding:'18px 22px',marginTop:'16px'}}>
-                <div className="label-caps" style={{marginBottom:'8px'}}>UYARILAR, HASSASİYETLER & EKLEMEK İSTEDİKLERİNİZ</div>
-                <textarea style={{...inputStyle,resize:'vertical',lineHeight:'1.7'}} rows={4} value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})} placeholder="Kaçınılması gereken içerik, hassas konular, marka kısıtlamaları veya eklemek istediğiniz herhangi bir bilgi..." />
-              </div>
-
-              <style>{`@media (max-width: 768px) { div[style*="grid-template-columns: 1fr 1fr"] { grid-template-columns: 1fr !important; } }`}</style>
+              <style>{`@media (max-width: 768px) { .step5-grid { grid-template-columns: 1fr !important; } }`}</style>
             </div>
           )}
 
