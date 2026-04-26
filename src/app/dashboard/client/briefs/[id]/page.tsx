@@ -1532,73 +1532,70 @@ function ClientBriefDetail() {
                   </div>
                 )}
 
-                {/* CPS children list */}
+                {/* CPS children — 3 column grid */}
                 {cpsChildren.length > 0 && (
-                  <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'20px 24px',marginBottom:'16px'}}>
-                    <div style={{fontSize:'11px',letterSpacing:'2px',textTransform:'uppercase',fontWeight:'500',color:'var(--color-text-primary)',marginBottom:'16px'}}>VARYASYONLAR</div>
-                    {cpsChildren.map((child: any, idx: number) => {
-                      const childVideo = child.video_submissions?.[0]
-                      return (
-                        <div key={child.id} style={{display:'flex',gap:'14px',padding:'14px',marginBottom:'8px',border:'1px solid var(--color-border-tertiary)',background:'#fff',alignItems:'flex-start',transition:'background 0.15s'}}
-                          onMouseEnter={e=>{e.currentTarget.style.background='var(--color-background-secondary)'}}
-                          onMouseLeave={e=>{e.currentTarget.style.background='#fff'}}>
-                          <div style={{width:'120px',flexShrink:0}}>
-                            {childVideo?.video_url ? (
-                              <div style={{aspectRatio:(child.format||briefFormat).replace(':','/'),overflow:'hidden',background:'#0a0a0a'}}>
-                                <video src={childVideo.video_url} controls playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'contain',background:'black'}} />
-                              </div>
-                            ) : (
-                              <VideoLoadingBox aspect={child.format||briefFormat} size="small" label={statusLabel[child.status]||child.status} sublabel="" />
-                            )}
-                          </div>
-                          <div style={{flex:1,paddingTop:'4px'}}>
-                            <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'4px',flexWrap:'wrap'}}>
-                              <span style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{child.campaign_name}</span>
-                              <span style={{fontSize:'10px',padding:'3px 10px',borderRadius:'6px',background:`${statusColor[child.status]||'#888'}12`,color:statusColor[child.status]||'#888',fontWeight:'500'}}>{statusLabel[child.status]||child.status}</span>
-                            </div>
-                            <div style={{fontSize:'10px',color:'#888',marginBottom:'6px',display:'flex',gap:'8px',flexWrap:'wrap'}}>
-                              {child.cps_hook && <span>Hook: {child.cps_hook}</span>}
-                              {child.cps_ton && <span>· Ton: {child.cps_ton}</span>}
-                              {child.cps_tempo && <span>· Tempo: {child.cps_tempo}</span>}
-                              {child.cps_hero && child.cps_hero!=='Yok' && <span>· Hero: {child.cps_hero}</span>}
-                            </div>
-                            <div style={{fontSize:'10px',color:'#aaa',marginBottom:'8px'}}>{new Date(child.created_at).toLocaleDateString('tr-TR',{day:'numeric',month:'short'})}</div>
-                            {childVideo?.video_url && (
+                  <div style={{marginBottom:'16px'}}>
+                    <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'var(--color-text-primary)',marginBottom:'14px'}}>CPS VARYASYONLARI · {cpsChildren.length} YÖN</div>
+                    <div className="cps-grid" style={{display:'grid',gridTemplateColumns:`repeat(${Math.min(cpsChildren.length, 3)}, 1fr)`,gap:'14px'}}>
+                      {cpsChildren.map((child: any, idx: number) => {
+                        const childVideo = child.video_submissions?.[0]
+                        const hasVideo = !!childVideo?.video_url
+                        const needsApproval = (child.status === 'approved' || (childVideo?.status === 'admin_approved' || childVideo?.status === 'producer_approved')) && child.status !== 'delivered'
+                        const sb = statusColor[child.status] || '#888'
+                        return (
+                          <div key={child.id} style={{background:'#fff',border:'1px solid #0a0a0a',padding:'16px 18px',display:'flex',flexDirection:'column'}}>
+                            {/* Header */}
+                            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'12px'}}>
                               <div>
-                                {/* Approve/Revision for pending CPS */}
-                                {(child.status === 'approved' || (childVideo.status === 'admin_approved' || childVideo.status === 'producer_approved')) && child.status !== 'delivered' && (
-                                  <div style={{display:'flex',gap:'6px',marginBottom:'8px'}}>
-                                    <button onClick={()=>handleCpsApprove(child)} disabled={loading} className="btn btn-accent" style={{padding:'6px 14px',fontSize:'11px'}}>
-                                      {loading ? '...' : 'ONAYLA'}
-                                    </button>
-                                    <button onClick={()=>setCpsRevOpen(prev=>({...prev,[child.id]:!prev[child.id]}))} className="btn btn-outline" style={{padding:'6px 14px',fontSize:'11px'}}>
-                                      REVİZYON İSTE
-                                    </button>
-                                  </div>
-                                )}
-                                {cpsRevOpen[child.id] && (
-                                  <div style={{marginBottom:'8px'}}>
-                                    <textarea value={cpsRevNotes[child.id]||''} onChange={e=>setCpsRevNotes(prev=>({...prev,[child.id]:e.target.value}))}
-                                      placeholder="Revizyon notunuzu yazın..." rows={2}
-                                      style={{width:'100%',padding:'8px 10px',border:'1px solid var(--color-border-tertiary)',fontSize:'12px',color:'#0a0a0a',resize:'vertical',boxSizing:'border-box',marginBottom:'6px'}} />
-                                    <button onClick={()=>handleCpsRevision(child)} disabled={loading} className="btn" style={{padding:'5px 12px',fontSize:'11px'}}>
-                                      {loading ? '...' : 'GÖNDER'}
-                                    </button>
-                                  </div>
-                                )}
-                                {/* Download only if delivered */}
-                                {child.status === 'delivered' && (
-                                  <div style={{display:'flex',gap:'6px'}}>
-                                    <a href={childVideo.video_url} download target="_blank" style={{fontSize:'11px',color:'#0a0a0a',textDecoration:'none',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'4px',padding:'5px 12px'}}>İndir</a>
-                                    <button onClick={()=>generateCertificatePDF(brief, companyName)} style={{fontSize:'11px',color:'#555',background:'none',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'4px',padding:'5px 12px',cursor:'pointer'}}>Telif Belgesi</button>
-                                  </div>
-                                )}
+                                <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'var(--color-text-secondary)'}}>YÖN {child.mvc_order || idx + 1}{child.cps_hook ? ` · ${child.cps_hook}` : ''}</div>
+                                {child.cps_ton && <div style={{fontSize:'10px',color:'var(--color-text-tertiary)',marginTop:'2px'}}>{child.cps_ton}</div>}
+                              </div>
+                              <span style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',padding:'3px 8px',background:`${sb}12`,border:`1px solid ${sb}`,color:'#0a0a0a'}}>{statusLabel[child.status] || child.status}</span>
+                            </div>
+
+                            {/* Video */}
+                            <div style={{marginBottom:'12px'}}>
+                              {hasVideo ? (
+                                <div style={{aspectRatio:(child.format||briefFormat).replace(':','/'),overflow:'hidden',background:'#0a0a0a'}}>
+                                  <video src={childVideo.video_url} controls playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'contain',background:'black'}} />
+                                </div>
+                              ) : (
+                                <VideoLoadingBox aspect={child.format||briefFormat} size="small" label={statusLabel[child.status]||child.status} sublabel="" />
+                              )}
+                            </div>
+
+                            {/* Actions */}
+                            {hasVideo && needsApproval && (
+                              <div style={{display:'flex',gap:'6px',marginBottom:'8px'}}>
+                                <button onClick={()=>handleCpsApprove(child)} disabled={loading} className="btn btn-accent" style={{flex:1,padding:'8px',fontSize:'11px'}}>
+                                  {loading ? '...' : 'ONAYLA'}
+                                </button>
+                                <button onClick={()=>setCpsRevOpen(prev=>({...prev,[child.id]:!prev[child.id]}))} className="btn btn-outline" style={{flex:1,padding:'8px',fontSize:'11px'}}>
+                                  REVİZYON İSTE
+                                </button>
+                              </div>
+                            )}
+                            {cpsRevOpen[child.id] && (
+                              <div style={{marginBottom:'8px'}}>
+                                <textarea value={cpsRevNotes[child.id]||''} onChange={e=>setCpsRevNotes(prev=>({...prev,[child.id]:e.target.value}))}
+                                  placeholder="Revizyon notunuzu yazın..." rows={2}
+                                  style={{width:'100%',padding:'8px 10px',border:'1px solid #0a0a0a',fontSize:'12px',color:'#0a0a0a',resize:'vertical',boxSizing:'border-box',marginBottom:'6px'}} />
+                                <button onClick={()=>handleCpsRevision(child)} disabled={loading} className="btn" style={{width:'100%',padding:'7px',fontSize:'11px'}}>
+                                  {loading ? '...' : 'GÖNDER'}
+                                </button>
+                              </div>
+                            )}
+                            {hasVideo && child.status === 'delivered' && (
+                              <div style={{display:'flex',gap:'6px',marginTop:'auto'}}>
+                                <button onClick={()=>downloadFile(childVideo.video_url, `${child.campaign_name}.mp4`)} className="btn btn-outline" style={{flex:1,padding:'7px',fontSize:'10px'}}>İNDİR ↓</button>
+                                <button onClick={()=>generateCertificatePDF(brief, companyName)} className="btn btn-outline" style={{padding:'7px 10px',fontSize:'10px'}}>TELİF</button>
                               </div>
                             )}
                           </div>
-                        </div>
-                      )
-                    })}
+                        )
+                      })}
+                    </div>
+                    <style>{`@media (max-width: 768px) { .cps-grid { grid-template-columns: 1fr !important; } }`}</style>
                   </div>
                 )}
 
