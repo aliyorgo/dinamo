@@ -1208,7 +1208,7 @@ function ClientBriefDetail() {
                     const isFailed = !hasVideo && (child.ai_video_status === 'failed' || child.ai_video_status === 'timeout')
                     const isProcessing = child.status === 'ai_processing' && !hasVideo && !isFailed
                     return (
-                      <div key={child.id} onClick={() => markAiChildViewed(child.id)} style={{display:'flex',gap:'14px',padding:'14px',marginBottom:'8px',border:'1px solid var(--color-border-tertiary)',background:'#fff',alignItems:'flex-start',transition:'background 0.15s'}}
+                      <div key={child.id} style={{display:'flex',gap:'14px',padding:'14px',marginBottom:'8px',border:'1px solid var(--color-border-tertiary)',background:'#fff',alignItems:'flex-start',transition:'background 0.15s'}}
                         onMouseEnter={e=>{e.currentTarget.style.background='var(--color-background-secondary)'}}
                         onMouseLeave={e=>{e.currentTarget.style.background='#fff'}}>
                         {/* Video player */}
@@ -1216,6 +1216,7 @@ function ClientBriefDetail() {
                           {hasVideo ? (
                             <>
                               <video key={child.ai_video_url} src={child.ai_video_url} controls preload="metadata"
+                                onPlay={() => markAiChildViewed(child.id)}
                                 style={{width:'100%',height:'100%',objectFit:'contain',backgroundColor:'black'}} />
                               {!isPurchased && <img src="/dinamo_logo.png" alt="" style={{position:'absolute',bottom:'30%',left:'50%',transform:'translateX(-50%)',width:'80px',opacity:0.35,pointerEvents:'none'}} />}
                             </>
