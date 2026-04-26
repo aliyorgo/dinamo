@@ -127,6 +127,16 @@ function ClientBriefDetail() {
 
   useEffect(() => { loadData() }, [id])
 
+  // Mark AI Express as viewed when express tab opens
+  useEffect(() => {
+    if (activeTab === 'express' && aiChildren.length > 0) {
+      const unviewed = aiChildren.filter(c => !c.ai_express_viewed_at)
+      if (unviewed.length > 0) {
+        unviewed.forEach(c => supabase.from('briefs').update({ ai_express_viewed_at: new Date().toISOString() }).eq('id', c.id))
+      }
+    }
+  }, [activeTab, aiChildren.length])
+
   // Refetch on summary tab activation + window focus
   useEffect(() => { if (activeTab === 'summary') loadData() }, [activeTab])
   useEffect(() => {

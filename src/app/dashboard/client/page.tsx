@@ -68,7 +68,7 @@ export default function ClientDashboard() {
         if (allLookupIds.length > 0) {
           // Query by both root_campaign_id and parent_brief_id as fallback
           const { data: aiKids, error: aiErr } = await supabase.from('briefs')
-            .select('id, root_campaign_id, parent_brief_id, status, ai_video_status, ai_video_url, created_at, campaign_name')
+            .select('id, root_campaign_id, parent_brief_id, status, ai_video_status, ai_video_url, created_at, campaign_name, ai_express_viewed_at')
             .eq('client_id', clientId)
             .ilike('campaign_name', '%Full AI%')
           console.log('[AI-IND] error:', aiErr?.message, '| aiKids count:', aiKids?.length, '| sample:', aiKids?.slice(0,3).map((k:any) => ({ name: k.campaign_name?.slice(0,30), root: k.root_campaign_id?.slice(0,8), parent: k.parent_brief_id?.slice(0,8), url: !!k.ai_video_url, status: k.ai_video_status })))
@@ -130,6 +130,13 @@ export default function ClientDashboard() {
         acts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         setActivities(acts.slice(0, 5))
 
+        // Unanswered questions
+        const briefIds2 = (b || []).map((br: any) => br.id)
+        if (briefIds2.length > 0) {
+          const { data: qs } = await supabase.from('brief_questions').select('id, brief_id, question, asked_at, briefs!inner(campaign_name)').in('brief_id', briefIds2).is('answer', null).not('question', 'like', 'REVİZYON:%').not('question', 'like', 'İÇ REVİZYON:%').order('asked_at', { ascending: false })
+          setUnansweredQuestions(qs || [])
+        }
+
       const { data: hvids } = await supabase.from('homepage_videos').select('id, title, video_url').eq('is_active', true).order('created_at', { ascending: false }).limit(10)
       const shuffled = (hvids || []).sort(() => Math.random() - 0.5).slice(0, 3)
       setHomeVideos(shuffled)
@@ -166,11 +173,26 @@ export default function ClientDashboard() {
 
   async function handleLogout() { await supabase.auth.signOut(); router.push('/login') }
 
+  // Category filters
+  const [unansweredQuestions, setUnansweredQuestions] = useState<any[]>([])
   const drafts = briefs.filter(b => b.status === 'draft')
-  const nonDrafts = briefs.filter(b => b.status !== 'draft')
-  const pending = briefs.filter(b => b.status === 'approved')
-  const inProd = briefs.filter(b => ['submitted','read','in_production','revision'].includes(b.status))
+  const pendingApproval = briefs.filter(b => b.status === 'approved')
+  const producing = briefs.filter(b => ['submitted','read','in_production','revision'].includes(b.status))
   const done = briefs.filter(b => b.status === 'delivered')
+
+  // AI Express ready (unviewed)
+  const aiExpressReady: { parent: any; children: any[] }[] = []
+  briefs.forEach(b => {
+    const kids = (aiChildrenMap[b.root_campaign_id] || aiChildrenMap[b.id] || []).filter((k: any) => k.ai_video_url && !k.ai_express_viewed_at)
+    if (kids.length > 0) aiExpressReady.push({ parent: b, children: kids })
+  })
+  const aiExpressCount = aiExpressReady.reduce((s, r) => s + r.children.length, 0)
+
+  // CPS pending approval (children with status approved but not delivered)
+  const cpsPendingApproval: any[] = []
+  Object.values(cpsChildrenMap).forEach((kids: any[]) => {
+    kids.forEach(k => { if (k.status === 'approved') cpsPendingApproval.push(k) })
+  })
 
   async function handleDeleteDraft(briefId: string) {
     if (!confirm('Bu taslağı silmek istediğinizden emin misiniz?')) return
@@ -352,125 +374,134 @@ export default function ClientDashboard() {
               </div>
             </div>
           ) : (
-            <>
-              {/* 6. STATS */}
-              {briefs.length > 0 && (
-                <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(140px,1fr))',gap:'12px',marginBottom:'24px'}}>
-                  {[
-                    {label:'Toplam Video',value:String(done.length),color:'#22c55e'},
-                    {label:'Üretimde',value:String(inProd.length + pending.length),color:'#3b82f6'},
-                    {label:'Harcanan Kredi',value:String(totalSpent),color:'#0a0a0a'},
-                    {label:'Ort. Teslim',value:avgDelivery > 0 ? `${avgDelivery} gün` : '—',color:'#888'},
-                  ].map(c=>(
-                    <div key={c.label} style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'14px'}}>
-                      <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'6px'}}>{c.label}</div>
-                      <div style={{fontSize:'22px',fontWeight:'300',color:c.color,letterSpacing:'-0.5px'}}>{c.value}</div>
+            <div style={{padding:'20px 28px',display:'flex',flexDirection:'column',gap:'24px'}}>
+
+              {/* 1) SORUMUZ VAR */}
+              {unansweredQuestions.length > 0 && (
+                <div>
+                  <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'#ef4444',marginBottom:'10px'}}>SORUMUZ VAR · {unansweredQuestions.length}</div>
+                  <div style={{fontSize:'11px',color:'var(--color-text-tertiary)',marginBottom:'10px'}}>Cevap vermeniz gereken sorular var</div>
+                  {unansweredQuestions.map(q => (
+                    <div key={q.id} onClick={() => router.push(`/dashboard/client/briefs/${q.brief_id}`)}
+                      style={{padding:'12px 16px',background:'#fff',borderLeft:'3px solid #ef4444',border:'1px solid #e5e4db',marginBottom:'6px',cursor:'pointer',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                      <div>
+                        <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{(q.briefs as any)?.campaign_name || '—'}</div>
+                        <div style={{fontSize:'11px',color:'#888',marginTop:'2px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:'400px'}}>{q.question}</div>
+                      </div>
+                      <span style={{fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:'#ef4444',fontWeight:'500',flexShrink:0}}>CEVAPLA →</span>
                     </div>
                   ))}
-                  {aiProduced > 0 && (
-                    <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'14px'}}>
-                      <div style={{fontSize:'10px',color:'#1DB81D',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'6px',display:'flex',alignItems:'center',gap:'4px'}}>AI EXPRESS</div>
-                      <div style={{fontSize:'11px',color:'#0a0a0a',lineHeight:1.8}}>{aiProduced} video üretildi</div>
-                      <div style={{fontSize:'11px',color:'#888'}}>{aiPurchased} video satın alındı</div>
-                    </div>
-                  )}
                 </div>
               )}
 
-              {/* DRAFTS */}
-              {drafts.length > 0 && (
-                <div style={{marginBottom:'24px'}}>
-                  <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'10px'}}>
-                    <div style={{width:'7px',height:'7px',borderRadius:'50%',background:'#f59e0b',animation:'pulse 2s infinite'}}></div>
-                    <div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>Taslaklar — Gönderilmedi</div>
-                    <div style={{fontSize:'10px',color:'#aaa'}}>{drafts.length}</div>
+              {/* 2) ONAY BEKLEYEN */}
+              {(pendingApproval.length > 0 || cpsPendingApproval.length > 0) && (
+                <div>
+                  <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'#f5a623',marginBottom:'10px'}}>ONAY BEKLEYEN · {pendingApproval.length + cpsPendingApproval.length}</div>
+                  <div className="approval-grid" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px'}}>
+                    {pendingApproval.map(b => (
+                      <div key={b.id} onClick={() => router.push(`/dashboard/client/briefs/${b.id}`)}
+                        style={{padding:'12px 14px',background:'#fff',borderLeft:'3px solid #f5a623',border:'1px solid #e5e4db',cursor:'pointer',display:'flex',alignItems:'center',gap:'10px'}}>
+                        {videoMap[b.id] && <div style={{width:'32px',height:'56px',overflow:'hidden',background:'#0a0a0a',flexShrink:0}}><video src={videoMap[b.id]+'#t=0.1'} muted playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'cover'}} /></div>}
+                        <div>
+                          <div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name}</div>
+                          <div style={{fontSize:'10px',color:'#888',marginTop:'2px'}}>Ana Video</div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <style>{`@keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.4 } }`}</style>
-                  {drafts.map(b=>(
-                    <div key={b.id}
-                      style={{background:'#fffbeb',border:'1.5px dashed #f59e0b',borderRadius:'12px',padding:'14px 18px',marginBottom:'8px',display:'flex',alignItems:'center',justifyContent:'space-between',position:'relative',transition:'box-shadow 0.2s'}}
-                      onMouseEnter={e=>{e.currentTarget.style.boxShadow='0 2px 12px rgba(245,158,11,0.15)';(e.currentTarget.querySelector('[data-actions]') as HTMLElement)?.style.setProperty('opacity','1')}}
-                      onMouseLeave={e=>{e.currentTarget.style.boxShadow='none';(e.currentTarget.querySelector('[data-actions]') as HTMLElement)?.style.setProperty('opacity','0')}}>
-                      <div style={{flex:1,cursor:'pointer'}} onClick={()=>router.push(`/dashboard/client/brief/new?draft=${b.id}`)}>
-                        <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name || 'İsimsiz Taslak'}</div>
-                        <div style={{fontSize:'11px',color:'#888',marginTop:'2px'}}>{b.video_type ? `${b.video_type} · ` : ''}{timeAgo(b.created_at)}</div>
+                </div>
+              )}
+
+              {/* 3) AI EXPRESS HAZIR */}
+              {aiExpressCount > 0 && (
+                <div>
+                  <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'#4ade80',marginBottom:'10px'}}>AI EXPRESS HAZIR · {aiExpressCount}</div>
+                  <div className="ai-grid" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'10px'}}>
+                    {aiExpressReady.map(({ parent, children }) => children.map((kid: any, i: number) => (
+                      <div key={kid.id} onClick={() => router.push(`/dashboard/client/briefs/${parent.id}?tab=express`)}
+                        style={{padding:'12px 14px',background:'#fff',borderLeft:'3px solid #4ade80',border:'1px solid #e5e4db',cursor:'pointer',position:'relative'}}>
+                        <div style={{position:'absolute',top:'8px',right:'8px',width:'8px',height:'8px',borderRadius:'50%',background:'#4ade80'}} />
+                        <div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>{parent.campaign_name}</div>
+                        <div style={{fontSize:'10px',color:'#888',marginTop:'2px'}}>{kid.campaign_name?.split('—')[1]?.trim() || `V${i + 1}`}</div>
                       </div>
-                      <div style={{position:'absolute',top:'10px',right:'14px',fontSize:'9px',fontWeight:'600',color:'#f59e0b',background:'rgba(245,158,11,0.1)',padding:'2px 8px',borderRadius:'100px',letterSpacing:'0.5px'}}>TASLAK</div>
-                      <div data-actions="" style={{display:'flex',gap:'6px',opacity:0,transition:'opacity 0.15s'}}>
-                        <button onClick={()=>router.push(`/dashboard/client/brief/new?draft=${b.id}`)}
-                          style={{padding:'6px 14px',background:'#22c55e',color:'#fff',border:'none',borderRadius:'8px',fontSize:'11px',cursor:'pointer',fontWeight:'500'}}>
-                          Düzenle ve Gönder
-                        </button>
-                        <button onClick={()=>handleDeleteDraft(b.id)}
-                          style={{padding:'6px 14px',background:'none',border:'1px solid rgba(239,68,68,0.3)',color:'#ef4444',borderRadius:'8px',fontSize:'11px',cursor:'pointer',}}>
-                          Sil
-                        </button>
+                    )))}
+                  </div>
+                </div>
+              )}
+
+              {/* 4) ÜRETİLİYOR */}
+              {producing.length > 0 && (
+                <div>
+                  <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'var(--color-text-secondary)',marginBottom:'10px'}}>ÜRETİLİYOR · {producing.length}</div>
+                  <div style={{fontSize:'11px',color:'var(--color-text-tertiary)',marginBottom:'10px'}}>Ekibimiz çalışıyor, kısa süre içinde teslim edilecek</div>
+                  {producing.map(b => (
+                    <div key={b.id} onClick={() => router.push(`/dashboard/client/briefs/${b.id}`)}
+                      style={{padding:'12px 16px',background:'#fff',border:'1px solid #e5e4db',marginBottom:'6px',cursor:'pointer',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                      <div>
+                        <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name}</div>
+                        <div style={{fontSize:'10px',color:'#888',marginTop:'2px'}}>{b.video_type} · {statusLabel[b.status]}</div>
+                      </div>
+                      <span style={{fontSize:'10px',padding:'3px 8px',background:`${statusColor[b.status]}12`,color:statusColor[b.status],fontWeight:'500'}}>{statusLabel[b.status]}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* 5) TASLAKTA */}
+              {drafts.length > 0 && (
+                <div>
+                  <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'var(--color-text-tertiary)',marginBottom:'10px'}}>TASLAKTA · {drafts.length}</div>
+                  {drafts.map(b => (
+                    <div key={b.id} style={{padding:'12px 16px',background:'#fff',border:'1px solid #e5e4db',marginBottom:'6px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                      <div style={{flex:1,cursor:'pointer'}} onClick={() => router.push(`/dashboard/client/brief/new?draft=${b.id}`)}>
+                        <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name || 'İsimsiz Taslak'}</div>
+                        <div style={{fontSize:'10px',color:'#888',marginTop:'2px'}}>Son düzenleme: {timeAgo(b.updated_at || b.created_at)}</div>
+                      </div>
+                      <div style={{display:'flex',gap:'8px',flexShrink:0}}>
+                        <span onClick={() => router.push(`/dashboard/client/brief/new?draft=${b.id}`)} style={{fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:'#0a0a0a',fontWeight:'500',cursor:'pointer'}}>DEVAM ET →</span>
+                        <button onClick={() => handleDeleteDraft(b.id)} style={{fontSize:'13px',color:'#888',background:'none',border:'none',cursor:'pointer',padding:'0 4px'}}>×</button>
                       </div>
                     </div>
                   ))}
                 </div>
               )}
 
-              {/* BRIEF LIST */}
-              {nonDrafts.length > 0 && (
-                <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.08)',borderRadius:'10px',overflow:'hidden'}}>
-                  {nonDrafts.map((b, i) => {
-                    const isDone = b.status === 'delivered' || b.status === 'approved'
-                    const aiList = getAiIndicators(b)
-                    const cpsInd = getCpsIndicator(b)
-                    return (
-                      <div key={b.id} onClick={()=>router.push(`/dashboard/client/briefs/${b.id}`)}
-                        style={{padding:'14px 16px 14px 14px',cursor:'pointer',display:'flex',alignItems:'center',gap:'12px',borderTop:i>0?'1px solid var(--color-border-tertiary)':'none',transition:'background 0.1s',background:isDone?'#f9f9f7':'#fff',borderLeft:`3px solid ${['delivered','ai_completed'].includes(b.status)?'#4ade80':['in_production','ai_processing'].includes(b.status)?'#0a0a0a':['draft','submitted','read'].includes(b.status)?'#9b9b95':'#e5e4db'}`}}
-                        onMouseEnter={e=>(e.currentTarget.style.background=isDone?'#f4f4f2':'#fafaf8')}
-                        onMouseLeave={e=>(e.currentTarget.style.background=isDone?'#f9f9f7':'#fff')}>
-                        {videoMap[b.id] && (
-                          <div style={{width:'36px',height:'64px',borderRadius:'6px',overflow:'hidden',background:'#0a0a0a',flexShrink:0}}>
-                            <video src={videoMap[b.id]+'#t=0.1'} muted playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'cover'}} />
+              {/* 6) TAMAMLANAN KAMPANYALAR */}
+              {done.length > 0 && (
+                <div>
+                  <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'var(--color-text-secondary)',marginBottom:'10px'}}>TAMAMLANAN KAMPANYALAR · {done.length}</div>
+                  <div className="done-grid" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'10px'}}>
+                    {done.map(b => (
+                      <div key={b.id} onClick={() => router.push(`/dashboard/client/briefs/${b.id}`)}
+                        style={{background:'#fff',border:'1px solid #e5e4db',cursor:'pointer',overflow:'hidden'}}>
+                        {videoMap[b.id] ? (
+                          <div style={{aspectRatio:'9/16',overflow:'hidden',background:'#0a0a0a'}}>
+                            <video src={videoMap[b.id]+'#t=0.5'} muted playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'cover'}} />
+                          </div>
+                        ) : (
+                          <div style={{aspectRatio:'9/16',background:'var(--color-background-secondary)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                            <span style={{fontSize:'10px',color:'var(--color-text-tertiary)'}}>Video</span>
                           </div>
                         )}
-                        <div style={{flex:1,minWidth:0}}>
-                          <div style={{fontSize:'13px',fontWeight:'600',color:'#0a0a0a',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',letterSpacing:'-0.2px'}}>{b.campaign_name}</div>
-                          <div style={{fontSize:'10px',color:'#999',marginTop:'3px'}}>{b.video_type} · {new Date(b.updated_at || b.created_at).toLocaleDateString('tr-TR')}</div>
-                        </div>
-                        <div style={{display:'flex',alignItems:'center',gap:'6px',flexShrink:0}}>
-                          {aiList.map((ai,ai_i) => <span key={ai_i} style={{fontSize:'9px',padding:'3px 8px',borderRadius:'6px',background:`${ai.color}12`,color:ai.color,fontWeight:'600',display:'flex',alignItems:'center',gap:'3px',whiteSpace:'nowrap'}}>{ai.label==='Üretiliyor'?'':'\u26A1'} {ai.label}</span>)}
-                          {cpsInd && <span style={{fontSize:'9px',padding:'3px 8px',borderRadius:'6px',background:`${cpsInd.color}12`,color:cpsInd.color,fontWeight:'600',display:'flex',alignItems:'center',gap:'3px',whiteSpace:'nowrap'}}>{cpsInd.label}</span>}
-                          <span style={{fontSize:'10px',padding:'4px 12px',borderRadius:'6px',background:`${statusColor[b.status]||'#888'}12`,color:statusColor[b.status]||'#888',fontWeight:'500',whiteSpace:'nowrap'}}>{statusLabel[b.status]||b.status}</span>
+                        <div style={{padding:'8px 10px'}}>
+                          <div style={{fontSize:'11px',fontWeight:'500',color:'#0a0a0a',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.campaign_name}</div>
+                          <div style={{fontSize:'9px',color:'#888',marginTop:'2px'}}>{new Date(b.updated_at || b.created_at).toLocaleDateString('tr-TR')}</div>
                         </div>
                       </div>
-                    )
-                  })}
-                </div>
-              )}
-
-              {/* EMPTY STATE */}
-              {briefs.length === 0 && (
-                <div style={{display:'flex',justifyContent:'center',padding:'48px 0'}}>
-                  <div style={{background:'#fff',border:'1px solid var(--color-border-tertiary)',padding:'48px 56px',textAlign:'center',maxWidth:'420px'}}>
-                    <div style={{fontSize:'28px',fontWeight:'500',color:'var(--color-text-primary)',letterSpacing:'-0.01em',marginBottom:'12px'}}>Hoş geldin, {userName.split(' ')[0]}!</div>
-                    <div style={{fontSize:'14px',color:'var(--color-text-secondary)',lineHeight:1.6,marginBottom:'28px'}}>İlk brief'ini oluştur, 24 saat içinde vidyon hazır olsun.</div>
-                    <button onClick={()=>router.push('/dashboard/client/brief/new')} className="btn">
-                      İLK BRİEF'İ OLUŞTUR →
-                    </button>
+                    ))}
                   </div>
                 </div>
               )}
 
-              {/* ACTIVITY PANEL */}
-              {activities.length > 0 && (
-                <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'16px 20px',marginTop:'8px'}}>
-                  <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'12px'}}>Son Aktiviteler</div>
-                  {activities.map((a,i)=>(
-                    <div key={i} style={{display:'flex',alignItems:'center',gap:'10px',padding:'6px 0',borderBottom:i<activities.length-1?'0.5px solid rgba(0,0,0,0.04)':'none'}}>
-                      <div style={{width:'6px',height:'6px',borderRadius:'50%',background:'#22c55e',flexShrink:0}}></div>
-                      <div style={{fontSize:'12px',color:'#0a0a0a',flex:1}}>{a.msg}</div>
-                      <div style={{fontSize:'10px',color:'#aaa',flexShrink:0}}>{timeAgo(a.date)}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-            </>
+              <style>{`
+                @media (max-width: 768px) {
+                  .approval-grid { grid-template-columns: 1fr !important; }
+                  .ai-grid { grid-template-columns: 1fr !important; }
+                  .done-grid { grid-template-columns: repeat(2, 1fr) !important; }
+                }
+              `}</style>
+            </div>
           )}
         </div>
       </div>
