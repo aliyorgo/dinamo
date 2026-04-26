@@ -84,6 +84,8 @@ export default function AdminBriefDetail() {
   // CPS per-child creator forms
   const [cpsCreatorForms, setCpsCreatorForms] = useState<Record<string,{creator_id:string,note:string,open:boolean}>>({})
   const [cpsRevNotes, setCpsRevNotes] = useState<Record<string,Record<string,string>>>({})
+  const [cpsProducerBriefs, setCpsProducerBriefs] = useState<Record<string,any>>({})
+  const [cpsReassignConfirm, setCpsReassignConfirm] = useState<string|null>(null)
 
   useEffect(() => { loadData() }, [id])
 
@@ -114,6 +116,14 @@ export default function AdminBriefDetail() {
     // CPS children
     const { data: cps } = await supabase.from('briefs').select('*, video_submissions(id, video_url, status, version, submitted_at)').eq('parent_brief_id', id).eq('brief_type', 'cps_child').order('mvc_order', { ascending: true })
     setCpsChildren(cps || [])
+    // CPS producer_briefs
+    if (cps && cps.length > 0) {
+      const cpsIds = cps.map((c: any) => c.id)
+      const { data: cpsPbs } = await supabase.from('producer_briefs').select('brief_id, assigned_creator_id').in('brief_id', cpsIds)
+      const pbMap: Record<string, any> = {}
+      cpsPbs?.forEach((pb: any) => { pbMap[pb.brief_id] = pb })
+      setCpsProducerBriefs(pbMap)
+    }
     // AI Express children
     const rootId = b?.root_campaign_id || id
     const { data: ai } = await supabase.from('briefs').select('id, campaign_name, status, ai_video_url, created_at').eq('parent_brief_id', id).in('brief_type', ['express_clone']).order('created_at', { ascending: true })
@@ -144,19 +154,20 @@ export default function AdminBriefDetail() {
     loadData(); setLoading(false)
   }
   async function forwardAllCps(creatorId: string) {
-    console.log('[CPS] forwardAllCps called:', creatorId, 'children:', cpsChildren.length)
     if (!creatorId) { setMsg('Creator seçilmedi.'); return }
+    const unassigned = cpsChildren.filter(c => !cpsProducerBriefs[c.id])
+    if (unassigned.length === 0) { setMsg('Tüm yönler zaten atanmış.'); return }
     setLoading(true)
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      for (const child of cpsChildren) {
+      for (const child of unassigned) {
         const { error: delErr } = await supabase.from('producer_briefs').delete().eq('brief_id', child.id)
         if (delErr) console.log('[CPS] bulk delete error:', delErr.message)
         const { error: insErr } = await supabase.from('producer_briefs').insert({ brief_id: child.id, producer_id: user?.id, assigned_creator_id: creatorId, shared_fields: sharedFields, forwarded_at: new Date().toISOString() })
         if (insErr) { console.error('[CPS] bulk insert error:', insErr.message); setMsg('Hata: ' + insErr.message); setLoading(false); return }
         await supabase.from('briefs').update({ status: 'in_production' }).eq('id', child.id)
       }
-      setMsg(`${cpsChildren.length} CPS yön topluca iletildi.`)
+      setMsg(`${unassigned.length} CPS yön topluca iletildi.`)
     } catch (err: any) { console.error('[CPS] forwardAllCps error:', err); setMsg('Hata: ' + err.message) }
     loadData(); setLoading(false)
   }
@@ -415,13 +426,18 @@ export default function AdminBriefDetail() {
               <div style={{ marginBottom: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                   <div className="label-caps">CPS BRIEF'LERİ · {cpsChildren.length} YÖN</div>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <select id="cps-bulk-creator" style={{ padding: '6px 10px', border: '1px solid var(--color-border-tertiary)', fontSize: '11px' }}>
-                      <option value="">Creator seç...</option>
-                      {creators.map(c => <option key={c.id} value={c.id}>{c.users?.name}</option>)}
-                    </select>
-                    <button onClick={() => { const sel = (document.getElementById('cps-bulk-creator') as HTMLSelectElement)?.value; if (sel) forwardAllCps(sel) }} disabled={loading} className="btn btn-outline" style={{ padding: '6px 14px', fontSize: '10px' }}>TOPLUCA İLET</button>
-                  </div>
+                  {(() => {
+                    const unassigned = cpsChildren.filter(c => !cpsProducerBriefs[c.id])
+                    return unassigned.length > 0 ? (
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <select id="cps-bulk-creator" style={{ padding: '6px 10px', border: '1px solid var(--color-border-tertiary)', fontSize: '11px' }}>
+                          <option value="">Creator seç...</option>
+                          {creators.map(c => <option key={c.id} value={c.id}>{c.users?.name}</option>)}
+                        </select>
+                        <button onClick={() => { const sel = (document.getElementById('cps-bulk-creator') as HTMLSelectElement)?.value; if (sel) forwardAllCps(sel) }} disabled={loading} className="btn btn-outline" style={{ padding: '6px 14px', fontSize: '10px' }}>ATANMAMIŞLARA İLET ({unassigned.length})</button>
+                      </div>
+                    ) : null
+                  })()}
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(cpsChildren.length, 3)}, 1fr)`, gap: '12px' }}>
                   {cpsChildren.map(child => {
@@ -443,17 +459,46 @@ export default function AdminBriefDetail() {
                             {/* Brief detail */}
                             {child.message && <div style={{ fontSize: '12px', color: '#0a0a0a', lineHeight: '1.5', marginBottom: '10px' }}>{child.message}</div>}
                             {child.cps_ton && <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', marginBottom: '10px' }}>Ton: {child.cps_ton}</div>}
-                            {/* Creator assign */}
-                            <div style={{ borderTop: '1px solid var(--color-border-tertiary)', paddingTop: '10px', marginBottom: '10px' }}>
-                              <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '4px' }}>CREATOR ATA</div>
-                              <div style={{ display: 'flex', gap: '6px' }}>
-                                <select value={cf.creator_id} onChange={e => setCpsCreatorForms(prev => ({ ...prev, [child.id]: { ...cf, creator_id: e.target.value, open: true } }))} style={{ flex: 1, padding: '6px 8px', border: '1px solid var(--color-border-tertiary)', fontSize: '11px' }}>
-                                  <option value="">Seçin</option>
-                                  {creators.map(c => <option key={c.id} value={c.id}>{c.users?.name}</option>)}
-                                </select>
-                                <button onClick={() => forwardCpsChild(child.id)} disabled={loading || !cf.creator_id} className="btn" style={{ padding: '5px 10px', fontSize: '10px' }}>İLET</button>
-                              </div>
-                            </div>
+                            {/* Creator assign — state machine */}
+                            {(() => {
+                              const cpsPb = cpsProducerBriefs[child.id]
+                              const cpsAssigned = cpsPb ? creators.find(c => c.id === cpsPb.assigned_creator_id) : null
+                              const cpsHasSubs = childSubs.length > 0
+                              const cpsState = !cpsAssigned ? 'none' : cpsHasSubs ? 'locked' : 'assigned'
+                              return (
+                                <div style={{ borderTop: '1px solid var(--color-border-tertiary)', paddingTop: '10px', marginBottom: '10px' }}>
+                                  {cpsState === 'locked' && cpsAssigned && (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                      <span style={{ fontSize: '11px', fontWeight: '500', color: '#0a0a0a' }}>→ {cpsAssigned.users?.name}</span>
+                                      <span style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', padding: '2px 6px', border: '1px solid #e5e4db', color: '#888' }}>TAMAMLANDI</span>
+                                    </div>
+                                  )}
+                                  {cpsState === 'assigned' && cpsAssigned && (
+                                    <div>
+                                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                          <span style={{ fontSize: '11px', fontWeight: '500', color: '#0a0a0a' }}>→ {cpsAssigned.users?.name}</span>
+                                          <span style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', padding: '2px 6px', border: '1px solid #22c55e', background: 'rgba(34,197,94,0.08)', color: '#0a0a0a' }}>ATANDI</span>
+                                        </div>
+                                      </div>
+                                      <button onClick={() => setCpsReassignConfirm(child.id)} className="btn btn-outline" style={{ padding: '4px 10px', fontSize: '9px', width: '100%' }}>ATAMAYI DEĞİŞTİR</button>
+                                    </div>
+                                  )}
+                                  {(cpsState === 'none' || cf.open) && (
+                                    <div>
+                                      <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '4px' }}>CREATOR ATA</div>
+                                      <div style={{ display: 'flex', gap: '6px' }}>
+                                        <select value={cf.creator_id} onChange={e => setCpsCreatorForms(prev => ({ ...prev, [child.id]: { ...cf, creator_id: e.target.value, open: true } }))} style={{ flex: 1, padding: '6px 8px', border: '1px solid var(--color-border-tertiary)', fontSize: '11px' }}>
+                                          <option value="">Seçin</option>
+                                          {creators.map(c => <option key={c.id} value={c.id}>{c.users?.name}</option>)}
+                                        </select>
+                                        <button onClick={() => forwardCpsChild(child.id)} disabled={loading || !cf.creator_id} className="btn" style={{ padding: '5px 10px', fontSize: '10px' }}>İLET</button>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              )
+                            })()}
                             {/* Video submissions */}
                             {childSubs.length > 0 && childSubs.map((sub: any) => (
                               <div key={sub.id} style={{ borderTop: '1px solid var(--color-border-tertiary)', paddingTop: '10px', marginBottom: '8px' }}>
@@ -707,6 +752,20 @@ export default function AdminBriefDetail() {
             <div style={{ display: 'flex', gap: '10px' }}>
               <button onClick={() => setShowReassignConfirm(false)} className="btn btn-outline" style={{ flex: 1, padding: '10px' }}>VAZGEÇ</button>
               <button onClick={() => { setShowReassignConfirm(false); setShowAssignForm(true); setForwardForm({ producer_note: '', assigned_creator_id: '', assigned_voice_artist_id: '' }) }} className="btn" style={{ flex: 1, padding: '10px' }}>EVET, DEĞİŞTİR</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CPS REASSIGN CONFIRM MODAL */}
+      {cpsReassignConfirm && (
+        <div onClick={() => setCpsReassignConfirm(null)} style={{ position: 'fixed', inset: 0, zIndex: 150, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', border: '1px solid #0a0a0a', padding: '28px', width: '420px', maxWidth: '90vw' }}>
+            <div style={{ fontSize: '16px', fontWeight: '500', color: '#0a0a0a', marginBottom: '10px' }}>CPS Yön Creator Değiştir</div>
+            <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: 1.7, marginBottom: '24px' }}>Bu yönün creator ataması değiştirilecek. Devam etmek istiyor musun?</div>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={() => setCpsReassignConfirm(null)} className="btn btn-outline" style={{ flex: 1, padding: '10px' }}>VAZGEÇ</button>
+              <button onClick={() => { setCpsCreatorForms(prev => ({ ...prev, [cpsReassignConfirm]: { creator_id: '', note: '', open: true } })); setCpsReassignConfirm(null) }} className="btn" style={{ flex: 1, padding: '10px' }}>EVET, DEĞİŞTİR</button>
             </div>
           </div>
         </div>
