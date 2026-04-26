@@ -80,6 +80,7 @@ export default function AdminBriefDetail() {
   const [cpsOpen, setCpsOpen] = useState<Record<string,boolean>>({})
   const [aiOpen, setAiOpen] = useState<Record<string,boolean>>({})
   const [showAssignForm, setShowAssignForm] = useState(false)
+  const [showReassignConfirm, setShowReassignConfirm] = useState(false)
   // CPS per-child creator forms
   const [cpsCreatorForms, setCpsCreatorForms] = useState<Record<string,{creator_id:string,note:string,open:boolean}>>({})
   const [cpsRevNotes, setCpsRevNotes] = useState<Record<string,Record<string,string>>>({})
@@ -263,6 +264,9 @@ export default function AdminBriefDetail() {
   const clientRevisions = questions.filter(q => q.question.startsWith('REVİZYON:'))
   const visibleQ = questions.filter(q => !q.question.startsWith('REVİZYON:') && !q.question.startsWith('İÇ REVİZYON:'))
   const assigned = creators.find(c => c.id === forwardForm.assigned_creator_id)
+  const hasSubmissions = submissions.length > 0
+  // Assignment state: 'none' | 'assigned' | 'locked'
+  const assignState = !assigned ? 'none' : hasSubmissions ? 'locked' : 'assigned'
   const sb = STATUS_BADGE[brief?.status] || STATUS_BADGE.submitted
 
   // Status badge component
@@ -338,7 +342,7 @@ export default function AdminBriefDetail() {
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
               <Badge status={brief.status} />
               <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>{brief.video_type} · {brief.format} · {brief.credit_cost} kredi</span>
-              {assigned && <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>· {assigned.users?.name}</span>}
+              {assigned ? <span style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: '#0a0a0a' }}>· → {assigned.users?.name}</span> : <span style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#f5a623' }}>· CREATOR ATANMADI</span>}
               {cpsChildren.length > 0 && <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>· {cpsChildren.length} CPS yön</span>}
               {aiChildren.length > 0 && <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>· {aiChildren.length} AI Express</span>}
             </div>
@@ -503,26 +507,40 @@ export default function AdminBriefDetail() {
             <div style={{ marginBottom: '16px' }}>
               <div className="label-caps" style={{ marginBottom: '12px' }}>ÜRETİM & ONAY</div>
 
-              {/* Creator Assignment */}
+              {/* Creator Assignment — State Machine */}
               <div style={{ background: '#fff', border: '1px solid #0a0a0a', padding: '16px 18px', marginBottom: '12px' }}>
-                {assigned ? (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <div style={{ width: '36px', height: '36px', background: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: '500', color: '#fff', flexShrink: 0 }}>{(assigned.users?.name || '?').split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()}</div>
-                      <div>
-                        <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a' }}>{assigned.users?.name}</div>
-                        <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>{assigned.users?.email}{assigned.phone ? ` · ${assigned.phone}` : ''}</div>
-                      </div>
+                {assignState === 'locked' && assigned && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ width: '36px', height: '36px', background: '#888', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: '500', color: '#fff', flexShrink: 0 }}>{(assigned.users?.name || '?').split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()}</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a' }}>{assigned.users?.name}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>{assigned.users?.email}</div>
                     </div>
-                    <button onClick={() => setShowAssignForm(!showAssignForm)} className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '10px' }}>{showAssignForm ? 'GİZLE' : 'DEĞİŞTİR'}</button>
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>Creator atanmadı</span>
-                    <Badge status="submitted" />
+                    <span style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', padding: '3px 8px', border: '1px solid #e5e4db', color: '#888' }}>TAMAMLANDI</span>
                   </div>
                 )}
-                {(showAssignForm || !assigned) && (
+                {assignState === 'assigned' && assigned && (
+                  <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ width: '36px', height: '36px', background: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: '500', color: '#fff', flexShrink: 0 }}>{(assigned.users?.name || '?').split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()}</div>
+                        <div>
+                          <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a' }}>{assigned.users?.name}</div>
+                          <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>{assigned.users?.email}{assigned.phone ? ` · ${assigned.phone}` : ''}</div>
+                        </div>
+                      </div>
+                      <span style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', padding: '3px 8px', border: '1px solid #22c55e', background: 'rgba(34,197,94,0.08)', color: '#0a0a0a' }}>ATANDI</span>
+                    </div>
+                    <button onClick={() => setShowReassignConfirm(true)} className="btn btn-outline" style={{ marginTop: '10px', padding: '6px 14px', fontSize: '10px', width: '100%' }}>ATAMAYI DEĞİŞTİR</button>
+                  </>
+                )}
+                {assignState === 'none' && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>Creator atanmadı</span>
+                    <span style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', padding: '3px 8px', border: '1px solid #f5a623', color: '#f5a623' }}>ATANMADI</span>
+                  </div>
+                )}
+                {(showAssignForm || assignState === 'none') && (
                   <form onSubmit={handleForward} style={{ marginTop: '12px', borderTop: '1px solid var(--color-border-tertiary)', paddingTop: '12px' }}>
                     <div style={{ display: 'grid', gridTemplateColumns: brief.voiceover_type === 'real' ? '1fr 1fr' : '1fr', gap: '8px', marginBottom: '10px' }}>
                       <div>
@@ -675,6 +693,20 @@ export default function AdminBriefDetail() {
             <div style={{ display: 'flex', gap: '10px' }}>
               <button onClick={() => setDeleteStep(0)} className="btn btn-outline" style={{ flex: 1, padding: '10px' }}>İptal</button>
               <button onClick={deleteStep === 2 ? deleteBrief : () => setDeleteStep(2)} disabled={deleting} className="btn" style={{ flex: 1, padding: '10px', background: '#ef4444' }}>{deleting ? 'Siliniyor...' : deleteStep === 2 ? 'Kalıcı Olarak Sil' : 'Evet, Sil'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* REASSIGN CONFIRM MODAL */}
+      {showReassignConfirm && (
+        <div onClick={() => setShowReassignConfirm(false)} style={{ position: 'fixed', inset: 0, zIndex: 150, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', border: '1px solid #0a0a0a', padding: '28px', width: '420px', maxWidth: '90vw' }}>
+            <div style={{ fontSize: '16px', fontWeight: '500', color: '#0a0a0a', marginBottom: '10px' }}>Creator Değiştir</div>
+            <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: 1.7, marginBottom: '24px' }}>Creator değişikliği eski atamayı iptal eder. Yeni creator seçmek istediğinden emin misin?</div>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={() => setShowReassignConfirm(false)} className="btn btn-outline" style={{ flex: 1, padding: '10px' }}>VAZGEÇ</button>
+              <button onClick={() => { setShowReassignConfirm(false); setShowAssignForm(true); setForwardForm({ producer_note: '', assigned_creator_id: '', assigned_voice_artist_id: '' }) }} className="btn" style={{ flex: 1, padding: '10px' }}>EVET, DEĞİŞTİR</button>
             </div>
           </div>
         </div>

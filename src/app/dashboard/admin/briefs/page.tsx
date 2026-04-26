@@ -36,6 +36,11 @@ export default function BriefsPage() {
   function getCreatorId(briefId: string) {
     return producerBriefs.find(pb => pb.brief_id === briefId)?.assigned_creator_id || ''
   }
+  function getCreatorName(briefId: string) {
+    const cid = getCreatorId(briefId)
+    if (!cid) return ''
+    return creators.find(c => c.id === cid)?.users?.name || ''
+  }
 
   const isAiBrief = (b: any) => b.campaign_name?.includes('Full AI')
   const tabBriefs = tab === 'ai' ? briefs.filter(b => isAiBrief(b) && b.ai_video_url) : briefs.filter(b => !isAiBrief(b))
@@ -171,7 +176,10 @@ export default function BriefsPage() {
                     <td style={{padding:'12px 16px'}} onClick={e=>e.stopPropagation()}>
                       <input type="checkbox" checked={selected.has(brief.id)} onChange={()=>toggleSelect(brief.id)} style={{accentColor:'#22c55e'}} />
                     </td>
-                    <td onClick={()=>router.push(`/dashboard/admin/briefs/${brief.id}`)} style={{padding:'12px 16px',fontSize:'14px',fontWeight:'500'}}>{brief.campaign_name}</td>
+                    <td onClick={()=>router.push(`/dashboard/admin/briefs/${brief.id}`)} style={{padding:'12px 16px'}}>
+                      <div style={{fontSize:'14px',fontWeight:'500'}}>{brief.campaign_name}</div>
+                      {getCreatorName(brief.id) ? <div style={{fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:'#0a0a0a',fontWeight:'500',marginTop:'2px'}}>→ {getCreatorName(brief.id)}</div> : <div style={{fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:'#f5a623',marginTop:'2px'}}>ATANMADI</div>}
+                    </td>
                     <td onClick={()=>router.push(`/dashboard/admin/briefs/${brief.id}`)} style={{padding:'12px 16px',fontSize:'13px',color:'rgba(255,255,255,0.4)'}}>{brief.clients?.company_name||'—'}</td>
                     <td onClick={()=>router.push(`/dashboard/admin/briefs/${brief.id}`)} style={{padding:'12px 16px',fontSize:'13px',color:'rgba(255,255,255,0.4)'}}>{brief.video_type}</td>
                     <td onClick={()=>router.push(`/dashboard/admin/briefs/${brief.id}`)} style={{padding:'12px 16px'}}>
