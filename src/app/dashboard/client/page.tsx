@@ -175,7 +175,7 @@ export default function ClientDashboard() {
 
   // Category filters
   const [unansweredQuestions, setUnansweredQuestions] = useState<any[]>([])
-  const [showAllProjects, setShowAllProjects] = useState(false)
+  const [viewMode, setViewMode] = useState<'categories'|'timeline'>('categories')
 
   // Helper: get brief indicators
   function getBriefIndicators(b: any) {
@@ -311,14 +311,7 @@ export default function ClientDashboard() {
       <div style={{flex:1,display:'flex',flexDirection:'column'}}>
         {/* TOP BAR with notifications */}
         <div style={{padding:'10px 28px',background:'#fff',borderBottom:'0.5px solid rgba(0,0,0,0.08)',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
-          <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
-            {briefs.length > 0 && <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a'}}>Projelerim</div>}
-            {nonDrafts.length > 3 && (
-              <button onClick={() => setShowAllProjects(!showAllProjects)} className="btn btn-outline" style={{padding:'4px 12px',fontSize:'10px',letterSpacing:'1.5px'}}>
-                {showAllProjects ? 'GİZLE ↑' : `TÜM PROJELERİ GÖR ↓`}
-              </button>
-            )}
-          </div>
+          {briefs.length > 0 && <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a'}}>Projelerim</div>}
           <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
           {/* Notification bell */}
           <div style={{position:'relative'}}>
@@ -427,16 +420,19 @@ export default function ClientDashboard() {
           ) : (
             <div style={{padding:'20px 28px',display:'flex',flexDirection:'column',gap:'24px'}}>
 
-              {/* Indicator badges component */}
-              {(() => {
-                function Indicators({ b }: { b: any }) {
-                  const inds = getBriefIndicators(b)
-                  if (inds.length === 0) return null
-                  return <div style={{display:'flex',gap:'6px',marginTop:'4px'}}>{inds.map((ind,i) => <span key={i} style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'2px 7px',border:'1px solid #e5e4db',background:'#fafaf7',color:'#0a0a0a',whiteSpace:'nowrap'}}>{ind.label}</span>)}</div>
-                }
-                return null
-              })()}
+              {/* VIEW MODE TOGGLE */}
+              {nonDrafts.length > 0 && (
+                <div style={{display:'flex',gap:'0'}}>
+                  {([['categories','İŞLERE GÖRE'],['timeline','TARİHE GÖRE']] as const).map(([key, label]) => (
+                    <button key={key} onClick={() => setViewMode(key)}
+                      style={{padding:'7px 18px',fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',cursor:'pointer',border:'1px solid #0a0a0a',background:viewMode===key?'#0a0a0a':'#fff',color:viewMode===key?'#fff':'#0a0a0a',marginRight:key==='categories'?'-1px':'0',transition:'all 0.15s'}}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              )}
 
+              {viewMode === 'categories' && <>
               {/* 1) SORUMUZ VAR */}
               {catQuestion.length > 0 && (
                 <div>
@@ -574,11 +570,12 @@ export default function ClientDashboard() {
                 </div>
               )}
 
-              {/* ALL PROJECTS LIST (accordion) */}
-              {showAllProjects && (
+              </>}
+
+              {/* TIMELINE VIEW */}
+              {viewMode === 'timeline' && (
                 <div>
-                  <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'var(--color-text-secondary)',marginBottom:'10px'}}>TÜM PROJELER · {nonDrafts.length}</div>
-                  {nonDrafts.map((b, i) => {
+                  {[...nonDrafts, ...drafts].map(b => {
                     const aiKids = aiChildrenMap[b.root_campaign_id] || aiChildrenMap[b.id] || []
                     const cpsKids = cpsChildrenMap[b.root_campaign_id] || cpsChildrenMap[b.id] || []
                     const aiCount = aiKids.length
@@ -588,11 +585,11 @@ export default function ClientDashboard() {
                     const catColors: Record<string,string> = { question:'#ef4444', approval:'#f5a623', ai_ready:'#4ade80', producing:'#888', done:'var(--color-text-tertiary)', draft:'#c5c5b8' }
                     const catLabels: Record<string,string> = { question:'Sorumuz Var', approval:'Onay Bekliyor', ai_ready:'AI Express Hazır', producing:'Üretiliyor', done:'Tamamlandı', draft:'Taslak' }
                     return (
-                      <div key={b.id} onClick={() => router.push(`/dashboard/client/briefs/${b.id}`)}
+                      <div key={b.id} onClick={() => b.status === 'draft' ? router.push(`/dashboard/client/brief/new?draft=${b.id}`) : router.push(`/dashboard/client/briefs/${b.id}`)}
                         style={{padding:'14px 18px',background:'#fff',border:'1px solid #e5e4db',marginBottom:'6px',cursor:'pointer',display:'flex',alignItems:'center',gap:'12px'}}>
                         {videoMap[b.id] && <div style={{width:'32px',height:'56px',overflow:'hidden',background:'#0a0a0a',flexShrink:0}}><video src={videoMap[b.id]+'#t=0.1'} muted playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'cover'}} /></div>}
                         <div style={{flex:1,minWidth:0}}>
-                          <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.campaign_name}</div>
+                          <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.campaign_name || 'İsimsiz Taslak'}</div>
                           <div style={{display:'flex',gap:'6px',marginTop:'5px',flexWrap:'wrap'}}>
                             <span style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'2px 7px',border:`1px solid ${catColors[cat]}`,color:catColors[cat],fontWeight:'500'}}>{catLabels[cat]}</span>
                             <span style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'2px 7px',border:'1px solid #e5e4db',color:aiCount > 0 ? '#0a0a0a' : '#c5c5b8',background:aiCount > 0 ? '#fafaf7' : 'transparent'}}>AI EXPRESS · {aiCount}</span>
