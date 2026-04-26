@@ -175,24 +175,68 @@ export default function ClientDashboard() {
 
   // Category filters
   const [unansweredQuestions, setUnansweredQuestions] = useState<any[]>([])
+  const [showAllProjects, setShowAllProjects] = useState(false)
+
+  // Helper: get brief indicators
+  function getBriefIndicators(b: any) {
+    const aiKids = aiChildrenMap[b.root_campaign_id] || aiChildrenMap[b.id] || []
+    const cpsKids = cpsChildrenMap[b.root_campaign_id] || cpsChildrenMap[b.id] || []
+    const indicators: { label: string }[] = []
+    if (aiKids.length > 0) indicators.push({ label: `AI EXPRESS · ${aiKids.length}` })
+    if (cpsKids.length > 0) indicators.push({ label: `CPS · ${cpsKids.length} YÖN` })
+    if (b.static_image_files || b.static_images_url) indicators.push({ label: 'GÖRSEL' })
+    return indicators
+  }
+
+  // Assign each brief to exactly ONE category (most critical wins)
+  function getBriefCategory(b: any): 'question' | 'approval' | 'ai_ready' | 'producing' | 'draft' | 'done' {
+    if (b.status === 'draft') return 'draft'
+
+    const briefQs = unansweredQuestions.filter(q => q.brief_id === b.id)
+    if (briefQs.length > 0) return 'question'
+
+    // Check CPS children pending approval
+    const cpsKids = cpsChildrenMap[b.root_campaign_id] || cpsChildrenMap[b.id] || []
+    const cpsPending = cpsKids.filter((k: any) => k.status === 'approved')
+    if (b.status === 'approved' || cpsPending.length > 0) return 'approval'
+
+    // AI Express unviewed
+    const aiKids = aiChildrenMap[b.root_campaign_id] || aiChildrenMap[b.id] || []
+    const aiUnviewed = aiKids.filter((k: any) => k.ai_video_url && !k.ai_express_viewed_at)
+    if (aiUnviewed.length > 0) return 'ai_ready'
+
+    // "Done" = ana video delivered + all CPS delivered
+    if (b.status === 'delivered') {
+      const allCpsDone = cpsKids.length === 0 || cpsKids.every((k: any) => k.status === 'delivered')
+      if (allCpsDone) return 'done'
+      return 'approval' // CPS not done yet
+    }
+
+    if (['submitted', 'read', 'in_production', 'revision', 'ai_processing', 'ai_completed'].includes(b.status)) return 'producing'
+    return 'done'
+  }
+
   const drafts = briefs.filter(b => b.status === 'draft')
-  const pendingApproval = briefs.filter(b => b.status === 'approved')
-  const producing = briefs.filter(b => ['submitted','read','in_production','revision'].includes(b.status))
-  const done = briefs.filter(b => b.status === 'delivered')
+  const nonDrafts = briefs.filter(b => b.status !== 'draft')
+  const catQuestion = nonDrafts.filter(b => getBriefCategory(b) === 'question')
+  const catApproval = nonDrafts.filter(b => getBriefCategory(b) === 'approval')
+  const catAiReady = nonDrafts.filter(b => getBriefCategory(b) === 'ai_ready')
+  const catProducing = nonDrafts.filter(b => getBriefCategory(b) === 'producing')
+  const catDone = nonDrafts.filter(b => getBriefCategory(b) === 'done')
 
-  // AI Express ready (unviewed)
-  const aiExpressReady: { parent: any; children: any[] }[] = []
-  briefs.forEach(b => {
-    const kids = (aiChildrenMap[b.root_campaign_id] || aiChildrenMap[b.id] || []).filter((k: any) => k.ai_video_url && !k.ai_express_viewed_at)
-    if (kids.length > 0) aiExpressReady.push({ parent: b, children: kids })
-  })
-  const aiExpressCount = aiExpressReady.reduce((s, r) => s + r.children.length, 0)
-
-  // CPS pending approval (children with status approved but not delivered)
+  // CPS pending for approval cards
   const cpsPendingApproval: any[] = []
   Object.values(cpsChildrenMap).forEach((kids: any[]) => {
     kids.forEach(k => { if (k.status === 'approved') cpsPendingApproval.push(k) })
   })
+
+  // AI Express unviewed for cards
+  const aiExpressReady: { parent: any; children: any[] }[] = []
+  catAiReady.forEach(b => {
+    const kids = (aiChildrenMap[b.root_campaign_id] || aiChildrenMap[b.id] || []).filter((k: any) => k.ai_video_url && !k.ai_express_viewed_at)
+    if (kids.length > 0) aiExpressReady.push({ parent: b, children: kids })
+  })
+  const aiExpressCount = aiExpressReady.reduce((s, r) => s + r.children.length, 0)
 
   async function handleDeleteDraft(briefId: string) {
     if (!confirm('Bu taslağı silmek istediğinizden emin misiniz?')) return
@@ -376,57 +420,70 @@ export default function ClientDashboard() {
           ) : (
             <div style={{padding:'20px 28px',display:'flex',flexDirection:'column',gap:'24px'}}>
 
+              {/* Indicator badges component */}
+              {(() => {
+                function Indicators({ b }: { b: any }) {
+                  const inds = getBriefIndicators(b)
+                  if (inds.length === 0) return null
+                  return <div style={{display:'flex',gap:'6px',marginTop:'4px'}}>{inds.map((ind,i) => <span key={i} style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'2px 7px',border:'1px solid #e5e4db',background:'#fafaf7',color:'#0a0a0a',whiteSpace:'nowrap'}}>{ind.label}</span>)}</div>
+                }
+                return null
+              })()}
+
               {/* 1) SORUMUZ VAR */}
-              {unansweredQuestions.length > 0 && (
+              {catQuestion.length > 0 && (
                 <div>
-                  <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'#ef4444',marginBottom:'10px'}}>SORUMUZ VAR · {unansweredQuestions.length}</div>
+                  <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'#ef4444',marginBottom:'10px'}}>SORUMUZ VAR · {catQuestion.length}</div>
                   <div style={{fontSize:'11px',color:'var(--color-text-tertiary)',marginBottom:'10px'}}>Cevap vermeniz gereken sorular var</div>
-                  {unansweredQuestions.map(q => (
-                    <div key={q.id} onClick={() => router.push(`/dashboard/client/briefs/${q.brief_id}`)}
-                      style={{padding:'12px 16px',background:'#fff',borderLeft:'3px solid #ef4444',border:'1px solid #e5e4db',marginBottom:'6px',cursor:'pointer',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                      <div>
-                        <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{(q.briefs as any)?.campaign_name || '—'}</div>
-                        <div style={{fontSize:'11px',color:'#888',marginTop:'2px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:'400px'}}>{q.question}</div>
+                  {catQuestion.map(b => {
+                    const briefQs = unansweredQuestions.filter(q => q.brief_id === b.id)
+                    return briefQs.map(q => (
+                      <div key={q.id} onClick={() => router.push(`/dashboard/client/briefs/${q.brief_id}`)}
+                        style={{padding:'12px 16px',background:'#fff',borderLeft:'3px solid #ef4444',border:'1px solid #e5e4db',marginBottom:'6px',cursor:'pointer',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                        <div>
+                          <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name}</div>
+                          <div style={{fontSize:'11px',color:'#888',marginTop:'2px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:'400px'}}>{q.question}</div>
+                        </div>
+                        <span style={{fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:'#ef4444',fontWeight:'500',flexShrink:0}}>CEVAPLA →</span>
                       </div>
-                      <span style={{fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:'#ef4444',fontWeight:'500',flexShrink:0}}>CEVAPLA →</span>
-                    </div>
-                  ))}
+                    ))
+                  })}
                 </div>
               )}
 
               {/* 2) ONAY BEKLEYEN */}
-              {(pendingApproval.length > 0 || cpsPendingApproval.length > 0) && (
+              {catApproval.length > 0 && (
                 <div>
-                  <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'#f5a623',marginBottom:'10px'}}>ONAY BEKLEYEN · {pendingApproval.length + cpsPendingApproval.length}</div>
+                  <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'#f5a623',marginBottom:'10px'}}>ONAY BEKLEYEN · {catApproval.length}</div>
                   <div className="approval-grid" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px'}}>
-                    {pendingApproval.map(b => (
-                      <div key={b.id} onClick={() => router.push(`/dashboard/client/briefs/${b.id}`)}
-                        style={{padding:'12px 14px',background:'#fff',borderLeft:'3px solid #f5a623',border:'1px solid #e5e4db',cursor:'pointer',display:'flex',alignItems:'center',gap:'10px'}}>
-                        {videoMap[b.id] && <div style={{width:'32px',height:'56px',overflow:'hidden',background:'#0a0a0a',flexShrink:0}}><video src={videoMap[b.id]+'#t=0.1'} muted playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'cover'}} /></div>}
-                        <div>
-                          <div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name}</div>
-                          <div style={{fontSize:'10px',color:'#888',marginTop:'2px'}}>Ana Video</div>
+                    {catApproval.map(b => {
+                      const cpsKids = cpsChildrenMap[b.root_campaign_id] || cpsChildrenMap[b.id] || []
+                      const cpsPending = cpsKids.filter((k: any) => k.status === 'approved')
+                      return (
+                        <div key={b.id}>
+                          {b.status === 'approved' && (
+                            <div onClick={() => router.push(`/dashboard/client/briefs/${b.id}`)}
+                              style={{padding:'12px 14px',background:'#fff',borderLeft:'3px solid #f5a623',border:'1px solid #e5e4db',cursor:'pointer',display:'flex',alignItems:'center',gap:'10px',marginBottom:'6px'}}>
+                              {videoMap[b.id] && <div style={{width:'32px',height:'56px',overflow:'hidden',background:'#0a0a0a',flexShrink:0}}><video src={videoMap[b.id]+'#t=0.1'} muted playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'cover'}} /></div>}
+                              <div><div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name}</div><div style={{fontSize:'10px',color:'#888',marginTop:'2px'}}>Ana Video</div></div>
+                            </div>
+                          )}
+                          {cpsPending.map((k: any) => (
+                            <div key={k.id} onClick={() => router.push(`/dashboard/client/briefs/${b.id}?tab=cps`)}
+                              style={{padding:'12px 14px',background:'#fff',borderLeft:'3px solid #f5a623',border:'1px solid #e5e4db',cursor:'pointer',display:'flex',alignItems:'center',gap:'10px',marginBottom:'6px'}}>
+                              <div style={{width:'32px',height:'32px',background:'rgba(245,166,35,0.1)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><span style={{fontSize:'12px',fontWeight:'600',color:'#f5a623'}}>{k.mvc_order || '?'}</span></div>
+                              <div><div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name}</div><div style={{fontSize:'10px',color:'#888',marginTop:'2px'}}>CPS {k.cps_hook ? `· ${k.cps_hook}` : `Yön ${k.mvc_order || ''}`}</div></div>
+                            </div>
+                          ))}
                         </div>
-                      </div>
-                    ))}
-                    {cpsPendingApproval.map(k => (
-                      <div key={k.id} onClick={() => router.push(`/dashboard/client/briefs/${k.parent_brief_id}?tab=cps`)}
-                        style={{padding:'12px 14px',background:'#fff',borderLeft:'3px solid #f5a623',border:'1px solid #e5e4db',cursor:'pointer',display:'flex',alignItems:'center',gap:'10px'}}>
-                        <div style={{width:'32px',height:'32px',background:'rgba(245,166,35,0.1)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                          <span style={{fontSize:'12px',fontWeight:'600',color:'#f5a623'}}>{k.mvc_order || '?'}</span>
-                        </div>
-                        <div>
-                          <div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>{k.campaign_name}</div>
-                          <div style={{fontSize:'10px',color:'#888',marginTop:'2px'}}>CPS {k.cps_hook ? `· ${k.cps_hook}` : `Yön ${k.mvc_order || ''}`}{k.cps_ton ? ` · ${k.cps_ton}` : ''}</div>
-                        </div>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 </div>
               )}
 
               {/* 3) AI EXPRESS HAZIR */}
-              {aiExpressCount > 0 && (
+              {catAiReady.length > 0 && (
                 <div>
                   <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'#4ade80',marginBottom:'10px'}}>AI EXPRESS HAZIR · {aiExpressCount}</div>
                   <div className="ai-grid" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'10px'}}>
@@ -443,20 +500,24 @@ export default function ClientDashboard() {
               )}
 
               {/* 4) ÜRETİLİYOR */}
-              {producing.length > 0 && (
+              {catProducing.length > 0 && (
                 <div>
-                  <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'var(--color-text-secondary)',marginBottom:'10px'}}>ÜRETİLİYOR · {producing.length}</div>
+                  <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'var(--color-text-secondary)',marginBottom:'10px'}}>ÜRETİLİYOR · {catProducing.length}</div>
                   <div style={{fontSize:'11px',color:'var(--color-text-tertiary)',marginBottom:'10px'}}>Ekibimiz çalışıyor, kısa süre içinde teslim edilecek</div>
-                  {producing.map(b => (
-                    <div key={b.id} onClick={() => router.push(`/dashboard/client/briefs/${b.id}`)}
-                      style={{padding:'12px 16px',background:'#fff',border:'1px solid #e5e4db',marginBottom:'6px',cursor:'pointer',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                      <div>
-                        <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name}</div>
-                        <div style={{fontSize:'10px',color:'#888',marginTop:'2px'}}>{b.video_type} · {statusLabel[b.status]}</div>
+                  {catProducing.map(b => {
+                    const inds = getBriefIndicators(b)
+                    return (
+                      <div key={b.id} onClick={() => router.push(`/dashboard/client/briefs/${b.id}`)}
+                        style={{padding:'12px 16px',background:'#fff',border:'1px solid #e5e4db',marginBottom:'6px',cursor:'pointer',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                        <div>
+                          <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name}</div>
+                          <div style={{fontSize:'10px',color:'#888',marginTop:'2px'}}>{b.video_type} · {statusLabel[b.status]}</div>
+                          {inds.length > 0 && <div style={{display:'flex',gap:'6px',marginTop:'4px'}}>{inds.map((ind,i) => <span key={i} style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'2px 7px',border:'1px solid #e5e4db',background:'#fafaf7',color:'#0a0a0a',whiteSpace:'nowrap'}}>{ind.label}</span>)}</div>}
+                        </div>
+                        <span style={{fontSize:'10px',padding:'3px 8px',background:`${statusColor[b.status]}12`,color:statusColor[b.status],fontWeight:'500'}}>{statusLabel[b.status]}</span>
                       </div>
-                      <span style={{fontSize:'10px',padding:'3px 8px',background:`${statusColor[b.status]}12`,color:statusColor[b.status],fontWeight:'500'}}>{statusLabel[b.status]}</span>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
 
@@ -480,29 +541,59 @@ export default function ClientDashboard() {
               )}
 
               {/* 6) TAMAMLANAN KAMPANYALAR */}
-              {done.length > 0 && (
+              {catDone.length > 0 && (
                 <div>
-                  <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'var(--color-text-secondary)',marginBottom:'10px'}}>TAMAMLANAN KAMPANYALAR · {done.length}</div>
+                  <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'var(--color-text-secondary)',marginBottom:'10px'}}>TAMAMLANAN KAMPANYALAR · {catDone.length}</div>
                   <div className="done-grid" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'10px'}}>
-                    {done.map(b => (
-                      <div key={b.id} onClick={() => router.push(`/dashboard/client/briefs/${b.id}`)}
-                        style={{background:'#fff',border:'1px solid #e5e4db',cursor:'pointer',overflow:'hidden'}}>
-                        {videoMap[b.id] ? (
-                          <div style={{aspectRatio:'9/16',overflow:'hidden',background:'#0a0a0a'}}>
-                            <video src={videoMap[b.id]+'#t=0.5'} muted playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'cover'}} />
+                    {catDone.map(b => {
+                      const inds = getBriefIndicators(b)
+                      return (
+                        <div key={b.id} onClick={() => router.push(`/dashboard/client/briefs/${b.id}`)}
+                          style={{background:'#fff',border:'1px solid #e5e4db',cursor:'pointer',overflow:'hidden'}}>
+                          {videoMap[b.id] ? (
+                            <div style={{aspectRatio:'9/16',overflow:'hidden',background:'#0a0a0a'}}><video src={videoMap[b.id]+'#t=0.5'} muted playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'cover'}} /></div>
+                          ) : (
+                            <div style={{aspectRatio:'9/16',background:'var(--color-background-secondary)',display:'flex',alignItems:'center',justifyContent:'center'}}><span style={{fontSize:'10px',color:'var(--color-text-tertiary)'}}>Video</span></div>
+                          )}
+                          <div style={{padding:'8px 10px'}}>
+                            <div style={{fontSize:'11px',fontWeight:'500',color:'#0a0a0a',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.campaign_name}</div>
+                            <div style={{fontSize:'9px',color:'#888',marginTop:'2px'}}>{new Date(b.updated_at || b.created_at).toLocaleDateString('tr-TR')}</div>
+                            {inds.length > 0 && <div style={{display:'flex',gap:'4px',marginTop:'4px',flexWrap:'wrap'}}>{inds.map((ind,i) => <span key={i} style={{fontSize:'8px',letterSpacing:'1px',textTransform:'uppercase',padding:'1px 5px',border:'1px solid #e5e4db',color:'#888',whiteSpace:'nowrap'}}>{ind.label}</span>)}</div>}
                           </div>
-                        ) : (
-                          <div style={{aspectRatio:'9/16',background:'var(--color-background-secondary)',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                            <span style={{fontSize:'10px',color:'var(--color-text-tertiary)'}}>Video</span>
-                          </div>
-                        )}
-                        <div style={{padding:'8px 10px'}}>
-                          <div style={{fontSize:'11px',fontWeight:'500',color:'#0a0a0a',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.campaign_name}</div>
-                          <div style={{fontSize:'9px',color:'#888',marginTop:'2px'}}>{new Date(b.updated_at || b.created_at).toLocaleDateString('tr-TR')}</div>
                         </div>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
+                </div>
+              )}
+
+              {/* TÜM PROJELERİ GÖR */}
+              {nonDrafts.length > 3 && (
+                <div style={{textAlign:'center',paddingTop:'8px'}}>
+                  <button onClick={() => setShowAllProjects(!showAllProjects)} style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',color:'#0a0a0a',fontWeight:'500',background:'none',border:'none',cursor:'pointer',textDecoration:'underline'}}>
+                    {showAllProjects ? 'KATEGORILERE DÖN' : `TÜM PROJELERİ GÖR (${nonDrafts.length}) →`}
+                  </button>
+                </div>
+              )}
+
+              {/* ALL PROJECTS LIST */}
+              {showAllProjects && (
+                <div style={{background:'#fff',border:'1px solid #e5e4db',overflow:'hidden'}}>
+                  {nonDrafts.map((b, i) => {
+                    const inds = getBriefIndicators(b)
+                    return (
+                      <div key={b.id} onClick={() => router.push(`/dashboard/client/briefs/${b.id}`)}
+                        style={{padding:'12px 16px',cursor:'pointer',display:'flex',alignItems:'center',gap:'12px',borderTop:i>0?'1px solid #e5e4db':'none'}}>
+                        {videoMap[b.id] && <div style={{width:'32px',height:'56px',overflow:'hidden',background:'#0a0a0a',flexShrink:0}}><video src={videoMap[b.id]+'#t=0.1'} muted playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'cover'}} /></div>}
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.campaign_name}</div>
+                          <div style={{fontSize:'10px',color:'#888',marginTop:'2px'}}>{b.video_type} · {new Date(b.updated_at || b.created_at).toLocaleDateString('tr-TR')}</div>
+                          {inds.length > 0 && <div style={{display:'flex',gap:'4px',marginTop:'3px'}}>{inds.map((ind,ii) => <span key={ii} style={{fontSize:'8px',letterSpacing:'1px',textTransform:'uppercase',padding:'1px 5px',border:'1px solid #e5e4db',color:'#888'}}>{ind.label}</span>)}</div>}
+                        </div>
+                        <span style={{fontSize:'10px',padding:'3px 8px',background:`${statusColor[b.status]}12`,color:statusColor[b.status],fontWeight:'500',whiteSpace:'nowrap'}}>{statusLabel[b.status]}</span>
+                      </div>
+                    )
+                  })}
                 </div>
               )}
 
