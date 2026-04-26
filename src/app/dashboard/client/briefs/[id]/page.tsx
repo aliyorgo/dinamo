@@ -80,6 +80,9 @@ function ClientBriefDetail() {
   const [userName, setUserName] = useState('')
   const [revisionNote, setRevisionNote] = useState('')
   const [revisionCount, setRevisionCount] = useState(0)
+  // CPS approval/revision
+  const [cpsRevNotes, setCpsRevNotes] = useState<Record<string,string>>({})
+  const [cpsRevOpen, setCpsRevOpen] = useState<Record<string,boolean>>({})
   const [loading, setLoading] = useState(false)
   const [msg, setMsg] = useState('')
   const [activeVideoId, setActiveVideoId] = useState<string|null>(null)
@@ -169,7 +172,7 @@ function ClientBriefDetail() {
     setAiChildren(aiKids || [])
     // CPS children
     const { data: cpsKids } = await supabase.from('briefs')
-      .select('*, video_submissions(id, video_url, status)')
+      .select('*, video_submissions(id, video_url, status, version, submitted_at)')
       .eq('parent_brief_id', id)
       .eq('brief_type', 'cps_child')
       .order('mvc_order', { ascending: true })
@@ -456,6 +459,42 @@ function ClientBriefDetail() {
     setTimeout(() => setApproveSuccess(false), 3000)
     loadData()
     setLoading(false)
+  }
+
+  async function handleCpsApprove(child: any) {
+    if (!clientUser) return; setLoading(true)
+    const cost = child.credit_cost || 0
+    if (cost > 0) {
+      const newBalance = Math.max(0, clientUser.allocated_credits - cost)
+      await supabase.from('client_users').update({ credit_balance: newBalance }).eq('id', clientUser.id)
+      await supabase.from('credit_transactions').insert({ client_id: brief.client_id, client_user_id: clientUser.id, brief_id: child.id, amount: -cost, type: 'deduct', description: `${child.campaign_name} — müşteri onayı` })
+      setClientUser({ ...clientUser, allocated_credits: newBalance })
+    }
+    const { data: pb } = await supabase.from('producer_briefs').select('assigned_creator_id').eq('brief_id', child.id).maybeSingle()
+    if (pb?.assigned_creator_id) {
+      const { data: rate } = await supabase.from('admin_settings').select('value').eq('key', 'creator_credit_rate').maybeSingle()
+      const tlRate = parseFloat((rate as any)?.value || '500')
+      await supabase.from('creator_earnings').insert({ brief_id: child.id, creator_id: pb.assigned_creator_id, credits: cost, tl_rate: tlRate, tl_amount: cost * tlRate, paid: false })
+    }
+    await supabase.from('briefs').update({ status: 'delivered' }).eq('id', child.id)
+    logClientActivity({ actionType: 'video.approved', userName, clientName: companyName, clientId: brief.client_id, targetType: 'brief', targetId: child.id, targetLabel: child.campaign_name })
+    setMsg(`${child.cps_hook || 'CPS yön'} onaylandı.`)
+    loadData(); setLoading(false)
+  }
+
+  async function handleCpsRevision(child: any) {
+    const note = cpsRevNotes[child.id]
+    if (!note?.trim()) { setMsg('Revizyon notunuzu yazın.'); return }
+    setLoading(true)
+    const latestSub = child.video_submissions?.[0]
+    if (latestSub) await supabase.from('video_submissions').update({ status: 'revision_requested' }).eq('id', latestSub.id)
+    await supabase.from('briefs').update({ status: 'revision' }).eq('id', child.id)
+    await supabase.from('brief_questions').insert({ brief_id: child.id, question: `REVİZYON: ${note}` })
+    logClientActivity({ actionType: 'video.revision_requested', userName, clientName: companyName, clientId: brief.client_id, targetType: 'brief', targetId: child.id, targetLabel: child.campaign_name })
+    setCpsRevNotes(prev => ({ ...prev, [child.id]: '' }))
+    setCpsRevOpen(prev => ({ ...prev, [child.id]: false }))
+    setMsg(`${child.cps_hook || 'CPS yön'} revizyon istendi.`)
+    loadData(); setLoading(false)
   }
 
   async function handleDelete() {
@@ -1501,9 +1540,35 @@ function ClientBriefDetail() {
                             </div>
                             <div style={{fontSize:'10px',color:'#aaa',marginBottom:'8px'}}>{new Date(child.created_at).toLocaleDateString('tr-TR',{day:'numeric',month:'short'})}</div>
                             {childVideo?.video_url && (
-                              <div style={{display:'flex',gap:'6px'}}>
-                                <a href={childVideo.video_url} download target="_blank" style={{fontSize:'11px',color:'#0a0a0a',textDecoration:'none',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'4px',padding:'5px 12px',}}>İndir</a>
-                                <button onClick={()=>generateCertificatePDF(brief, companyName)} style={{fontSize:'11px',color:'#555',background:'none',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'4px',padding:'5px 12px',cursor:'pointer',}}>Telif Belgesi</button>
+                              <div>
+                                {/* Approve/Revision for pending CPS */}
+                                {(child.status === 'approved' || (childVideo.status === 'admin_approved' || childVideo.status === 'producer_approved')) && child.status !== 'delivered' && (
+                                  <div style={{display:'flex',gap:'6px',marginBottom:'8px'}}>
+                                    <button onClick={()=>handleCpsApprove(child)} disabled={loading} className="btn btn-accent" style={{padding:'6px 14px',fontSize:'11px'}}>
+                                      {loading ? '...' : 'ONAYLA'}
+                                    </button>
+                                    <button onClick={()=>setCpsRevOpen(prev=>({...prev,[child.id]:!prev[child.id]}))} className="btn btn-outline" style={{padding:'6px 14px',fontSize:'11px'}}>
+                                      REVİZYON İSTE
+                                    </button>
+                                  </div>
+                                )}
+                                {cpsRevOpen[child.id] && (
+                                  <div style={{marginBottom:'8px'}}>
+                                    <textarea value={cpsRevNotes[child.id]||''} onChange={e=>setCpsRevNotes(prev=>({...prev,[child.id]:e.target.value}))}
+                                      placeholder="Revizyon notunuzu yazın..." rows={2}
+                                      style={{width:'100%',padding:'8px 10px',border:'1px solid var(--color-border-tertiary)',fontSize:'12px',color:'#0a0a0a',resize:'vertical',boxSizing:'border-box',marginBottom:'6px'}} />
+                                    <button onClick={()=>handleCpsRevision(child)} disabled={loading} className="btn" style={{padding:'5px 12px',fontSize:'11px'}}>
+                                      {loading ? '...' : 'GÖNDER'}
+                                    </button>
+                                  </div>
+                                )}
+                                {/* Download only if delivered */}
+                                {child.status === 'delivered' && (
+                                  <div style={{display:'flex',gap:'6px'}}>
+                                    <a href={childVideo.video_url} download target="_blank" style={{fontSize:'11px',color:'#0a0a0a',textDecoration:'none',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'4px',padding:'5px 12px'}}>İndir</a>
+                                    <button onClick={()=>generateCertificatePDF(brief, companyName)} style={{fontSize:'11px',color:'#555',background:'none',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'4px',padding:'5px 12px',cursor:'pointer'}}>Telif Belgesi</button>
+                                  </div>
+                                )}
                               </div>
                             )}
                           </div>
