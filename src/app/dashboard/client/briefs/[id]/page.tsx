@@ -127,13 +127,9 @@ function ClientBriefDetail() {
 
   useEffect(() => { loadData() }, [id])
 
-  // Mark individual AI Express child as viewed when user selects it
+  // Mark individual AI Express child as viewed (graceful — column may not exist yet)
   function markAiChildViewed(childId: string) {
-    const child = aiChildren.find(c => c.id === childId)
-    if (child && !child.ai_express_viewed_at) {
-      supabase.from('briefs').update({ ai_express_viewed_at: new Date().toISOString() }).eq('id', childId)
-      setAiChildren(prev => prev.map(c => c.id === childId ? { ...c, ai_express_viewed_at: new Date().toISOString() } : c))
-    }
+    try { supabase.from('briefs').update({ ai_express_viewed_at: new Date().toISOString() }).eq('id', childId) } catch {}
   }
 
   // Refetch on summary tab activation + window focus

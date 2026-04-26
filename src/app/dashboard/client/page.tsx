@@ -68,7 +68,7 @@ export default function ClientDashboard() {
         if (allLookupIds.length > 0) {
           // Query by both root_campaign_id and parent_brief_id as fallback
           const { data: aiKids, error: aiErr } = await supabase.from('briefs')
-            .select('id, root_campaign_id, parent_brief_id, status, ai_video_status, ai_video_url, created_at, campaign_name, ai_express_viewed_at')
+            .select('id, root_campaign_id, parent_brief_id, status, ai_video_status, ai_video_url, created_at, campaign_name')
             .eq('client_id', clientId)
             .ilike('campaign_name', '%Full AI%')
           console.log('[AI-IND] error:', aiErr?.message, '| aiKids count:', aiKids?.length, '| sample:', aiKids?.slice(0,3).map((k:any) => ({ name: k.campaign_name?.slice(0,30), root: k.root_campaign_id?.slice(0,8), parent: k.parent_brief_id?.slice(0,8), url: !!k.ai_video_url, status: k.ai_video_status })))
@@ -200,10 +200,10 @@ export default function ClientDashboard() {
     const cpsPending = cpsKids.filter((k: any) => k.status === 'approved')
     if (b.status === 'approved' || cpsPending.length > 0) return 'approval'
 
-    // AI Express unviewed
+    // AI Express with ready videos (not yet delivered/purchased)
     const aiKids = aiChildrenMap[b.root_campaign_id] || aiChildrenMap[b.id] || []
-    const aiUnviewed = aiKids.filter((k: any) => k.ai_video_url && !k.ai_express_viewed_at)
-    if (aiUnviewed.length > 0) return 'ai_ready'
+    const aiReady = aiKids.filter((k: any) => k.ai_video_url && k.status !== 'delivered')
+    if (aiReady.length > 0 && !['submitted','read','in_production','revision'].includes(b.status)) return 'ai_ready'
 
     // "Done" = ana video delivered + all CPS delivered
     if (b.status === 'delivered') {
@@ -233,7 +233,7 @@ export default function ClientDashboard() {
   // AI Express unviewed for cards
   const aiExpressReady: { parent: any; children: any[] }[] = []
   catAiReady.forEach(b => {
-    const kids = (aiChildrenMap[b.root_campaign_id] || aiChildrenMap[b.id] || []).filter((k: any) => k.ai_video_url && !k.ai_express_viewed_at)
+    const kids = (aiChildrenMap[b.root_campaign_id] || aiChildrenMap[b.id] || []).filter((k: any) => k.ai_video_url && k.status !== 'delivered')
     if (kids.length > 0) aiExpressReady.push({ parent: b, children: kids })
   })
   const aiExpressCount = aiExpressReady.reduce((s, r) => s + r.children.length, 0)
