@@ -490,14 +490,18 @@ export default function ClientDashboard() {
                 <div>
                   <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'#4ade80',marginBottom:'10px'}}>AI EXPRESS HAZIR · {aiExpressCount}</div>
                   <div className="ai-grid" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'10px'}}>
-                    {aiExpressReady.map(({ parent, children }) => children.map((kid: any, i: number) => (
-                      <div key={kid.id} onClick={() => router.push(`/dashboard/client/briefs/${parent.id}?tab=express`)}
-                        style={{padding:'12px 14px',background:'#fff',borderLeft:'3px solid #4ade80',border:'1px solid #e5e4db',cursor:'pointer',position:'relative'}}>
-                        <div style={{position:'absolute',top:'8px',right:'8px',width:'8px',height:'8px',borderRadius:'50%',background:'#4ade80'}} />
-                        <div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>{parent.campaign_name}</div>
-                        <div style={{fontSize:'10px',color:'#888',marginTop:'2px'}}>{kid.campaign_name?.split('—')[1]?.trim() || `V${i + 1}`}</div>
-                      </div>
-                    )))}
+                    {aiExpressReady.map(({ parent, children }) => children.map((kid: any, i: number) => {
+                      const versionPart = kid.campaign_name?.split('—')[1]?.trim() || ''
+                      const versionNum = versionPart.match(/#(\d+)/)?.[1] || String(i + 1)
+                      return (
+                        <div key={kid.id} onClick={() => router.push(`/dashboard/client/briefs/${parent.id}?tab=express&ai_child=${kid.id}`)}
+                          style={{padding:'12px 14px',background:'#fff',borderLeft:'3px solid #4ade80',border:'1px solid #e5e4db',cursor:'pointer',position:'relative'}}>
+                          <div style={{position:'absolute',top:'8px',right:'8px',width:'8px',height:'8px',borderRadius:'50%',background:'#4ade80'}} />
+                          <div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>{parent.campaign_name}</div>
+                          <div style={{fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'#888',marginTop:'3px'}}>VERSİYON {versionNum}{versionPart && !versionPart.startsWith('Full AI') ? ` · ${versionPart.replace(/Full AI #\d+/,'').trim()}` : ''}</div>
+                        </div>
+                      )
+                    }))}
                   </div>
                 </div>
               )}

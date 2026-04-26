@@ -113,6 +113,7 @@ function ClientBriefDetail() {
   const [aiWarningDismissed, setAiWarningDismissed] = useState(false)
   const [cpsBannerDismissed, setCpsBannerDismissed] = useState(false)
   const [activeTab, setActiveTab] = useState<'hybrid'|'cps'|'express'|'summary'>(searchParams.get('tab') === 'express' ? 'express' : searchParams.get('tab') === 'cps' ? 'cps' : searchParams.get('tab') === 'summary' ? 'summary' : 'hybrid')
+  const aiChildParam = searchParams.get('ai_child')
   const [briefExpanded, setBriefExpanded] = useState(false)
   const [autoGenerateTriggered, setAutoGenerateTriggered] = useState(false)
   const [cpsChildren, setCpsChildren] = useState<any[]>([])
@@ -135,6 +136,19 @@ function ClientBriefDetail() {
     if (error) { console.error('[AI-viewed] update error:', error.message); return }
     setAiChildren(prev => prev.map(c => c.id === childId ? { ...c, ai_express_viewed_at: new Date().toISOString() } : c))
   }
+
+  // Auto-scroll + autoplay for ai_child param
+  useEffect(() => {
+    if (!aiChildParam || activeTab !== 'express' || aiChildren.length === 0) return
+    const el = document.getElementById(`ai-child-${aiChildParam}`)
+    if (el) {
+      setTimeout(() => {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        const video = el.querySelector('video') as HTMLVideoElement
+        if (video) video.play().catch(() => {})
+      }, 300)
+    }
+  }, [aiChildParam, activeTab, aiChildren.length])
 
   // Refetch on summary tab activation + window focus
   useEffect(() => { if (activeTab === 'summary') loadData() }, [activeTab])
@@ -1208,7 +1222,7 @@ function ClientBriefDetail() {
                     const isFailed = !hasVideo && (child.ai_video_status === 'failed' || child.ai_video_status === 'timeout')
                     const isProcessing = child.status === 'ai_processing' && !hasVideo && !isFailed
                     return (
-                      <div key={child.id} style={{display:'flex',gap:'14px',padding:'14px',marginBottom:'8px',border:'1px solid var(--color-border-tertiary)',background:'#fff',alignItems:'flex-start',transition:'background 0.15s'}}
+                      <div key={child.id} id={`ai-child-${child.id}`} style={{display:'flex',gap:'14px',padding:'14px',marginBottom:'8px',border:'1px solid var(--color-border-tertiary)',background:'#fff',alignItems:'flex-start',transition:'background 0.15s'}}
                         onMouseEnter={e=>{e.currentTarget.style.background='var(--color-background-secondary)'}}
                         onMouseLeave={e=>{e.currentTarget.style.background='#fff'}}>
                         {/* Video player */}
