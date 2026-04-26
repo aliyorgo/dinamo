@@ -127,15 +127,14 @@ function ClientBriefDetail() {
 
   useEffect(() => { loadData() }, [id])
 
-  // Mark AI Express as viewed when express tab opens
-  useEffect(() => {
-    if (activeTab === 'express' && aiChildren.length > 0) {
-      const unviewed = aiChildren.filter(c => !c.ai_express_viewed_at)
-      if (unviewed.length > 0) {
-        unviewed.forEach(c => supabase.from('briefs').update({ ai_express_viewed_at: new Date().toISOString() }).eq('id', c.id))
-      }
+  // Mark individual AI Express child as viewed when user selects it
+  function markAiChildViewed(childId: string) {
+    const child = aiChildren.find(c => c.id === childId)
+    if (child && !child.ai_express_viewed_at) {
+      supabase.from('briefs').update({ ai_express_viewed_at: new Date().toISOString() }).eq('id', childId)
+      setAiChildren(prev => prev.map(c => c.id === childId ? { ...c, ai_express_viewed_at: new Date().toISOString() } : c))
     }
-  }, [activeTab, aiChildren.length])
+  }
 
   // Refetch on summary tab activation + window focus
   useEffect(() => { if (activeTab === 'summary') loadData() }, [activeTab])
@@ -1209,7 +1208,7 @@ function ClientBriefDetail() {
                     const isFailed = !hasVideo && (child.ai_video_status === 'failed' || child.ai_video_status === 'timeout')
                     const isProcessing = child.status === 'ai_processing' && !hasVideo && !isFailed
                     return (
-                      <div key={child.id} style={{display:'flex',gap:'14px',padding:'14px',marginBottom:'8px',border:'1px solid var(--color-border-tertiary)',background:'#fff',alignItems:'flex-start',transition:'background 0.15s'}}
+                      <div key={child.id} onClick={() => markAiChildViewed(child.id)} style={{display:'flex',gap:'14px',padding:'14px',marginBottom:'8px',border:'1px solid var(--color-border-tertiary)',background:'#fff',alignItems:'flex-start',transition:'background 0.15s'}}
                         onMouseEnter={e=>{e.currentTarget.style.background='var(--color-background-secondary)'}}
                         onMouseLeave={e=>{e.currentTarget.style.background='#fff'}}>
                         {/* Video player */}
