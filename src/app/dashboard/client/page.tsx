@@ -311,7 +311,14 @@ export default function ClientDashboard() {
       <div style={{flex:1,display:'flex',flexDirection:'column'}}>
         {/* TOP BAR with notifications */}
         <div style={{padding:'10px 28px',background:'#fff',borderBottom:'0.5px solid rgba(0,0,0,0.08)',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
-          {briefs.length > 0 && <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a'}}>Projelerim</div>}
+          <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
+            {briefs.length > 0 && <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a'}}>Projelerim</div>}
+            {nonDrafts.length > 3 && (
+              <button onClick={() => setShowAllProjects(!showAllProjects)} className="btn btn-outline" style={{padding:'4px 12px',fontSize:'10px',letterSpacing:'1.5px'}}>
+                {showAllProjects ? 'GİZLE ↑' : `TÜM PROJELERİ GÖR ↓`}
+              </button>
+            )}
+          </div>
           <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
           {/* Notification bell */}
           <div style={{position:'relative'}}>
@@ -567,30 +574,33 @@ export default function ClientDashboard() {
                 </div>
               )}
 
-              {/* TÜM PROJELERİ GÖR */}
-              {nonDrafts.length > 3 && (
-                <div style={{textAlign:'center',paddingTop:'8px'}}>
-                  <button onClick={() => setShowAllProjects(!showAllProjects)} style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',color:'#0a0a0a',fontWeight:'500',background:'none',border:'none',cursor:'pointer',textDecoration:'underline'}}>
-                    {showAllProjects ? 'KATEGORILERE DÖN' : `TÜM PROJELERİ GÖR (${nonDrafts.length}) →`}
-                  </button>
-                </div>
-              )}
-
-              {/* ALL PROJECTS LIST */}
+              {/* ALL PROJECTS LIST (accordion) */}
               {showAllProjects && (
-                <div style={{background:'#fff',border:'1px solid #e5e4db',overflow:'hidden'}}>
+                <div>
+                  <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'var(--color-text-secondary)',marginBottom:'10px'}}>TÜM PROJELER · {nonDrafts.length}</div>
                   {nonDrafts.map((b, i) => {
-                    const inds = getBriefIndicators(b)
+                    const aiKids = aiChildrenMap[b.root_campaign_id] || aiChildrenMap[b.id] || []
+                    const cpsKids = cpsChildrenMap[b.root_campaign_id] || cpsChildrenMap[b.id] || []
+                    const aiCount = aiKids.length
+                    const cpsCount = cpsKids.length
+                    const imgCount = (Array.isArray(b.static_image_files) ? b.static_image_files.length : b.static_image_files ? 1 : 0) * 5
+                    const cat = getBriefCategory(b)
+                    const catColors: Record<string,string> = { question:'#ef4444', approval:'#f5a623', ai_ready:'#4ade80', producing:'#888', done:'var(--color-text-tertiary)', draft:'#c5c5b8' }
+                    const catLabels: Record<string,string> = { question:'Sorumuz Var', approval:'Onay Bekliyor', ai_ready:'AI Express Hazır', producing:'Üretiliyor', done:'Tamamlandı', draft:'Taslak' }
                     return (
                       <div key={b.id} onClick={() => router.push(`/dashboard/client/briefs/${b.id}`)}
-                        style={{padding:'12px 16px',cursor:'pointer',display:'flex',alignItems:'center',gap:'12px',borderTop:i>0?'1px solid #e5e4db':'none'}}>
+                        style={{padding:'14px 18px',background:'#fff',border:'1px solid #e5e4db',marginBottom:'6px',cursor:'pointer',display:'flex',alignItems:'center',gap:'12px'}}>
                         {videoMap[b.id] && <div style={{width:'32px',height:'56px',overflow:'hidden',background:'#0a0a0a',flexShrink:0}}><video src={videoMap[b.id]+'#t=0.1'} muted playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'cover'}} /></div>}
                         <div style={{flex:1,minWidth:0}}>
                           <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.campaign_name}</div>
-                          <div style={{fontSize:'10px',color:'#888',marginTop:'2px'}}>{b.video_type} · {new Date(b.updated_at || b.created_at).toLocaleDateString('tr-TR')}</div>
-                          {inds.length > 0 && <div style={{display:'flex',gap:'4px',marginTop:'3px'}}>{inds.map((ind,ii) => <span key={ii} style={{fontSize:'8px',letterSpacing:'1px',textTransform:'uppercase',padding:'1px 5px',border:'1px solid #e5e4db',color:'#888'}}>{ind.label}</span>)}</div>}
+                          <div style={{display:'flex',gap:'6px',marginTop:'5px',flexWrap:'wrap'}}>
+                            <span style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'2px 7px',border:`1px solid ${catColors[cat]}`,color:catColors[cat],fontWeight:'500'}}>{catLabels[cat]}</span>
+                            <span style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'2px 7px',border:'1px solid #e5e4db',color:aiCount > 0 ? '#0a0a0a' : '#c5c5b8',background:aiCount > 0 ? '#fafaf7' : 'transparent'}}>AI EXPRESS · {aiCount}</span>
+                            <span style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'2px 7px',border:'1px solid #e5e4db',color:cpsCount > 0 ? '#0a0a0a' : '#c5c5b8',background:cpsCount > 0 ? '#fafaf7' : 'transparent'}}>CPS · {cpsCount} YÖN</span>
+                            <span style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'2px 7px',border:'1px solid #e5e4db',color:imgCount > 0 ? '#0a0a0a' : '#c5c5b8',background:imgCount > 0 ? '#fafaf7' : 'transparent'}}>GÖRSEL · {imgCount}</span>
+                          </div>
                         </div>
-                        <span style={{fontSize:'10px',padding:'3px 8px',background:`${statusColor[b.status]}12`,color:statusColor[b.status],fontWeight:'500',whiteSpace:'nowrap'}}>{statusLabel[b.status]}</span>
+                        <div style={{fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'#aaa',flexShrink:0}}>{new Date(b.updated_at || b.created_at).toLocaleDateString('tr-TR',{day:'numeric',month:'short'})}</div>
                       </div>
                     )
                   })}
