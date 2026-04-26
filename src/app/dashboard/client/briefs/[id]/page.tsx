@@ -127,9 +127,13 @@ function ClientBriefDetail() {
 
   useEffect(() => { loadData() }, [id])
 
-  // Mark individual AI Express child as viewed (graceful — column may not exist yet)
+  // Mark individual AI Express child as viewed
   function markAiChildViewed(childId: string) {
-    try { supabase.from('briefs').update({ ai_express_viewed_at: new Date().toISOString() }).eq('id', childId) } catch {}
+    const child = aiChildren.find(c => c.id === childId)
+    if (child && !child.ai_express_viewed_at) {
+      supabase.from('briefs').update({ ai_express_viewed_at: new Date().toISOString() }).eq('id', childId)
+      setAiChildren(prev => prev.map(c => c.id === childId ? { ...c, ai_express_viewed_at: new Date().toISOString() } : c))
+    }
   }
 
   // Refetch on summary tab activation + window focus
@@ -170,7 +174,7 @@ function ClientBriefDetail() {
     // AI clones for this campaign (root_campaign_id based)
     const rootId = b?.root_campaign_id || b?.id
     const { data: aiKids } = await supabase.from('briefs')
-      .select('id, campaign_name, status, ai_video_status, ai_video_url, ai_video_error, product_image_url, created_at, ai_feedbacks, static_images_url, static_image_files')
+      .select('id, campaign_name, status, ai_video_status, ai_video_url, ai_video_error, product_image_url, created_at, ai_feedbacks, static_images_url, static_image_files, ai_express_viewed_at')
       .eq('root_campaign_id', rootId)
       .like('campaign_name', '%Full AI%')
       .order('created_at', { ascending: true })
