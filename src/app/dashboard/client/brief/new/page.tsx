@@ -254,7 +254,7 @@ function NewBriefPage() {
       languages: form.languages.length > 0 ? form.languages : [],
       credit_cost: cost,
       product_image_url: productImageUrl || null,
-      reference_links: form.reference_links.length > 0 ? form.reference_links : [],
+      ...(form.reference_links.length > 0 ? { reference_links: form.reference_links } : {}),
     }
 
     let newBrief: any = null
