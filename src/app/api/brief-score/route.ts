@@ -40,7 +40,9 @@ Değerlendirme kriterleri:
 ASLA bahsetme: başarı metriği, KPI, platform analizi, bütçe, marka kimliği, rakip analizi, hedef URL, landing page. Bunlar bizim sistemde YOK.
 
 Skor: 0-100. Label: 80+="GÜÇLÜ", 60-79="YETERLİ", <60="GELİŞTİR".
-Skor 80 altındaysa 1 cümle (max 12 kelime) öneri ver. Öneri SADECE yukarıdaki alanları işaret etsin (örn: "Hedef kitle daha net olabilir" veya "CTA ekleyin").
+Skor 80 altındaysa 1 cümle (max 12 kelime) nazik öneri ver. Öneri SADECE yukarıdaki alanları işaret etsin.
+Emir kipinde yazma ('yapın', 'belirtin', 'açın' gibi direktif kullanma). Yerine 'yapabilirsiniz', 'olabilir', 'daha net olabilir', 'düşünebilirsiniz' gibi nazik rica tonu kullan.
+Örnekler: "Hedef kitle biraz daha net olabilir." / "CTA eklemeyi düşünebilirsiniz."
 80+ ise suggestion null.
 
 Sadece JSON döndür:
