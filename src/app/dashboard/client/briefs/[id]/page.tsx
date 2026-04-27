@@ -83,6 +83,7 @@ function ClientBriefDetail() {
   // CPS approval/revision
   const [cpsRevNotes, setCpsRevNotes] = useState<Record<string,string>>({})
   const [cpsRevOpen, setCpsRevOpen] = useState<Record<string,boolean>>({})
+  const [showIdeaEditModal, setShowIdeaEditModal] = useState(false)
   const [loading, setLoading] = useState(false)
   const [msg, setMsg] = useState('')
   const [activeVideoId, setActiveVideoId] = useState<string|null>(null)
@@ -749,7 +750,7 @@ function ClientBriefDetail() {
               {['submitted','read'].includes(brief.status) && (Date.now() - new Date(brief.created_at).getTime()) < 15*60*1000 && (
                 <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'14px 18px',marginBottom:'16px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                   <div style={{fontSize:'13px',color:'#555'}}>Brief'inizi henüz düzenleyebilirsiniz.</div>
-                  <button onClick={()=>router.push(`/dashboard/client/brief/new?edit=${id}`)} className="btn">Brief'i Düzenle</button>
+                  <button onClick={()=> brief.selected_ai_idea ? setShowIdeaEditModal(true) : router.push(`/dashboard/client/brief/new?edit=${id}`)} className="btn">Brief'i Düzenle</button>
                 </div>
               )}
 
@@ -1813,6 +1814,21 @@ function ClientBriefDetail() {
             logClientActivity({ actionType: 'static_images.generated', userName, clientName: companyName, clientId: brief?.client_id, targetType: 'brief', targetId: staticImageModal.briefId, targetLabel: brief?.campaign_name })
           }}
         />
+      )}
+      {/* IDEA EDIT MODAL */}
+      {showIdeaEditModal && brief?.selected_ai_idea && (
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <div style={{background:'#fff',border:'1px solid #0a0a0a',padding:'28px',maxWidth:'480px',width:'90%'}}>
+            <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'var(--color-text-tertiary)',marginBottom:'12px'}}>YARATICI YÖNÜNÜZ</div>
+            <div style={{fontSize:'14px',color:'#0a0a0a',marginBottom:'4px'}}>Şu anda seçtiğiniz yaratıcı yön: <strong>{brief.selected_ai_idea.title}</strong></div>
+            <div style={{fontSize:'13px',color:'#6b6b66',fontStyle:'italic',lineHeight:1.5,marginBottom:'16px'}}>{brief.selected_ai_idea.description}</div>
+            <div style={{fontSize:'12px',color:'var(--color-text-secondary)',lineHeight:1.5,marginBottom:'24px'}}>Brief'i düzenlerken bu fikri korumak ya da yeni bir fikir seçmek isteyebilirsiniz.</div>
+            <div style={{display:'flex',gap:'10px'}}>
+              <button onClick={async () => { await supabase.from('briefs').update({ selected_ai_idea: null }).eq('id', id); setBrief((prev: any) => ({ ...prev, selected_ai_idea: null })); setShowIdeaEditModal(false); router.push(`/dashboard/client/brief/new?edit=${id}`) }} className="btn btn-outline" style={{flex:1,padding:'10px'}}>YENİ FİKİR SEÇ</button>
+              <button onClick={() => { setShowIdeaEditModal(false); router.push(`/dashboard/client/brief/new?edit=${id}`) }} className="btn" style={{flex:1,padding:'10px'}}>FİKRİ KORU</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
