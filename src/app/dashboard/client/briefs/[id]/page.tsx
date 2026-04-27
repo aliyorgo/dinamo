@@ -748,7 +748,7 @@ function ClientBriefDetail() {
               {/* EDIT — within 15 min and still submitted */}
               {['submitted','read'].includes(brief.status) && (Date.now() - new Date(brief.created_at).getTime()) < 15*60*1000 && (
                 <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'14px 18px',marginBottom:'16px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                  <div style={{fontSize:'13px',color:'#555'}}>Brief'inizi henüz düzenleyebilirsiniz.</div>
+                  <div style={{fontSize:'13px',color:'#555'}}>Brief'inizi hala düzenleyebilirsiniz.</div>
                   <button onClick={()=>router.push(`/dashboard/client/brief/new?edit=${id}`)} className="btn">Brief'i Düzenle</button>
                 </div>
               )}
