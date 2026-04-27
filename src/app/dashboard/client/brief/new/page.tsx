@@ -32,6 +32,7 @@ function NewBriefPage() {
   const [aiBriefLoading, setAiBriefLoading] = useState(false)
   const [editBriefId, setEditBriefId] = useState<string|null>(null)
   const [savedBriefId, setSavedBriefId] = useState<string|null>(null)
+  const [savedIdea, setSavedIdea] = useState<{title:string,description:string}|null>(null)
   const [isDraftEdit, setIsDraftEdit] = useState(false)
   const [briefScore, setBriefScore] = useState<any>(null)
   const [scoreLoading, setScoreLoading] = useState(false)
@@ -280,7 +281,11 @@ function NewBriefPage() {
       if (newBrief?.id) await supabase.from('briefs').update({ root_campaign_id: newBrief.id }).eq('id', newBrief.id)
     }
     if (error) { setSubmitting(false); alert('Hata: ' + error.message); return }
-    if (newBrief?.id) setSavedBriefId(newBrief.id)
+    if (newBrief?.id) {
+      setSavedBriefId(newBrief.id)
+      const { data: savedBrief } = await supabase.from('briefs').select('selected_ai_idea').eq('id', newBrief.id).single()
+      if (savedBrief?.selected_ai_idea) setSavedIdea(savedBrief.selected_ai_idea)
+    }
 
     // Log + brand learning
     if (newBrief?.id) {
@@ -444,20 +449,35 @@ function NewBriefPage() {
             </div>
           </div>
 
-          {/* AI Ideas Banner */}
+          {/* AI Ideas Banner — existing idea or new */}
           {savedBriefId && !ideasOpen && (
-            <div style={{background:'#f5f4f0',border:'1px solid #0a0a0a',padding:'24px 28px',marginBottom:'24px',display:'flex',justifyContent:'space-between',alignItems:'center',gap:'20px',flexWrap:'wrap'}}>
-              <div>
-                <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'6px'}}>
-                  <div style={{fontSize:'16px',fontWeight:'500',color:'#0a0a0a'}}>Kreatife Yön Vermek İster misiniz?</div>
+            savedIdea ? (
+              <div style={{background:'#f5f4f0',border:'1px solid #0a0a0a',padding:'24px 28px',marginBottom:'24px'}}>
+                <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'12px'}}>
+                  <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'var(--color-text-tertiary)'}}>MEVCUT YARATICI YÖNÜNÜZ</div>
                   <span style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'2px 6px',background:'#fff',border:'1px solid #0a0a0a',color:'#0a0a0a'}}>BETA</span>
                 </div>
-                <div style={{fontSize:'13px',color:'#6b6b66',lineHeight:1.5}}>AI ile 3 farklı yaratıcı yön keşfedin, beğendiğinizi seçin.</div>
+                <div style={{fontSize:'15px',fontWeight:'500',color:'#0a0a0a',marginBottom:'4px'}}>{savedIdea.title}</div>
+                <div style={{fontSize:'13px',color:'#6b6b66',lineHeight:1.5,marginBottom:'16px'}}>{savedIdea.description}</div>
+                <div style={{display:'flex',gap:'10px'}}>
+                  <button onClick={() => setSavedIdea(null)} className="btn" style={{padding:'8px 20px'}}>BU FİKRİ KORU</button>
+                  <button onClick={() => { setSavedIdea(null); loadIdeas() }} disabled={ideasLoading} className="btn btn-outline" style={{padding:'8px 20px'}}>{ideasLoading ? 'YÜKLENİYOR...' : 'YENİ FİKİR ÜRET'}</button>
+                </div>
               </div>
-              <button onClick={loadIdeas} disabled={ideasLoading} className="btn" style={{padding:'10px 24px',whiteSpace:'nowrap',flexShrink:0}}>
-                {ideasLoading ? 'YÜKLENİYOR...' : 'AI FİKİRLERİ GÖR →'}
-              </button>
-            </div>
+            ) : (
+              <div style={{background:'#f5f4f0',border:'1px solid #0a0a0a',padding:'24px 28px',marginBottom:'24px',display:'flex',justifyContent:'space-between',alignItems:'center',gap:'20px',flexWrap:'wrap'}}>
+                <div>
+                  <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'6px'}}>
+                    <div style={{fontSize:'16px',fontWeight:'500',color:'#0a0a0a'}}>Kreatife Yön Vermek İster misiniz?</div>
+                    <span style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'2px 6px',background:'#fff',border:'1px solid #0a0a0a',color:'#0a0a0a'}}>BETA</span>
+                  </div>
+                  <div style={{fontSize:'13px',color:'#6b6b66',lineHeight:1.5}}>AI ile 3 farklı yaratıcı yön keşfedin, beğendiğinizi seçin.</div>
+                </div>
+                <button onClick={loadIdeas} disabled={ideasLoading} className="btn" style={{padding:'10px 24px',whiteSpace:'nowrap',flexShrink:0}}>
+                  {ideasLoading ? 'YÜKLENİYOR...' : 'AI FİKİRLERİ GÖR →'}
+                </button>
+              </div>
+            )
           )}
 
           {/* AI Ideas Panel */}
