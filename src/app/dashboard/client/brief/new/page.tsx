@@ -850,7 +850,7 @@ function NewBriefPage() {
                     <div className="label-caps">ÜRÜN GÖRSELİ</div>
                     <span style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'1px 5px',border:'1px solid #22c55e',color:'#22c55e'}}>BETA</span>
                   </div>
-                  <div style={{fontSize:'11px',color:'var(--color-text-tertiary)',lineHeight:'1.4',marginBottom:'10px'}}>Ürün fotoğrafını yükleyin, AI videoda baz alınır.</div>
+                  <div style={{fontSize:'11px',color:'var(--color-text-tertiary)',lineHeight:'1.4',marginBottom:'10px'}}>Ürün görseliniz AI videoda baz alınır.</div>
                   {productImageUrl ? (
                     <div style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px',border:'1px solid var(--color-border-tertiary)'}}>
                       <img src={productImageUrl} alt="Ürün" style={{width:'40px',height:'40px',objectFit:'cover',border:'1px solid var(--color-border-tertiary)'}} />
