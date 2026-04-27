@@ -727,15 +727,6 @@ function ClientBriefDetail() {
               {/* ═══ HYBRID TAB ═══ */}
               {activeTab === 'hybrid' && <>
 
-              {/* SELECTED AI IDEA */}
-              {brief.selected_ai_idea && (
-                <div style={{background:'#f5f4f0',border:'1px solid #0a0a0a',padding:'16px 20px',marginBottom:'16px'}}>
-                  <div style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'var(--color-text-tertiary)',marginBottom:'6px'}}>SEÇTİĞİNİZ YARATICI YÖN</div>
-                  <div style={{fontSize:'15px',fontWeight:'500',color:'#0a0a0a',marginBottom:'4px'}}>{brief.selected_ai_idea.title}</div>
-                  <div style={{fontSize:'13px',color:'#6b6b66',lineHeight:1.5}}>{brief.selected_ai_idea.description}</div>
-                </div>
-              )}
-
               {/* CREDIT BOX */}
               {(brief.credit_cost || 0) > 0 && (
                 <div style={{display:'flex',justifyContent:'flex-end',marginBottom:'12px'}}>
@@ -1122,6 +1113,15 @@ function ClientBriefDetail() {
               </div>
 
 
+
+              {/* SELECTED AI IDEA — above brief details */}
+              {brief.selected_ai_idea && (
+                <div style={{background:'#f5f4f0',border:'1px solid #0a0a0a',padding:'16px 20px',marginBottom:'16px'}}>
+                  <div style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'var(--color-text-tertiary)',marginBottom:'6px'}}>SEÇTİĞİNİZ YARATICI YÖN</div>
+                  <div style={{fontSize:'15px',fontWeight:'500',color:'#0a0a0a',marginBottom:'4px'}}>{brief.selected_ai_idea.title}</div>
+                  <div style={{fontSize:'13px',color:'#6b6b66',lineHeight:1.5}}>{brief.selected_ai_idea.description}</div>
+                </div>
+              )}
 
               {/* BRIEF DETAILS — COLLAPSIBLE */}
               <div style={{background:'#fff',border:'1px solid #0a0a0a',padding:'18px 20px',marginBottom:'16px'}}>
