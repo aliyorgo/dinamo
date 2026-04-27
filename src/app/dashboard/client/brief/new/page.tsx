@@ -118,7 +118,7 @@ function NewBriefPage() {
     }
   }, [searchParams])
 
-  // Fetch brief score when entering step 5
+  // Fetch brief score when entering step 6
   useEffect(() => {
     if (step !== 6) { setBriefScore(null); return }
     if (scoreLoading) return
@@ -128,7 +128,7 @@ function NewBriefPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ brief: form })
     }).then(r => r.json()).then(data => {
-      if (data.total) setBriefScore(data)
+      if (data.score) setBriefScore(data)
     }).catch(() => {}).finally(() => setScoreLoading(false))
   }, [step])
 
@@ -941,22 +941,17 @@ function NewBriefPage() {
                   </div>
                 </div>
 
-                {/* BRIEF SCORE */}
-                <div style={{background:'#fff',border:'1px solid var(--color-border-tertiary)',padding:'20px',marginBottom:'22px',minHeight:'140px'}}>
-                  <div className="label-caps" style={{marginBottom:'14px'}}>BRİEF KALİTE SKORU</div>
+                {/* BRIEF SCORE — compact single line */}
+                <div style={{background:'#fff',border:'1px solid #e5e4db',padding:'14px 18px',marginBottom:'22px',display:'flex',alignItems:'center',gap:'12px'}}>
                   {scoreLoading ? (
-                    <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'10px',padding:'24px 0'}}><div style={{width:'14px',height:'14px',border:'2px solid #4ade80',borderTop:'2px solid transparent',animation:'spin 1s linear infinite'}} className="spinner"></div><span style={{fontSize:'13px',color:'var(--color-text-tertiary)'}}>Hesaplanıyor...</span></div>
+                    <div style={{display:'flex',alignItems:'center',gap:'8px'}}><div className="spinner" style={{width:'12px',height:'12px',border:'2px solid #ddd',borderTopColor:'#0a0a0a'}} /><span style={{fontSize:'12px',color:'var(--color-text-tertiary)'}}>hesaplanıyor...</span></div>
                   ) : briefScore ? (
-                    <div>
-                      <div style={{display:'flex',alignItems:'baseline',gap:'8px',marginBottom:'16px'}}>
-                        <div style={{fontSize:'36px',fontWeight:'300',letterSpacing:'-2px',color:briefScore.total>=80?'#22c55e':briefScore.total>=60?'#f59e0b':'#ef4444'}}>{briefScore.total}</div>
-                        <div style={{fontSize:'13px',color:'#aaa'}}>/100</div>
-                      </div>
-                      <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
-                        {briefScore.criteria?.map((c: any)=>(<div key={c.key}><div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'4px'}}><span style={{fontSize:'12px',color:'#0a0a0a',fontWeight:'500'}}>{c.label}</span><span style={{fontSize:'12px',color:c.score>=80?'#22c55e':c.score>=60?'#f59e0b':'#ef4444',fontWeight:'500'}}>{c.score}</span></div><div style={{width:'100%',height:'4px',background:'rgba(0,0,0,0.06)',overflow:'hidden'}}><div style={{width:`${c.score}%`,height:'100%',background:c.score>=80?'#22c55e':c.score>=60?'#f59e0b':'#ef4444',transition:'width 0.6s ease'}} /></div>{c.tip&&<div style={{fontSize:'11px',color:'#999',fontStyle:'italic',marginTop:'4px',lineHeight:'1.4'}}>{c.tip}</div>}</div>))}
-                      </div>
-                    </div>
-                  ) : (<div style={{fontSize:'12px',color:'#aaa'}}>Skor hesaplanamadı.</div>)}
+                    <>
+                      <div style={{fontSize:'24px',fontWeight:'500',color:briefScore.score>=80?'#22c55e':briefScore.score>=60?'#f59e0b':'#ef4444',letterSpacing:'-1px',flexShrink:0}}>{briefScore.score}</div>
+                      <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:briefScore.score>=80?'#22c55e':briefScore.score>=60?'#f59e0b':'#ef4444',flexShrink:0}}>{briefScore.label}</div>
+                      {briefScore.suggestion && <div style={{fontSize:'12px',color:'#6b6b66',fontStyle:'italic',borderLeft:'1px solid #e5e4db',paddingLeft:'12px'}}>· {briefScore.suggestion}</div>}
+                    </>
+                  ) : (<span style={{fontSize:'12px',color:'#aaa'}}>Skor hesaplanamadı.</span>)}
                 </div>
 
                 {balance < cost && (
