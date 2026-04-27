@@ -1554,13 +1554,13 @@ function ClientBriefDetail() {
                         const sb = statusColor[child.status] || '#888'
                         return (
                           <div key={child.id} style={{background:'#fff',border:'1px solid #0a0a0a',padding:'16px 18px',display:'flex',flexDirection:'column'}}>
-                            {/* Header */}
-                            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'12px'}}>
-                              <div>
-                                <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'var(--color-text-secondary)'}}>YÖN {child.mvc_order || idx + 1}{child.cps_hook ? ` · ${child.cps_hook}` : ''}</div>
+                            {/* Header — fixed height for alignment */}
+                            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'12px',minHeight:'40px'}}>
+                              <div style={{flex:1,minWidth:0}}>
+                                <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'var(--color-text-secondary)',lineHeight:'1.3',minHeight:'28px'}}>YÖN {child.mvc_order || idx + 1}{child.cps_hook ? ` · ${child.cps_hook}` : ''}</div>
                                 {child.cps_ton && <div style={{fontSize:'10px',color:'var(--color-text-tertiary)',marginTop:'2px'}}>{child.cps_ton}</div>}
                               </div>
-                              <span style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',padding:'3px 8px',background:`${sb}12`,border:`1px solid ${sb}`,color:'#0a0a0a'}}>{statusLabel[child.status] || child.status}</span>
+                              <span style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',padding:'3px 8px',background:`${sb}12`,border:`1px solid ${sb}`,color:'#0a0a0a',flexShrink:0}}>{statusLabel[child.status] || child.status}</span>
                             </div>
 
                             {/* Video */}
