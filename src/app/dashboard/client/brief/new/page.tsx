@@ -446,15 +446,15 @@ function NewBriefPage() {
 
           {/* AI Ideas Banner */}
           {savedBriefId && !ideasOpen && (
-            <div style={{background:'linear-gradient(135deg, #f5f0ff 0%, #faf6ff 100%)',border:'1px solid #c4b5fd',padding:'24px 28px',marginBottom:'24px',display:'flex',justifyContent:'space-between',alignItems:'center',gap:'20px',flexWrap:'wrap'}}>
+            <div style={{background:'#f5f4f0',border:'1px solid #0a0a0a',padding:'24px 28px',marginBottom:'24px',display:'flex',justifyContent:'space-between',alignItems:'center',gap:'20px',flexWrap:'wrap'}}>
               <div>
                 <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'6px'}}>
                   <div style={{fontSize:'16px',fontWeight:'500',color:'#0a0a0a'}}>Kreatife Yön Vermek İster misiniz?</div>
-                  <span style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'2px 6px',background:'#fff',border:'1px solid #c4b5fd',color:'#6d28d9'}}>BETA</span>
+                  <span style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'2px 6px',background:'#fff',border:'1px solid #0a0a0a',color:'#0a0a0a'}}>BETA</span>
                 </div>
                 <div style={{fontSize:'13px',color:'#6b6b66',lineHeight:1.5}}>AI ile 3 farklı yaratıcı yön keşfedin, beğendiğinizi seçin.</div>
               </div>
-              <button onClick={loadIdeas} disabled={ideasLoading} style={{padding:'10px 24px',background:'#6d28d9',color:'#fff',border:'none',fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',cursor:'pointer',whiteSpace:'nowrap',flexShrink:0}}>
+              <button onClick={loadIdeas} disabled={ideasLoading} className="btn" style={{padding:'10px 24px',whiteSpace:'nowrap',flexShrink:0}}>
                 {ideasLoading ? 'YÜKLENİYOR...' : 'AI FİKİRLERİ GÖR →'}
               </button>
             </div>
@@ -462,62 +462,58 @@ function NewBriefPage() {
 
           {/* AI Ideas Panel */}
           {ideasOpen && (
-            <div style={{background:'linear-gradient(135deg, #f5f0ff 0%, #faf6ff 100%)',border:'1px solid #c4b5fd',padding:'24px 28px',marginBottom:'24px',position:'relative'}}>
-              <button onClick={() => setIdeasOpen(false)} style={{position:'absolute',top:'12px',right:'12px',width:'28px',height:'28px',border:'1px solid #c4b5fd',background:'#fff',color:'#6d28d9',fontSize:'14px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>×</button>
+            <div style={{background:'#f5f4f0',border:'1px solid #0a0a0a',padding:'24px 28px',marginBottom:'24px',position:'relative'}}>
+              <button onClick={() => setIdeasOpen(false)} style={{position:'absolute',top:'12px',right:'12px',width:'28px',height:'28px',border:'1px solid #0a0a0a',background:'#fff',color:'#0a0a0a',fontSize:'14px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>×</button>
               <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'16px'}}>
-                <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'#6d28d9'}}>YARATICI YÖNLER</div>
-                <span style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'2px 6px',background:'#fff',border:'1px solid #c4b5fd',color:'#6d28d9'}}>BETA</span>
+                <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'#0a0a0a'}}>YARATICI YÖNLER</div>
+                <span style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'2px 6px',background:'#fff',border:'1px solid #0a0a0a',color:'#0a0a0a'}}>BETA</span>
               </div>
               {ideasLoading ? (
                 <div style={{textAlign:'center',padding:'32px 0'}}>
-                  <div className="spinner" style={{width:'24px',height:'24px',border:'2px solid #c4b5fd',borderTopColor:'#6d28d9',margin:'0 auto 12px'}} />
+                  <div className="spinner" style={{width:'24px',height:'24px',border:'2px solid #ddd',borderTopColor:'#0a0a0a',margin:'0 auto 12px'}} />
                   <div style={{fontSize:'13px',color:'#6b6b66'}}>Fikirler üretiliyor...</div>
                 </div>
               ) : (
-                <div className="ideas-grid" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px'}}>
-                  {ideas.map((idea, i) => (
-                    <div key={i} onClick={() => setIdeaConfirm(idea)}
-                      style={{background:'#fff',border:'1px solid #c4b5fd',padding:'18px',cursor:'pointer',display:'flex',flexDirection:'column',transition:'border-color 0.15s'}}
-                      onMouseEnter={e=>{e.currentTarget.style.borderColor='#6d28d9'}}
-                      onMouseLeave={e=>{e.currentTarget.style.borderColor='#c4b5fd'}}>
-                      <div style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',color:'#6d28d9',marginBottom:'8px'}}>FİKİR {i + 1}</div>
-                      <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a',marginBottom:'8px',lineHeight:1.3}}>{idea.title}</div>
-                      <div style={{fontSize:'12px',color:'#6b6b66',lineHeight:1.5,flex:1}}>{idea.description}</div>
-                      <div style={{fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:'#6d28d9',fontWeight:'500',marginTop:'12px'}}>SEÇ →</div>
-                    </div>
-                  ))}
-                  <div onClick={() => selectIdea(null)}
-                    style={{background:'#fff',border:'1px solid #0a0a0a',padding:'18px',cursor:'pointer',display:'flex',flexDirection:'column',transition:'background 0.15s'}}
-                    onMouseEnter={e=>{e.currentTarget.style.background='var(--color-background-secondary)'}}
-                    onMouseLeave={e=>{e.currentTarget.style.background='#fff'}}>
-                    <div style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'8px'}}>DEVAM ET</div>
-                    <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a',marginBottom:'8px',lineHeight:1.3}}>Ekibimiz Çalışsın</div>
-                    <div style={{fontSize:'12px',color:'#6b6b66',lineHeight:1.5,flex:1}}>Hiçbiri uymuyor mu? Sorun değil. Yapımcı ve kreatif ekibimiz brief'inizi alır, size özel bir yaratıcı yön oluşturup üretir.</div>
-                    <div style={{fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:'#0a0a0a',fontWeight:'500',marginTop:'12px'}}>DEVAM →</div>
+                <>
+                  <div className="ideas-grid" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'12px'}}>
+                    {ideas.map((idea, i) => (
+                      <div key={i} onClick={() => setIdeaConfirm(idea)}
+                        style={{background:'#fff',border:'1px solid #e5e4db',padding:'18px',cursor:'pointer',display:'flex',flexDirection:'column',transition:'border-color 0.15s'}}
+                        onMouseEnter={e=>{e.currentTarget.style.borderColor='#0a0a0a'}}
+                        onMouseLeave={e=>{e.currentTarget.style.borderColor='#e5e4db'}}>
+                        <div style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'8px'}}>FİKİR {i + 1}</div>
+                        <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a',marginBottom:'8px',lineHeight:1.3}}>{idea.title}</div>
+                        <div style={{fontSize:'12px',color:'#6b6b66',lineHeight:1.5,flex:1}}>{idea.description}</div>
+                        <div style={{fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:'#0a0a0a',fontWeight:'500',marginTop:'12px'}}>SEÇ →</div>
+                      </div>
+                    ))}
                   </div>
-                </div>
+                  <button onClick={() => selectIdea(null)} className="btn btn-outline" style={{width:'100%',padding:'12px',textAlign:'center'}}>
+                    EKİBİME GÜVENİYORUM — DEVAM ET →
+                  </button>
+                </>
               )}
               <style>{`@media (max-width: 768px) { .ideas-grid { grid-template-columns: 1fr !important; } }`}</style>
             </div>
           )}
 
           {/* Action cards */}
-          <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'12px',textAlign:'center'}}>VEYA BAŞKA BİR AKSİYON</div>
+          <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'12px',textAlign:'center'}}>VEYA</div>
           <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'32px'}}>
+            {savedBriefId && (
+              <a href={`/dashboard/client/briefs/${savedBriefId}?tab=cps`} style={{textDecoration:'none',background:'#fff',border:'1px solid #0a0a0a',padding:'20px 18px',display:'flex',flexDirection:'column',cursor:'pointer',transition:'background 0.15s'}}
+                onMouseEnter={e=>{e.currentTarget.style.background='var(--color-background-secondary)'}} onMouseLeave={e=>{e.currentTarget.style.background='#fff'}}>
+                <div style={{fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'8px'}}>PAKET</div>
+                <div style={{fontSize:'15px',fontWeight:'500',color:'var(--color-text-primary)',marginBottom:'6px'}}>CPS Başlat</div>
+                <div style={{fontSize:'12px',color:'var(--color-text-secondary)',lineHeight:1.5,flex:1}}>Farklı yaratıcı yönler paketi</div>
+              </a>
+            )}
             {aiEnabled && savedBriefId && (
               <a href={`/dashboard/client/briefs/${savedBriefId}?tab=express`} style={{textDecoration:'none',background:'#fff',border:'1px solid #0a0a0a',padding:'20px 18px',display:'flex',flexDirection:'column',cursor:'pointer',transition:'background 0.15s'}}
                 onMouseEnter={e=>{e.currentTarget.style.background='var(--color-background-secondary)'}} onMouseLeave={e=>{e.currentTarget.style.background='#fff'}}>
                 <div style={{fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'8px'}}>HIZLI ÜRETİM</div>
                 <div style={{fontSize:'15px',fontWeight:'500',color:'var(--color-text-primary)',marginBottom:'6px'}}>AI Express</div>
                 <div style={{fontSize:'12px',color:'var(--color-text-secondary)',lineHeight:1.5,flex:1}}>~5 dakikada 3 alternatif AI video</div>
-              </a>
-            )}
-            {savedBriefId && (
-              <a href={`/dashboard/client/briefs/${savedBriefId}?tab=cps`} style={{textDecoration:'none',background:'#fff',border:'1px solid #0a0a0a',padding:'20px 18px',display:'flex',flexDirection:'column',cursor:'pointer',transition:'background 0.15s'}}
-                onMouseEnter={e=>{e.currentTarget.style.background='var(--color-background-secondary)'}} onMouseLeave={e=>{e.currentTarget.style.background='#fff'}}>
-                <div style={{fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'8px'}}>PAKET</div>
-                <div style={{fontSize:'15px',fontWeight:'500',color:'var(--color-text-primary)',marginBottom:'6px'}}>CPS</div>
-                <div style={{fontSize:'12px',color:'var(--color-text-secondary)',lineHeight:1.5,flex:1}}>Farklı yaratıcı yönler paketi</div>
               </a>
             )}
             <a href="/dashboard/client/brief/new" style={{textDecoration:'none',background:'#fff',border:'1px solid #0a0a0a',padding:'20px 18px',display:'flex',flexDirection:'column',cursor:'pointer',transition:'background 0.15s'}}
@@ -541,12 +537,12 @@ function NewBriefPage() {
           <div onClick={() => setIdeaConfirm(null)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.4)',backdropFilter:'blur(4px)',zIndex:100,display:'flex',alignItems:'center',justifyContent:'center'}}>
             <div onClick={e => e.stopPropagation()} style={{background:'#fff',border:'1px solid #0a0a0a',padding:'28px',maxWidth:'440px',width:'90%'}}>
               <div style={{fontSize:'16px',fontWeight:'500',color:'#0a0a0a',marginBottom:'8px'}}>Yaratıcı Yön Seç</div>
-              <div style={{fontSize:'14px',fontWeight:'500',color:'#6d28d9',marginBottom:'6px'}}>{ideaConfirm.title}</div>
+              <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a',marginBottom:'6px'}}>{ideaConfirm.title}</div>
               <div style={{fontSize:'13px',color:'var(--color-text-secondary)',lineHeight:1.6,marginBottom:'20px'}}>{ideaConfirm.description}</div>
               <div style={{fontSize:'12px',color:'var(--color-text-tertiary)',marginBottom:'20px'}}>Bu yaratıcı yön brief'inize eklenecek ve ekibimize iletilecek.</div>
               <div style={{display:'flex',gap:'10px'}}>
                 <button onClick={() => setIdeaConfirm(null)} className="btn btn-outline" style={{flex:1,padding:'10px'}}>VAZGEÇ</button>
-                <button onClick={() => selectIdea(ideaConfirm)} disabled={ideaSaving} style={{flex:1,padding:'10px',background:'#6d28d9',color:'#fff',border:'none',fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',cursor:'pointer'}}>
+                <button onClick={() => selectIdea(ideaConfirm)} disabled={ideaSaving} className="btn" style={{flex:1,padding:'10px'}}>
                   {ideaSaving ? '...' : 'ONAYLA'}
                 </button>
               </div>

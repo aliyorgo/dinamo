@@ -24,7 +24,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         max_tokens: 600,
         messages: [{ role: 'user', content: `${rulesBlock}Bu brief'i okudun. Müşteri için 3 farklı yaratıcı yön öner. Her biri:
 - Başlık (4-6 kelime, çekici, somut)
-- Açıklama (2-3 cümle, görsel terimlerle)
+- Açıklama (2-3 cümle, görsel terimlerle — atmosfer, tarz, sahne tarif et)
+
+KESİNLİKLE YAPMA:
+- Renk kodu (#hex) veya renk adı (mavi, kırmızı, yeşil vb.) kullanma
+- Numerik değerler veya teknik terimler kullanma
+- Sadece atmosfer, tarz, duygu ve sahne tarif et
+
 Çok teknik veya fazla spesifik olma, müşterinin anlayacağı tatlı dilde anlat.
 
 Brief:
