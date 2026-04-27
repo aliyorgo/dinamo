@@ -22,16 +22,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 600,
-        messages: [{ role: 'user', content: `${rulesBlock}Bu brief'i okudun. Müşteri için 3 farklı yaratıcı yön öner. Her biri:
-- Başlık (4-6 kelime, çekici, somut)
-- Açıklama (2-3 cümle, görsel terimlerle — atmosfer, tarz, sahne tarif et)
+        messages: [{ role: 'user', content: `${rulesBlock}Bu brief için 3 farklı yaratıcı yön öner.
 
-KESİNLİKLE YAPMA:
-- Renk kodu (#hex) veya renk adı (mavi, kırmızı, yeşil vb.) kullanma
-- Numerik değerler veya teknik terimler kullanma
-- Sadece atmosfer, tarz, duygu ve sahne tarif et
+Başlık: 2-3 kelime, tarz/mekan belirten kısa etiket. Edebi olma. Örnekler: "Sahil Çekimi", "Stüdyo Portre", "Sokak Sahnesi", "Ev İçi", "Doğa Planı"
 
-Çok teknik veya fazla spesifik olma, müşterinin anlayacağı tatlı dilde anlat.
+Açıklama: 2 cümle max. Düz dil — ne çekiliyor + nasıl çekiliyor + tempo/his. Şiirsel olma, süsleme. Somut ve net yaz.
+
+YAPMA: Renk kodu, renk adı, numerik değer, teknik terim kullanma.
 
 Brief:
 Kampanya: ${brief.campaign_name}
