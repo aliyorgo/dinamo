@@ -6,17 +6,20 @@ export async function POST(request: Request) {
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) return NextResponse.json({ error: 'ANTHROPIC_API_KEY not configured' }, { status: 500 })
 
-  const campaign = brief?.campaign_name || '—'
-  const videoType = brief?.video_type || '—'
-  const format = brief?.format || '—'
-  const platforms = Array.isArray(brief?.platforms) ? brief.platforms.join(', ') : '—'
-  const audience = brief?.target_audience || '—'
-  const cta = brief?.has_cta === 'yes' ? (brief?.cta || '—') : (brief?.cta || 'Yok')
-  const message = brief?.message || '—'
-  const voiceover = brief?.voiceover_type || 'none'
-  const notes = brief?.notes || '—'
+  const fields = [
+    { key: 'Kampanya Adı', val: brief?.campaign_name || '' },
+    { key: 'Mesaj (Brief Metni)', val: brief?.message || '' },
+    { key: 'Hedef Kitle', val: brief?.target_audience || '' },
+    { key: 'Video Tipi', val: brief?.video_type || '' },
+    { key: 'Format', val: brief?.format || '' },
+    { key: 'Mecralar', val: Array.isArray(brief?.platforms) ? brief.platforms.join(', ') : '' },
+    { key: 'CTA', val: brief?.has_cta === 'yes' ? (brief?.cta || '') : '' },
+    { key: 'Seslendirme Tipi', val: brief?.voiceover_type === 'real' ? `Gerçek · ${brief?.voiceover_gender === 'male' ? 'Erkek' : 'Kadın'}` : brief?.voiceover_type === 'ai' ? `AI · ${brief?.voiceover_gender === 'male' ? 'Erkek' : 'Kadın'}` : 'Yok' },
+    { key: 'Seslendirme Metni', val: brief?.voiceover_text || '' },
+    { key: 'Notlar / Uyarılar', val: brief?.notes || '' },
+  ]
 
-  const briefText = `Kampanya: ${campaign}\nVideo: ${videoType} · ${format}\nMecralar: ${platforms}\nHedef Kitle: ${audience}\nCTA: ${cta}\nBrief: ${message}\nSeslendirme: ${voiceover}\nNotlar: ${notes}`
+  const briefText = fields.map(f => `${f.key}: ${f.val || '(boş)'}`).join('\n')
 
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -24,7 +27,23 @@ export async function POST(request: Request) {
     body: JSON.stringify({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 150,
-      system: `Brief'i 0-100 puan değerlendir. Label belirle: 80+="GÜÇLÜ", 60-79="YETERLİ", <60="GELİŞTİR". Skor 80 altındaysa 1 cümle (max 12 kelime) Türkçe gelişim önerisi ver, 80+ ise suggestion boş bırak. Sadece JSON döndür, başka hiçbir şey yazma.
+      system: `Sen Dinamo video prodüksiyon platformunun brief değerlendirme sistemisin.
+
+Brief'i SADECE şu alanlar üzerinden değerlendir:
+Kampanya Adı, Mesaj (Brief Metni), Hedef Kitle, Video Tipi, Format, Mecralar, CTA, Seslendirme, Notlar.
+
+Değerlendirme kriterleri:
+- Alanların DOLULUK oranı (boş alan = düşük puan)
+- Mesajın NETLİĞİ (ne istediği anlaşılıyor mu)
+- Alanların BİRBİRİNİ DESTEKLEMESİ (hedef kitle + mesaj + CTA tutarlı mı)
+
+ASLA bahsetme: başarı metriği, KPI, platform analizi, bütçe, marka kimliği, rakip analizi, hedef URL, landing page. Bunlar bizim sistemde YOK.
+
+Skor: 0-100. Label: 80+="GÜÇLÜ", 60-79="YETERLİ", <60="GELİŞTİR".
+Skor 80 altındaysa 1 cümle (max 12 kelime) öneri ver. Öneri SADECE yukarıdaki alanları işaret etsin (örn: "Hedef kitle daha net olabilir" veya "CTA ekleyin").
+80+ ise suggestion null.
+
+Sadece JSON döndür:
 {"score":number,"label":"GÜÇLÜ"|"YETERLİ"|"GELİŞTİR","suggestion":"..."|null}`,
       messages: [{ role: 'user', content: briefText }]
     })
