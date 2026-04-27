@@ -1366,8 +1366,8 @@ function ClientBriefDetail() {
                                       value={currentText}
                                       onChange={e=>setFeedbackText(p=>({...p,[child.id]:e.target.value}))}
                                       placeholder="AI Express videolar şimdilik harika olmayabilir ama gelişebilir. Yorum bırakın ya da dış sesi revize edin, daha iyisini üretin — bir sonraki üretimde dikkate alınır."
-                                      rows={2}
-                                      style={{flex:1,padding:'8px 10px',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'6px',fontSize:'11px',color:'#0a0a0a',resize:'vertical',boxSizing:'border-box'}}
+                                      rows={3}
+                                      style={{flex:1,padding:'12px 14px',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'6px',fontSize:'15px',lineHeight:'1.6',color:'#0a0a0a',resize:'vertical',boxSizing:'border-box'}}
                                     />
                                     <button onClick={async()=>{
                                       const val = currentText.trim()
