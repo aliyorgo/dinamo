@@ -318,11 +318,12 @@ function ClientBriefDetail() {
     const rootId = brief.root_campaign_id || id
     const { count } = await supabase.from('briefs').select('id', { count: 'exact', head: true }).eq('root_campaign_id', rootId).like('campaign_name', '%Full AI%')
     const aiNum = (count || 0) + 1
+    const ideaContext = brief.selected_ai_idea ? `MÜŞTERİ SEÇİMİ — YARATICI YÖN:\nBaşlık: ${brief.selected_ai_idea.title}\nAçıklama: ${brief.selected_ai_idea.description}\nVideoyu bu yöne sadık üret.\n\n` : ''
     const { data: newBrief } = await supabase.from('briefs').insert({
       campaign_name: `${baseName} — Full AI #${aiNum}`,
       parent_brief_id: id,
       video_type: brief.video_type, format: brief.format, platforms: brief.platforms,
-      message: brief.message, cta: brief.cta, target_audience: brief.target_audience,
+      message: ideaContext + (brief.message || ''), cta: brief.cta, target_audience: brief.target_audience,
       voiceover_type: brief.voiceover_type, voiceover_gender: brief.voiceover_gender,
       voiceover_text: brief.voiceover_text, notes: brief.notes, languages: brief.languages,
       product_image_url: mode === 'product' ? (brief.product_image_url || null) : null,
