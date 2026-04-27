@@ -402,68 +402,157 @@ function NewBriefPage() {
     fontFamily:'var(--font-sans),Inter,sans-serif',display:'inline-block',marginRight:'-1px'
   })
 
+  // AI Ideas state
+  const [ideasOpen, setIdeasOpen] = useState(false)
+  const [ideas, setIdeas] = useState<{title:string,description:string}[]>([])
+  const [ideasLoading, setIdeasLoading] = useState(false)
+  const [ideaConfirm, setIdeaConfirm] = useState<{title:string,description:string}|null>(null)
+  const [ideaSaving, setIdeaSaving] = useState(false)
+
+  async function loadIdeas() {
+    if (!savedBriefId) return
+    setIdeasLoading(true); setIdeasOpen(true)
+    const res = await fetch(`/api/briefs/${savedBriefId}/customer-ideas`)
+    const data = await res.json()
+    setIdeas(data.ideas || [])
+    setIdeasLoading(false)
+  }
+
+  async function selectIdea(idea: {title:string,description:string} | null) {
+    if (!savedBriefId) return
+    setIdeaSaving(true)
+    if (idea) {
+      await supabase.from('briefs').update({ selected_ai_idea: idea }).eq('id', savedBriefId)
+    }
+    setIdeaConfirm(null); setIdeaSaving(false)
+    router.push(`/dashboard/client/briefs/${savedBriefId}`)
+  }
+
   if (step === 99) {
     const aiEnabled = (clientUser as any)?.clients?.ai_video_enabled
     return (
-      <div style={{minHeight:'100vh',display:'flex',alignItems:'flex-start',justifyContent:'center',background:'var(--color-background-secondary)',paddingTop:'80px',paddingBottom:'40px',overflowY:'auto'}}>
-        <div style={{maxWidth:'720px',padding:'0 24px',width:'100%'}}>
+      <div style={{minHeight:'100vh',display:'flex',alignItems:'flex-start',justifyContent:'center',background:'var(--color-background-secondary)',paddingTop:'60px',paddingBottom:'40px',overflowY:'auto'}}>
+        <div style={{maxWidth:'780px',padding:'0 24px',width:'100%'}}>
           {/* Hero */}
-          <div style={{textAlign:'center',marginBottom:'48px'}}>
-            <div style={{display:'inline-flex',alignItems:'center',justifyContent:'center',width:'48px',height:'48px',background:'#E1F5EE',marginBottom:'20px'}}>
+          <div style={{textAlign:'center',marginBottom:'32px'}}>
+            <div style={{display:'inline-flex',alignItems:'center',justifyContent:'center',width:'48px',height:'48px',background:'#E1F5EE',marginBottom:'16px'}}>
               <span style={{color:'#085041',fontSize:'20px',fontWeight:'700'}}>✓</span>
             </div>
-            <div style={{fontSize:'36px',fontWeight:'500',color:'var(--color-text-primary)',letterSpacing:'-0.02em',marginBottom:'12px'}}>Brief'iniz alındı</div>
-            <div style={{fontSize:'16px',color:'var(--color-text-secondary)',lineHeight:1.65}}>
-              "{form.campaign_name}" ekibimize iletildi. Videonuz 24 saat içinde hazır olacak.
+            <div style={{fontSize:'32px',fontWeight:'500',color:'var(--color-text-primary)',letterSpacing:'-0.02em',marginBottom:'8px'}}>Brief alındı</div>
+            <div style={{fontSize:'15px',color:'var(--color-text-secondary)',lineHeight:1.65}}>
+              "{form.campaign_name}" ekibimize iletildi. 24-48 saat içinde teslim edilecek.
             </div>
           </div>
 
-          {/* 3 Action cards */}
-          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'40px'}}>
-            {/* AI Express */}
+          {/* AI Ideas Banner */}
+          {savedBriefId && !ideasOpen && (
+            <div style={{background:'linear-gradient(135deg, #f5f0ff 0%, #faf6ff 100%)',border:'1px solid #c4b5fd',padding:'24px 28px',marginBottom:'24px',display:'flex',justifyContent:'space-between',alignItems:'center',gap:'20px',flexWrap:'wrap'}}>
+              <div>
+                <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'6px'}}>
+                  <div style={{fontSize:'16px',fontWeight:'500',color:'#0a0a0a'}}>Kreatife Yön Vermek İster misiniz?</div>
+                  <span style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'2px 6px',background:'#fff',border:'1px solid #c4b5fd',color:'#6d28d9'}}>BETA</span>
+                </div>
+                <div style={{fontSize:'13px',color:'#6b6b66',lineHeight:1.5}}>AI ile 3 farklı yaratıcı yön keşfedin, beğendiğinizi seçin.</div>
+              </div>
+              <button onClick={loadIdeas} disabled={ideasLoading} style={{padding:'10px 24px',background:'#6d28d9',color:'#fff',border:'none',fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',cursor:'pointer',whiteSpace:'nowrap',flexShrink:0}}>
+                {ideasLoading ? 'YÜKLENİYOR...' : 'AI FİKİRLERİ GÖR →'}
+              </button>
+            </div>
+          )}
+
+          {/* AI Ideas Panel */}
+          {ideasOpen && (
+            <div style={{background:'linear-gradient(135deg, #f5f0ff 0%, #faf6ff 100%)',border:'1px solid #c4b5fd',padding:'24px 28px',marginBottom:'24px',position:'relative'}}>
+              <button onClick={() => setIdeasOpen(false)} style={{position:'absolute',top:'12px',right:'12px',width:'28px',height:'28px',border:'1px solid #c4b5fd',background:'#fff',color:'#6d28d9',fontSize:'14px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>×</button>
+              <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'16px'}}>
+                <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'#6d28d9'}}>YARATICI YÖNLER</div>
+                <span style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'2px 6px',background:'#fff',border:'1px solid #c4b5fd',color:'#6d28d9'}}>BETA</span>
+              </div>
+              {ideasLoading ? (
+                <div style={{textAlign:'center',padding:'32px 0'}}>
+                  <div className="spinner" style={{width:'24px',height:'24px',border:'2px solid #c4b5fd',borderTopColor:'#6d28d9',margin:'0 auto 12px'}} />
+                  <div style={{fontSize:'13px',color:'#6b6b66'}}>Fikirler üretiliyor...</div>
+                </div>
+              ) : (
+                <div className="ideas-grid" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px'}}>
+                  {ideas.map((idea, i) => (
+                    <div key={i} onClick={() => setIdeaConfirm(idea)}
+                      style={{background:'#fff',border:'1px solid #c4b5fd',padding:'18px',cursor:'pointer',display:'flex',flexDirection:'column',transition:'border-color 0.15s'}}
+                      onMouseEnter={e=>{e.currentTarget.style.borderColor='#6d28d9'}}
+                      onMouseLeave={e=>{e.currentTarget.style.borderColor='#c4b5fd'}}>
+                      <div style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',color:'#6d28d9',marginBottom:'8px'}}>FİKİR {i + 1}</div>
+                      <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a',marginBottom:'8px',lineHeight:1.3}}>{idea.title}</div>
+                      <div style={{fontSize:'12px',color:'#6b6b66',lineHeight:1.5,flex:1}}>{idea.description}</div>
+                      <div style={{fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:'#6d28d9',fontWeight:'500',marginTop:'12px'}}>SEÇ →</div>
+                    </div>
+                  ))}
+                  <div onClick={() => selectIdea(null)}
+                    style={{background:'#fff',border:'1px solid #0a0a0a',padding:'18px',cursor:'pointer',display:'flex',flexDirection:'column',transition:'background 0.15s'}}
+                    onMouseEnter={e=>{e.currentTarget.style.background='var(--color-background-secondary)'}}
+                    onMouseLeave={e=>{e.currentTarget.style.background='#fff'}}>
+                    <div style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'8px'}}>DEVAM ET</div>
+                    <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a',marginBottom:'8px',lineHeight:1.3}}>Ekibimiz Çalışsın</div>
+                    <div style={{fontSize:'12px',color:'#6b6b66',lineHeight:1.5,flex:1}}>Hiçbiri uymuyor mu? Sorun değil. Yapımcı ve kreatif ekibimiz brief'inizi alır, size özel bir yaratıcı yön oluşturup üretir.</div>
+                    <div style={{fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:'#0a0a0a',fontWeight:'500',marginTop:'12px'}}>DEVAM →</div>
+                  </div>
+                </div>
+              )}
+              <style>{`@media (max-width: 768px) { .ideas-grid { grid-template-columns: 1fr !important; } }`}</style>
+            </div>
+          )}
+
+          {/* Action cards */}
+          <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'12px',textAlign:'center'}}>VEYA BAŞKA BİR AKSİYON</div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'32px'}}>
             {aiEnabled && savedBriefId && (
-              <a href={`/dashboard/client/briefs/${savedBriefId}?tab=express`} style={{textDecoration:'none',background:'#fff',border:'1px solid #0a0a0a',padding:'28px 24px',display:'flex',flexDirection:'column',minHeight:'220px',transition:'background 0.15s',cursor:'pointer'}}
-                onMouseEnter={e=>{e.currentTarget.style.background='var(--color-background-secondary)'}}
-                onMouseLeave={e=>{e.currentTarget.style.background='#fff'}}>
-                <div style={{fontSize:'10px',letterSpacing:'2px',textTransform:'uppercase',color:'var(--color-text-tertiary)',fontWeight:'500',marginBottom:'12px'}}>HIZLI ÜRETİM</div>
-                <div style={{fontSize:'18px',fontWeight:'500',color:'var(--color-text-primary)',marginBottom:'8px'}}>AI Express</div>
-                <div style={{fontSize:'13px',color:'var(--color-text-secondary)',lineHeight:1.5,flex:1}}>Bu brief'ten 3 alternatif AI videoyu ~5 dakikada al</div>
-                <div className="btn btn-outline" style={{marginTop:'16px',alignSelf:'flex-start'}}>BAŞLAT →</div>
+              <a href={`/dashboard/client/briefs/${savedBriefId}?tab=express`} style={{textDecoration:'none',background:'#fff',border:'1px solid #0a0a0a',padding:'20px 18px',display:'flex',flexDirection:'column',cursor:'pointer',transition:'background 0.15s'}}
+                onMouseEnter={e=>{e.currentTarget.style.background='var(--color-background-secondary)'}} onMouseLeave={e=>{e.currentTarget.style.background='#fff'}}>
+                <div style={{fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'8px'}}>HIZLI ÜRETİM</div>
+                <div style={{fontSize:'15px',fontWeight:'500',color:'var(--color-text-primary)',marginBottom:'6px'}}>AI Express</div>
+                <div style={{fontSize:'12px',color:'var(--color-text-secondary)',lineHeight:1.5,flex:1}}>~5 dakikada 3 alternatif AI video</div>
               </a>
             )}
-
-            {/* CPS */}
             {savedBriefId && (
-              <a href={`/dashboard/client/briefs/${savedBriefId}?tab=cps`} style={{textDecoration:'none',background:'#fff',border:'1px solid #0a0a0a',padding:'28px 24px',display:'flex',flexDirection:'column',minHeight:'220px',transition:'background 0.15s',cursor:'pointer'}}
-                onMouseEnter={e=>{e.currentTarget.style.background='var(--color-background-secondary)'}}
-                onMouseLeave={e=>{e.currentTarget.style.background='#fff'}}>
-                <div style={{fontSize:'10px',letterSpacing:'2px',textTransform:'uppercase',color:'var(--color-text-tertiary)',fontWeight:'500',marginBottom:'12px'}}>PAKET</div>
-                <div style={{fontSize:'18px',fontWeight:'500',color:'var(--color-text-primary)',marginBottom:'8px'}}>CPS</div>
-                <div style={{fontSize:'13px',color:'var(--color-text-secondary)',lineHeight:1.5,flex:1}}>Bu brief'ten farklı yaratıcı yönler içeren paket oluştur</div>
-                <div className="btn btn-outline" style={{marginTop:'16px',alignSelf:'flex-start'}}>BAŞLAT →</div>
+              <a href={`/dashboard/client/briefs/${savedBriefId}?tab=cps`} style={{textDecoration:'none',background:'#fff',border:'1px solid #0a0a0a',padding:'20px 18px',display:'flex',flexDirection:'column',cursor:'pointer',transition:'background 0.15s'}}
+                onMouseEnter={e=>{e.currentTarget.style.background='var(--color-background-secondary)'}} onMouseLeave={e=>{e.currentTarget.style.background='#fff'}}>
+                <div style={{fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'8px'}}>PAKET</div>
+                <div style={{fontSize:'15px',fontWeight:'500',color:'var(--color-text-primary)',marginBottom:'6px'}}>CPS</div>
+                <div style={{fontSize:'12px',color:'var(--color-text-secondary)',lineHeight:1.5,flex:1}}>Farklı yaratıcı yönler paketi</div>
               </a>
             )}
-
-            {/* Yeni Brief */}
-            <a href="/dashboard/client/brief/new" style={{textDecoration:'none',background:'#fff',border:'1px solid #0a0a0a',padding:'28px 24px',display:'flex',flexDirection:'column',minHeight:'220px',transition:'background 0.15s',cursor:'pointer'}}
-              onMouseEnter={e=>{e.currentTarget.style.background='var(--color-background-secondary)'}}
-              onMouseLeave={e=>{e.currentTarget.style.background='#fff'}}>
-              <div style={{fontSize:'10px',letterSpacing:'2px',textTransform:'uppercase',color:'var(--color-text-tertiary)',fontWeight:'500',marginBottom:'12px'}}>BAŞKA KAMPANYA</div>
-              <div style={{fontSize:'18px',fontWeight:'500',color:'var(--color-text-primary)',marginBottom:'8px'}}>Yeni Brief</div>
-              <div style={{fontSize:'13px',color:'var(--color-text-secondary)',lineHeight:1.5,flex:1}}>Farklı bir kampanya veya ürün için brief oluştur</div>
-              <div className="btn btn-outline" style={{marginTop:'16px',alignSelf:'flex-start'}}>BAŞLAT →</div>
+            <a href="/dashboard/client/brief/new" style={{textDecoration:'none',background:'#fff',border:'1px solid #0a0a0a',padding:'20px 18px',display:'flex',flexDirection:'column',cursor:'pointer',transition:'background 0.15s'}}
+              onMouseEnter={e=>{e.currentTarget.style.background='var(--color-background-secondary)'}} onMouseLeave={e=>{e.currentTarget.style.background='#fff'}}>
+              <div style={{fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'8px'}}>YENİ KAMPANYA</div>
+              <div style={{fontSize:'15px',fontWeight:'500',color:'var(--color-text-primary)',marginBottom:'6px'}}>Yeni Brief</div>
+              <div style={{fontSize:'12px',color:'var(--color-text-secondary)',lineHeight:1.5,flex:1}}>Farklı kampanya için brief oluştur</div>
             </a>
           </div>
 
-          {/* Back link */}
           <div style={{textAlign:'center'}}>
             <span onClick={()=>router.push('/dashboard/client')} style={{fontSize:'13px',color:'var(--color-text-primary)',cursor:'pointer',transition:'color 0.15s'}}
-              onMouseEnter={e=>{e.currentTarget.style.color='#4ade80'}}
-              onMouseLeave={e=>{e.currentTarget.style.color='var(--color-text-primary)'}}>
+              onMouseEnter={e=>{e.currentTarget.style.color='#4ade80'}} onMouseLeave={e=>{e.currentTarget.style.color='var(--color-text-primary)'}}>
               ← Projelerime dön
             </span>
           </div>
         </div>
+
+        {/* Idea Confirm Modal */}
+        {ideaConfirm && (
+          <div onClick={() => setIdeaConfirm(null)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.4)',backdropFilter:'blur(4px)',zIndex:100,display:'flex',alignItems:'center',justifyContent:'center'}}>
+            <div onClick={e => e.stopPropagation()} style={{background:'#fff',border:'1px solid #0a0a0a',padding:'28px',maxWidth:'440px',width:'90%'}}>
+              <div style={{fontSize:'16px',fontWeight:'500',color:'#0a0a0a',marginBottom:'8px'}}>Yaratıcı Yön Seç</div>
+              <div style={{fontSize:'14px',fontWeight:'500',color:'#6d28d9',marginBottom:'6px'}}>{ideaConfirm.title}</div>
+              <div style={{fontSize:'13px',color:'var(--color-text-secondary)',lineHeight:1.6,marginBottom:'20px'}}>{ideaConfirm.description}</div>
+              <div style={{fontSize:'12px',color:'var(--color-text-tertiary)',marginBottom:'20px'}}>Bu yaratıcı yön brief'inize eklenecek ve ekibimize iletilecek.</div>
+              <div style={{display:'flex',gap:'10px'}}>
+                <button onClick={() => setIdeaConfirm(null)} className="btn btn-outline" style={{flex:1,padding:'10px'}}>VAZGEÇ</button>
+                <button onClick={() => selectIdea(ideaConfirm)} disabled={ideaSaving} style={{flex:1,padding:'10px',background:'#6d28d9',color:'#fff',border:'none',fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',cursor:'pointer'}}>
+                  {ideaSaving ? '...' : 'ONAYLA'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     )
   }

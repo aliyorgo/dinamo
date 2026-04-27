@@ -419,6 +419,15 @@ export default function AdminBriefDetail() {
         {!editMode && (
           <>
             {/* 1) ANA VIDEO BRIEF */}
+            {/* MÜŞTERİ SEÇİMİ */}
+            {brief.selected_ai_idea && (
+              <div style={{ background: 'linear-gradient(135deg, #f5f0ff 0%, #faf6ff 100%)', border: '1px solid #c4b5fd', padding: '16px 20px', marginBottom: '16px' }}>
+                <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#6d28d9', fontWeight: '500', marginBottom: '6px' }}>MÜŞTERİ SEÇİMİ — YARATICI YÖN</div>
+                <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a', marginBottom: '4px' }}>{brief.selected_ai_idea.title}</div>
+                <div style={{ fontSize: '12px', color: '#6b6b66', lineHeight: 1.5 }}>{brief.selected_ai_idea.description}</div>
+              </div>
+            )}
+
             <BriefInfoCard b={brief} open={briefOpen} toggle={() => setBriefOpen(!briefOpen)} label="ANA VİDEO BRIEF" />
 
             {/* 2) CPS BRIEF'LERİ */}
