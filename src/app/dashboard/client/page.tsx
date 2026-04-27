@@ -556,7 +556,7 @@ export default function ClientDashboard() {
               {catDone.length > 0 && (
                 <div>
                   <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'var(--color-text-secondary)',marginBottom:'10px'}}>TAMAMLANAN KAMPANYALAR · {catDone.length}</div>
-                  <div className="done-grid" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'10px'}}>
+                  <div className="done-grid" style={{display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(160px, 190px))',gap:'14px',justifyContent:'start'}}>
                     {catDone.map(b => {
                       const inds = getBriefIndicators(b)
                       return (
@@ -617,7 +617,7 @@ export default function ClientDashboard() {
                 @media (max-width: 768px) {
                   .approval-grid { grid-template-columns: 1fr !important; }
                   .ai-grid { grid-template-columns: 1fr !important; }
-                  .done-grid { grid-template-columns: repeat(2, 1fr) !important; }
+                  .done-grid { grid-template-columns: repeat(2, 1fr) !important; justify-content: stretch !important; }
                 }
               `}</style>
             </div>
