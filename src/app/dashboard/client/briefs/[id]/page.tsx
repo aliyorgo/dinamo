@@ -1461,12 +1461,12 @@ function ClientBriefDetail() {
                     <div style={{fontSize:'14px',fontWeight:'600',color:'#0a0a0a',marginBottom:'16px'}}>Paket Seçin</div>
                     <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'12px'}}>
                       {[
-                        {size:3,label:'3 Varyasyon',mult:1.5,rec:false},
-                        {size:6,label:'6 Varyasyon',mult:3,rec:true},
-                        {size:10,label:'10 Varyasyon',mult:5,rec:false},
+                        {size:3,label:'3 Varyasyon',rec:false},
+                        {size:6,label:'6 Varyasyon',rec:true},
+                        {size:9,label:'9 Varyasyon',rec:false},
                       ].map(p=>{
-                        const baseCost = BASE_COSTS[brief.video_type] || 18
-                        const cost = Math.ceil(baseCost * p.mult)
+                        const perDir = Math.ceil((brief.credit_cost || 18) / 3)
+                        const cost = perDir * p.size
                         return (
                           <div key={p.size} onClick={()=>{setCpsPackage(p.size);setCpsVariations(Array.from({length:p.size},(_,i)=>({hook:'',hero:'',ton:'',tempo:'',cta:'',note:''})))}}
                             style={{padding:'20px',border:'1px solid rgba(0,0,0,0.1)',borderRadius:'8px',cursor:'pointer',textAlign:'center',transition:'all 0.15s',position:'relative'}}
@@ -1636,8 +1636,8 @@ function ClientBriefDetail() {
       {/* CPS CONFIRM MODAL */}
       {cpsConfirmModal && brief && (() => {
         const filled = cpsVariations.filter(v=>v.hook&&v.ton)
-        const baseCost = BASE_COSTS[brief.video_type] || 18
-        const totalCost = Math.ceil(baseCost * ({3:1.5,6:3,10:5} as any)[cpsPackage] || baseCost * cpsPackage * 0.5)
+        const perDirection = Math.ceil((brief.credit_cost || 18) / 3)
+        const totalCost = perDirection * cpsPackage
         return (
           <div style={{position:'fixed',inset:0,zIndex:150,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={()=>setCpsConfirmModal(false)}>
             <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.5)'}} />
