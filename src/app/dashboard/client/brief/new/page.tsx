@@ -843,14 +843,14 @@ function NewBriefPage() {
               </div>
 
               {/* 2) ÜRÜN GÖRSELİ + MARKA MATERYALLERİ — YAN YANA */}
-              <div className="step5-grid" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px',marginBottom:'16px'}}>
+              <div className="step5-grid" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px',marginBottom:'16px',alignItems:'stretch'}}>
                 {/* ÜRÜN GÖRSELİ */}
                 <div style={{background:'#fff',border:'1px solid #0a0a0a',padding:'16px 20px'}}>
                   <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'6px'}}>
                     <div className="label-caps">ÜRÜN GÖRSELİ</div>
                     <span style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'1px 5px',border:'1px solid #22c55e',color:'#22c55e'}}>BETA</span>
                   </div>
-                  <div style={{fontSize:'11px',color:'var(--color-text-tertiary)',lineHeight:'1.4',marginBottom:'10px'}}>Ürün görseliniz AI videoda baz alınır.</div>
+                  <div style={{fontSize:'11px',color:'var(--color-text-tertiary)',lineHeight:'1.4',marginBottom:'10px',minHeight:'32px'}}>AI Express ürün videosu özelliğini denemek için ürün görseli yükleyin.</div>
                   {productImageUrl ? (
                     <div style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px',border:'1px solid var(--color-border-tertiary)'}}>
                       <img src={productImageUrl} alt="Ürün" style={{width:'40px',height:'40px',objectFit:'cover',border:'1px solid var(--color-border-tertiary)'}} />
@@ -871,7 +871,7 @@ function NewBriefPage() {
                 {/* MARKA MATERYALLERİ */}
                 <div style={{background:'#fff',border:'1px solid #0a0a0a',padding:'16px 20px'}}>
                   <div className="label-caps" style={{marginBottom:'6px'}}>MARKA MATERYALLERİ</div>
-                  <div style={{fontSize:'11px',color:'var(--color-text-tertiary)',lineHeight:'1.4',marginBottom:'10px'}}>Logo, font, ses, grafik yükleyin.</div>
+                  <div style={{fontSize:'11px',color:'var(--color-text-tertiary)',lineHeight:'1.4',marginBottom:'10px',minHeight:'32px'}}>Logo, font, ses, grafik yükleyin.</div>
                   <div onClick={()=>filesRef.current?.click()} style={{border:'1px dashed #0a0a0a',padding:'18px',textAlign:'center',cursor:'pointer'}}>
                     <div style={{fontSize:'20px',color:'var(--color-text-tertiary)',marginBottom:'4px'}}>+</div>
                     <div style={{fontSize:'11px',color:'var(--color-text-secondary)'}}>Sürükle veya tıkla</div>
