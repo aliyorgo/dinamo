@@ -25,21 +25,15 @@
   --color-foreground: var(--foreground);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-background-primary: #0a0a0a;
-    --color-background-secondary: #151512;
-    --color-background-tertiary: #1f1f1b;
-    --color-text-primary: #ffffff;
-    --color-text-secondary: #a0a09a;
-    --color-text-tertiary: #6b6b66;
-    --color-border-primary: #ffffff;
-    --color-border-secondary: #a0a09a;
-    --color-border-tertiary: #2a2a25;
+:root { color-scheme: light !important; }
+html { color-scheme: light !important; }
 
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px white inset !important;
+  -webkit-text-fill-color: #0a0a0a !important;
 }
 
 /* ═══════ BASE RESET ═══════ */
