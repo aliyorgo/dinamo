@@ -202,7 +202,7 @@ export default function ClientDashboard() {
 
     // AI Express unviewed
     const aiKids = aiChildrenMap[b.root_campaign_id] || aiChildrenMap[b.id] || []
-    const aiUnviewed = aiKids.filter((k: any) => k.ai_video_url && !k.ai_express_viewed_at)
+    const aiUnviewed = aiKids.filter((k: any) => k.ai_video_url && !k.ai_express_viewed_at && k.ai_video_status !== 'failed' && k.ai_video_status !== 'timeout')
     if (aiUnviewed.length > 0) return 'ai_ready'
 
     // "Done" = ana video delivered + all CPS delivered
@@ -233,7 +233,7 @@ export default function ClientDashboard() {
   // AI Express unviewed for cards
   const aiExpressReady: { parent: any; children: any[] }[] = []
   catAiReady.forEach(b => {
-    const kids = (aiChildrenMap[b.root_campaign_id] || aiChildrenMap[b.id] || []).filter((k: any) => k.ai_video_url && !k.ai_express_viewed_at)
+    const kids = (aiChildrenMap[b.root_campaign_id] || aiChildrenMap[b.id] || []).filter((k: any) => k.ai_video_url && !k.ai_express_viewed_at && k.ai_video_status !== 'failed' && k.ai_video_status !== 'timeout')
     if (kids.length > 0) aiExpressReady.push({ parent: b, children: kids })
   })
   const aiExpressCount = aiExpressReady.reduce((s, r) => s + r.children.length, 0)
