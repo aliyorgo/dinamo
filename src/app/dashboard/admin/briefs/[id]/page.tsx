@@ -288,19 +288,23 @@ export default function AdminBriefDetail() {
 
   const clientRevisions = questions.filter(q => q.question.startsWith('REVİZYON:'))
   const visibleQ = questions.filter(q => !q.question.startsWith('REVİZYON:') && !q.question.startsWith('İÇ REVİZYON:'))
+  function getDateStr(date: Date): string {
+    return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`
+  }
+
   function checkCreatorUnavail(creatorId: string): string[] {
     const c = creators.find(x => x.id === creatorId)
     if (!c || !Array.isArray(c.unavailable_dates)) return []
-    const now = new Date(); now.setHours(0,0,0,0)
-    const deadline = new Date(now.getTime() + 24 * 60 * 60 * 1000)
-    return c.unavailable_dates.filter((d: string) => { const dt = new Date(d); return dt >= now && dt <= deadline })
+    const today = getDateStr(new Date())
+    const tomorrow = getDateStr(new Date(Date.now() + 86400000))
+    return c.unavailable_dates.filter((d: string) => d === today || d === tomorrow)
   }
 
   function getCreatorUnavailLabel(c: any): string {
     if (!Array.isArray(c.unavailable_dates) || c.unavailable_dates.length === 0) return ''
-    const now = new Date(); now.setHours(0,0,0,0)
-    const deadline = new Date(now.getTime() + 24 * 60 * 60 * 1000)
-    const hits = c.unavailable_dates.filter((d: string) => { const dt = new Date(d); return dt >= now && dt <= deadline })
+    const today = getDateStr(new Date())
+    const tomorrow = getDateStr(new Date(Date.now() + 86400000))
+    const hits = c.unavailable_dates.filter((d: string) => d === today || d === tomorrow)
     return hits.length > 0 ? ' ⚠ MÜSAİT DEĞİL' : ''
   }
 
