@@ -86,6 +86,7 @@ export default function AdminBriefDetail() {
   const [cpsRevNotes, setCpsRevNotes] = useState<Record<string,Record<string,string>>>({})
   const [cpsProducerBriefs, setCpsProducerBriefs] = useState<Record<string,any>>({})
   const [cpsReassignConfirm, setCpsReassignConfirm] = useState<string|null>(null)
+  const [unavailWarning, setUnavailWarning] = useState<{creatorName:string,dates:string[],callback:()=>void}|null>(null)
 
   useEffect(() => { loadData() }, [id])
 
@@ -242,8 +243,8 @@ export default function AdminBriefDetail() {
     await supabase.from('brief_questions').insert({ brief_id: id, question: `İÇ REVİZYON: ${note}` })
     setMsg('Revizyon talebi gönderildi.'); loadData(); setLoading(false)
   }
-  async function handleForward(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault(); setLoading(true); setMsg(''); const { data: { user } } = await supabase.auth.getUser()
+  async function doForward() {
+    setLoading(true); setMsg(''); const { data: { user } } = await supabase.auth.getUser()
     const creatorId = forwardForm.assigned_creator_id && forwardForm.assigned_creator_id.length > 10 ? forwardForm.assigned_creator_id : null
     const voiceId = forwardForm.assigned_voice_artist_id && forwardForm.assigned_voice_artist_id.length > 10 ? forwardForm.assigned_voice_artist_id : null
     await supabase.from('producer_briefs').delete().eq('brief_id', id)
@@ -251,6 +252,19 @@ export default function AdminBriefDetail() {
     if (error) { setMsg('Hata: '+error.message); setLoading(false); return }
     await supabase.from('briefs').update({ status:'in_production' }).eq('id', id)
     setMsg("Creator'a iletildi."); loadData(); setLoading(false)
+  }
+  async function handleForward(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    const cid = forwardForm.assigned_creator_id
+    if (cid && cid.length > 10) {
+      const hits = checkCreatorUnavail(cid)
+      if (hits.length > 0) {
+        const c = creators.find(x => x.id === cid)
+        setUnavailWarning({ creatorName: c?.users?.name || '', dates: hits, callback: doForward })
+        return
+      }
+    }
+    doForward()
   }
   async function handleQuestion(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault(); if (!question.trim()) return; const { data: { user } } = await supabase.auth.getUser()
@@ -274,6 +288,22 @@ export default function AdminBriefDetail() {
 
   const clientRevisions = questions.filter(q => q.question.startsWith('REVİZYON:'))
   const visibleQ = questions.filter(q => !q.question.startsWith('REVİZYON:') && !q.question.startsWith('İÇ REVİZYON:'))
+  function checkCreatorUnavail(creatorId: string): string[] {
+    const c = creators.find(x => x.id === creatorId)
+    if (!c || !Array.isArray(c.unavailable_dates)) return []
+    const now = new Date(); now.setHours(0,0,0,0)
+    const deadline = new Date(now.getTime() + 24 * 60 * 60 * 1000)
+    return c.unavailable_dates.filter((d: string) => { const dt = new Date(d); return dt >= now && dt <= deadline })
+  }
+
+  function getCreatorUnavailLabel(c: any): string {
+    if (!Array.isArray(c.unavailable_dates) || c.unavailable_dates.length === 0) return ''
+    const now = new Date(); now.setHours(0,0,0,0)
+    const deadline = new Date(now.getTime() + 24 * 60 * 60 * 1000)
+    const hits = c.unavailable_dates.filter((d: string) => { const dt = new Date(d); return dt >= now && dt <= deadline })
+    return hits.length > 0 ? ' ⚠ MÜSAİT DEĞİL' : ''
+  }
+
   const assigned = creators.find(c => c.id === forwardForm.assigned_creator_id)
   const hasSubmissions = submissions.length > 0
   // Assignment state: 'none' | 'assigned' | 'locked'
@@ -441,7 +471,7 @@ export default function AdminBriefDetail() {
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                         <select id="cps-bulk-creator" style={{ padding: '6px 10px', border: '1px solid var(--color-border-tertiary)', fontSize: '11px' }}>
                           <option value="">Creator seç...</option>
-                          {creators.map(c => <option key={c.id} value={c.id}>{c.users?.name}</option>)}
+                          {creators.map(c => <option key={c.id} value={c.id}>{c.users?.name}{getCreatorUnavailLabel(c)}</option>)}
                         </select>
                         <button onClick={() => { const sel = (document.getElementById('cps-bulk-creator') as HTMLSelectElement)?.value; if (sel) forwardAllCps(sel) }} disabled={loading} className="btn btn-outline" style={{ padding: '6px 14px', fontSize: '10px' }}>ATANMAMIŞLARA İLET ({unassigned.length})</button>
                       </div>
@@ -499,7 +529,7 @@ export default function AdminBriefDetail() {
                                       <div style={{ display: 'flex', gap: '6px' }}>
                                         <select value={cf.creator_id} onChange={e => setCpsCreatorForms(prev => ({ ...prev, [child.id]: { ...cf, creator_id: e.target.value, open: true } }))} style={{ flex: 1, padding: '6px 8px', border: '1px solid var(--color-border-tertiary)', fontSize: '11px' }}>
                                           <option value="">Seçin</option>
-                                          {creators.map(c => <option key={c.id} value={c.id}>{c.users?.name}</option>)}
+                                          {creators.map(c => <option key={c.id} value={c.id}>{c.users?.name}{getCreatorUnavailLabel(c)}</option>)}
                                         </select>
                                         <button onClick={() => forwardCpsChild(child.id)} disabled={loading || !cf.creator_id} className="btn" style={{ padding: '5px 10px', fontSize: '10px' }}>İLET</button>
                                       </div>
@@ -601,7 +631,7 @@ export default function AdminBriefDetail() {
                         <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '4px' }}>CREATOR</div>
                         <select value={forwardForm.assigned_creator_id} onChange={e => setForwardForm({ ...forwardForm, assigned_creator_id: e.target.value })} style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--color-border-tertiary)', fontSize: '12px', color: '#0a0a0a', boxSizing: 'border-box' }}>
                           <option value="">Seçin</option>
-                          {creators.map(c => <option key={c.id} value={c.id}>{c.users?.name}</option>)}
+                          {creators.map(c => <option key={c.id} value={c.id}>{c.users?.name}{getCreatorUnavailLabel(c)}</option>)}
                         </select>
                       </div>
                       {brief.voiceover_type === 'real' && (
@@ -761,6 +791,22 @@ export default function AdminBriefDetail() {
             <div style={{ display: 'flex', gap: '10px' }}>
               <button onClick={() => setShowReassignConfirm(false)} className="btn btn-outline" style={{ flex: 1, padding: '10px' }}>VAZGEÇ</button>
               <button onClick={() => { setShowReassignConfirm(false); setShowAssignForm(true); setForwardForm({ producer_note: '', assigned_creator_id: '', assigned_voice_artist_id: '' }) }} className="btn" style={{ flex: 1, padding: '10px' }}>EVET, DEĞİŞTİR</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* UNAVAILABILITY WARNING MODAL */}
+      {unavailWarning && (
+        <div onClick={() => setUnavailWarning(null)} style={{ position: 'fixed', inset: 0, zIndex: 150, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', border: '1px solid #0a0a0a', padding: '28px', width: '420px', maxWidth: '90vw' }}>
+            <div style={{ fontSize: '16px', fontWeight: '500', color: '#ef4444', marginBottom: '10px' }}>MÜSAİT DEĞİL UYARISI</div>
+            <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: 1.7, marginBottom: '24px' }}>
+              <strong>{unavailWarning.creatorName}</strong> önümüzdeki 24 saat içinde ({unavailWarning.dates.map(d => new Date(d + 'T00:00:00').toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })).join(', ')}) müsait değil. Yine de atamak istiyor musun?
+            </div>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={() => setUnavailWarning(null)} className="btn btn-outline" style={{ flex: 1, padding: '10px' }}>İPTAL</button>
+              <button onClick={() => { const cb = unavailWarning.callback; setUnavailWarning(null); cb() }} className="btn" style={{ flex: 1, padding: '10px' }}>YİNE DE ATA</button>
             </div>
           </div>
         </div>

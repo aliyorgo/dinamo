@@ -15,6 +15,8 @@ export default function CreatorProfile() {
   const [showAgreement, setShowAgreement] = useState(false)
   const [agreementChecked, setAgreementChecked] = useState(false)
   const [agreementAccepted, setAgreementAccepted] = useState(false)
+  const [unavailDates, setUnavailDates] = useState<string[]>([])
+  const [calMonth, setCalMonth] = useState(() => { const d = new Date(); return { year: d.getFullYear(), month: d.getMonth() } })
   const [agreementDate, setAgreementDate] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -28,6 +30,7 @@ export default function CreatorProfile() {
       if (!creator) { setLoading(false); return }
       setCreatorId(creator.id)
       setProfile({ phone: creator.phone || '', iban: creator.iban || '', entity_type: creator.entity_type || 'personal', tax_no: creator.tax_no || '', address: creator.address || '' })
+      setUnavailDates(Array.isArray(creator.unavailable_dates) ? creator.unavailable_dates : [])
       if (creator.agreement_accepted) { setAgreementAccepted(true); setAgreementDate(creator.agreement_accepted_at || null) }
       if (!creator.phone || !creator.iban) setMsg('Lütfen önce profilinizi tamamlayın.')
       setLoading(false)
@@ -97,6 +100,80 @@ export default function CreatorProfile() {
         </div>
         {msg && <div style={{ fontSize: '12px', color: msg.includes('Hata') ? '#ef4444' : '#22c55e', marginBottom: '12px' }}>{msg}</div>}
         <button onClick={handleSave} disabled={saving} className="btn" style={{ padding: '10px 24px' }}>{saving ? 'Kaydediliyor...' : 'Kaydet'}</button>
+      </div>
+
+      {/* MÜSAİTLİK TAKVİMİ */}
+      <div style={{ background: '#fff', border: '1px solid #e5e4db', padding: '20px 24px', marginBottom: '16px' }}>
+        <div style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '8px' }}>MÜSAİTLİK</div>
+        <div style={{ fontSize: '12px', color: '#6b6b66', lineHeight: 1.5, marginBottom: '16px' }}>Müsait olmadığın günleri işaretle. Mevcut işlerin etkilenmez, sadece yeni atamalarda görünür.</div>
+
+        {/* Calendar */}
+        {(() => {
+          const { year, month } = calMonth
+          const TR_MONTHS = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık']
+          const TR_DAYS = ['Pt','Sa','Ça','Pe','Cu','Ct','Pz']
+          const firstDay = new Date(year, month, 1)
+          const startDay = (firstDay.getDay() + 6) % 7
+          const daysInMonth = new Date(year, month + 1, 0).getDate()
+          const today = new Date(); today.setHours(0,0,0,0)
+          const tomorrow = new Date(today.getTime() + 86400000)
+          const maxDate = new Date(today.getTime() + 60 * 86400000)
+
+          async function toggleDate(dateStr: string) {
+            const next = unavailDates.includes(dateStr) ? unavailDates.filter(d => d !== dateStr) : [...unavailDates, dateStr]
+            setUnavailDates(next)
+            await supabase.from('creators').update({ unavailable_dates: next }).eq('id', creatorId)
+          }
+
+          function prevMonth() { setCalMonth(p => p.month === 0 ? { year: p.year - 1, month: 11 } : { year: p.year, month: p.month - 1 }) }
+          function nextMonth() { setCalMonth(p => p.month === 11 ? { year: p.year + 1, month: 0 } : { year: p.year, month: p.month + 1 }) }
+
+          return (
+            <>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <button onClick={prevMonth} style={{ background: 'none', border: '1px solid #e5e4db', padding: '4px 10px', cursor: 'pointer', fontSize: '12px' }}>←</button>
+                <div style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>{TR_MONTHS[month]} {year}</div>
+                <button onClick={nextMonth} style={{ background: 'none', border: '1px solid #e5e4db', padding: '4px 10px', cursor: 'pointer', fontSize: '12px' }}>→</button>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', marginBottom: '16px' }}>
+                {TR_DAYS.map(d => <div key={d} style={{ fontSize: '9px', textAlign: 'center', color: '#888', padding: '4px 0', letterSpacing: '1px' }}>{d}</div>)}
+                {Array.from({ length: startDay }).map((_, i) => <div key={'e' + i} />)}
+                {Array.from({ length: daysInMonth }).map((_, i) => {
+                  const day = i + 1
+                  const date = new Date(year, month, day)
+                  const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+                  const isPast = date < tomorrow
+                  const isFuture = date > maxDate
+                  const disabled = isPast || isFuture
+                  const selected = unavailDates.includes(dateStr)
+                  const isToday = date.getTime() === today.getTime()
+                  return (
+                    <button key={day} onClick={() => !disabled && toggleDate(dateStr)} disabled={disabled}
+                      style={{ padding: '8px 0', fontSize: '12px', fontWeight: isToday ? '600' : '400', textAlign: 'center', cursor: disabled ? 'default' : 'pointer', border: isToday ? '1px solid #0a0a0a' : '1px solid transparent', background: selected ? '#0a0a0a' : 'transparent', color: selected ? '#fff' : disabled ? '#ccc' : '#0a0a0a' }}>
+                      {day}
+                    </button>
+                  )
+                })}
+              </div>
+            </>
+          )
+        })()}
+
+        {/* Marked days list */}
+        {unavailDates.length > 0 ? (
+          <div>
+            <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '6px' }}>İŞARETLİ GÜNLER</div>
+            {[...unavailDates].sort().map(d => (
+              <div key={d} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', borderBottom: '1px solid #f0f0ee' }}>
+                <span style={{ fontSize: '12px', color: '#0a0a0a' }}>{new Date(d + 'T00:00:00').toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                <button onClick={async () => { const next = unavailDates.filter(x => x !== d); setUnavailDates(next); await supabase.from('creators').update({ unavailable_dates: next }).eq('id', creatorId) }}
+                  style={{ fontSize: '14px', color: '#888', background: 'none', border: 'none', cursor: 'pointer', padding: '0 4px' }}>×</button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>Henüz gün işaretlemedin.</div>
+        )}
       </div>
 
       <div style={{ background: '#fff', border: '1px solid #e5e4db', padding: '20px 24px' }}>

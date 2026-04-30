@@ -19,7 +19,7 @@ export default function CreatorDashboard() {
   const [loading, setLoading] = useState(true)
   const [creditRate, setCreditRate] = useState(0)
   const [customRate, setCustomRate] = useState<number | null>(null)
-  const [isAvailable, setIsAvailable] = useState(true)
+  const [unavailableDates, setUnavailableDates] = useState<string[]>([])
 
   useEffect(() => {
     async function load() {
@@ -32,7 +32,7 @@ export default function CreatorDashboard() {
       if (!creator) { setLoading(false); return }
       setCreatorId(creator.id)
       setCustomRate(creator.custom_credit_rate)
-      setIsAvailable(creator.is_available !== false)
+      setUnavailableDates(Array.isArray(creator.unavailable_dates) ? creator.unavailable_dates : [])
       // Redirect to profile if incomplete
       if (!creator.phone || !creator.iban) { router.push('/dashboard/creator/profile'); return }
       if (!creator.agreement_accepted) { router.push('/dashboard/creator/profile'); return }
@@ -52,12 +52,6 @@ export default function CreatorDashboard() {
     }
     load()
   }, [router])
-
-  async function toggleAvailable() {
-    const newVal = !isAvailable
-    setIsAvailable(newVal)
-    await supabase.from('creators').update({ is_available: newVal }).eq('id', creatorId)
-  }
 
   const rate = customRate || creditRate
   const now = Date.now()
@@ -132,10 +126,15 @@ export default function CreatorDashboard() {
                 </div>
               )}
             </div>
-            <button onClick={toggleAvailable}
-              style={{ padding: '6px 14px', fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', cursor: 'pointer', border: '1px solid', borderColor: isAvailable ? '#e5e4db' : '#ef4444', background: isAvailable ? '#fff' : 'rgba(239,68,68,0.06)', color: isAvailable ? '#888' : '#ef4444' }}>
-              {isAvailable ? 'MÜSAİT' : 'MÜSAİT DEĞİLİM'}
-            </button>
+            {(() => {
+              const today = new Date(); today.setHours(0,0,0,0)
+              const week = new Date(today.getTime() + 7 * 86400000)
+              const upcoming = unavailableDates.filter(d => { const dt = new Date(d); return dt >= today && dt <= week })
+              if (upcoming.length === 0) return null
+              const TR_MONTHS = ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara']
+              const labels = upcoming.map(d => { const dt = new Date(d); return `${dt.getDate()} ${TR_MONTHS[dt.getMonth()]}` })
+              return <div style={{ fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', color: '#ef4444' }}>MÜSAİT DEĞİL: {labels.join(', ')}</div>
+            })()}
           </div>
 
           {/* JOB LIST */}
