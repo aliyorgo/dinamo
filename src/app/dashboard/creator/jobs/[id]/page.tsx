@@ -150,7 +150,7 @@ export default function CreatorJobDetail() {
       <div style={{ padding: '24px 28px', maxWidth: '960px' }}>
         {msg && <div style={{ padding: '10px 16px', background: msg.includes('Hata') || msg.includes('bulunamadı') ? 'rgba(239,68,68,0.08)' : 'rgba(34,197,94,0.08)', border: `1px solid ${msg.includes('Hata') || msg.includes('bulunamadı') ? '#ef4444' : '#22c55e'}`, fontSize: '12px', color: '#0a0a0a', marginBottom: '16px' }}>{msg}</div>}
 
-        {/* PRODUCTION STUDIO */}
+        {/* CREATIVE STUDIO */}
         <div style={{ marginBottom: '16px' }}>
           <ProductionStudio briefId={briefId} source="creator" userRole="creator" />
         </div>
@@ -224,7 +224,7 @@ export default function CreatorJobDetail() {
         {/* ADMIN APPROVED IDEA / SCENARIO */}
         {(studioLocked || adminApproved) && (
           <div style={{ background: '#fff', border: '1px solid #22c55e', padding: '18px 22px', marginBottom: '16px' }}>
-            <div className="label-caps" style={{ color: '#22c55e', marginBottom: '12px' }}>PRODÜKSIYONDAN GELENLER</div>
+            <div className="label-caps" style={{ color: '#22c55e', marginBottom: '12px' }}>CREATIVE STUDIO'DAN GELENLER</div>
             {adminApproved && (
               <div style={{ marginBottom: '12px' }}>
                 <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a', marginBottom: '4px' }}>{adminApproved.title}</div>

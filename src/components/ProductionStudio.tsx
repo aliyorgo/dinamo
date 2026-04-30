@@ -155,7 +155,7 @@ export default function ProductionStudio({ briefId, source = 'admin', userRole =
     <>
       <style>{`.studio-btn:hover{background:#f5f4f0 !important}.studio-card:hover{border-color:#0a0a0a !important}`}</style>
       <button onClick={() => setIsOpen(true)} className="btn btn-outline" style={{ width: '100%', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-        <span style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500' }}>PRODUCTION STUDIO</span>
+        <span style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500' }}>CREATIVE STUDIO</span>
       </button>
 
       {isOpen && (
@@ -165,7 +165,7 @@ export default function ProductionStudio({ briefId, source = 'admin', userRole =
             {/* HEADER */}
             <div style={{ padding: '16px 24px', borderBottom: '1px solid #e5e4db', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
               <div>
-                <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a' }}>PRODUCTION STUDIO</div>
+                <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a' }}>CREATIVE STUDIO</div>
                 <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', marginTop: '2px' }}>{briefSummary}</div>
               </div>
               <button onClick={() => setIsOpen(false)} style={{ width: '28px', height: '28px', border: '1px solid #e5e4db', background: '#fff', color: '#0a0a0a', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
