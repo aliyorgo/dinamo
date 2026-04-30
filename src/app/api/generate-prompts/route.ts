@@ -71,20 +71,20 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 2000,
-        system: `Sen AI video/görsel üretim prompt mühendisisin. ${MODEL_INFO[model]} Yanıtın SADECE JSON olsun. Markdown code block kullanma.`,
-        messages: [{ role: 'user', content: `${rulesBlock}Bu video konsepti ve senaryosu için ${model.toUpperCase()} modeline özel, kullanıma hazır prompt yaz.
+        system: 'Sen AI video üretim prompt mühendisisin. Yanıtın SADECE JSON olsun. Markdown code block kullanma.',
+        messages: [{ role: 'user', content: `${rulesBlock}Bu video konsepti ve senaryosu için profesyonel, kullanıma hazır tek bir video prompt yaz.
 
 Konsept: ${insp.title} — ${insp.concept}
 Senaryo: ${scenarioText}
 
 Kurallar:
-- ${model}'in özelliklerine ve syntax'ına uygun ol
-- Türkçe konsept için İngilizce prompt yaz (modeller İngilizce daha iyi çalışır)
-- Sahne sayısına göre ayrı ayrı promptlar ver
-- Her prompt kullanıma hazır olsun, direkt kopyala-yapıştır
+- İngilizce yaz (AI modeller İngilizce daha iyi çalışır)
+- Tek bir paragraf prompt, sahne sahne değil bütüncül
+- Model adı belirtme, generic format
+- Kopyala-yapıştır hazır olsun
 
 Sadece JSON döndür:
-{"model":"${model}","prompts":[{"scene":1,"prompt":"kullanıma hazır prompt"}]}` }]
+{"prompt":"kullanıma hazır prompt"}` }]
       })
     })
 

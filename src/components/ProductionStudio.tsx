@@ -4,103 +4,50 @@ import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
-const MODELS = ['kling','runway','midjourney','veo','luma','nano-banana']
-
-export default function ProductionStudio({ briefId, source = 'admin', userRole = 'admin' }: { briefId: string, source?: 'admin'|'creator', userRole?: 'admin'|'producer'|'creator' }) {
+export default function ProductionStudio({ briefId, source = 'admin', userRole = 'admin' }: { briefId: string, source?: 'admin' | 'creator', userRole?: 'admin' | 'producer' | 'creator' }) {
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState('')
-  const [toast, setToast] = useState<{msg:string,type:'ok'|'err'}|null>(null)
-
-  // Brief summary
+  const [toast, setToast] = useState<{ msg: string, type: 'ok' | 'err' } | null>(null)
   const [briefSummary, setBriefSummary] = useState('')
+  const [selectedAiIdea, setSelectedAiIdea] = useState<{ title: string, description: string } | null>(null)
 
-  // Producer/Admin state
-  const [ideaTitle, setIdeaTitle] = useState('')
-  const [ideaConcept, setIdeaConcept] = useState('')
-
-  // Creator state
-  const [creatorTab, setCreatorTab] = useState<'ideas'|'scenario'>('ideas')
+  // Step state
+  const [step, setStep] = useState<1 | 2 | 3>(1)
   const [ideas, setIdeas] = useState<any[]>([])
+  const [selectedIdea, setSelectedIdea] = useState<any>(null)
   const [addingIdea, setAddingIdea] = useState(false)
   const [newTitle, setNewTitle] = useState('')
   const [newConcept, setNewConcept] = useState('')
-  const [editingId, setEditingId] = useState<string|null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState('')
   const [editConcept, setEditConcept] = useState('')
-  const [scenarioMode, setScenarioMode] = useState<'ai'|'manual'>('ai')
   const [scenarioText, setScenarioText] = useState('')
-  const [selectedModel, setSelectedModel] = useState('kling')
-  const [prompts, setPrompts] = useState<any[]>([])
-  const [copiedId, setCopiedId] = useState<string|null>(null)
-  const [producerIdea, setProducerIdea] = useState<{title:string,concept:string}|null>(null)
+  const [promptText, setPromptText] = useState('')
+  const [copiedPrompt, setCopiedPrompt] = useState(false)
 
   useEffect(() => { if (isOpen) loadData() }, [isOpen, briefId])
 
-  function showToast(msg: string, type: 'ok'|'err') {
-    setToast({ msg, type })
-    setTimeout(() => setToast(null), 3000)
-  }
+  function showToast(msg: string, type: 'ok' | 'err') { setToast({ msg, type }); setTimeout(() => setToast(null), 3000) }
 
   async function loadData() {
-    const { data: b } = await supabase.from('briefs').select('campaign_name, video_type, format').eq('id', briefId).single()
+    const { data: b } = await supabase.from('briefs').select('campaign_name, video_type, format, selected_ai_idea').eq('id', briefId).single()
     if (b) {
-      const dur: Record<string,string> = {'Bumper / Pre-roll':'6s','Story / Reels':'15s','Feed Video':'30s','Long Form':'60s'}
-      setBriefSummary(`${b.campaign_name} · ${b.video_type} · ${dur[b.video_type]||''} · ${b.format||''}`)
+      const dur: Record<string, string> = { 'Bumper / Pre-roll': '6s', 'Story / Reels': '15s', 'Feed Video': '30s', 'Long Form': '60s' }
+      setBriefSummary(`${b.campaign_name} · ${b.video_type} · ${dur[b.video_type] || ''} · ${b.format || ''}`)
+      if (b.selected_ai_idea) { setSelectedAiIdea(b.selected_ai_idea); setStep(2) }
     }
-
-    const { data: pb } = await supabase.from('producer_briefs').select('producer_idea, producer_idea_sent').eq('brief_id', briefId).maybeSingle()
-
-    if (userRole === 'producer' || userRole === 'admin') {
-      if (pb?.producer_idea) {
-        try {
-          const parsed = JSON.parse(pb.producer_idea)
-          setIdeaTitle(parsed.title || '')
-          setIdeaConcept(parsed.concept || '')
-        } catch { setIdeaTitle(''); setIdeaConcept(pb.producer_idea) }
-      }
-    }
-
-    if (userRole === 'creator') {
-      if (pb?.producer_idea_sent && pb?.producer_idea) {
-        try { setProducerIdea(JSON.parse(pb.producer_idea)) } catch { setProducerIdea({ title: '', concept: pb.producer_idea }) }
-      }
-      const { data: insps } = await supabase.from('brief_inspirations').select('*').eq('brief_id', briefId).eq('source', 'creator').order('created_at', { ascending: false })
-      setIdeas(insps || [])
-      // Load scenario
-      const { data: scenInsp } = await supabase.from('brief_inspirations').select('scenario').eq('brief_id', briefId).eq('source', 'creator').not('scenario', 'is', null).order('created_at', { ascending: false }).limit(1)
-      if (scenInsp?.[0]?.scenario) setScenarioText(typeof scenInsp[0].scenario === 'string' ? scenInsp[0].scenario : JSON.stringify(scenInsp[0].scenario))
-    }
+    const { data: insps } = await supabase.from('brief_inspirations').select('*').eq('brief_id', briefId).eq('source', source === 'admin' ? 'admin' : 'creator').order('created_at', { ascending: false })
+    setIdeas(insps || [])
+    // Load saved scenario
+    const { data: scenInsp } = await supabase.from('brief_inspirations').select('scenario').eq('brief_id', briefId).not('scenario', 'is', null).order('created_at', { ascending: false }).limit(1)
+    if (scenInsp?.[0]?.scenario) setScenarioText(typeof scenInsp[0].scenario === 'string' ? scenInsp[0].scenario : JSON.stringify(scenInsp[0].scenario))
   }
 
-  // ─── Producer/Admin: AI generate ───
-  async function producerGenerate() {
-    setLoading('producer-ai')
+  // ─── Step 1: Ideas ───
+  async function generateIdeas() {
+    setLoading('ideas')
     const { data: { user } } = await supabase.auth.getUser()
-    const res = await fetch('/api/generate-inspirations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, user_id: user?.id, source, count: 1 }) })
-    const data = await res.json()
-    if (data.inspirations?.[0]) {
-      setIdeaTitle(data.inspirations[0].title || '')
-      setIdeaConcept(data.inspirations[0].concept || '')
-      showToast('AI fikir üretildi', 'ok')
-    } else showToast('Fikir üretilemedi', 'err')
-    setLoading('')
-  }
-
-  async function sendToCreator() {
-    if (!ideaTitle.trim() && !ideaConcept.trim()) return
-    setLoading('send')
-    const idea = JSON.stringify({ title: ideaTitle.trim(), concept: ideaConcept.trim() })
-    await supabase.from('producer_briefs').update({ producer_idea: idea, producer_idea_sent: true, producer_idea_sent_at: new Date().toISOString() }).eq('brief_id', briefId)
-    showToast('Fikir iletildi', 'ok')
-    setLoading('')
-    setTimeout(() => setIsOpen(false), 800)
-  }
-
-  // ─── Creator: ideas ───
-  async function creatorGenerate() {
-    setLoading('creator-ai')
-    const { data: { user } } = await supabase.auth.getUser()
-    const res = await fetch('/api/generate-inspirations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, user_id: user?.id, source: 'creator', count: 3 }) })
+    const res = await fetch('/api/generate-inspirations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, user_id: user?.id, source, count: 3 }) })
     const data = await res.json()
     if (data.inspirations) { showToast(`${data.inspirations.length} fikir üretildi`, 'ok'); loadData() }
     else showToast('Fikir üretilemedi', 'err')
@@ -109,50 +56,63 @@ export default function ProductionStudio({ briefId, source = 'admin', userRole =
 
   async function saveNewIdea() {
     if (!newTitle.trim()) return
-    setLoading('new-idea')
-    await supabase.from('brief_inspirations').insert({ brief_id: briefId, title: newTitle.trim(), concept: newConcept.trim(), status: 'normal', source: 'creator' })
-    setAddingIdea(false); setNewTitle(''); setNewConcept('')
-    showToast('Fikir eklendi', 'ok'); loadData()
-    setLoading('')
+    await supabase.from('brief_inspirations').insert({ brief_id: briefId, title: newTitle.trim(), concept: newConcept.trim(), status: 'normal', source })
+    setAddingIdea(false); setNewTitle(''); setNewConcept(''); showToast('Fikir eklendi', 'ok'); loadData()
   }
-
   async function saveEditIdea(id: string) {
     if (!editTitle.trim()) return
     await supabase.from('brief_inspirations').update({ title: editTitle.trim(), concept: editConcept.trim() }).eq('id', id)
     setEditingId(null); showToast('Güncellendi', 'ok'); loadData()
   }
-
   async function deleteIdea(id: string) {
     await supabase.from('brief_inspirations').delete().eq('id', id)
     showToast('Silindi', 'ok'); loadData()
   }
 
-  // ─── Creator: scenario ───
-  async function generateScenario() {
+  function selectIdea(idea: any) {
+    setSelectedIdea(idea); setStep(2)
+  }
+
+  // ─── Step 2: Scenario ───
+  async function aiWriteScenario() {
     setLoading('scenario')
-    // Find first idea to use as context, or create a placeholder inspiration
-    let inspId = ideas[0]?.id
-    if (!inspId) {
-      const { data: newInsp } = await supabase.from('brief_inspirations').insert({ brief_id: briefId, title: 'Senaryo', concept: '', status: 'normal', source: 'creator' }).select('id').single()
-      inspId = newInsp?.id
+    const inspId = selectedIdea?.id || selectedAiIdea ? null : ideas[0]?.id
+    let targetId = inspId
+    if (!targetId && selectedAiIdea) {
+      const { data: newInsp } = await supabase.from('brief_inspirations').insert({ brief_id: briefId, title: selectedAiIdea.title, concept: selectedAiIdea.description, status: 'normal', source }).select('id').single()
+      targetId = newInsp?.id; if (targetId) loadData()
     }
-    if (!inspId) { showToast('Fikir bulunamadı', 'err'); setLoading(''); return }
-    const res = await fetch('/api/generate-scenario', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ inspiration_id: inspId }) })
+    if (!targetId && selectedIdea) targetId = selectedIdea.id
+    if (!targetId) { const { data: newInsp } = await supabase.from('brief_inspirations').insert({ brief_id: briefId, title: 'Senaryo', concept: '', status: 'normal', source }).select('id').single(); targetId = newInsp?.id }
+    if (!targetId) { showToast('Fikir bulunamadı', 'err'); setLoading(''); return }
+    const res = await fetch('/api/generate-scenario', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ inspiration_id: targetId }) })
     const data = await res.json()
     if (data.scenario) { setScenarioText(data.scenario); showToast('Senaryo üretildi', 'ok') }
     else showToast('Senaryo üretilemedi', 'err')
     setLoading('')
   }
 
+  async function aiImproveScenario() {
+    if (!scenarioText.trim()) return
+    setLoading('improve')
+    const inspId = selectedIdea?.id || ideas[0]?.id
+    if (!inspId) { showToast('Fikir bulunamadı', 'err'); setLoading(''); return }
+    // Use generate-scenario with existing text as context
+    await supabase.from('brief_inspirations').update({ concept: scenarioText.trim() }).eq('id', inspId)
+    const res = await fetch('/api/generate-scenario', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ inspiration_id: inspId }) })
+    const data = await res.json()
+    if (data.scenario) { setScenarioText(data.scenario); showToast('Senaryo geliştirildi', 'ok') }
+    else showToast('Geliştirilemedi', 'err')
+    setLoading('')
+  }
+
   async function saveScenario() {
     if (!scenarioText.trim()) return
     setLoading('save-scenario')
-    // Save to the first idea, or create one
-    let inspId = ideas[0]?.id
+    let inspId = selectedIdea?.id || ideas[0]?.id
     if (!inspId) {
-      const { data: newInsp } = await supabase.from('brief_inspirations').insert({ brief_id: briefId, title: 'Senaryo', concept: '', status: 'normal', source: 'creator' }).select('id').single()
-      inspId = newInsp?.id
-      if (inspId) loadData()
+      const { data: newInsp } = await supabase.from('brief_inspirations').insert({ brief_id: briefId, title: selectedAiIdea?.title || 'Senaryo', concept: '', status: 'normal', source }).select('id').single()
+      inspId = newInsp?.id; if (inspId) loadData()
     }
     if (inspId) {
       await supabase.from('brief_inspirations').update({ scenario: scenarioText.trim(), scenario_status: 'manual' }).eq('id', inspId)
@@ -161,264 +121,177 @@ export default function ProductionStudio({ briefId, source = 'admin', userRole =
     setLoading('')
   }
 
-  // ─── Creator: prompts ───
-  async function generatePrompts() {
-    setLoading(`prompt-${selectedModel}`)
+  // ─── Step 3: Prompt (creator only) ───
+  async function generatePrompt() {
+    setLoading('prompt')
     const { data: { user } } = await supabase.auth.getUser()
-    // Need an inspiration with scenario
-    let inspId = ideas.find(i => i.scenario)?.id || ideas[0]?.id
+    const inspId = ideas.find(i => i.scenario)?.id || selectedIdea?.id || ideas[0]?.id
     if (!inspId) { showToast('Önce senaryo kaydedin', 'err'); setLoading(''); return }
-    const res = await fetch('/api/generate-prompts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ inspiration_id: inspId, model: selectedModel, user_id: user?.id }) })
+    const res = await fetch('/api/generate-prompts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ inspiration_id: inspId, model: 'generic', user_id: user?.id }) })
     const data = await res.json()
-    if (data.prompts) { setPrompts(data.prompts); showToast(`${selectedModel} promptları üretildi`, 'ok') }
-    else showToast(data.error || 'Prompt üretilemedi', 'err')
+    if (data.prompt) { setPromptText(data.prompt); showToast('Prompt üretildi', 'ok') }
+    else if (data.prompts?.[0]?.prompt) { setPromptText(data.prompts[0].prompt); showToast('Prompt üretildi', 'ok') }
+    else showToast('Prompt üretilemedi', 'err')
     setLoading('')
   }
 
-  async function loadPrompts() {
-    const inspId = ideas.find(i => i.scenario)?.id || ideas[0]?.id
-    if (!inspId) return
-    const { data } = await supabase.from('inspiration_prompts').select('*').eq('inspiration_id', inspId).eq('model', selectedModel).order('scene')
-    setPrompts(data || [])
-  }
-  useEffect(() => { if (isOpen && userRole === 'creator' && creatorTab === 'scenario') loadPrompts() }, [selectedModel, isOpen, ideas])
-
-  function copyText(text: string, id: string) {
-    navigator.clipboard.writeText(text)
-    setCopiedId(id)
-    setTimeout(() => setCopiedId(null), 1500)
-  }
-
-  const pillStyle = (active: boolean): React.CSSProperties => ({
-    padding: '6px 16px', borderRadius: '100px', fontSize: '11px', fontWeight: '500',
-    cursor: 'pointer', fontFamily: 'Inter,sans-serif', border: 'none',
-    background: active ? '#111113' : 'rgba(0,0,0,0.04)', color: active ? '#fff' : '#888',
-  })
-
-  const btnPrimary: React.CSSProperties = { padding: '10px 24px', background: '#111113', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', fontFamily: 'Inter,sans-serif', fontWeight: '500' }
-  const btnSecondary: React.CSSProperties = { padding: '10px 24px', background: '#fff', color: '#0a0a0a', border: '0.5px solid rgba(0,0,0,0.15)', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', fontFamily: 'Inter,sans-serif', fontWeight: '500' }
-  const inputStyle: React.CSSProperties = { width: '100%', fontSize: '14px', fontWeight: '500', color: '#0a0a0a', border: '0.5px solid #e0e0e0', borderRadius: '8px', padding: '8px 12px', fontFamily: 'Inter,sans-serif', outline: 'none' }
-  const textareaStyle: React.CSSProperties = { width: '100%', fontSize: '13px', color: '#0a0a0a', lineHeight: '1.7', border: '0.5px solid #e0e0e0', borderRadius: '8px', padding: '10px 12px', fontFamily: 'Inter,sans-serif', outline: 'none', resize: 'vertical' }
+  const ideaTitle = selectedAiIdea ? selectedAiIdea.title : selectedIdea?.title || ''
+  const ideaDesc = selectedAiIdea ? selectedAiIdea.description : selectedIdea?.concept || ''
+  const step1Done = !!selectedIdea || !!selectedAiIdea
+  const step2Done = !!scenarioText.trim()
 
   return (
     <>
-      <style>{`@keyframes studioPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}.studio-ta::placeholder{color:#aaa}.studio-btn:hover{background:#f5f4f0 !important}.studio-card:hover{border-color:rgba(0,0,0,0.2) !important}`}</style>
-      <button onClick={() => setIsOpen(true)}
-        onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(29,184,29,0.8)';e.currentTarget.style.background='rgba(29,184,29,0.06)'}}
-        onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(29,184,29,0.4)';e.currentTarget.style.background='#111113'}}
-        style={{ width: '100%', height: '48px', background: '#111113', border: '1px solid rgba(29,184,29,0.4)', borderRadius: '10px', cursor: 'pointer', fontFamily: 'Inter,sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', transition: 'all 0.15s' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#1db81d', animation: 'studioPulse 2s ease-in-out infinite' }} />
-          <span style={{ fontSize: '13px', fontWeight: '500', color: '#fff' }}>Prodüksiyon Stüdyosu</span>
-        </div>
-        <span style={{ fontSize: '14px', color: '#1db81d' }}>&rarr;</span>
+      <style>{`.studio-btn:hover{background:#f5f4f0 !important}.studio-card:hover{border-color:#0a0a0a !important}`}</style>
+      <button onClick={() => setIsOpen(true)} className="btn btn-outline" style={{ width: '100%', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+        <span style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500' }}>PRODUCTION STUDIO</span>
       </button>
 
       {isOpen && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)' }} onClick={() => setIsOpen(false)}>
-          <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: userRole === 'creator' ? '1060px' : '640px', height: '90vh', background: '#111113', borderRadius: '16px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.5)' }} onClick={() => setIsOpen(false)}>
+          <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '900px', maxHeight: '90vh', background: '#fff', border: '1px solid #0a0a0a', display: 'flex', flexDirection: 'column' }}>
 
-            {/* TOPBAR */}
-            <div style={{ padding: '14px 20px', borderBottom: '0.5px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <span style={{ fontSize: '16px', fontWeight: '500', color: '#fff', letterSpacing: '-0.5px' }}>
-                  dinam<span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', border: '2px solid #22c55e', position: 'relative', top: '1px' }}></span>
-                </span>
-                <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)' }}>Prodüksiyon Stüdyosu</span>
+            {/* HEADER */}
+            <div style={{ padding: '16px 24px', borderBottom: '1px solid #e5e4db', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+              <div>
+                <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a' }}>PRODUCTION STUDIO</div>
+                <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', marginTop: '2px' }}>{briefSummary}</div>
               </div>
-              <button onClick={() => setIsOpen(false)} style={{ background: 'rgba(255,255,255,0.06)', border: 'none', borderRadius: '8px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'rgba(255,255,255,0.4)', fontSize: '16px' }}>✕</button>
+              <button onClick={() => setIsOpen(false)} style={{ width: '28px', height: '28px', border: '1px solid #e5e4db', background: '#fff', color: '#0a0a0a', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
             </div>
 
             {/* TOAST */}
-            {toast && (
-              <div style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 200, padding: '10px 20px', borderRadius: '10px', fontSize: '13px', fontWeight: '500', color: '#fff', background: toast.type === 'ok' ? '#22c55e' : '#ef4444', boxShadow: '0 4px 20px rgba(0,0,0,0.15)' }}>
-                {toast.msg}
-              </div>
-            )}
+            {toast && <div style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 200, padding: '10px 20px', fontSize: '12px', fontWeight: '500', color: '#fff', background: toast.type === 'ok' ? '#22c55e' : '#ef4444' }}>{toast.msg}</div>}
 
-            {/* ═══════════ PRODUCER / ADMIN BODY ═══════════ */}
-            {(userRole === 'producer' || userRole === 'admin') && (
-              <div style={{ flex: 1, overflowY: 'auto', padding: '24px', background: '#fff', borderRadius: '0 0 16px 16px' }}>
-                <div style={{ fontSize: '12px', color: '#888', marginBottom: '20px' }}>{briefSummary}</div>
+            {/* BODY */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
 
-                <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a', marginBottom: '14px' }}>Fikir</div>
-
-                <input value={ideaTitle} onChange={e => setIdeaTitle(e.target.value)} placeholder="Başlık..."
-                  style={{ ...inputStyle, marginBottom: '10px' }} />
-                <textarea className="studio-ta" value={ideaConcept} onChange={e => setIdeaConcept(e.target.value)} placeholder="Konsepti anlat..." rows={6}
-                  style={{ ...textareaStyle, minHeight: '140px', marginBottom: '14px' }} />
-
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                  <button onClick={producerGenerate} disabled={!!loading} style={{ ...btnSecondary, opacity: loading ? 0.5 : 1 }}>
-                    {loading === 'producer-ai' ? 'Üretiliyor...' : 'AI Üret'}
-                  </button>
-                  <div style={{ flex: 1 }} />
-                  <button onClick={sendToCreator} disabled={!!loading || (!ideaTitle.trim() && !ideaConcept.trim())}
-                    style={{ padding: '10px 28px', background: '#22c55e', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', fontFamily: 'Inter,sans-serif', fontWeight: '500', opacity: loading || (!ideaTitle.trim() && !ideaConcept.trim()) ? 0.5 : 1 }}>
-                    {loading === 'send' ? 'Gönderiliyor...' : "Creator'a Gönder"}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* ═══════════ CREATOR BODY ═══════════ */}
-            {userRole === 'creator' && (
-              <div style={{ flex: 1, display: 'flex', overflow: 'hidden', borderRadius: '0 0 16px 16px' }}>
-
-                {/* LEFT PANEL */}
-                <div style={{ width: '240px', background: '#f5f4f0', borderRight: '0.5px solid rgba(0,0,0,0.08)', overflowY: 'auto', padding: '20px', flexShrink: 0 }}>
-                  <div style={{ fontSize: '12px', color: '#888', marginBottom: '16px' }}>{briefSummary}</div>
-
-                  {producerIdea && (
-                    <div style={{ border: '1.5px solid rgba(34,197,94,0.4)', borderRadius: '10px', padding: '12px', background: 'rgba(34,197,94,0.03)' }}>
-                      <div style={{ fontSize: '10px', color: '#22c55e', fontWeight: '500', textTransform: 'uppercase', letterSpacing: '0.3px', marginBottom: '8px' }}>Prodüktörden</div>
-                      {producerIdea.title && <div style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a', marginBottom: '4px' }}>{producerIdea.title}</div>}
-                      <div style={{ fontSize: '12px', color: '#555', lineHeight: 1.6 }}>{producerIdea.concept}</div>
-                    </div>
-                  )}
-                </div>
-
-                {/* RIGHT PANEL */}
-                <div style={{ flex: 1, background: '#fff', overflowY: 'auto', padding: '20px' }}>
-
-                  {/* TABS */}
-                  <div style={{ display: 'flex', gap: '4px', marginBottom: '16px' }}>
-                    <button onClick={() => setCreatorTab('ideas')} style={pillStyle(creatorTab === 'ideas')}>Fikirler</button>
-                    <button onClick={() => setCreatorTab('scenario')} style={pillStyle(creatorTab === 'scenario')}>Senaryo</button>
+              {/* ═══ STEP 1 — FİKİR ═══ */}
+              <div style={{ border: step === 1 ? '1px solid #0a0a0a' : '1px solid #e5e4db', padding: '20px', marginBottom: '16px', opacity: step === 1 ? 1 : (step1Done ? 1 : 0.5) }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: step === 1 && !selectedAiIdea ? '16px' : '0' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {step1Done && <span style={{ color: '#22c55e', fontSize: '14px' }}>✓</span>}
+                    <span style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: step === 1 ? '#0a0a0a' : 'var(--color-text-tertiary)' }}>ADIM 1 · FİKİR</span>
                   </div>
+                  {step1Done && step !== 1 && <button onClick={() => { setStep(1); setSelectedIdea(null); setSelectedAiIdea(null) }} style={{ fontSize: '10px', color: '#0a0a0a', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>DEĞİŞTİR</button>}
+                </div>
 
-                  {/* ── IDEAS TAB ── */}
-                  {creatorTab === 'ideas' && (
-                    <div>
-                      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-                        <button onClick={creatorGenerate} disabled={!!loading} style={{ ...btnPrimary, opacity: loading ? 0.5 : 1 }}>
-                          {loading === 'creator-ai' ? 'Üretiliyor...' : 'AI Üret'}
-                        </button>
-                        <button onClick={() => { setAddingIdea(true); setNewTitle(''); setNewConcept('') }} disabled={addingIdea} style={{ ...btnSecondary, opacity: addingIdea ? 0.5 : 1 }}>
-                          Manuel Ekle
-                        </button>
-                      </div>
+                {/* Customer selected idea */}
+                {selectedAiIdea && (
+                  <div style={{ marginTop: '12px', padding: '12px 16px', background: '#f5f4f0', border: '1px solid #e5e4db' }}>
+                    <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '4px' }}>MÜŞTERİ SEÇİMİ</div>
+                    <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a', marginBottom: '2px' }}>{selectedAiIdea.title}</div>
+                    <div style={{ fontSize: '12px', color: '#6b6b66', lineHeight: 1.5 }}>{selectedAiIdea.description}</div>
+                  </div>
+                )}
 
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '12px' }}>
-                        {addingIdea && (
-                          <div style={{ border: '1.5px solid #3b82f6', borderRadius: '10px', padding: '14px', background: '#fafaf8' }}>
-                            <input value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder="Fikir başlığı..." style={{ ...inputStyle, fontSize: '13px', marginBottom: '8px' }} />
-                            <textarea className="studio-ta" value={newConcept} onChange={e => setNewConcept(e.target.value)} placeholder="Konsepti anlat..." rows={3} style={{ ...textareaStyle, fontSize: '12px', marginBottom: '8px' }} />
-                            <div style={{ display: 'flex', gap: '6px' }}>
-                              <button onClick={saveNewIdea} disabled={!!loading || !newTitle.trim()} style={{ padding: '5px 12px', borderRadius: '6px', border: 'none', background: '#111113', fontSize: '11px', color: '#fff', cursor: 'pointer', fontFamily: 'Inter,sans-serif', fontWeight: '500', opacity: loading || !newTitle.trim() ? 0.5 : 1 }}>
-                                {loading === 'new-idea' ? '...' : 'Kaydet'}
-                              </button>
-                              <button onClick={() => setAddingIdea(false)} style={{ padding: '5px 12px', borderRadius: '6px', border: '0.5px solid rgba(0,0,0,0.1)', background: '#fff', fontSize: '11px', color: '#888', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>İptal</button>
-                            </div>
-                          </div>
-                        )}
+                {/* Selected idea (not customer) */}
+                {selectedIdea && !selectedAiIdea && step !== 1 && (
+                  <div style={{ marginTop: '12px', padding: '12px 16px', background: '#f5f4f0', border: '1px solid #e5e4db' }}>
+                    <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a', marginBottom: '2px' }}>{selectedIdea.title}</div>
+                    <div style={{ fontSize: '12px', color: '#6b6b66', lineHeight: 1.5 }}>{selectedIdea.concept}</div>
+                  </div>
+                )}
 
-                        {ideas.map(idea => (
-                          <div key={idea.id} className="studio-card" style={{ border: editingId === idea.id ? '1.5px solid #3b82f6' : '0.5px solid rgba(0,0,0,0.08)', borderRadius: '10px', padding: '14px', background: '#fafaf8', transition: 'border-color 0.15s' }}>
-                            {editingId === idea.id ? (
-                              <div>
-                                <input value={editTitle} onChange={e => setEditTitle(e.target.value)} style={{ ...inputStyle, fontSize: '13px', marginBottom: '8px' }} />
-                                <textarea className="studio-ta" value={editConcept} onChange={e => setEditConcept(e.target.value)} rows={3} style={{ ...textareaStyle, fontSize: '12px', marginBottom: '8px' }} />
-                                <div style={{ display: 'flex', gap: '6px' }}>
-                                  <button onClick={() => saveEditIdea(idea.id)} style={{ padding: '5px 12px', borderRadius: '6px', border: 'none', background: '#111113', fontSize: '11px', color: '#fff', cursor: 'pointer', fontFamily: 'Inter,sans-serif', fontWeight: '500' }}>Kaydet</button>
-                                  <button onClick={() => setEditingId(null)} style={{ padding: '5px 12px', borderRadius: '6px', border: '0.5px solid rgba(0,0,0,0.1)', background: '#fff', fontSize: '11px', color: '#888', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>İptal</button>
-                                </div>
-                              </div>
-                            ) : (
-                              <div>
-                                <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a', marginBottom: '4px' }}>{idea.title}</div>
-                                <div style={{ fontSize: '12px', color: '#555', lineHeight: 1.6, marginBottom: '10px' }}>{idea.concept}</div>
-                                <div style={{ display: 'flex', gap: '6px' }}>
-                                  <button onClick={() => { setEditingId(idea.id); setEditTitle(idea.title); setEditConcept(idea.concept || '') }}
-                                    className="studio-btn" style={{ padding: '4px 10px', borderRadius: '6px', border: '0.5px solid rgba(0,0,0,0.1)', background: '#fff', fontSize: '10px', color: '#555', cursor: 'pointer', fontFamily: 'Inter,sans-serif', transition: 'background 0.15s' }}>Düzenle</button>
-                                  <button onClick={() => deleteIdea(idea.id)}
-                                    className="studio-btn" style={{ padding: '4px 10px', borderRadius: '6px', border: '0.5px solid rgba(239,68,68,0.2)', background: '#fff', fontSize: '10px', color: '#ef4444', cursor: 'pointer', fontFamily: 'Inter,sans-serif', transition: 'background 0.15s' }}>Sil</button>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-
-                      {ideas.length === 0 && !addingIdea && (
-                        <div style={{ textAlign: 'center', padding: '32px 0', color: '#aaa', fontSize: '13px' }}>Henüz fikir yok. AI ile üretin veya manuel ekleyin.</div>
-                      )}
+                {/* Idea selection UI */}
+                {step === 1 && !selectedAiIdea && (
+                  <>
+                    <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+                      <button onClick={generateIdeas} disabled={!!loading} className="btn" style={{ padding: '8px 20px', opacity: loading ? 0.5 : 1 }}>{loading === 'ideas' ? 'Üretiliyor...' : 'AI FİKİR ÜRET'}</button>
+                      <button onClick={() => { setAddingIdea(true); setNewTitle(''); setNewConcept('') }} className="btn btn-outline" style={{ padding: '8px 16px' }}>MANUEL EKLE</button>
                     </div>
-                  )}
 
-                  {/* ── SCENARIO TAB ── */}
-                  {creatorTab === 'scenario' && (
-                    <div>
-                      <div style={{ display: 'flex', gap: '4px', marginBottom: '14px' }}>
-                        <button onClick={() => setScenarioMode('ai')} style={pillStyle(scenarioMode === 'ai')}>AI Üret</button>
-                        <button onClick={() => setScenarioMode('manual')} style={pillStyle(scenarioMode === 'manual')}>Manuel Yaz</button>
+                    {addingIdea && (
+                      <div style={{ border: '1px solid #0a0a0a', padding: '14px', marginBottom: '12px', background: '#fafaf7' }}>
+                        <input value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder="Başlık..." style={{ width: '100%', padding: '8px 10px', border: '1px solid #e5e4db', fontSize: '13px', marginBottom: '8px', boxSizing: 'border-box' }} />
+                        <textarea value={newConcept} onChange={e => setNewConcept(e.target.value)} placeholder="Konsept..." rows={2} style={{ width: '100%', padding: '8px 10px', border: '1px solid #e5e4db', fontSize: '12px', marginBottom: '8px', boxSizing: 'border-box', resize: 'vertical' }} />
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          <button onClick={saveNewIdea} disabled={!newTitle.trim()} className="btn" style={{ padding: '5px 12px', fontSize: '11px' }}>Kaydet</button>
+                          <button onClick={() => setAddingIdea(false)} className="btn btn-outline" style={{ padding: '5px 12px', fontSize: '11px' }}>İptal</button>
+                        </div>
                       </div>
+                    )}
 
-                      {scenarioMode === 'ai' && (
-                        <div>
-                          <button onClick={generateScenario} disabled={!!loading} style={{ ...btnPrimary, marginBottom: '14px', opacity: loading ? 0.5 : 1 }}>
-                            {loading === 'scenario' ? 'Üretiliyor...' : 'Senaryo Üret'}
-                          </button>
-                          {scenarioText && (
+                    <div className="ideas-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                      {ideas.map(idea => (
+                        <div key={idea.id} className="studio-card" style={{ border: '1px solid #e5e4db', padding: '14px', background: '#fafaf7', cursor: 'pointer', transition: 'border-color 0.15s' }}>
+                          {editingId === idea.id ? (
                             <div>
-                              <textarea className="studio-ta" value={scenarioText} onChange={e => setScenarioText(e.target.value)} rows={12}
-                                style={{ ...textareaStyle, minHeight: '200px', background: '#fff', marginBottom: '10px' }} />
-                              <button onClick={saveScenario} disabled={!!loading || !scenarioText.trim()} style={{ ...btnPrimary, opacity: loading || !scenarioText.trim() ? 0.5 : 1 }}>
-                                {loading === 'save-scenario' ? 'Kaydediliyor...' : 'Kaydet'}
-                              </button>
+                              <input value={editTitle} onChange={e => setEditTitle(e.target.value)} style={{ width: '100%', padding: '6px 8px', border: '1px solid #e5e4db', fontSize: '12px', marginBottom: '6px', boxSizing: 'border-box' }} />
+                              <textarea value={editConcept} onChange={e => setEditConcept(e.target.value)} rows={2} style={{ width: '100%', padding: '6px 8px', border: '1px solid #e5e4db', fontSize: '11px', marginBottom: '6px', boxSizing: 'border-box', resize: 'vertical' }} />
+                              <div style={{ display: 'flex', gap: '4px' }}>
+                                <button onClick={() => saveEditIdea(idea.id)} className="btn" style={{ padding: '4px 10px', fontSize: '10px' }}>Kaydet</button>
+                                <button onClick={() => setEditingId(null)} className="btn btn-outline" style={{ padding: '4px 8px', fontSize: '10px' }}>İptal</button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div>
+                              <div onClick={() => selectIdea(idea)} style={{ marginBottom: '8px' }}>
+                                <div style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a', marginBottom: '4px' }}>{idea.title}</div>
+                                <div style={{ fontSize: '11px', color: '#6b6b66', lineHeight: 1.5 }}>{idea.concept}</div>
+                              </div>
+                              <div style={{ display: 'flex', gap: '4px' }}>
+                                <button onClick={() => selectIdea(idea)} className="btn" style={{ padding: '4px 10px', fontSize: '9px' }}>SEÇ</button>
+                                <button onClick={() => { setEditingId(idea.id); setEditTitle(idea.title); setEditConcept(idea.concept || '') }} className="studio-btn" style={{ padding: '4px 8px', border: '1px solid #e5e4db', background: '#fff', fontSize: '9px', cursor: 'pointer', transition: 'background 0.15s' }}>Düzenle</button>
+                                <button onClick={() => deleteIdea(idea.id)} className="studio-btn" style={{ padding: '4px 8px', border: '1px solid rgba(239,68,68,0.3)', background: '#fff', fontSize: '9px', color: '#ef4444', cursor: 'pointer', transition: 'background 0.15s' }}>Sil</button>
+                              </div>
                             </div>
                           )}
                         </div>
-                      )}
-
-                      {scenarioMode === 'manual' && (
-                        <div>
-                          <textarea className="studio-ta" value={scenarioText} onChange={e => setScenarioText(e.target.value)} placeholder="Sahne sahne senaryo yaz..." rows={12}
-                            style={{ ...textareaStyle, minHeight: '220px', background: '#fff', marginBottom: '10px' }} />
-                          <button onClick={saveScenario} disabled={!!loading || !scenarioText.trim()} style={{ ...btnPrimary, opacity: loading || !scenarioText.trim() ? 0.5 : 1 }}>
-                            {loading === 'save-scenario' ? 'Kaydediliyor...' : 'Kaydet'}
-                          </button>
-                        </div>
-                      )}
-
-                      {/* PROMPTS SECTION */}
-                      <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '0.5px solid rgba(0,0,0,0.08)' }}>
-                        <div style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a', marginBottom: '12px' }}>Promptlar</div>
-
-                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '14px' }}>
-                          {MODELS.map(m => (
-                            <button key={m} onClick={() => setSelectedModel(m)}
-                              style={{ padding: '6px 14px', borderRadius: '100px', fontSize: '11px', fontWeight: '500', cursor: 'pointer', fontFamily: 'Inter,sans-serif', border: selectedModel === m ? '1.5px solid #3b82f6' : '1px solid rgba(0,0,0,0.1)', background: selectedModel === m ? 'rgba(59,130,246,0.06)' : '#fff', color: selectedModel === m ? '#3b82f6' : '#555', textTransform: 'capitalize' }}>
-                              {m === 'nano-banana' ? 'Nano Banana' : m}
-                            </button>
-                          ))}
-                        </div>
-
-                        <button onClick={generatePrompts} disabled={!!loading} style={{ ...btnPrimary, marginBottom: '14px', opacity: loading ? 0.5 : 1 }}>
-                          {loading === `prompt-${selectedModel}` ? 'Üretiliyor...' : `${selectedModel === 'nano-banana' ? 'Nano Banana' : selectedModel} prompt üret`}
-                        </button>
-
-                        {prompts.length > 0 && prompts.map((p, i) => (
-                          <div key={p.id || i} style={{ marginBottom: '10px', padding: '12px', background: '#0a0a0a', borderRadius: '10px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                              <span style={{ fontSize: '10px', color: '#22c55e', fontWeight: '500' }}>Sahne {p.scene}</span>
-                              <button onClick={() => copyText(p.prompt, `${p.id || i}`)}
-                                style={{ fontSize: '10px', padding: '3px 10px', borderRadius: '6px', border: '0.5px solid rgba(255,255,255,0.15)', background: 'transparent', color: copiedId === `${p.id || i}` ? '#22c55e' : 'rgba(255,255,255,0.5)', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>
-                                {copiedId === `${p.id || i}` ? 'Kopyalandı' : 'Kopyala'}
-                              </button>
-                            </div>
-                            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)', lineHeight: 1.7, fontFamily: 'monospace', wordBreak: 'break-all' }}>{p.prompt}</div>
-                          </div>
-                        ))}
-                      </div>
+                      ))}
                     </div>
-                  )}
-                </div>
+                    {ideas.length === 0 && !addingIdea && <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--color-text-tertiary)', fontSize: '12px' }}>Henüz fikir yok. AI ile üretin veya manuel ekleyin.</div>}
+                  </>
+                )}
               </div>
-            )}
+
+              {/* ═══ STEP 2 — SENARYO ═══ */}
+              <div style={{ border: step === 2 ? '1px solid #0a0a0a' : '1px solid #e5e4db', padding: '20px', marginBottom: '16px', opacity: step >= 2 ? 1 : 0.5 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: step === 2 ? '16px' : '0' }}>
+                  {step2Done && <span style={{ color: '#22c55e', fontSize: '14px' }}>✓</span>}
+                  <span style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: step === 2 ? '#0a0a0a' : 'var(--color-text-tertiary)' }}>ADIM 2 · SENARYO</span>
+                </div>
+                {step >= 2 && (
+                  <>
+                    <textarea value={scenarioText} onChange={e => setScenarioText(e.target.value)} placeholder="Senaryoyu yaz veya AI yazsın..." rows={6}
+                      style={{ width: '100%', padding: '12px', border: '1px solid #e5e4db', fontSize: '13px', color: '#0a0a0a', lineHeight: '1.7', resize: 'vertical', boxSizing: 'border-box', marginBottom: '10px' }} />
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      <button onClick={aiWriteScenario} disabled={!!loading} className="btn" style={{ padding: '8px 18px', opacity: loading ? 0.5 : 1 }}>{loading === 'scenario' ? 'Üretiliyor...' : 'AI YAZSIN'}</button>
+                      {scenarioText.trim() && <button onClick={aiImproveScenario} disabled={!!loading} className="btn btn-outline" style={{ padding: '8px 18px', opacity: loading ? 0.5 : 1 }}>{loading === 'improve' ? 'Geliştiriliyor...' : 'AI GELİŞTİR'}</button>}
+                      <button onClick={async () => { await saveScenario(); if (scenarioText.trim()) setStep(3) }} disabled={!!loading || !scenarioText.trim()} className="btn" style={{ padding: '8px 18px', marginLeft: 'auto', opacity: loading || !scenarioText.trim() ? 0.5 : 1 }}>{loading === 'save-scenario' ? 'Kaydediliyor...' : 'KAYDET'}</button>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* ═══ STEP 3 — PROMPT (creator only) ═══ */}
+              <div style={{ border: step === 3 ? '1px solid #0a0a0a' : '1px solid #e5e4db', padding: '20px', opacity: step >= 3 ? 1 : 0.5 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: step === 3 ? '16px' : '0' }}>
+                  {promptText && <span style={{ color: '#22c55e', fontSize: '14px' }}>✓</span>}
+                  <span style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: step === 3 ? '#0a0a0a' : 'var(--color-text-tertiary)' }}>ADIM 3 · PROMPT</span>
+                </div>
+                {step >= 3 && userRole === 'creator' ? (
+                  <>
+                    {promptText ? (
+                      <div style={{ background: '#0a0a0a', padding: '14px 16px', marginBottom: '10px' }}>
+                        <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)', lineHeight: 1.7, fontFamily: 'monospace', wordBreak: 'break-all' }}>{promptText}</div>
+                      </div>
+                    ) : null}
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button onClick={generatePrompt} disabled={!!loading} className="btn" style={{ padding: '8px 18px', opacity: loading ? 0.5 : 1 }}>{loading === 'prompt' ? 'Üretiliyor...' : 'PROMPT YAZ'}</button>
+                      {promptText && <button onClick={() => { navigator.clipboard.writeText(promptText); setCopiedPrompt(true); setTimeout(() => setCopiedPrompt(false), 1500) }} className="btn btn-outline" style={{ padding: '8px 18px' }}>{copiedPrompt ? 'KOPYALANDİ ✓' : 'KOPYALA'}</button>}
+                    </div>
+                  </>
+                ) : step >= 3 ? (
+                  <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--color-text-tertiary)' }}>Bu adım creator için ayrılmıştır.</div>
+                ) : null}
+              </div>
+            </div>
           </div>
         </div>
       )}
+
+      <style>{`@media (max-width: 768px) { .ideas-grid { grid-template-columns: 1fr !important; } }`}</style>
     </>
   )
 }

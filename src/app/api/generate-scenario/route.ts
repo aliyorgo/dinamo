@@ -38,16 +38,20 @@ export async function POST(request: Request) {
     body: JSON.stringify({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 2000,
-      system: 'Sen profesyonel bir video prodüksiyon yönetmenisin. AI video üretim araçlarına hakimsin. Türkçe yaz.',
-      messages: [{ role: 'user', content: `${rulesBlock}Bu video konseptini sahne sahne profesyonel senaryo formatına dönüştür. ${insp.briefs?.video_type} için toplam ${dur} saniye.
+      system: 'Sen profesyonel bir video prodüksiyon yönetmenisin. Türkçe yaz. Sade ve net dil kullan.',
+      messages: [{ role: 'user', content: `${rulesBlock}Bu video konseptini kısa bir senaryo paragrafına dönüştür. ${insp.briefs?.video_type} için toplam ${dur} saniye.
 
 Konsept: ${insp.title} — ${insp.concept}
-Sahneler: ${scenes}
 Mesaj: ${insp.briefs?.message || ''}
 CTA: ${insp.briefs?.cta || ''}
 ${context ? `\nMÜŞTERİ BAĞLAMI:\n${context}` : ''}
 
-Her sahne için: sahne numarası, süre, detaylı görsel tanım (AI ile üretilebilir şekilde), ses/müzik, varsa seslendirme metni.` }]
+KURALLAR:
+- 1 paragraf, 4-6 cümle
+- Müzik, ton, ışık gibi teknik detay YAZMA
+- Sadece sahne akışı: ne çekiyoruz, nasıl çekiyoruz
+- Düz dil, edebi olma
+- Sahne numarası veya zaman kodu YAZMA` }]
     })
   })
 
