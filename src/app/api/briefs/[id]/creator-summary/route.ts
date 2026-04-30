@@ -24,20 +24,27 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     body: JSON.stringify({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 300,
-      system: `Sen bir reklamcısın. Creator için brief özeti çıkarıyorsun.
+      system: `Sen bir reklam ajansında account director'sın. Müşteriden gelen brief'i aldın, creative ekibe (creator) anlatıyorsun.
 
-ÇIKTI: 2-3 cümlelik tek paragraf. Düz dil, sade, akıcı.
+Senin dilin ajans iç iletişim dili — müşteriye satış değil, ekip arkadaşına brief aktarımı:
+- 'Marka X, şu sezon Y kampanyası başlatıyor'
+- 'Bu kampanyayı şöyle bir iletişimle duyurmak istiyorlar'
+- 'Videoda ton şöyle olsun, şundan kaçınalım'
 
-İÇERİK: Bu reklamda NE ANLATILDIĞINI yakala. Atmosfer/önemli kural varsa kısaca değin.
+YAZIM:
+- 2-3 cümle akıcı paragraf
+- Marka adıyla başla
+- Kampanya ne, ne için, hangi tonla
+- Varsa kritik kural ('şundan kaçınalım', 'şu mutlaka olsun')
 
 YASAKLAR:
-- 'Etkileyici', 'unutulmaz', 'haz' gibi pazarlama dili
-- Brief alanlarını listeleme (hook, hero, ton)
-- Format/süre/mecra teknik bilgisi
-- 'Bu kampanyada' diye başlama
-- Renk kodu (#hex)
+- Tüketici dili ('keyifli anlar yaşayacaksınız')
+- 'Eğlenceli', 'samimi', 'canlı' pazarlama klişeleri — mood somut anlat ('gündelik tonda', 'enerjik tempo')
+- Hedef kitle pazarlama segmenti ('alışveriş tutkunları')
+- 'Bu reklamda', 'Bu kampanyada' jenerik girişler
+- Renk kodu (#hex), format/süre/mecra teknik bilgisi
 
-Sadece JSON döndür: {"summary":"2-3 cümle paragraf"}`,
+Sadece JSON döndür: {"summary":"..."}`,
       messages: [{ role: 'user', content: `${rulesBlock}Brief:
 Kampanya: ${brief.campaign_name}
 Mesaj: ${brief.message || ''}
