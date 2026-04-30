@@ -19,6 +19,7 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
   const [ready, setReady] = useState(false)
   const [userName, setUserName] = useState('')
   const [creditRate, setCreditRate] = useState(0)
+  const [stats, setStats] = useState<{totalCredits:number,totalEarned:number,thisMonthEarned:number,netEarned:number,pending:number,paid:number}|null>(null)
 
   useEffect(() => {
     async function check() {
@@ -29,6 +30,22 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
       setUserName(ud.name || '')
       const { data: st } = await supabase.from('admin_settings').select('value').eq('key', 'creator_credit_rate').maybeSingle()
       if (st) setCreditRate(Number(st.value) || 0)
+      // Stats
+      const { data: creator } = await supabase.from('creators').select('id, entity_type').eq('user_id', user.id).maybeSingle()
+      if (creator) {
+        const { data: earnings } = await supabase.from('creator_earnings').select('credits, tl_amount, paid, created_at').eq('creator_id', creator.id)
+        const { data: payments } = await supabase.from('creator_payments').select('amount_tl').eq('creator_id', creator.id)
+        const isIndiv = creator.entity_type === 'personal' || !creator.entity_type
+        const taxRate = isIndiv ? 0.25 : 0
+        const totalCredits = (earnings || []).reduce((s, e) => s + e.credits, 0)
+        const totalEarned = (earnings || []).reduce((s, e) => s + Number(e.tl_amount), 0)
+        const now = new Date()
+        const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
+        const thisMonthEarned = (earnings || []).filter(e => e.created_at >= monthStart).reduce((s, e) => s + Number(e.tl_amount), 0)
+        const pending = (earnings || []).filter(e => !e.paid).reduce((s, e) => s + Number(e.tl_amount), 0)
+        const paid = (payments || []).reduce((s, p) => s + Number(p.amount_tl), 0)
+        if (totalCredits > 0) setStats({ totalCredits, totalEarned, thisMonthEarned, netEarned: totalEarned - Math.round(totalEarned * taxRate), pending: pending - Math.round(pending * taxRate), paid })
+      }
       setReady(true)
     }
     check()
@@ -58,9 +75,22 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
 
         {creditRate > 0 && (
           <div style={{ padding: '12px 16px', borderBottom: '0.5px solid rgba(255,255,255,0.07)' }}>
-            <div style={{ padding: '10px 12px', border: '1px solid rgba(34,197,94,0.2)', background: 'rgba(34,197,94,0.05)' }}>
-              <div style={{ fontSize: '9px', color: 'rgba(34,197,94,0.7)', letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: '4px' }}>KREDİ BAŞINA KAZANÇ</div>
-              <div style={{ fontSize: '22px', fontWeight: '300', color: '#22c55e', letterSpacing: '-1px' }}>{creditRate.toLocaleString('tr-TR')} <span style={{ fontSize: '12px' }}>₺</span></div>
+            <div style={{ padding: '10px 12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)' }}>
+              {[
+                { label: 'KREDİ KURU', value: `1 kr → ${creditRate.toLocaleString('tr-TR')} ₺` },
+                ...(stats ? [
+                  { label: 'TOPLAM', value: `${stats.totalCredits} kr · ${stats.totalEarned.toLocaleString('tr-TR')} ₺` },
+                  { label: 'BU AY', value: `${stats.thisMonthEarned.toLocaleString('tr-TR')} ₺` },
+                  { label: 'NET', value: `${stats.netEarned.toLocaleString('tr-TR')} ₺` },
+                  { label: 'BEKLEYEN', value: `${stats.pending.toLocaleString('tr-TR')} ₺` },
+                  { label: 'ÖDENEN', value: `${stats.paid.toLocaleString('tr-TR')} ₺` },
+                ] : []),
+              ].map(row => (
+                <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0' }}>
+                  <span style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)' }}>{row.label}</span>
+                  <span style={{ fontSize: '11px', color: '#fff', fontVariantNumeric: 'tabular-nums' }}>{row.value}</span>
+                </div>
+              ))}
             </div>
           </div>
         )}
