@@ -88,14 +88,14 @@ Kurallar:
   30sn: 4-6 shot
   60sn: 6-10 shot
   90sn+: 8-12 shot
-- Her shot için: Shot N (Xsn-Ysn): [açı, hareket, sahne]
+- Her shot kendi başına model'e gönderilebilecek bağımsız prompt olmalı (camera angle, movement, scene kendi içinde)
 - Toplam süre brief süresine eşit olsun
 - Her shot teknik kamera dili kullan (close-up, medium shot, tracking, dolly, pan)
 - Model adı belirtme, generic format
-- Kopyala-yapıştır hazır olsun
+- global_notes: brand guidelines, technical specs, production notes (kısa)
 
 Sadece JSON döndür:
-{"prompt":"kullanıma hazır multishot prompt"}` }]
+{"shots":[{"shot_number":1,"duration":"0-5s","prompt":"..."}],"global_notes":{"brand_guidelines":"...","technical_specs":"...","production_notes":"..."}}` }]
       })
     })
 
@@ -129,7 +129,12 @@ Sadece JSON döndür:
       }
     }
 
-    // Handle both new format { prompt: "..." } and legacy { prompts: [...] }
+    // New structured format: { shots: [...], global_notes: {...} }
+    if (parsed?.shots && Array.isArray(parsed.shots)) {
+      return NextResponse.json({ shots: parsed.shots, global_notes: parsed.global_notes || {} })
+    }
+
+    // Legacy single prompt format
     if (parsed?.prompt && typeof parsed.prompt === 'string') {
       return NextResponse.json({ prompt: parsed.prompt })
     }

@@ -23,7 +23,9 @@ export default function ProductionStudio({ briefId, source = 'admin', userRole =
   const [editConcept, setEditConcept] = useState('')
   const [scenarioText, setScenarioText] = useState('')
   const [promptText, setPromptText] = useState('')
-  const [copiedPrompt, setCopiedPrompt] = useState(false)
+  const [promptShots, setPromptShots] = useState<{shot_number:number,duration:string,prompt:string}[]>([])
+  const [promptNotes, setPromptNotes] = useState<{brand_guidelines?:string,technical_specs?:string,production_notes?:string}>({})
+  const [copiedPrompt, setCopiedPrompt] = useState<string|null>(null)
   const [scenarioSaved, setScenarioSaved] = useState(false)
   const [scenarioEditing, setScenarioEditing] = useState(false)
 
@@ -137,8 +139,9 @@ export default function ProductionStudio({ briefId, source = 'admin', userRole =
     if (!inspId) { showToast('Önce senaryo kaydedin', 'err'); setLoading(''); return }
     const res = await fetch('/api/generate-prompts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ inspiration_id: inspId, model: 'generic', user_id: user?.id }) })
     const data = await res.json()
-    if (data.prompt) { setPromptText(data.prompt); showToast('Prompt üretildi', 'ok') }
-    else if (data.prompts?.[0]?.prompt) { setPromptText(data.prompts[0].prompt); showToast('Prompt üretildi', 'ok') }
+    if (data.shots && Array.isArray(data.shots)) {
+      setPromptShots(data.shots); setPromptNotes(data.global_notes || {}); setPromptText(''); showToast(`${data.shots.length} shot üretildi`, 'ok')
+    } else if (data.prompt) { setPromptText(data.prompt); setPromptShots([]); showToast('Prompt üretildi', 'ok') }
     else showToast('Prompt üretilemedi', 'err')
     setLoading('')
   }
@@ -291,14 +294,41 @@ export default function ProductionStudio({ briefId, source = 'admin', userRole =
                 {step >= 3 && userRole === 'creator' ? (
                   <>
                     <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', lineHeight: 1.5, marginBottom: '12px' }}>AI modeline göndermek için prompt üretebilirsin. İstemiyorsan bu adımı atlayıp çıkabilirsin.</div>
-                    {promptText && (
+
+                    {/* Shot cards */}
+                    {promptShots.length > 0 && (
+                      <div style={{ marginBottom: '12px' }}>
+                        <button onClick={() => { const all = promptShots.map(s => `Shot ${s.shot_number} (${s.duration}):\n${s.prompt}`).join('\n\n'); navigator.clipboard.writeText(all); setCopiedPrompt('all'); setTimeout(() => setCopiedPrompt(null), 1500) }} className="btn btn-outline" style={{ padding: '6px 14px', fontSize: '10px', marginBottom: '10px' }}>{copiedPrompt === 'all' ? 'KOPYALANDİ ✓' : 'TÜM SHOT\'LARI KOPYALA'}</button>
+                        {promptShots.map((s, i) => (
+                          <div key={i} style={{ border: '1px solid #e5e4db', padding: '14px 18px', marginBottom: '8px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                              <span style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: '#0a0a0a' }}>SHOT {s.shot_number} · {s.duration}</span>
+                              <button onClick={() => { navigator.clipboard.writeText(s.prompt); setCopiedPrompt(`s${i}`); setTimeout(() => setCopiedPrompt(null), 1500) }} className="btn btn-outline" style={{ padding: '3px 10px', fontSize: '9px' }}>{copiedPrompt === `s${i}` ? '✓' : 'KOPYALA'}</button>
+                            </div>
+                            <div style={{ fontSize: '12px', color: '#0a0a0a', lineHeight: 1.6, fontFamily: 'monospace', whiteSpace: 'pre-wrap' }}>{s.prompt}</div>
+                          </div>
+                        ))}
+                        {(promptNotes.brand_guidelines || promptNotes.technical_specs || promptNotes.production_notes) && (
+                          <div style={{ border: '1px solid #e5e4db', padding: '14px 18px', background: '#fafaf7' }}>
+                            <div style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: 'var(--color-text-tertiary)', marginBottom: '8px' }}>GENEL NOTLAR</div>
+                            {promptNotes.brand_guidelines && <div style={{ fontSize: '11px', color: '#0a0a0a', lineHeight: 1.5, marginBottom: '6px' }}><strong>Brand:</strong> {promptNotes.brand_guidelines}</div>}
+                            {promptNotes.technical_specs && <div style={{ fontSize: '11px', color: '#0a0a0a', lineHeight: 1.5, marginBottom: '6px' }}><strong>Teknik:</strong> {promptNotes.technical_specs}</div>}
+                            {promptNotes.production_notes && <div style={{ fontSize: '11px', color: '#0a0a0a', lineHeight: 1.5 }}><strong>Üretim:</strong> {promptNotes.production_notes}</div>}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Legacy single prompt fallback */}
+                    {promptText && promptShots.length === 0 && (
                       <div style={{ background: '#0a0a0a', padding: '14px 16px', marginBottom: '10px' }}>
                         <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)', lineHeight: 1.7, fontFamily: 'monospace', wordBreak: 'break-all' }}>{promptText}</div>
                       </div>
                     )}
+
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <button onClick={generatePrompt} disabled={!!loading} className="btn btn-outline" style={{ padding: '8px 18px', opacity: loading ? 0.5 : 1 }}>{loading === 'prompt' ? 'Üretiliyor...' : 'PROMPT ÜRET'}</button>
-                      {promptText && <button onClick={() => { navigator.clipboard.writeText(promptText); setCopiedPrompt(true); setTimeout(() => setCopiedPrompt(false), 1500) }} className="btn btn-outline" style={{ padding: '8px 18px' }}>{copiedPrompt ? 'KOPYALANDİ ✓' : 'KOPYALA'}</button>}
+                      <button onClick={generatePrompt} disabled={!!loading} className="btn btn-outline" style={{ padding: '8px 18px', opacity: loading ? 0.5 : 1 }}>{loading === 'prompt' ? 'Üretiliyor...' : promptShots.length > 0 || promptText ? 'YENİDEN ÜRET' : 'PROMPT ÜRET'}</button>
+                      {promptText && promptShots.length === 0 && <button onClick={() => { navigator.clipboard.writeText(promptText); setCopiedPrompt('legacy'); setTimeout(() => setCopiedPrompt(null), 1500) }} className="btn btn-outline" style={{ padding: '8px 18px' }}>{copiedPrompt === 'legacy' ? 'KOPYALANDİ ✓' : 'KOPYALA'}</button>}
                       <button onClick={() => setIsOpen(false)} className="btn" style={{ padding: '8px 18px', marginLeft: 'auto' }}>ÇIK / KAYDET</button>
                     </div>
                   </>
