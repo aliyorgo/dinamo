@@ -26,6 +26,7 @@ export default function CreatorJobDetail() {
   const [briefOpen, setBriefOpen] = useState(true)
   const [newQuestion, setNewQuestion] = useState('')
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const [playerUrl, setPlayerUrl] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
 
@@ -330,7 +331,7 @@ export default function CreatorJobDetail() {
                   {s.producer_notes && <div style={{ fontSize: '11px', color: '#ef4444', marginTop: '4px' }}>Not: {s.producer_notes}</div>}
                 </div>
                 <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
-                  <a href={s.video_url} target="_blank" className="btn btn-outline" style={{ padding: '4px 10px', fontSize: '9px', textDecoration: 'none' }}>OYNAT ↗</a>
+                  <button onClick={() => setPlayerUrl(s.video_url)} className="btn btn-outline" style={{ padding: '4px 10px', fontSize: '9px' }}>OYNAT</button>
                   {canDelete && <button onClick={() => setDeleteConfirm(s.id)} className="btn btn-outline" style={{ padding: '4px 10px', fontSize: '9px', color: '#ef4444', borderColor: 'rgba(239,68,68,0.3)' }}>× SİL</button>}
                 </div>
               </div>
@@ -365,6 +366,16 @@ export default function CreatorJobDetail() {
               <button onClick={() => setDeleteConfirm(null)} className="btn btn-outline" style={{ flex: 1, padding: '10px' }}>İPTAL</button>
               <button onClick={() => deleteSubmission(deleteConfirm)} className="btn" style={{ flex: 1, padding: '10px', background: '#ef4444' }}>SİL</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* VIDEO PLAYER MODAL */}
+      {playerUrl && (
+        <div onClick={() => setPlayerUrl(null)} onKeyDown={e => { if (e.key === 'Escape') setPlayerUrl(null) }} tabIndex={0} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <button onClick={() => setPlayerUrl(null)} style={{ position: 'absolute', top: '20px', right: '20px', width: '32px', height: '32px', border: '1px solid rgba(255,255,255,0.3)', background: 'transparent', color: '#fff', fontSize: '18px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 201 }}>×</button>
+          <div onClick={e => e.stopPropagation()} style={{ maxWidth: '90vw', maxHeight: '90vh' }}>
+            <video controls autoPlay playsInline preload="metadata" style={{ maxWidth: '90vw', maxHeight: '90vh', display: 'block' }}><source src={playerUrl} /></video>
           </div>
         </div>
       )}
