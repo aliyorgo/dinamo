@@ -14,7 +14,7 @@ export async function GET() {
 export async function POST(request: Request) {
   console.log('[inspirations] POST request received')
 
-  const { brief_id, user_id, count, source } = await request.json()
+  const { brief_id, user_id, count, source, existing_ideas, target_levels } = await request.json()
   console.log('[inspirations] Params:', { brief_id, user_id, count, source })
 
   const apiKey = process.env.ANTHROPIC_API_KEY
@@ -57,7 +57,9 @@ Her konsept için SADECE şunları ver:
 - title: Başlık (max 5 kelime)
 - concept: Videonun ana fikrini anlatan 2-3 cümle. Kısa ve öz.
 
-3 fikir birbirinden farklı yaklaşımda olsun: biri sade ve minimal, biri orta düzey, biri yaratıcı ve sinematik. Türkiye pazarına uygun ol.
+${target_levels && Array.isArray(target_levels) && target_levels.length > 0 ? `Şu seviyelerde ${numIdeas} fikir üret: ${target_levels.join(', ')}.` : `${numIdeas} fikir birbirinden farklı yaklaşımda olsun: biri sade ve minimal, biri orta düzey, biri yaratıcı ve sinematik.`} Türkiye pazarına uygun ol.
+${existing_ideas && Array.isArray(existing_ideas) && existing_ideas.length > 0 ? `\nMevcut korunmuş fikirler (bunlardan FARKLI üret, tekrarlama):\n${existing_ideas.map((e: any) => `- ${e.title}: ${e.concept}`).join('\n')}` : ''}
+Her fikir için level belirt: "minimal", "orta" veya "sinematik".
 
 Süre bazlı derinlik:
 - 10-15sn: kısa ve direkt fikir, tek konsept
@@ -77,7 +79,7 @@ BUNUN YERİNE reklamcı insight'ı ile yaz:
 - Atmosfer/mekan/tarz kavramsal seviye
 
 Sadece JSON döndür:
-{"inspirations": [{"title":"başlık","concept":"2-3 cümle açıklama"}]}`
+{"inspirations": [{"title":"başlık","concept":"2-3 cümle açıklama","level":"minimal|orta|sinematik"}]}`
 
   console.log('[inspirations] Sending to Anthropic API...')
   let res: Response
@@ -158,6 +160,7 @@ Sadece JSON döndür:
       is_visible_to_creator: true,
       source: source || 'admin',
       status: 'normal',
+      ...(insp.level ? { level: insp.level } : {}),
     }
     console.log('[inspirations] Inserting:', insp.title)
     const { data: inserted, error: insErr } = await supabase.from('brief_inspirations').insert(insertData).select('*').single()

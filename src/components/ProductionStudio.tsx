@@ -48,18 +48,35 @@ export default function ProductionStudio({ briefId, source = 'admin', userRole =
   }
 
   // ─── Step 1: Ideas ───
+  const LEVELS = ['minimal', 'orta', 'sinematik'] as const
+  const aiIdeas = ideas.filter(i => i.generated_by || i.status === 'normal')
+  const manualIdeas = ideas.filter(i => !i.generated_by && i.status !== 'normal')
+  // Build 3 slots from AI ideas, maintaining level order
+  const slots: (any | null)[] = LEVELS.map(level => aiIdeas.find(i => i.level === level) || null)
+  // Fill remaining nulls with unleveled AI ideas
+  const unleveled = aiIdeas.filter(i => !i.level)
+  slots.forEach((s, idx) => { if (!s && unleveled.length > 0) slots[idx] = unleveled.shift()! })
+
   async function generateIdeas() {
     setLoading('ideas')
-    // Delete old AI-generated ideas (keep manual ones)
-    const aiIdeas = ideas.filter(i => i.generated_by || i.status === 'normal')
-    if (aiIdeas.length > 0) {
-      await supabase.from('brief_inspirations').delete().in('id', aiIdeas.map(i => i.id))
-    }
-    setIdeas(ideas.filter(i => !aiIdeas.find(a => a.id === i.id)))
+    // Delete all AI ideas
+    if (aiIdeas.length > 0) await supabase.from('brief_inspirations').delete().in('id', aiIdeas.map(i => i.id))
+    setIdeas(manualIdeas)
     const { data: { user } } = await supabase.auth.getUser()
-    const res = await fetch('/api/generate-inspirations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, user_id: user?.id, source, count: 3 }) })
+    const res = await fetch('/api/generate-inspirations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, user_id: user?.id, source, count: 3, target_levels: ['minimal', 'orta', 'sinematik'] }) })
     const data = await res.json()
     if (data.inspirations) { showToast(`${data.inspirations.length} fikir üretildi`, 'ok'); loadData() }
+    else showToast('Fikir üretilemedi', 'err')
+    setLoading('')
+  }
+
+  async function fillSlot(level: string) {
+    setLoading(`slot-${level}`)
+    const existing = aiIdeas.filter(i => i.id).map(i => ({ title: i.title, concept: i.concept }))
+    const { data: { user } } = await supabase.auth.getUser()
+    const res = await fetch('/api/generate-inspirations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, user_id: user?.id, source, count: 1, existing_ideas: existing, target_levels: [level] }) })
+    const data = await res.json()
+    if (data.inspirations) { showToast('Fikir üretildi', 'ok'); loadData() }
     else showToast('Fikir üretilemedi', 'err')
     setLoading('')
   }
@@ -223,35 +240,70 @@ export default function ProductionStudio({ briefId, source = 'admin', userRole =
                       </div>
                     )}
 
-                    <div className="ideas-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
-                      {ideas.map(idea => (
-                        <div key={idea.id} className="studio-card" style={{ border: '1px solid #e5e4db', padding: '14px', background: '#fafaf7', cursor: 'pointer', transition: 'border-color 0.15s' }}>
-                          {editingId === idea.id ? (
-                            <div>
-                              <input value={editTitle} onChange={e => setEditTitle(e.target.value)} style={{ width: '100%', padding: '6px 8px', border: '1px solid #e5e4db', fontSize: '12px', marginBottom: '6px', boxSizing: 'border-box' }} />
-                              <textarea value={editConcept} onChange={e => setEditConcept(e.target.value)} rows={2} style={{ width: '100%', padding: '6px 8px', border: '1px solid #e5e4db', fontSize: '11px', marginBottom: '6px', boxSizing: 'border-box', resize: 'vertical' }} />
-                              <div style={{ display: 'flex', gap: '4px' }}>
-                                <button onClick={() => saveEditIdea(idea.id)} className="btn" style={{ padding: '4px 10px', fontSize: '10px' }}>Kaydet</button>
-                                <button onClick={() => setEditingId(null)} className="btn btn-outline" style={{ padding: '4px 8px', fontSize: '10px' }}>İptal</button>
-                              </div>
+                    {/* 3 Slot Grid */}
+                    <div className="ideas-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: manualIdeas.length > 0 ? '12px' : '0' }}>
+                      {slots.map((idea, idx) => {
+                        const level = LEVELS[idx]
+                        const isSlotLoading = loading === `slot-${level}`
+                        const isAnyLoading = !!loading
+                        if (!idea) {
+                          // Empty slot
+                          return (
+                            <div key={`empty-${idx}`} onClick={() => !isAnyLoading && fillSlot(level)}
+                              style={{ border: '1px dashed #0a0a0a', padding: '14px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '120px', cursor: isAnyLoading ? 'default' : 'pointer', opacity: isAnyLoading && !isSlotLoading ? 0.5 : 1, background: '#fff', transition: 'background 0.15s' }}
+                              onMouseEnter={e => { if (!isAnyLoading) e.currentTarget.style.background = '#fafaf7' }}
+                              onMouseLeave={e => { e.currentTarget.style.background = '#fff' }}>
+                              {isSlotLoading ? (
+                                <><div className="spinner" style={{ width: '16px', height: '16px', border: '2px solid #ddd', borderTopColor: '#0a0a0a', marginBottom: '6px' }} /><span style={{ fontSize: '10px', color: 'var(--color-text-tertiary)' }}>Üretiliyor...</span></>
+                              ) : (
+                                <><div style={{ fontSize: '24px', color: 'var(--color-text-tertiary)', marginBottom: '4px' }}>+</div><span style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)' }}>YENİ FİKİR ÜRET</span></>
+                              )}
                             </div>
-                          ) : (
-                            <div>
-                              <div onClick={() => selectIdea(idea)} style={{ marginBottom: '8px' }}>
-                                <div style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a', marginBottom: '4px' }}>{idea.title}</div>
-                                <div style={{ fontSize: '11px', color: '#6b6b66', lineHeight: 1.5 }}>{idea.concept}</div>
+                          )
+                        }
+                        // Filled slot
+                        return (
+                          <div key={idea.id} className="studio-card" style={{ border: '1px solid #e5e4db', padding: '14px', background: '#fafaf7', transition: 'border-color 0.15s' }}>
+                            {editingId === idea.id ? (
+                              <div>
+                                <input value={editTitle} onChange={e => setEditTitle(e.target.value)} style={{ width: '100%', padding: '6px 8px', border: '1px solid #e5e4db', fontSize: '12px', marginBottom: '6px', boxSizing: 'border-box' }} />
+                                <textarea value={editConcept} onChange={e => setEditConcept(e.target.value)} rows={2} style={{ width: '100%', padding: '6px 8px', border: '1px solid #e5e4db', fontSize: '11px', marginBottom: '6px', boxSizing: 'border-box', resize: 'vertical' }} />
+                                <div style={{ display: 'flex', gap: '4px' }}>
+                                  <button onClick={() => saveEditIdea(idea.id)} className="btn" style={{ padding: '4px 10px', fontSize: '10px' }}>Kaydet</button>
+                                  <button onClick={() => setEditingId(null)} className="btn btn-outline" style={{ padding: '4px 8px', fontSize: '10px' }}>İptal</button>
+                                </div>
                               </div>
-                              <div style={{ display: 'flex', gap: '4px' }}>
-                                <button onClick={() => selectIdea(idea)} className="btn" style={{ padding: '4px 10px', fontSize: '9px' }}>SEÇ</button>
-                                <button onClick={() => { setEditingId(idea.id); setEditTitle(idea.title); setEditConcept(idea.concept || '') }} className="studio-btn" style={{ padding: '4px 8px', border: '1px solid #e5e4db', background: '#fff', fontSize: '9px', cursor: 'pointer', transition: 'background 0.15s' }}>Düzenle</button>
-                                <button onClick={() => deleteIdea(idea.id)} className="studio-btn" style={{ padding: '4px 8px', border: '1px solid rgba(239,68,68,0.3)', background: '#fff', fontSize: '9px', color: '#ef4444', cursor: 'pointer', transition: 'background 0.15s' }}>Sil</button>
+                            ) : (
+                              <div>
+                                <div onClick={() => !isAnyLoading && selectIdea(idea)} style={{ marginBottom: '8px', cursor: isAnyLoading ? 'default' : 'pointer' }}>
+                                  <div style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a', marginBottom: '4px' }}>{idea.title}</div>
+                                  <div style={{ fontSize: '11px', color: '#6b6b66', lineHeight: 1.5 }}>{idea.concept}</div>
+                                </div>
+                                <div style={{ display: 'flex', gap: '4px' }}>
+                                  <button onClick={() => selectIdea(idea)} disabled={isAnyLoading} className="btn" style={{ padding: '4px 10px', fontSize: '9px', opacity: isAnyLoading ? 0.5 : 1 }}>SEÇ</button>
+                                  <button onClick={() => { setEditingId(idea.id); setEditTitle(idea.title); setEditConcept(idea.concept || '') }} disabled={isAnyLoading} className="studio-btn" style={{ padding: '4px 8px', border: '1px solid #e5e4db', background: '#fff', fontSize: '9px', cursor: 'pointer', transition: 'background 0.15s', opacity: isAnyLoading ? 0.5 : 1 }}>Düzenle</button>
+                                  <button onClick={() => deleteIdea(idea.id)} disabled={isAnyLoading} className="studio-btn" style={{ padding: '4px 8px', border: '1px solid rgba(239,68,68,0.3)', background: '#fff', fontSize: '9px', color: '#ef4444', cursor: 'pointer', transition: 'background 0.15s', opacity: isAnyLoading ? 0.5 : 1 }}>Sil</button>
+                                </div>
                               </div>
-                            </div>
-                          )}
-                        </div>
-                      ))}
+                            )}
+                          </div>
+                        )
+                      })}
                     </div>
-                    {ideas.length === 0 && !addingIdea && <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--color-text-tertiary)', fontSize: '12px' }}>Henüz fikir yok. AI ile üretin veya manuel ekleyin.</div>}
+                    {/* Manual ideas below slots */}
+                    {manualIdeas.map(idea => (
+                      <div key={idea.id} style={{ border: '1px solid #e5e4db', padding: '14px', background: '#fafaf7', marginBottom: '8px' }}>
+                        <div onClick={() => selectIdea(idea)} style={{ cursor: 'pointer', marginBottom: '6px' }}>
+                          <div style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a', marginBottom: '2px' }}>{idea.title}</div>
+                          <div style={{ fontSize: '11px', color: '#6b6b66', lineHeight: 1.5 }}>{idea.concept}</div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                          <button onClick={() => selectIdea(idea)} className="btn" style={{ padding: '4px 10px', fontSize: '9px' }}>SEÇ</button>
+                          <button onClick={() => deleteIdea(idea.id)} className="studio-btn" style={{ padding: '4px 8px', border: '1px solid rgba(239,68,68,0.3)', background: '#fff', fontSize: '9px', color: '#ef4444', cursor: 'pointer' }}>Sil</button>
+                        </div>
+                      </div>
+                    ))}
+                    {aiIdeas.length === 0 && manualIdeas.length === 0 && !addingIdea && <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--color-text-tertiary)', fontSize: '12px' }}>Henüz fikir yok. AI ile üretin veya manuel ekleyin.</div>}
                   </>
                 )}
               </div>
