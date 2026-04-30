@@ -49,8 +49,8 @@ export default function ProductionStudio({ briefId, source = 'admin', userRole =
 
   // ─── Step 1: Ideas ───
   const LEVELS = ['minimal', 'orta', 'sinematik'] as const
-  const aiIdeas = ideas.filter(i => i.generated_by || i.status === 'normal')
-  const manualIdeas = ideas.filter(i => !i.generated_by && i.status !== 'normal')
+  const aiIdeas = ideas.filter(i => !!i.generated_by)
+  const manualIdeas = ideas.filter(i => !i.generated_by)
   // Build 3 slots from AI ideas, maintaining level order
   const slots: (any | null)[] = LEVELS.map(level => aiIdeas.find(i => i.level === level) || null)
   // Fill remaining nulls with unleveled AI ideas
