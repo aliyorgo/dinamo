@@ -24,37 +24,31 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     body: JSON.stringify({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 300,
-      system: `Sen bir reklamcısın. Creator/yapımcı için brief özeti çıkarıyorsun. Creator bu özeti okuyup videoyu üretmeye başlayacak.
+      system: `Sen bir reklamcısın. Creator için brief özeti çıkarıyorsun.
 
-Hedefin: 'Bu reklamda ne anlatıyoruz' sorusunun cevabını NET ver. Teknik detaylara takılma, ASIL HİKAYE neyse onu yakala.
+ÇIKTI: 2-3 cümlelik tek paragraf. Düz dil, sade, akıcı.
+
+İÇERİK: Bu reklamda NE ANLATILDIĞINI yakala. Atmosfer/önemli kural varsa kısaca değin.
 
 YASAKLAR:
-- Pazarlama klişeleri ('etkileyici', 'unutulmaz', 'göz alıcı')
-- Format/süre/mecra tekrarı (ayrı kartta zaten var)
-- Brief cümlelerini kopyalama — özetle
+- 'Etkileyici', 'unutulmaz', 'haz' gibi pazarlama dili
+- Brief alanlarını listeleme (hook, hero, ton)
+- Format/süre/mecra teknik bilgisi
 - 'Bu kampanyada' diye başlama
+- Renk kodu (#hex)
 
-Sadece JSON döndür, başka hiçbir şey yazma.`,
+Sadece JSON döndür: {"summary":"2-3 cümle paragraf"}`,
       messages: [{ role: 'user', content: `${rulesBlock}Brief:
 Kampanya: ${brief.campaign_name}
 Mesaj: ${brief.message || ''}
 Hedef Kitle: ${brief.target_audience || ''}
 CTA: ${brief.cta || ''}
 Hook: ${brief.hook || brief.cps_hook || ''}
-Hero: ${brief.hero || brief.cps_hero || ''}
 Ton: ${brief.tone || brief.cps_ton || ''}
 Seslendirme: ${brief.voiceover_text || ''}
 Notlar: ${brief.notes || ''}
 
-3 ALAN ÜRET:
-
-1) customer_want (1 cümle): Ana hikaye ne, hangi duyguyu ne yöntemle anlatıyoruz. Marka adı/ürün değil, anlatılan şey ön planda.
-
-2) mood (1-2 kelime): Atmosfer/hissiyat. Romantik / Enerjik / Sakin / Lüks / Komik / Dramatik gibi.
-
-3) critical_point (1 cümle): Creator'ın MUTLAKA dikkat etmesi gereken yaratıcı/içerik dikkat noktası. Format/süre DEĞİL — brief'teki özel istek, kural, müşteri hassasiyeti.
-
-JSON: {"customer_want":"...","mood":"...","critical_point":"..."}` }],
+JSON: {"summary":"..."}` }],
     }),
   })
 

@@ -24,7 +24,7 @@ export default function CreatorJobDetail() {
   const [studioLocked, setStudioLocked] = useState(false)
   const [briefOpen, setBriefOpen] = useState(false)
   const [newQuestion, setNewQuestion] = useState('')
-  const [creatorSummary, setCreatorSummary] = useState<{customer_want:string,mood:string,critical_point:string}|null>(null)
+  const [creatorSummary, setCreatorSummary] = useState<{summary:string}|null>(null)
   const [brandSummary, setBrandSummary] = useState<string|null>(null)
   const [brandSummaryOpen, setBrandSummaryOpen] = useState(true)
   const [summaryLoading, setSummaryLoading] = useState(false)
@@ -41,7 +41,7 @@ export default function CreatorJobDetail() {
     if (!briefId) return
     setSummaryLoading(true)
     Promise.all([
-      fetch(`/api/briefs/${briefId}/creator-summary`).then(r => r.json()).then(d => { if (d.customer_want) setCreatorSummary(d) }),
+      fetch(`/api/briefs/${briefId}/creator-summary`).then(r => r.json()).then(d => { if (d.summary) setCreatorSummary(d); else if (d.customer_want) setCreatorSummary({ summary: d.customer_want }) }),
       fetch(`/api/briefs/${briefId}/brand-summary`).then(r => r.json()).then(d => { if (d.brand_summary) setBrandSummary(d.brand_summary) }),
     ]).finally(() => setSummaryLoading(false))
   }, [briefId])
@@ -195,11 +195,7 @@ export default function CreatorJobDetail() {
             {summaryLoading && !creatorSummary ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 0' }}><div className="spinner" style={{ width: '12px', height: '12px', border: '2px solid #ddd', borderTopColor: '#0a0a0a' }} /><span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>Üretiliyor...</span></div>
             ) : creatorSummary ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <div><div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '3px' }}>MÜŞTERİ NE İSTİYOR</div><div style={{ fontSize: '13px', color: '#0a0a0a', lineHeight: 1.5 }}>{creatorSummary.customer_want}</div></div>
-                <div><div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '3px' }}>MOOD</div><div style={{ fontSize: '13px', color: '#0a0a0a', fontWeight: '500' }}>{creatorSummary.mood}</div></div>
-                <div><div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '3px' }}>EN KRİTİK NOKTA</div><div style={{ fontSize: '13px', color: '#0a0a0a', lineHeight: 1.5 }}>{creatorSummary.critical_point}</div></div>
-              </div>
+              <div style={{ fontSize: '14px', color: '#0a0a0a', lineHeight: 1.6 }}>{creatorSummary.summary}</div>
             ) : <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>Özet üretilemedi.</div>}
           </div>
 
