@@ -96,7 +96,7 @@ export default function AdminBriefDetail() {
     const { data: b } = await supabase.from('briefs').select('*, clients(company_name, logo_url, font_url), client_users(*, users(email, name))').eq('id', id).single()
     setBrief(b); setEditForm(b||{})
     if (b?.client_users?.users?.email) setClientEmail(b.client_users.users.email)
-    const { data: s } = await supabase.from('video_submissions').select('*').eq('brief_id', id).order('submitted_at', { ascending: false })
+    const { data: s } = await supabase.from('video_submissions').select('*').eq('brief_id', id).neq('status', 'draft').order('submitted_at', { ascending: false })
     setSubmissions(s||[])
     const { data: q } = await supabase.from('brief_questions').select('*').eq('brief_id', id).order('asked_at')
     setQuestions(q||[])

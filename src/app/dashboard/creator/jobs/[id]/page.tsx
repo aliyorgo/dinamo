@@ -17,7 +17,6 @@ export default function CreatorJobDetail() {
   const [questions, setQuestions] = useState<any[]>([])
   const [userName, setUserName] = useState('')
   const [uploading, setUploading] = useState(false)
-  const [uploadProgress, setUploadProgress] = useState(0)
   const [msg, setMsg] = useState('')
   const [brandFiles, setBrandFiles] = useState<any[]>([])
   const [projectFiles, setProjectFiles] = useState<any[]>([])
@@ -27,6 +26,9 @@ export default function CreatorJobDetail() {
   const [newQuestion, setNewQuestion] = useState('')
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [playerUrl, setPlayerUrl] = useState<string | null>(null)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [creatorNote, setCreatorNote] = useState('')
+  const [sendConfirm, setSendConfirm] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
 
@@ -66,7 +68,11 @@ export default function CreatorJobDetail() {
   async function handleUpload() {
     const file = fileRef.current?.files?.[0]
     if (!file) return
-    setUploading(true); setMsg('')
+    if (file.size > 200 * 1024 * 1024) { setMsg('Dosya çok büyük (max 200MB)'); return }
+    // Check for existing draft
+    const existingDraft = submissions.find(s => s.status === 'draft')
+    if (existingDraft) { setMsg('Önce mevcut taslağı sil veya gönder.'); return }
+    setUploading(true); setUploadProgress(0); setMsg('')
     const { data: { user } } = await supabase.auth.getUser()
     const { data: cd } = await supabase.from('creators').select('id').eq('user_id', user?.id).maybeSingle()
     if (!cd) { setMsg('Creator kaydı bulunamadı.'); setUploading(false); return }
@@ -76,14 +82,27 @@ export default function CreatorJobDetail() {
     const fmt = (brief?.format || '').replace(':', 'x')
     const date = new Date().toISOString().slice(0, 10)
     const storagePath = `${briefId}/dinamo_${client}_${campaign}_${fmt}_${date}.${ext}`
-    const { error: upErr } = await supabase.storage.from('videos').upload(storagePath, file)
-    if (upErr) { setMsg(upErr.message); setUploading(false); return }
+    // Upload to Supabase Storage
+    setUploadProgress(30)
+    const { error: upErr } = await supabase.storage.from('videos').upload(storagePath, file, { upsert: true })
+    setUploadProgress(90)
+    if (upErr) { setMsg(upErr.message || 'Yükleme hatası'); setUploading(false); return }
+    setUploadProgress(100)
     const { data: urlData } = supabase.storage.from('videos').getPublicUrl(storagePath)
-    const version = submissions.length + 1
-    await supabase.from('video_submissions').insert({ brief_id: briefId, creator_id: cd.id, video_url: urlData.publicUrl, version, status: 'pending', format: brief?.format || null })
-    setMsg('Video yüklendi.')
+    const version = submissions.filter(s => s.status !== 'draft').length + 1
+    await supabase.from('video_submissions').insert({ brief_id: briefId, creator_id: cd.id, video_url: urlData.publicUrl, version, status: 'draft', format: brief?.format || null })
+    setMsg('Video taslak olarak yüklendi. Gönder butonuyla admin\'e ilet.')
     if (fileRef.current) fileRef.current.value = ''
-    loadData(); setUploading(false)
+    setCreatorNote('')
+    loadData(); setUploading(false); setUploadProgress(0)
+  }
+
+  async function sendDraft(subId: string) {
+    await supabase.from('video_submissions').update({ status: 'pending', producer_notes: creatorNote.trim() || null }).eq('id', subId)
+    // Update brief status back to in_production if it was in revision
+    if (brief?.status === 'revision') await supabase.from('briefs').update({ status: 'in_production' }).eq('id', briefId)
+    setSendConfirm(null); setCreatorNote(''); setMsg('Gönderildi. Admin inceleyecek.')
+    loadData()
   }
 
   async function deleteSubmission(subId: string) {
@@ -116,7 +135,8 @@ export default function CreatorJobDetail() {
   const visibleQuestions = (questions || []).filter(q => !q.question.startsWith('REVİZYON:') && !q.question.startsWith('İÇ REVİZYON:'))
   const sf: string[] = producerBrief?.shared_fields || ['message', 'cta', 'target_audience', 'voiceover_text', 'notes']
   const durMap: Record<string, string> = { 'Bumper / Pre-roll': '6sn', 'Story / Reels': '15sn', 'Feed Video': '30sn', 'Long Form': '60sn' }
-  const canUpload = submissions.length === 0 || submissions.some(s => s.status === 'revision_requested') || !submissions.some(s => s.status === 'pending')
+  const hasDraft = submissions.some(s => s.status === 'draft')
+  const canUpload = !hasDraft && (submissions.length === 0 || submissions.some(s => s.status === 'revision_requested') || !submissions.some(s => s.status === 'pending' || s.status === 'draft'))
   const lastSub = submissions[0]
 
   const statusBadge = (status: string) => {
@@ -272,34 +292,60 @@ export default function CreatorJobDetail() {
               })}
             </div>
           )}
-          {canUpload && (
+          {canUpload && !uploading && (
             <div onClick={() => fileRef.current?.click()} style={{ border: '1px dashed #0a0a0a', padding: '32px 24px', textAlign: 'center', cursor: 'pointer', marginBottom: '16px' }}>
               <div style={{ fontSize: '32px', color: 'var(--color-text-tertiary)', marginBottom: '6px' }}>+</div>
               <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>Videoyu sürükle veya tıkla</div>
-              <div style={{ fontSize: '10px', color: 'var(--color-text-tertiary)' }}>MP4, MOV · max 200MB</div>
+              <div style={{ fontSize: '10px', color: 'var(--color-text-tertiary)' }}>MP4, MOV · max 200MB · yüklendikten sonra gönder butonuyla admin'e ilet</div>
             </div>
           )}
+          {hasDraft && !uploading && (
+            <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', marginBottom: '8px', padding: '8px 12px', background: '#fafaf7', border: '1px solid #e5e4db' }}>Önce mevcut taslağı sil veya gönder.</div>
+          )}
           <input ref={fileRef} type="file" accept="video/*" onChange={handleUpload} style={{ display: 'none' }} />
-          {uploading && <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', marginBottom: '12px' }}>Yükleniyor...</div>}
+          {uploading && (
+            <div style={{ marginBottom: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>Yükleniyor...</span>
+                <span style={{ fontSize: '11px', color: '#0a0a0a', fontVariantNumeric: 'tabular-nums' }}>{uploadProgress}%</span>
+              </div>
+              <div style={{ width: '100%', height: '4px', background: '#e5e4db' }}>
+                <div style={{ width: `${uploadProgress}%`, height: '100%', background: '#0a0a0a', transition: 'width 0.3s' }} />
+              </div>
+            </div>
+          )}
           {submissions.map(s => {
-            const canDelete = s.status === 'pending' && s.id === submissions[0]?.id
+            const isDraft = s.status === 'draft'
+            const canDelete = (isDraft || (s.status === 'pending' && s.id === submissions[0]?.id))
+            const statusMap: Record<string, string> = { draft: 'submitted', pending: 'approved', admin_approved: 'delivered', producer_approved: 'delivered', revision_requested: 'revision' }
+            const draftLabel = isDraft ? 'TASLAK · GÖNDERİLMEDİ' : s.status === 'pending' ? 'GÖNDERİLDİ · ADMİN İNCELİYOR' : null
             return (
-              <div key={s.id} style={{ border: '1px solid #e5e4db', padding: '14px 18px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <div style={{ width: '60px', height: '80px', background: '#0a0a0a', flexShrink: 0, overflow: 'hidden' }}>
-                  <video ref={s.id === submissions[0]?.id ? videoRef : undefined} src={s.video_url + '#t=0.5'} muted playsInline preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                    <span style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>VERSİYON {s.version}</span>
-                    <span style={{ fontSize: '10px', color: 'var(--color-text-tertiary)' }}>{new Date(s.submitted_at).toLocaleDateString('tr-TR')}</span>
+              <div key={s.id} style={{ border: isDraft ? '1px solid #0a0a0a' : '1px solid #e5e4db', padding: '14px 18px', marginBottom: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <div style={{ width: '60px', height: '80px', background: '#0a0a0a', flexShrink: 0, overflow: 'hidden' }}>
+                    <video ref={s.id === submissions[0]?.id ? videoRef : undefined} src={s.video_url + '#t=0.5'} muted playsInline preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
-                  {statusBadge(s.status === 'pending' ? 'submitted' : s.status === 'admin_approved' || s.status === 'producer_approved' ? 'delivered' : s.status === 'revision_requested' ? 'revision' : 'submitted')}
-                  {s.producer_notes && <div style={{ fontSize: '11px', color: '#ef4444', marginTop: '4px' }}>Not: {s.producer_notes}</div>}
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                      <span style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>VERSİYON {s.version}</span>
+                      <span style={{ fontSize: '10px', color: 'var(--color-text-tertiary)' }}>{new Date(s.submitted_at).toLocaleDateString('tr-TR')}</span>
+                    </div>
+                    {draftLabel ? <span style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', padding: '3px 8px', border: `1px solid ${isDraft ? '#888' : '#f5a623'}`, color: isDraft ? '#888' : '#f5a623' }}>{draftLabel}</span> : statusBadge(statusMap[s.status] || 'submitted')}
+                    {s.producer_notes && !isDraft && <div style={{ fontSize: '11px', color: s.status === 'revision_requested' ? '#ef4444' : '#888', marginTop: '4px' }}>Not: {s.producer_notes}</div>}
+                  </div>
+                  <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                    <button onClick={() => setPlayerUrl(s.video_url)} className="btn btn-outline" style={{ padding: '4px 10px', fontSize: '9px' }}>OYNAT</button>
+                    {canDelete && <button onClick={() => setDeleteConfirm(s.id)} className="btn btn-outline" style={{ padding: '4px 10px', fontSize: '9px', color: '#ef4444', borderColor: 'rgba(239,68,68,0.3)' }}>× SİL</button>}
+                  </div>
                 </div>
-                <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
-                  <button onClick={() => setPlayerUrl(s.video_url)} className="btn btn-outline" style={{ padding: '4px 10px', fontSize: '9px' }}>OYNAT</button>
-                  {canDelete && <button onClick={() => setDeleteConfirm(s.id)} className="btn btn-outline" style={{ padding: '4px 10px', fontSize: '9px', color: '#ef4444', borderColor: 'rgba(239,68,68,0.3)' }}>× SİL</button>}
-                </div>
+                {/* Draft: note + send */}
+                {isDraft && (
+                  <div style={{ marginTop: '12px', borderTop: '1px solid #e5e4db', paddingTop: '12px' }}>
+                    <textarea value={creatorNote} onChange={e => setCreatorNote(e.target.value)} placeholder="Admin'e not (opsiyonel)..." rows={2}
+                      style={{ width: '100%', padding: '8px 10px', border: '1px solid #e5e4db', fontSize: '12px', color: '#0a0a0a', resize: 'vertical', boxSizing: 'border-box', marginBottom: '10px' }} />
+                    <button onClick={() => setSendConfirm(s.id)} className="btn" style={{ width: '100%', padding: '10px' }}>GÖNDER →</button>
+                  </div>
+                )}
               </div>
             )
           })}
@@ -345,6 +391,20 @@ export default function CreatorJobDetail() {
           </div>
         </div>
       </div>
+
+      {/* SEND CONFIRM */}
+      {sendConfirm && (
+        <div onClick={() => setSendConfirm(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', border: '1px solid #0a0a0a', padding: '28px', maxWidth: '400px', width: '90%' }}>
+            <div style={{ fontSize: '16px', fontWeight: '500', color: '#0a0a0a', marginBottom: '10px' }}>Video Gönder</div>
+            <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '20px' }}>Bu videoyu admin'e göndermek istediğine emin misin?</div>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={() => setSendConfirm(null)} className="btn btn-outline" style={{ flex: 1, padding: '10px' }}>İPTAL</button>
+              <button onClick={() => sendDraft(sendConfirm)} className="btn" style={{ flex: 1, padding: '10px' }}>GÖNDER</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* DELETE CONFIRM */}
       {deleteConfirm && (
