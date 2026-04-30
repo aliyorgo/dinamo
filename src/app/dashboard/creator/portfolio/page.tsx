@@ -58,6 +58,9 @@ export default function CreatorPortfolio() {
               )}
               <div style={{ padding: '8px 10px' }}>
                 <div style={{ fontSize: '11px', fontWeight: '500', color: '#0a0a0a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{job.campaign_name}</div>
+                <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#6b6b66', marginTop: '3px' }}>
+                  {job.brief_type === 'cps_child' ? (job.cps_hook ? `CPS · ${job.cps_hook}` : `CPS YÖN ${job.mvc_order || ''}`) : job.brief_type === 'express_clone' ? 'AI EXPRESS' : 'ANA VİDEO'}
+                </div>
                 <div style={{ fontSize: '9px', color: '#888', marginTop: '2px' }}>{job.clients?.company_name} · {new Date(job.created_at).toLocaleDateString('tr-TR')}</div>
               </div>
             </div>
