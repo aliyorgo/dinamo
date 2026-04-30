@@ -103,10 +103,7 @@ export default function CreatorJobDetail() {
     setUploading(false)
   }
 
-  async function handleLogout() {
-    await supabase.auth.signOut()
-    router.push('/login')
-  }
+
 
   async function requestMoreInspo() {
     setInspLoading(true)
@@ -148,32 +145,11 @@ export default function CreatorJobDetail() {
   const clientRevisions = revisions.filter(r => r.question.startsWith('REVİZYON:'))
 
   return (
-    <div style={{display:'flex',minHeight:'100vh',}}>
-
-      <div style={{width:'240px',background:'#0A0A0A',display:'flex',flexDirection:'column',flexShrink:0,height:'100vh',position:'sticky',top:0}}>
-        <div style={{padding:'18px 16px 14px',borderBottom:'0.5px solid rgba(255,255,255,0.07)'}}>
-          <div style={{fontSize:'18px',fontWeight:'500',color:'#fff',letterSpacing:'-0.5px',marginBottom:'12px'}}>
-            <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} />
-          </div>
-          <div style={{fontSize:'10px',color:'rgba(255,255,255,0.3)',marginBottom:'3px'}}>Creator</div>
-          <div style={{fontSize:'13px',fontWeight:'500',color:'#fff'}}>{userName}</div>
-        </div>
-        <nav style={{padding:'10px 8px',flex:1}}>
-          <div onClick={()=>router.push('/dashboard/creator')} style={{display:'flex',alignItems:'center',gap:'8px',padding:'7px 8px',borderRadius:'8px',cursor:'pointer'}}>
-            <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            <span style={{fontSize:'12px',color:'rgba(255,255,255,0.4)'}}>İşlerime dön</span>
-          </div>
-        </nav>
-        <div style={{padding:'10px 8px',borderTop:'0.5px solid rgba(255,255,255,0.07)'}}>
-          <button onClick={handleLogout} style={{display:'flex',alignItems:'center',gap:'7px',padding:'6px 8px',borderRadius:'7px',cursor:'pointer',width:'100%',background:'none',border:'none'}}>
-            <span style={{fontSize:'11px',color:'rgba(255,255,255,0.25)',}}>Çıkış yap</span>
-          </button>
-        </div>
-      </div>
-
       <div style={{flex:1,display:'flex',flexDirection:'column',background:'#f5f4f0'}}>
-        <div style={{padding:'14px 28px',background:'#fff',borderBottom:'0.5px solid rgba(0,0,0,0.08)',flexShrink:0}}>
-          <div style={{fontSize:'12px',color:'rgba(255,255,255,0.4)'}}>İşlerim / <span style={{color:'#0a0a0a',fontWeight:'500'}}>{brief?.campaign_name}</span></div>
+        <div style={{padding:'14px 28px',background:'#fff',borderBottom:'1px solid var(--color-border-tertiary)',flexShrink:0,display:'flex',alignItems:'center',gap:'12px'}}>
+          <span onClick={()=>router.push('/dashboard/creator')} style={{fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--color-text-tertiary)',cursor:'pointer'}}>← İŞLERİME DÖN</span>
+          <span style={{color:'var(--color-text-tertiary)'}}>·</span>
+          <span style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{brief?.campaign_name}</span>
         </div>
 
         <div style={{flex:1,padding:'24px 28px'}}>
@@ -431,6 +407,5 @@ export default function CreatorJobDetail() {
           )}
         </div>
       </div>
-    </div>
   )
 }
