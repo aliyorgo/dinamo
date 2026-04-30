@@ -202,7 +202,7 @@ export default function ProductionStudio({ briefId, source = 'admin', userRole =
 
   return (
     <>
-      <style>{`@keyframes studioPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}.studio-ta::placeholder{color:#aaa}`}</style>
+      <style>{`@keyframes studioPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}.studio-ta::placeholder{color:#aaa}.studio-btn:hover{background:#f5f4f0 !important}.studio-card:hover{border-color:rgba(0,0,0,0.2) !important}`}</style>
       <button onClick={() => setIsOpen(true)}
         onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(29,184,29,0.8)';e.currentTarget.style.background='rgba(29,184,29,0.06)'}}
         onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(29,184,29,0.4)';e.currentTarget.style.background='#111113'}}
@@ -314,7 +314,7 @@ export default function ProductionStudio({ briefId, source = 'admin', userRole =
                         )}
 
                         {ideas.map(idea => (
-                          <div key={idea.id} style={{ border: editingId === idea.id ? '1.5px solid #3b82f6' : '0.5px solid rgba(0,0,0,0.08)', borderRadius: '10px', padding: '14px', background: '#fafaf8' }}>
+                          <div key={idea.id} className="studio-card" style={{ border: editingId === idea.id ? '1.5px solid #3b82f6' : '0.5px solid rgba(0,0,0,0.08)', borderRadius: '10px', padding: '14px', background: '#fafaf8', transition: 'border-color 0.15s' }}>
                             {editingId === idea.id ? (
                               <div>
                                 <input value={editTitle} onChange={e => setEditTitle(e.target.value)} style={{ ...inputStyle, fontSize: '13px', marginBottom: '8px' }} />
@@ -330,9 +330,9 @@ export default function ProductionStudio({ briefId, source = 'admin', userRole =
                                 <div style={{ fontSize: '12px', color: '#555', lineHeight: 1.6, marginBottom: '10px' }}>{idea.concept}</div>
                                 <div style={{ display: 'flex', gap: '6px' }}>
                                   <button onClick={() => { setEditingId(idea.id); setEditTitle(idea.title); setEditConcept(idea.concept || '') }}
-                                    style={{ padding: '4px 10px', borderRadius: '6px', border: '0.5px solid rgba(0,0,0,0.1)', background: '#fff', fontSize: '10px', color: '#555', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>Düzenle</button>
+                                    className="studio-btn" style={{ padding: '4px 10px', borderRadius: '6px', border: '0.5px solid rgba(0,0,0,0.1)', background: '#fff', fontSize: '10px', color: '#555', cursor: 'pointer', fontFamily: 'Inter,sans-serif', transition: 'background 0.15s' }}>Düzenle</button>
                                   <button onClick={() => deleteIdea(idea.id)}
-                                    style={{ padding: '4px 10px', borderRadius: '6px', border: '0.5px solid rgba(239,68,68,0.2)', background: '#fff', fontSize: '10px', color: '#ef4444', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>Sil</button>
+                                    className="studio-btn" style={{ padding: '4px 10px', borderRadius: '6px', border: '0.5px solid rgba(239,68,68,0.2)', background: '#fff', fontSize: '10px', color: '#ef4444', cursor: 'pointer', fontFamily: 'Inter,sans-serif', transition: 'background 0.15s' }}>Sil</button>
                                 </div>
                               </div>
                             )}
