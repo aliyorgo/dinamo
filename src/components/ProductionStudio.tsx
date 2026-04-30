@@ -22,6 +22,8 @@ export default function ProductionStudio({ briefId, source = 'admin', userRole =
   const [editTitle, setEditTitle] = useState('')
   const [editConcept, setEditConcept] = useState('')
   const [scenarioText, setScenarioText] = useState('')
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false)
+  const [highlightedIdea, setHighlightedIdea] = useState<any>(null)
   const [promptText, setPromptText] = useState('')
   const [promptShots, setPromptShots] = useState<{shot_number:number,duration:string,prompt:string}[]>([])
   const [promptNotes, setPromptNotes] = useState<{brand_guidelines?:string,technical_specs?:string,production_notes?:string}>({})
@@ -96,8 +98,19 @@ export default function ProductionStudio({ briefId, source = 'admin', userRole =
     showToast('Silindi', 'ok'); loadData()
   }
 
-  function selectIdea(idea: any) {
-    setSelectedIdea(idea); setStep(2)
+  function highlightIdea(idea: any) {
+    setHighlightedIdea(idea)
+  }
+  function confirmAndProceed() {
+    if (highlightedIdea) { setSelectedIdea(highlightedIdea); setStep(2) }
+  }
+  function saveIdeaAndClose() {
+    if (highlightedIdea) setSelectedIdea(highlightedIdea)
+    setIsOpen(false)
+  }
+  function handleModalClose() {
+    if (step === 1 && highlightedIdea && !selectedIdea) { setShowCloseConfirm(true); return }
+    setIsOpen(false)
   }
 
   // ─── Step 2: Scenario ───
@@ -176,7 +189,7 @@ export default function ProductionStudio({ briefId, source = 'admin', userRole =
       </button>
 
       {isOpen && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.5)' }} onClick={() => setIsOpen(false)}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.5)' }} onClick={handleModalClose}>
           <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '900px', maxHeight: '90vh', background: '#fff', border: '1px solid #0a0a0a', display: 'flex', flexDirection: 'column' }}>
 
             {/* HEADER */}
@@ -185,7 +198,7 @@ export default function ProductionStudio({ briefId, source = 'admin', userRole =
                 <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a' }}>CREATIVE STUDIO</div>
                 <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', marginTop: '2px' }}>{briefSummary}</div>
               </div>
-              <button onClick={() => setIsOpen(false)} style={{ width: '28px', height: '28px', border: '1px solid #e5e4db', background: '#fff', color: '#0a0a0a', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+              <button onClick={handleModalClose} style={{ width: '28px', height: '28px', border: '1px solid #e5e4db', background: '#fff', color: '#0a0a0a', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
             </div>
 
             {/* TOAST */}
@@ -263,7 +276,8 @@ export default function ProductionStudio({ briefId, source = 'admin', userRole =
                         }
                         // Filled slot
                         return (
-                          <div key={idea.id} className="studio-card" style={{ border: '1px solid #e5e4db', padding: '14px', background: '#fafaf7', transition: 'border-color 0.15s' }}>
+                          <div key={idea.id} className="studio-card" style={{ border: highlightedIdea?.id === idea.id ? '2px solid #0a0a0a' : '1px solid #e5e4db', padding: highlightedIdea?.id === idea.id ? '13px' : '14px', background: highlightedIdea?.id === idea.id ? '#f5f4f0' : '#fafaf7', transition: 'border-color 0.15s', position: 'relative' }}>
+                            {highlightedIdea?.id === idea.id && <span style={{ position: 'absolute', top: '8px', right: '8px', fontSize: '8px', letterSpacing: '1.5px', textTransform: 'uppercase', padding: '2px 6px', background: '#0a0a0a', color: '#fff', fontWeight: '500' }}>SEÇİLİ</span>}
                             {editingId === idea.id ? (
                               <div>
                                 <input value={editTitle} onChange={e => setEditTitle(e.target.value)} style={{ width: '100%', padding: '10px 14px', border: '1px solid #0a0a0a', fontSize: '14px', marginBottom: '8px', boxSizing: 'border-box' }} />
@@ -275,12 +289,12 @@ export default function ProductionStudio({ briefId, source = 'admin', userRole =
                               </div>
                             ) : (
                               <div>
-                                <div onClick={() => !isAnyLoading && selectIdea(idea)} style={{ marginBottom: '8px', cursor: isAnyLoading ? 'default' : 'pointer' }}>
+                                <div onClick={() => !isAnyLoading && highlightIdea(idea)} style={{ marginBottom: '8px', cursor: isAnyLoading ? 'default' : 'pointer' }}>
                                   <div style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a', marginBottom: '4px' }}>{idea.title}</div>
                                   <div style={{ fontSize: '11px', color: '#6b6b66', lineHeight: 1.5 }}>{idea.concept}</div>
                                 </div>
                                 <div style={{ display: 'flex', gap: '4px' }}>
-                                  <button onClick={() => selectIdea(idea)} disabled={isAnyLoading} className="btn" style={{ padding: '4px 10px', fontSize: '9px', opacity: isAnyLoading ? 0.5 : 1 }}>SEÇ</button>
+                                  <button onClick={() => highlightIdea(idea)} disabled={isAnyLoading} className="btn" style={{ padding: '4px 10px', fontSize: '9px', opacity: isAnyLoading ? 0.5 : 1 }}>SEÇ</button>
                                   <button onClick={() => { setEditingId(idea.id); setEditTitle(idea.title); setEditConcept(idea.concept || '') }} disabled={isAnyLoading} className="studio-btn" style={{ padding: '4px 8px', border: '1px solid #e5e4db', background: '#fff', fontSize: '9px', cursor: 'pointer', transition: 'background 0.15s', opacity: isAnyLoading ? 0.5 : 1 }}>Düzenle</button>
                                   <button onClick={() => deleteIdea(idea.id)} disabled={isAnyLoading} className="studio-btn" style={{ padding: '4px 8px', border: '1px solid rgba(239,68,68,0.3)', background: '#fff', fontSize: '9px', color: '#ef4444', cursor: 'pointer', transition: 'background 0.15s', opacity: isAnyLoading ? 0.5 : 1 }}>Sil</button>
                                 </div>
@@ -293,12 +307,12 @@ export default function ProductionStudio({ briefId, source = 'admin', userRole =
                     {/* Manual ideas below slots */}
                     {manualIdeas.map(idea => (
                       <div key={idea.id} style={{ border: '1px solid #e5e4db', padding: '14px', background: '#fafaf7', marginBottom: '8px' }}>
-                        <div onClick={() => selectIdea(idea)} style={{ cursor: 'pointer', marginBottom: '6px' }}>
+                        <div onClick={() => highlightIdea(idea)} style={{ cursor: 'pointer', marginBottom: '6px' }}>
                           <div style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a', marginBottom: '2px' }}>{idea.title}</div>
                           <div style={{ fontSize: '11px', color: '#6b6b66', lineHeight: 1.5 }}>{idea.concept}</div>
                         </div>
                         <div style={{ display: 'flex', gap: '4px' }}>
-                          <button onClick={() => selectIdea(idea)} className="btn" style={{ padding: '4px 10px', fontSize: '9px' }}>SEÇ</button>
+                          <button onClick={() => highlightIdea(idea)} className="btn" style={{ padding: '4px 10px', fontSize: '9px' }}>SEÇ</button>
                           <button onClick={() => deleteIdea(idea.id)} className="studio-btn" style={{ padding: '4px 8px', border: '1px solid rgba(239,68,68,0.3)', background: '#fff', fontSize: '9px', color: '#ef4444', cursor: 'pointer' }}>Sil</button>
                         </div>
                       </div>
@@ -391,6 +405,32 @@ export default function ProductionStudio({ briefId, source = 'admin', userRole =
                   </>
                 ) : null}
               </div>
+            </div>
+
+            {/* STICKY BOTTOM BAR */}
+            {step === 1 && highlightedIdea && !selectedAiIdea && (
+              <div style={{ padding: '14px 24px', borderTop: '1px solid #e5e4db', background: '#fff', flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)' }}>ADIM 1/3</div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button onClick={saveIdeaAndClose} className="btn btn-outline" style={{ padding: '8px 18px' }}>FİKRİ KAYDET VE ÇIK</button>
+                  <button onClick={confirmAndProceed} className="btn" style={{ padding: '8px 18px' }}>DEVAM ET → SENARYO</button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* CLOSE CONFIRM MODAL */}
+      {showCloseConfirm && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.4)' }}>
+          <div style={{ background: '#fff', border: '1px solid #0a0a0a', padding: '28px', maxWidth: '400px', width: '90%' }}>
+            <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a', marginBottom: '10px' }}>Fikrini kaydetmek istiyor musun?</div>
+            <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginBottom: '20px' }}>Seçtiğin fikir kaydedilmedi. Kaydetmek ister misin?</div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button onClick={() => { setShowCloseConfirm(false) }} className="btn btn-outline" style={{ flex: 1, padding: '8px' }}>İPTAL</button>
+              <button onClick={() => { setShowCloseConfirm(false); setHighlightedIdea(null); setIsOpen(false) }} className="btn btn-outline" style={{ flex: 1, padding: '8px' }}>HAYIR, ATLA</button>
+              <button onClick={() => { setShowCloseConfirm(false); saveIdeaAndClose() }} className="btn" style={{ flex: 1, padding: '8px' }}>EVET, KAYDET</button>
             </div>
           </div>
         </div>
