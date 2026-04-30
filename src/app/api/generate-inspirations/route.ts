@@ -59,6 +59,18 @@ Her konsept için SADECE şunları ver:
 
 3 fikir birbirinden farklı yaklaşımda olsun: biri sade ve minimal, biri orta düzey, biri yaratıcı ve sinematik. Türkiye pazarına uygun ol.
 
+YASAK:
+- VFX terminolojisi (pırıltı, patlama, ışıltı, slow-motion, time-lapse, hyperlapse)
+- Cinsel/duygusal abartı klişeleri
+- 'Ekran patlıyor', 'göz kamaştırıcı geçiş', 'rüya gibi atmosfer' tarzı süslü dil
+- Renk kodu (#hex) veya spesifik renk adı (mavi, kırmızı vb.)
+
+BUNUN YERİNE reklamcı insight'ı ile yaz:
+- Tüketicinin yaşadığı durum/his
+- Markanın çözdüğü problem
+- Hedef kitlenin gerçek hayat anı
+- Atmosfer/mekan/tarz kavramsal seviye
+
 Sadece JSON döndür:
 {"inspirations": [{"title":"başlık","concept":"2-3 cümle açıklama"}]}`
 

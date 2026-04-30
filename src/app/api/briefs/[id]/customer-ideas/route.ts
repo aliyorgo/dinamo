@@ -28,7 +28,11 @@ Başlık: 2-3 kelime, tarz/mekan belirten kısa etiket. Edebi olma. Örnekler: "
 
 Açıklama: 2 cümle max. Düz dil — ne çekiliyor + nasıl çekiliyor + tempo/his. Şiirsel olma, süsleme. Somut ve net yaz.
 
-YAPMA: Renk kodu, renk adı, numerik değer, teknik terim kullanma.
+YAPMA:
+- Renk kodu (#hex), renk adı (mavi, kırmızı vb.), numerik değer kullanma
+- VFX terminolojisi (pırıltı, patlama, ışıltı, slow-motion, time-lapse) kullanma
+- Süslü dil ('göz kamaştırıcı', 'rüya gibi', 'ekran patlıyor') kullanma
+Reklamcı insight'ı ile yaz: tüketicinin gerçek hayat anı, markanın çözdüğü problem.
 
 Brief:
 Kampanya: ${brief.campaign_name}

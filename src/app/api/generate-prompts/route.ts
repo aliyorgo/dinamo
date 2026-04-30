@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Geçersiz model' }, { status: 400 })
     }
 
-    const { data: insp, error: inspErr } = await supabase.from('brief_inspirations').select('*, briefs(video_type, client_id)').eq('id', inspiration_id).single()
+    const { data: insp, error: inspErr } = await supabase.from('brief_inspirations').select('*, briefs(video_type, client_id, clients(brand_primary_color, brand_secondary_color, brand_forbidden_colors))').eq('id', inspiration_id).single()
     if (inspErr) console.error('[prompts] DB error:', inspErr.message)
     if (!insp) return NextResponse.json({ error: 'Fikir bulunamadı' }, { status: 404 })
     console.log('[prompts] Inspiration:', insp.title, 'scenario type:', typeof insp.scenario)
@@ -72,19 +72,24 @@ export async function POST(request: Request) {
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 2000,
         system: 'Sen AI video üretim prompt mühendisisin. Yanıtın SADECE JSON olsun. Markdown code block kullanma.',
-        messages: [{ role: 'user', content: `${rulesBlock}Bu video konsepti ve senaryosu için profesyonel, kullanıma hazır tek bir video prompt yaz.
+        messages: [{ role: 'user', content: `${rulesBlock}Bu video konsepti ve senaryosu için profesyonel, kullanıma hazır video prompt yaz.
 
 Konsept: ${insp.title} — ${insp.concept}
 Senaryo: ${scenarioText}
+${(() => { const c = (insp.briefs as any)?.clients; return c?.brand_primary_color ? `\nMARKA RENKLERİ:\n- Primary: ${c.brand_primary_color}\n- Secondary: ${c.brand_secondary_color || 'yok'}\n- Forbidden: ${c.brand_forbidden_colors || 'yok'}\nBu renkleri sahne ışığı, kostüm, atmosfer veya prop renkleri olarak kullan. Logo rengi olarak değil, ortam içinde.` : '' })()}
 
 Kurallar:
 - İngilizce yaz (AI modeller İngilizce daha iyi çalışır)
-- Tek bir paragraf prompt, sahne sahne değil bütüncül
+- Multishot format yaz (TEK PLAN KABUL EDİLMEZ):
+  Shot 1 (0-3s): [açı, hareket, sahne]
+  Shot 2 (3-6s): [açı, hareket, sahne]
+  Shot 3 (6-10s): [açı, hareket, sahne]
+- Her shot teknik kamera dili kullan (close-up, medium shot, tracking, dolly, pan)
 - Model adı belirtme, generic format
 - Kopyala-yapıştır hazır olsun
 
 Sadece JSON döndür:
-{"prompt":"kullanıma hazır prompt"}` }]
+{"prompt":"kullanıma hazır multishot prompt"}` }]
       })
     })
 

@@ -49,7 +49,9 @@ ${context ? `\nMÜŞTERİ BAĞLAMI:\n${context}` : ''}
 KURALLAR:
 - 1 paragraf, 4-6 cümle
 - Müzik, ton, ışık gibi teknik detay YAZMA
-- Sadece sahne akışı: ne çekiyoruz, nasıl çekiyoruz
+- Teknik kamera dili YAZMA (close-up, wide shot, drone shot burada değil)
+- Renk kodu (#hex) veya spesifik renk adı (mavi, kırmızı vb.) YAZMA
+- Sadece sahne akışı: ne çekiyoruz, ne yaşanıyor, hangi mekan/atmosfer
 - Düz dil, edebi olma
 - Sahne numarası veya zaman kodu YAZMA` }]
     })
