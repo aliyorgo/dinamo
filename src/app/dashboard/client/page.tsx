@@ -57,7 +57,7 @@ export default function ClientDashboard() {
   useEffect(() => {
     if (!clientId) return
     async function load() {
-        const { data: b, error: bError } = await supabase.from('briefs').select('*').eq('client_id', clientId).neq('status','cancelled').is('parent_brief_id', null).order('created_at', { ascending: false })
+        const { data: b, error: bError } = await supabase.from('briefs').select('*').eq('client_id', clientId).neq('status','cancelled').is('parent_brief_id', null).eq('brief_type', 'primary').order('created_at', { ascending: false })
         console.log('[DEBUG] clientId:', clientId, '| briefs:', b?.length, '| error:', bError)
         setBriefs(b || [])
 
