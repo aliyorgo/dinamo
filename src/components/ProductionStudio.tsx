@@ -24,6 +24,8 @@ export default function ProductionStudio({ briefId, source = 'admin', userRole =
   const [scenarioText, setScenarioText] = useState('')
   const [promptText, setPromptText] = useState('')
   const [copiedPrompt, setCopiedPrompt] = useState(false)
+  const [scenarioSaved, setScenarioSaved] = useState(false)
+  const [scenarioEditing, setScenarioEditing] = useState(false)
 
   useEffect(() => { if (isOpen) loadData() }, [isOpen, briefId])
 
@@ -40,7 +42,7 @@ export default function ProductionStudio({ briefId, source = 'admin', userRole =
     setIdeas(insps || [])
     // Load saved scenario
     const { data: scenInsp } = await supabase.from('brief_inspirations').select('scenario').eq('brief_id', briefId).not('scenario', 'is', null).order('created_at', { ascending: false }).limit(1)
-    if (scenInsp?.[0]?.scenario) setScenarioText(typeof scenInsp[0].scenario === 'string' ? scenInsp[0].scenario : JSON.stringify(scenInsp[0].scenario))
+    if (scenInsp?.[0]?.scenario) { setScenarioText(typeof scenInsp[0].scenario === 'string' ? scenInsp[0].scenario : JSON.stringify(scenInsp[0].scenario)); setScenarioSaved(true) }
   }
 
   // ─── Step 1: Ideas ───
@@ -247,43 +249,58 @@ export default function ProductionStudio({ briefId, source = 'admin', userRole =
 
               {/* ═══ STEP 2 — SENARYO ═══ */}
               <div style={{ border: step === 2 ? '1px solid #0a0a0a' : '1px solid #e5e4db', padding: '20px', marginBottom: '16px', opacity: step >= 2 ? 1 : 0.5 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: step === 2 ? '16px' : '0' }}>
-                  {step2Done && <span style={{ color: '#22c55e', fontSize: '14px' }}>✓</span>}
-                  <span style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: step === 2 ? '#0a0a0a' : 'var(--color-text-tertiary)' }}>ADIM 2 · SENARYO</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: (step >= 2 && (!scenarioSaved || scenarioEditing)) ? '16px' : '0' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {scenarioSaved && !scenarioEditing && <span style={{ color: '#22c55e', fontSize: '14px' }}>✓</span>}
+                    <span style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: step === 2 ? '#0a0a0a' : 'var(--color-text-tertiary)' }}>ADIM 2 · SENARYO</span>
+                  </div>
+                  {scenarioSaved && !scenarioEditing && step >= 2 && <button onClick={() => { setScenarioEditing(true); setStep(2) }} style={{ fontSize: '10px', color: '#0a0a0a', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>DÜZENLE</button>}
                 </div>
-                {step >= 2 && (
+                {/* Saved read-only view */}
+                {step >= 2 && scenarioSaved && !scenarioEditing && (
+                  <div style={{ marginTop: '12px', padding: '12px 16px', background: '#f5f4f0', border: '1px solid #e5e4db' }}>
+                    <div style={{ fontSize: '13px', color: '#0a0a0a', lineHeight: 1.7 }}>{scenarioText}</div>
+                  </div>
+                )}
+                {/* Edit mode */}
+                {step >= 2 && (!scenarioSaved || scenarioEditing) && (
                   <>
                     <textarea value={scenarioText} onChange={e => setScenarioText(e.target.value)} placeholder="Senaryoyu yaz veya AI yazsın..." rows={6}
                       style={{ width: '100%', padding: '12px', border: '1px solid #e5e4db', fontSize: '13px', color: '#0a0a0a', lineHeight: '1.7', resize: 'vertical', boxSizing: 'border-box', marginBottom: '10px' }} />
                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                       <button onClick={aiWriteScenario} disabled={!!loading} className="btn" style={{ padding: '8px 18px', opacity: loading ? 0.5 : 1 }}>{loading === 'scenario' ? 'Üretiliyor...' : 'AI YAZSIN'}</button>
                       {scenarioText.trim() && <button onClick={aiImproveScenario} disabled={!!loading} className="btn btn-outline" style={{ padding: '8px 18px', opacity: loading ? 0.5 : 1 }}>{loading === 'improve' ? 'Geliştiriliyor...' : 'AI GELİŞTİR'}</button>}
-                      <button onClick={async () => { await saveScenario(); if (scenarioText.trim()) setStep(3) }} disabled={!!loading || !scenarioText.trim()} className="btn" style={{ padding: '8px 18px', marginLeft: 'auto', opacity: loading || !scenarioText.trim() ? 0.5 : 1 }}>{loading === 'save-scenario' ? 'Kaydediliyor...' : 'KAYDET'}</button>
+                      <button onClick={async () => { await saveScenario(); if (scenarioText.trim()) { setScenarioSaved(true); setScenarioEditing(false); setStep(3) } }} disabled={!!loading || !scenarioText.trim()} className="btn" style={{ padding: '8px 18px', marginLeft: 'auto', opacity: loading || !scenarioText.trim() ? 0.5 : 1 }}>{loading === 'save-scenario' ? 'Kaydediliyor...' : 'KAYDET'}</button>
                     </div>
                   </>
                 )}
               </div>
 
-              {/* ═══ STEP 3 — PROMPT (creator only) ═══ */}
-              <div style={{ border: step === 3 ? '1px solid #0a0a0a' : '1px solid #e5e4db', padding: '20px', opacity: step >= 3 ? 1 : 0.5 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: step === 3 ? '16px' : '0' }}>
+              {/* ═══ STEP 3 — PROMPT (opsiyonel, creator only) ═══ */}
+              <div style={{ border: step === 3 ? '1px solid #e5e4db' : '1px solid #e5e4db', padding: '20px', opacity: step >= 3 ? 1 : 0.5 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: step >= 3 ? '8px' : '0' }}>
                   {promptText && <span style={{ color: '#22c55e', fontSize: '14px' }}>✓</span>}
-                  <span style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: step === 3 ? '#0a0a0a' : 'var(--color-text-tertiary)' }}>ADIM 3 · PROMPT</span>
+                  <span style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: 'var(--color-text-tertiary)' }}>ADIM 3 · PROMPT (OPSİYONEL)</span>
                 </div>
                 {step >= 3 && userRole === 'creator' ? (
                   <>
-                    {promptText ? (
+                    <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', lineHeight: 1.5, marginBottom: '12px' }}>AI modeline göndermek için prompt üretebilirsin. İstemiyorsan bu adımı atlayıp çıkabilirsin.</div>
+                    {promptText && (
                       <div style={{ background: '#0a0a0a', padding: '14px 16px', marginBottom: '10px' }}>
                         <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)', lineHeight: 1.7, fontFamily: 'monospace', wordBreak: 'break-all' }}>{promptText}</div>
                       </div>
-                    ) : null}
+                    )}
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <button onClick={generatePrompt} disabled={!!loading} className="btn" style={{ padding: '8px 18px', opacity: loading ? 0.5 : 1 }}>{loading === 'prompt' ? 'Üretiliyor...' : 'PROMPT YAZ'}</button>
+                      <button onClick={generatePrompt} disabled={!!loading} className="btn btn-outline" style={{ padding: '8px 18px', opacity: loading ? 0.5 : 1 }}>{loading === 'prompt' ? 'Üretiliyor...' : 'PROMPT ÜRET'}</button>
                       {promptText && <button onClick={() => { navigator.clipboard.writeText(promptText); setCopiedPrompt(true); setTimeout(() => setCopiedPrompt(false), 1500) }} className="btn btn-outline" style={{ padding: '8px 18px' }}>{copiedPrompt ? 'KOPYALANDİ ✓' : 'KOPYALA'}</button>}
+                      <button onClick={() => setIsOpen(false)} className="btn" style={{ padding: '8px 18px', marginLeft: 'auto' }}>ÇIK / KAYDET</button>
                     </div>
                   </>
                 ) : step >= 3 ? (
-                  <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--color-text-tertiary)' }}>Bu adım creator için ayrılmıştır.</div>
+                  <>
+                    <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', marginTop: '4px', marginBottom: '12px' }}>Bu adım creator için ayrılmıştır.</div>
+                    <button onClick={() => setIsOpen(false)} className="btn" style={{ padding: '8px 18px' }}>ÇIK / KAYDET</button>
+                  </>
                 ) : null}
               </div>
             </div>
