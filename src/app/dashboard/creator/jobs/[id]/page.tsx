@@ -253,39 +253,9 @@ export default function CreatorJobDetail() {
           </div>
         )}
 
-        {/* 2) ASSET'LER */}
-        <div style={{ background: '#fff', border: '1px solid #e5e4db', padding: '18px 22px', marginBottom: '16px' }}>
-          <div className="label-caps" style={{ marginBottom: '12px' }}>ASSET'LER</div>
-          {[
-            ...(brief.clients?.logo_url ? [{ name: 'Logo', url: brief.clients.logo_url, type: 'image' }] : []),
-            ...(brief.clients?.font_url ? [{ name: 'Font', url: brief.clients.font_url, type: 'font' }] : []),
-            ...brandFiles.map((f: any) => ({ name: f.file_name, url: f.file_url, type: f.file_type || '' })),
-            ...projectFiles.map((f: any) => ({ name: f.file_name, url: f.file_url, type: f.file_type || '' })),
-          ].length > 0 ? (
-            [...(brief.clients?.logo_url ? [{ name: 'Logo', url: brief.clients.logo_url, type: 'image' }] : []),
-            ...(brief.clients?.font_url ? [{ name: 'Font', url: brief.clients.font_url, type: 'font' }] : []),
-            ...brandFiles.map((f: any) => ({ name: f.file_name, url: f.file_url, type: f.file_type || '' })),
-            ...projectFiles.map((f: any) => ({ name: f.file_name, url: f.file_url, type: f.file_type || '' })),
-            ].map((asset, i) => {
-              const ext = asset.name?.split('.').pop()?.toUpperCase() || (asset.type.includes('image') ? 'IMG' : asset.type.includes('font') ? 'TTF' : 'FILE')
-              return (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 0', borderBottom: '1px solid #f0f0ee' }}>
-                  <div style={{ width: '28px', height: '28px', background: '#0a0a0a', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px', fontWeight: '600', letterSpacing: '0.5px', flexShrink: 0 }}>{ext}</div>
-                  <div style={{ flex: 1, fontSize: '12px', color: '#0a0a0a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{asset.name}</div>
-                  <a href={asset.url} target="_blank" download className="btn btn-outline" style={{ padding: '3px 10px', fontSize: '9px', textDecoration: 'none' }}>İNDİR ↓</a>
-                </div>
-              )
-            })
-          ) : (
-            <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)' }}>Asset eklenmemiş.</div>
-          )}
-        </div>
-
-        {/* 3) ÜRETİM */}
+        {/* 2) ÜRETİM */}
         <div style={{ background: '#fff', border: '1px solid #0a0a0a', padding: '22px', marginBottom: '16px' }}>
           <div className="label-caps" style={{ marginBottom: '16px' }}>ÜRETİM</div>
-
-          {/* Revisions */}
           {(internalRevisions.length > 0 || clientRevisions.length > 0) && (
             <div style={{ border: '2px solid #ef4444', padding: '14px 18px', marginBottom: '16px' }}>
               <div className="label-caps" style={{ color: '#ef4444', marginBottom: '10px' }}>REVİZYON TALEPLERİ</div>
@@ -302,8 +272,6 @@ export default function CreatorJobDetail() {
               })}
             </div>
           )}
-
-          {/* Upload */}
           {canUpload && (
             <div onClick={() => fileRef.current?.click()} style={{ border: '1px dashed #0a0a0a', padding: '32px 24px', textAlign: 'center', cursor: 'pointer', marginBottom: '16px' }}>
               <div style={{ fontSize: '32px', color: 'var(--color-text-tertiary)', marginBottom: '6px' }}>+</div>
@@ -313,8 +281,6 @@ export default function CreatorJobDetail() {
           )}
           <input ref={fileRef} type="file" accept="video/*" onChange={handleUpload} style={{ display: 'none' }} />
           {uploading && <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', marginBottom: '12px' }}>Yükleniyor...</div>}
-
-          {/* Submissions */}
           {submissions.map(s => {
             const canDelete = s.status === 'pending' && s.id === submissions[0]?.id
             return (
@@ -339,20 +305,44 @@ export default function CreatorJobDetail() {
           })}
         </div>
 
-        {/* 4) Q&A */}
-        <div style={{ background: '#fff', border: '1px solid #e5e4db', padding: '18px 22px', marginBottom: '16px' }}>
-          <div className="label-caps" style={{ marginBottom: '12px' }}>SORULAR & İLETİŞİM</div>
-          {visibleQuestions.length === 0 && <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', marginBottom: '10px' }}>Henüz soru yok.</div>}
-          {visibleQuestions.map(q => (
-            <div key={q.id} style={{ padding: '8px 10px', background: 'var(--color-background-secondary)', marginBottom: '4px' }}>
-              <div style={{ fontSize: '12px', color: '#0a0a0a' }}>{q.question}</div>
-              {q.answer && <div style={{ fontSize: '11px', color: '#22c55e', marginTop: '2px' }}>↳ {q.answer}</div>}
-            </div>
-          ))}
-          <form onSubmit={handleQuestion} style={{ display: 'flex', gap: '6px', marginTop: '10px' }}>
-            <input value={newQuestion} onChange={e => setNewQuestion(e.target.value)} placeholder="Admin'e soru sor..." style={{ flex: 1, padding: '8px 10px', border: '1px solid #e5e4db', fontSize: '12px', color: '#0a0a0a' }} />
-            <button type="submit" className="btn" style={{ padding: '8px 14px', fontSize: '10px' }}>GÖNDER</button>
-          </form>
+        {/* 3) ASSET'LER + Q&A yan yana grid */}
+        <div className="bottom-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+          <div style={{ background: '#fff', border: '1px solid #e5e4db', padding: '18px 22px' }}>
+            <div className="label-caps" style={{ marginBottom: '12px' }}>ASSET'LER</div>
+            {(() => {
+              const allAssets = [
+                ...(brief.clients?.logo_url ? [{ name: 'Logo', url: brief.clients.logo_url, type: 'image' }] : []),
+                ...(brief.clients?.font_url ? [{ name: 'Font', url: brief.clients.font_url, type: 'font' }] : []),
+                ...brandFiles.map((f: any) => ({ name: f.file_name, url: f.file_url, type: f.file_type || '' })),
+                ...projectFiles.map((f: any) => ({ name: f.file_name, url: f.file_url, type: f.file_type || '' })),
+              ]
+              return allAssets.length > 0 ? allAssets.map((asset, i) => {
+                const ext = asset.name?.split('.').pop()?.toUpperCase() || (asset.type.includes('image') ? 'IMG' : asset.type.includes('font') ? 'TTF' : 'FILE')
+                return (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 0', borderBottom: '1px solid #f0f0ee' }}>
+                    <div style={{ width: '28px', height: '28px', background: '#0a0a0a', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px', fontWeight: '600', letterSpacing: '0.5px', flexShrink: 0 }}>{ext}</div>
+                    <div style={{ flex: 1, fontSize: '12px', color: '#0a0a0a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{asset.name}</div>
+                    <a href={asset.url} target="_blank" download className="btn btn-outline" style={{ padding: '3px 10px', fontSize: '9px', textDecoration: 'none' }}>İNDİR ↓</a>
+                  </div>
+                )
+              }) : <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)' }}>Asset eklenmemiş.</div>
+            })()}
+          </div>
+
+          <div style={{ background: '#fff', border: '1px solid #e5e4db', padding: '18px 22px' }}>
+            <div className="label-caps" style={{ marginBottom: '12px' }}>SORULAR & İLETİŞİM</div>
+            {visibleQuestions.length === 0 && <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', marginBottom: '10px' }}>Henüz soru yok.</div>}
+            {visibleQuestions.map(q => (
+              <div key={q.id} style={{ padding: '8px 10px', background: 'var(--color-background-secondary)', marginBottom: '4px' }}>
+                <div style={{ fontSize: '12px', color: '#0a0a0a' }}>{q.question}</div>
+                {q.answer && <div style={{ fontSize: '11px', color: '#22c55e', marginTop: '2px' }}>↳ {q.answer}</div>}
+              </div>
+            ))}
+            <form onSubmit={handleQuestion} style={{ display: 'flex', gap: '6px', marginTop: '10px' }}>
+              <input value={newQuestion} onChange={e => setNewQuestion(e.target.value)} placeholder="Admin'e soru sor..." style={{ flex: 1, padding: '8px 10px', border: '1px solid #e5e4db', fontSize: '12px', color: '#0a0a0a' }} />
+              <button type="submit" className="btn" style={{ padding: '8px 14px', fontSize: '10px' }}>GÖNDER</button>
+            </form>
+          </div>
         </div>
       </div>
 
@@ -380,7 +370,7 @@ export default function CreatorJobDetail() {
         </div>
       )}
 
-      <style>{`@media (max-width: 768px) { .brief-meta { grid-template-columns: repeat(2, 1fr) !important; } }`}</style>
+      <style>{`@media (max-width: 768px) { .brief-meta { grid-template-columns: repeat(2, 1fr) !important; } .bottom-grid { grid-template-columns: 1fr !important; } }`}</style>
     </div>
   )
 }
