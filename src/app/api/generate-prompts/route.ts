@@ -5,12 +5,13 @@ import { getActiveBrandRules, buildBrandRulesBlock } from '@/lib/brand-learning'
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
 const MODEL_INFO: Record<string,string> = {
-  kling: 'Kling AI video generation model. Supports text-to-video and image-to-video. Best with detailed scene descriptions, camera movements, and style keywords.',
-  runway: 'Runway Gen-3 Alpha. Text-to-video and image-to-video. Supports camera controls, motion descriptions. Works best with cinematic language.',
-  midjourney: 'Midjourney v6 image generation. Text-to-image. Uses --ar for aspect ratio, --v 6 for version. Best with descriptive artistic prompts.',
-  veo: 'Google Veo 2. Text-to-video. Supports long descriptions, cinematic styles, camera movements.',
-  luma: 'Luma Dream Machine. Text-to-video and image-to-video. Supports motion descriptions and style keywords.',
-  'nano-banana': 'Google Gemini Nano Banana. Image and video generation model. Supports detailed scene descriptions, style control, and cinematic prompts.',
+  generic: 'Generic AI video generation model.',
+  kling: 'Kling AI video generation model.',
+  runway: 'Runway Gen-3 Alpha.',
+  midjourney: 'Midjourney v6 image generation.',
+  veo: 'Google Veo 2.',
+  luma: 'Luma Dream Machine.',
+  'nano-banana': 'Google Gemini.',
 }
 
 export async function POST(request: Request) {
@@ -123,8 +124,13 @@ Sadece JSON döndür:
       }
     }
 
+    // Handle both new format { prompt: "..." } and legacy { prompts: [...] }
+    if (parsed?.prompt && typeof parsed.prompt === 'string') {
+      return NextResponse.json({ prompt: parsed.prompt })
+    }
+
     if (!parsed?.prompts || !Array.isArray(parsed.prompts)) {
-      console.error('[prompts] No valid prompts array. Keys:', parsed ? Object.keys(parsed) : 'null')
+      console.error('[prompts] No valid prompt. Keys:', parsed ? Object.keys(parsed) : 'null')
       return NextResponse.json({ error: 'Parse hatası', raw: text.substring(0, 200) }, { status: 500 })
     }
 

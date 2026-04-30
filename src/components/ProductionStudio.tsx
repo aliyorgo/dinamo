@@ -48,6 +48,12 @@ export default function ProductionStudio({ briefId, source = 'admin', userRole =
   // ─── Step 1: Ideas ───
   async function generateIdeas() {
     setLoading('ideas')
+    // Delete old AI-generated ideas (keep manual ones)
+    const aiIdeas = ideas.filter(i => i.generated_by || i.status === 'normal')
+    if (aiIdeas.length > 0) {
+      await supabase.from('brief_inspirations').delete().in('id', aiIdeas.map(i => i.id))
+    }
+    setIdeas(ideas.filter(i => !aiIdeas.find(a => a.id === i.id)))
     const { data: { user } } = await supabase.auth.getUser()
     const res = await fetch('/api/generate-inspirations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, user_id: user?.id, source, count: 3 }) })
     const data = await res.json()
@@ -199,7 +205,7 @@ export default function ProductionStudio({ briefId, source = 'admin', userRole =
                 {step === 1 && !selectedAiIdea && (
                   <>
                     <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
-                      <button onClick={generateIdeas} disabled={!!loading} className="btn" style={{ padding: '8px 20px', opacity: loading ? 0.5 : 1 }}>{loading === 'ideas' ? 'Üretiliyor...' : 'AI FİKİR ÜRET'}</button>
+                      <button onClick={generateIdeas} disabled={!!loading} className="btn" style={{ padding: '8px 20px', opacity: loading ? 0.5 : 1 }}>{loading === 'ideas' ? 'Üretiliyor...' : ideas.length > 0 ? 'YENİDEN ÜRET' : 'AI FİKİR ÜRET'}</button>
                       <button onClick={() => { setAddingIdea(true); setNewTitle(''); setNewConcept('') }} className="btn btn-outline" style={{ padding: '8px 16px' }}>MANUEL EKLE</button>
                     </div>
 
