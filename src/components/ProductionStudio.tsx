@@ -30,6 +30,27 @@ export default function ProductionStudio({ briefId, source = 'admin', userRole =
   const [copiedPrompt, setCopiedPrompt] = useState<string|null>(null)
   const [scenarioSaved, setScenarioSaved] = useState(false)
   const [scenarioEditing, setScenarioEditing] = useState(false)
+  const [progress, setProgress] = useState<[boolean, boolean, boolean]>([false, false, false])
+
+  // Load progress on mount (for button indicator)
+  useEffect(() => {
+    async function checkProgress() {
+      const { data: insps } = await supabase.from('brief_inspirations').select('id, scenario, generated_by').eq('brief_id', briefId).limit(5)
+      const hasIdea = (insps || []).some(i => !!i.generated_by || !!i.scenario)
+      const hasScenario = (insps || []).some(i => !!i.scenario)
+      let hasPrompt = false
+      if (hasScenario) {
+        const inspWithScenario = (insps || []).find(i => !!i.scenario)
+        if (inspWithScenario) {
+          const { count } = await supabase.from('inspiration_prompts').select('id', { count: 'exact', head: true }).eq('inspiration_id', inspWithScenario.id)
+          hasPrompt = (count || 0) > 0
+        }
+      }
+      const { data: b } = await supabase.from('briefs').select('selected_ai_idea').eq('id', briefId).single()
+      setProgress([hasIdea || !!b?.selected_ai_idea, hasScenario, hasPrompt])
+    }
+    checkProgress()
+  }, [briefId])
 
   useEffect(() => { if (isOpen) loadData() }, [isOpen, briefId])
 
@@ -47,6 +68,10 @@ export default function ProductionStudio({ briefId, source = 'admin', userRole =
     // Load saved scenario
     const { data: scenInsp } = await supabase.from('brief_inspirations').select('scenario').eq('brief_id', briefId).not('scenario', 'is', null).order('created_at', { ascending: false }).limit(1)
     if (scenInsp?.[0]?.scenario) { setScenarioText(typeof scenInsp[0].scenario === 'string' ? scenInsp[0].scenario : JSON.stringify(scenInsp[0].scenario)); setScenarioSaved(true) }
+    // Update progress indicators
+    const hasIdea = (insps || []).length > 0 || !!b?.selected_ai_idea
+    const hasScen = !!(scenInsp?.[0]?.scenario)
+    setProgress([hasIdea, hasScen, progress[2]])
   }
 
   // ─── Step 1: Ideas ───
@@ -184,8 +209,15 @@ export default function ProductionStudio({ briefId, source = 'admin', userRole =
   return (
     <>
       <style>{`.studio-btn:hover{background:#f5f4f0 !important}.studio-card:hover{border-color:#0a0a0a !important}`}</style>
-      <button onClick={() => setIsOpen(true)} className="btn btn-outline" style={{ width: '100%', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-        <span style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500' }}>CREATIVE STUDIO</span>
+      <button onClick={() => setIsOpen(true)} className="btn btn-outline" style={{ width: '100%', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+        <span style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500' }}>
+          {progress[0] && progress[1] && progress[2] ? 'STÜDYO\'YU GÖRÜNTÜLE' : progress[0] ? 'STÜDYO\'YA DEVAM ET' : 'CREATIVE STUDIO'}
+        </span>
+        <span style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+          {['Fikir', 'Senaryo', 'Prompt'].map((label, i) => (
+            <span key={i} title={label} style={{ width: '7px', height: '7px', borderRadius: '50%', background: progress[i] ? '#0a0a0a' : 'transparent', border: progress[i] ? '1px solid #0a0a0a' : '1px solid #c5c5b8', display: 'inline-block' }} />
+          ))}
+        </span>
       </button>
 
       {isOpen && (
