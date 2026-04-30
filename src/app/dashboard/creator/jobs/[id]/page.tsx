@@ -26,7 +26,7 @@ export default function CreatorJobDetail() {
   const [newQuestion, setNewQuestion] = useState('')
   const [creatorSummary, setCreatorSummary] = useState<{customer_want:string,mood:string,critical_point:string}|null>(null)
   const [brandSummary, setBrandSummary] = useState<string|null>(null)
-  const [brandSummaryOpen, setBrandSummaryOpen] = useState(false)
+  const [brandSummaryOpen, setBrandSummaryOpen] = useState(true)
   const [summaryLoading, setSummaryLoading] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [playerUrl, setPlayerUrl] = useState<string | null>(null)
@@ -193,7 +193,7 @@ export default function CreatorJobDetail() {
           <div style={{ background: '#fff', border: '1px solid #0a0a0a', padding: '18px 22px' }}>
             <div className="label-caps" style={{ marginBottom: '12px' }}>BRIEF ÖZETİ</div>
             {summaryLoading && !creatorSummary ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 0' }}><div className="spinner" style={{ width: '12px', height: '12px', border: '2px solid #ddd', borderTopColor: '#0a0a0a' }} /><span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>Hesaplanıyor...</span></div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 0' }}><div className="spinner" style={{ width: '12px', height: '12px', border: '2px solid #ddd', borderTopColor: '#0a0a0a' }} /><span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>Üretiliyor...</span></div>
             ) : creatorSummary ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <div><div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '3px' }}>MÜŞTERİ NE İSTİYOR</div><div style={{ fontSize: '13px', color: '#0a0a0a', lineHeight: 1.5 }}>{creatorSummary.customer_want}</div></div>
@@ -211,7 +211,7 @@ export default function CreatorJobDetail() {
             </div>
             {brandSummaryOpen && (
               summaryLoading && !brandSummary ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 0' }}><div className="spinner" style={{ width: '12px', height: '12px', border: '2px solid #ddd', borderTopColor: '#0a0a0a' }} /><span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>Hesaplanıyor...</span></div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 0' }}><div className="spinner" style={{ width: '12px', height: '12px', border: '2px solid #ddd', borderTopColor: '#0a0a0a' }} /><span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>Üretiliyor...</span></div>
               ) : brandSummary ? (
                 <div style={{ marginTop: '12px', fontSize: '13px', color: '#0a0a0a', lineHeight: 1.6 }}>{brandSummary}</div>
               ) : <div style={{ marginTop: '12px', fontSize: '11px', color: 'var(--color-text-tertiary)' }}>Marka özeti üretilemedi.</div>
