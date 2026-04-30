@@ -66,7 +66,7 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
   return (
     <div className="dashboard-scale" style={{ display: 'flex', minHeight: '100vh' }}>
       {/* SIDEBAR */}
-      <div className="dinamo-sidebar" style={{ width: '240px', background: '#0A0A0A', flexShrink: 0, overflowY: 'auto' }}>
+      <div style={{ width: '240px', minWidth: '240px', background: '#0A0A0A', flexShrink: 0, overflowY: 'auto', height: '100dvh', position: 'sticky', top: 0 }}>
         {/* 1) Logo */}
         <div style={{ padding: '18px 16px 14px', borderBottom: '0.5px solid rgba(255,255,255,0.07)' }}>
           <img src="/dinamo_logo.png" alt="Dinamo" style={{ height: '28px', display: 'block', marginBottom: '12px' }} />
