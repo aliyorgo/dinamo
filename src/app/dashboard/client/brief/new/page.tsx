@@ -737,7 +737,7 @@ function NewBriefPage() {
               <div style={{fontSize:'22px',fontWeight:'500',letterSpacing:'-0.01em',color:'var(--color-text-primary)',marginBottom:'28px'}}>Kimi hedefliyorsunuz?</div>
               <div style={{marginBottom:'22px'}}>
                 <div style={{fontSize:'11px',color:'var(--color-text-secondary)',letterSpacing:'2px',textTransform:'uppercase',fontWeight:'500',marginBottom:'8px'}}>Hedef Kitle</div>
-                <input style={inputStyle} value={form.target_audience} onChange={e=>setForm({...form,target_audience:e.target.value})} placeholder="örn. 25-40 yaş, online alışveriş yapan..." />
+                <textarea style={{...inputStyle,resize:'vertical',minHeight:'80px'}} rows={3} maxLength={500} value={form.target_audience} onChange={e=>setForm({...form,target_audience:e.target.value})} placeholder="Yaş, demografi, ilgi alanları, davranışlar — kim için üretiyoruz?" />
               </div>
               <div style={{marginBottom:'22px'}}>
                 <div style={{fontSize:'11px',color:'var(--color-text-secondary)',letterSpacing:'2px',textTransform:'uppercase',fontWeight:'500',marginBottom:'8px'}}>Call to Action var mı?</div>
