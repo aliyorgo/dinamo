@@ -22,8 +22,12 @@ export default function CreatorJobDetail() {
   const [projectFiles, setProjectFiles] = useState<any[]>([])
   const [adminApproved, setAdminApproved] = useState<any>(null)
   const [studioLocked, setStudioLocked] = useState(false)
-  const [briefOpen, setBriefOpen] = useState(true)
+  const [briefOpen, setBriefOpen] = useState(false)
   const [newQuestion, setNewQuestion] = useState('')
+  const [creatorSummary, setCreatorSummary] = useState<{customer_want:string,mood:string,critical_point:string}|null>(null)
+  const [brandSummary, setBrandSummary] = useState<string|null>(null)
+  const [brandSummaryOpen, setBrandSummaryOpen] = useState(false)
+  const [summaryLoading, setSummaryLoading] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [playerUrl, setPlayerUrl] = useState<string | null>(null)
   const [uploadProgress, setUploadProgress] = useState(0)
@@ -33,6 +37,14 @@ export default function CreatorJobDetail() {
   const videoRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => { loadData() }, [briefId])
+  useEffect(() => {
+    if (!briefId) return
+    setSummaryLoading(true)
+    Promise.all([
+      fetch(`/api/briefs/${briefId}/creator-summary`).then(r => r.json()).then(d => { if (d.customer_want) setCreatorSummary(d) }),
+      fetch(`/api/briefs/${briefId}/brand-summary`).then(r => r.json()).then(d => { if (d.brand_summary) setBrandSummary(d.brand_summary) }),
+    ]).finally(() => setSummaryLoading(false))
+  }, [briefId])
 
   async function loadData() {
     const { data: { user } } = await supabase.auth.getUser()
@@ -175,7 +187,58 @@ export default function CreatorJobDetail() {
           <ProductionStudio briefId={briefId} source="creator" userRole="creator" />
         </div>
 
-        {/* 1) BRIEF DETAYLARI */}
+        {/* ÖZET BÖLÜMÜ */}
+        <div className="summary-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+          {/* BRIEF ÖZETİ */}
+          <div style={{ background: '#fff', border: '1px solid #0a0a0a', padding: '18px 22px' }}>
+            <div className="label-caps" style={{ marginBottom: '12px' }}>BRIEF ÖZETİ</div>
+            {summaryLoading && !creatorSummary ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 0' }}><div className="spinner" style={{ width: '12px', height: '12px', border: '2px solid #ddd', borderTopColor: '#0a0a0a' }} /><span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>Hesaplanıyor...</span></div>
+            ) : creatorSummary ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div><div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '3px' }}>MÜŞTERİ NE İSTİYOR</div><div style={{ fontSize: '13px', color: '#0a0a0a', lineHeight: 1.5 }}>{creatorSummary.customer_want}</div></div>
+                <div><div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '3px' }}>MOOD</div><div style={{ fontSize: '13px', color: '#0a0a0a', fontWeight: '500' }}>{creatorSummary.mood}</div></div>
+                <div><div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '3px' }}>EN KRİTİK NOKTA</div><div style={{ fontSize: '13px', color: '#0a0a0a', lineHeight: 1.5 }}>{creatorSummary.critical_point}</div></div>
+              </div>
+            ) : <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>Özet üretilemedi.</div>}
+          </div>
+
+          {/* MARKA HAKKINDA */}
+          <div style={{ background: '#fff', border: '1px solid #e5e4db', padding: '18px 22px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }} onClick={() => setBrandSummaryOpen(!brandSummaryOpen)}>
+              <div className="label-caps">MARKA HAKKINDA</div>
+              <span style={{ fontSize: '10px', color: 'var(--color-text-tertiary)' }}>{brandSummaryOpen ? 'KAPAT' : 'DETAY'}</span>
+            </div>
+            {brandSummaryOpen && (
+              summaryLoading && !brandSummary ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 0' }}><div className="spinner" style={{ width: '12px', height: '12px', border: '2px solid #ddd', borderTopColor: '#0a0a0a' }} /><span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>Hesaplanıyor...</span></div>
+              ) : brandSummary ? (
+                <div style={{ marginTop: '12px', fontSize: '13px', color: '#0a0a0a', lineHeight: 1.6 }}>{brandSummary}</div>
+              ) : <div style={{ marginTop: '12px', fontSize: '11px', color: 'var(--color-text-tertiary)' }}>Marka özeti üretilemedi.</div>
+            )}
+          </div>
+        </div>
+
+        {/* FORMAT/TEKNİK KART */}
+        {brief && (
+          <div style={{ background: '#fff', border: '1px solid #e5e4db', padding: '14px 18px', marginBottom: '16px', display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <div className="label-caps" style={{ marginRight: '8px' }}>ÜRETİM BİLGİSİ</div>
+            {[
+              { k: 'FORMAT', v: brief.format },
+              { k: 'SÜRE', v: durMap[brief.video_type] || brief.video_type },
+              { k: 'MECRA', v: Array.isArray(brief.platforms) ? brief.platforms.join(', ') : null },
+              { k: 'CTA', v: sf.includes('cta') ? brief.cta : null },
+            ].filter(m => m.v).map((m, i) => (
+              <span key={m.k} style={{ fontSize: '11px', color: '#0a0a0a' }}>
+                {i > 0 && <span style={{ color: 'var(--color-text-tertiary)', margin: '0 6px' }}>·</span>}
+                <span style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)' }}>{m.k}: </span>
+                <span style={{ fontWeight: '500' }}>{m.v}</span>
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* BRIEF DETAYLARI (default KAPALI) */}
         <div style={{ background: '#fff', border: '1px solid #0a0a0a', padding: '22px', marginBottom: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginBottom: briefOpen ? '16px' : 0 }} onClick={() => setBriefOpen(!briefOpen)}>
             <div className="label-caps">BRIEF DETAYLARI</div>
@@ -430,7 +493,7 @@ export default function CreatorJobDetail() {
         </div>
       )}
 
-      <style>{`@media (max-width: 768px) { .brief-meta { grid-template-columns: repeat(2, 1fr) !important; } .bottom-grid { grid-template-columns: 1fr !important; } }`}</style>
+      <style>{`@media (max-width: 768px) { .brief-meta { grid-template-columns: repeat(2, 1fr) !important; } .bottom-grid { grid-template-columns: 1fr !important; } .summary-grid { grid-template-columns: 1fr !important; } }`}</style>
     </div>
   )
 }
