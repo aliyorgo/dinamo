@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js'
 import ProductionStudio from '@/components/ProductionStudio'
 import { useRouter, useParams } from 'next/navigation'
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
 export default function CreatorJobDetail() {
   const router = useRouter()
@@ -14,16 +14,20 @@ export default function CreatorJobDetail() {
   const [producerBrief, setProducerBrief] = useState<any>(null)
   const [submissions, setSubmissions] = useState<any[]>([])
   const [revisions, setRevisions] = useState<any[]>([])
+  const [questions, setQuestions] = useState<any[]>([])
   const [userName, setUserName] = useState('')
   const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
   const [msg, setMsg] = useState('')
   const [brandFiles, setBrandFiles] = useState<any[]>([])
   const [projectFiles, setProjectFiles] = useState<any[]>([])
-  const [inspirations, setInspirations] = useState<any[]>([])
-  const [inspLoading, setInspLoading] = useState(false)
   const [adminApproved, setAdminApproved] = useState<any>(null)
   const [studioLocked, setStudioLocked] = useState(false)
+  const [briefOpen, setBriefOpen] = useState(true)
+  const [newQuestion, setNewQuestion] = useState('')
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => { loadData() }, [briefId])
 
@@ -39,34 +43,20 @@ export default function CreatorJobDetail() {
     const { data: s } = await supabase.from('video_submissions').select('*').eq('brief_id', briefId).order('submitted_at', { ascending: false })
     setSubmissions(s || [])
     const { data: q } = await supabase.from('brief_questions').select('*').eq('brief_id', briefId).order('asked_at')
-    setRevisions((q || []).filter((x:any) => x.question.startsWith('İÇ REVİZYON:') || x.question.startsWith('REVİZYON:')))
-    // Load files: brand-wide (client_id, no brief_id) + this project's files (brief_id)
+    setQuestions(q || [])
+    setRevisions((q || []).filter((x: any) => x.question.startsWith('İÇ REVİZYON:') || x.question.startsWith('REVİZYON:')))
     if (b?.client_id) {
-      const { data: brand, error: brandErr } = await supabase.from('brief_files').select('*').eq('client_id', b.client_id).is('brief_id', null).order('created_at', { ascending: false })
-      const { data: project, error: projErr } = await supabase.from('brief_files').select('*').eq('brief_id', briefId).order('created_at', { ascending: false })
-      console.log('[Creator] brand files:', brand?.length, brandErr, '| project files:', project?.length, projErr)
-
-      // Generate signed URLs for all files
       async function signFiles(files: any[]) {
         return Promise.all(files.map(async f => {
-          if (f.file_url) {
-            const path = f.file_url.split('/brand-assets/')[1]
-            if (path) {
-              const { data: signed } = await supabase.storage.from('brand-assets').createSignedUrl(decodeURIComponent(path), 3600)
-              return { ...f, file_url: signed?.signedUrl || f.file_url }
-            }
-          }
+          if (f.file_url) { const path = f.file_url.split('/brand-assets/')[1]; if (path) { const { data: signed } = await supabase.storage.from('brand-assets').createSignedUrl(decodeURIComponent(path), 3600); return { ...f, file_url: signed?.signedUrl || f.file_url } } }
           return f
         }))
       }
-
+      const { data: brand } = await supabase.from('brief_files').select('*').eq('client_id', b.client_id).is('brief_id', null)
+      const { data: project } = await supabase.from('brief_files').select('*').eq('brief_id', briefId)
       setBrandFiles(await signFiles(brand || []))
       setProjectFiles(await signFiles(project || []))
     }
-    console.log('[Creator] clients data:', { logo_url: b?.clients?.logo_url, font_url: b?.clients?.font_url })
-    const { data: insp } = await supabase.from('brief_inspirations').select('*').eq('brief_id', briefId).eq('is_visible_to_creator', true).order('is_starred', { ascending: false })
-    setInspirations(insp || [])
-    // Admin-approved inspiration
     const { data: adminInsp } = await supabase.from('brief_inspirations').select('*').eq('brief_id', briefId).eq('source', 'admin').eq('status', 'approved').maybeSingle()
     setAdminApproved(adminInsp)
     setStudioLocked(pb?.studio_locked || false)
@@ -74,9 +64,8 @@ export default function CreatorJobDetail() {
 
   async function handleUpload() {
     const file = fileRef.current?.files?.[0]
-    if (!file) { setMsg('Dosya seçin.'); return }
-    setUploading(true)
-    setMsg('')
+    if (!file) return
+    setUploading(true); setMsg('')
     const { data: { user } } = await supabase.auth.getUser()
     const { data: cd } = await supabase.from('creators').select('id').eq('user_id', user?.id).maybeSingle()
     if (!cd) { setMsg('Creator kaydı bulunamadı.'); setUploading(false); return }
@@ -85,327 +74,302 @@ export default function CreatorJobDetail() {
     const campaign = (brief?.campaign_name || 'video').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
     const fmt = (brief?.format || '').replace(':', 'x')
     const date = new Date().toISOString().slice(0, 10)
-    const autoName = `dinamo_${client}_${campaign}_${fmt}_${date}.${ext}`
-    const storagePath = `${briefId}/${autoName}`
+    const storagePath = `${briefId}/dinamo_${client}_${campaign}_${fmt}_${date}.${ext}`
     const { error: upErr } = await supabase.storage.from('videos').upload(storagePath, file)
-    if (upErr) { console.log('Storage upload error:', upErr.message); setMsg(upErr.message); setUploading(false); return }
-    console.log('Storage upload OK, path:', storagePath)
+    if (upErr) { setMsg(upErr.message); setUploading(false); return }
     const { data: urlData } = supabase.storage.from('videos').getPublicUrl(storagePath)
     const version = submissions.length + 1
-    const { error: insErr } = await supabase.from('video_submissions').insert({ brief_id: briefId, creator_id: cd.id, video_url: urlData.publicUrl, version, status: 'pending', format: brief?.format || null })
-    if (insErr) { console.log('Insert error:', insErr.message); setMsg(insErr.message); setUploading(false); return }
-    console.log('Upload & insert successful')
-    setMsg('Video yüklendi, prodüktör onayı bekleniyor.')
+    await supabase.from('video_submissions').insert({ brief_id: briefId, creator_id: cd.id, video_url: urlData.publicUrl, version, status: 'pending', format: brief?.format || null })
+    setMsg('Video yüklendi.')
     if (fileRef.current) fileRef.current.value = ''
-    // Refresh submissions state
-    const { data: updatedSubs } = await supabase.from('video_submissions').select('*').eq('brief_id', briefId).order('submitted_at', { ascending: false })
-    setSubmissions(updatedSubs || [])
-    setUploading(false)
+    loadData(); setUploading(false)
   }
 
+  async function deleteSubmission(subId: string) {
+    const sub = submissions.find(s => s.id === subId)
+    if (!sub) return
+    const path = sub.video_url?.split('/videos/')[1]
+    if (path) await supabase.storage.from('videos').remove([decodeURIComponent(path)])
+    await supabase.from('video_submissions').delete().eq('id', subId)
+    setDeleteConfirm(null); setMsg('Versiyon silindi.')
+    loadData()
+  }
 
-
-  async function requestMoreInspo() {
-    setInspLoading(true)
+  async function handleQuestion(e: React.FormEvent) {
+    e.preventDefault()
+    if (!newQuestion.trim()) return
     const { data: { user } } = await supabase.auth.getUser()
-    const res = await fetch('/api/generate-inspirations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, user_id: user?.id, count: 1 }) })
-    const data = await res.json()
-    if (data.inspirations) setInspirations(prev => [...data.inspirations, ...prev])
-    setInspLoading(false)
+    await supabase.from('brief_questions').insert({ brief_id: briefId, question: newQuestion, asked_by: user?.id })
+    setNewQuestion(''); loadData()
   }
 
-
-  const [scenarioLoading, setScenarioLoading] = useState<string|null>(null)
-  const [scenarios, setScenarios] = useState<Record<string,{scenario:any[],prompts:any}>>({})
-  const [copiedPrompt, setCopiedPrompt] = useState<string|null>(null)
-
-  async function generateScenario(inspId: string) {
-    setScenarioLoading(inspId)
-    const res = await fetch('/api/generate-scenario', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ inspiration_id: inspId }) })
-    const data = await res.json()
-    if (data.scenario) setScenarios(prev => ({ ...prev, [inspId]: { scenario: data.scenario, prompts: data.prompts } }))
-    setScenarioLoading(null)
-  }
-
-  function copyPrompt(text: string, key: string) {
-    navigator.clipboard.writeText(text)
-    setCopiedPrompt(key)
-    setTimeout(() => setCopiedPrompt(null), 1500)
-  }
-
-  const videoRef = useRef<HTMLVideoElement>(null)
-  function parseTimecode(text: string): { tc: number|null, clean: string } {
+  function parseTimecode(text: string): { tc: number | null, clean: string } {
     const match = text.match(/^\[(\d{2}):(\d{2})\.(\d)\]\s*/)
     if (!match) return { tc: null, clean: text }
-    return { tc: parseInt(match[1])*60 + parseInt(match[2]) + parseInt(match[3])/10, clean: text.replace(match[0], '') }
+    return { tc: parseInt(match[1]) * 60 + parseInt(match[2]) + parseInt(match[3]) / 10, clean: text.replace(match[0], '') }
   }
   function seekTo(seconds: number) { if (videoRef.current) { videoRef.current.currentTime = seconds; videoRef.current.play() } }
 
   const internalRevisions = revisions.filter(r => r.question.startsWith('İÇ REVİZYON:'))
   const clientRevisions = revisions.filter(r => r.question.startsWith('REVİZYON:'))
+  const visibleQuestions = (questions || []).filter(q => !q.question.startsWith('REVİZYON:') && !q.question.startsWith('İÇ REVİZYON:'))
+  const sf: string[] = producerBrief?.shared_fields || ['message', 'cta', 'target_audience', 'voiceover_text', 'notes']
+  const durMap: Record<string, string> = { 'Bumper / Pre-roll': '6sn', 'Story / Reels': '15sn', 'Feed Video': '30sn', 'Long Form': '60sn' }
+  const canUpload = submissions.length === 0 || submissions.some(s => s.status === 'revision_requested') || !submissions.some(s => s.status === 'pending')
+  const lastSub = submissions[0]
+
+  const statusBadge = (status: string) => {
+    const m: Record<string, { label: string, border: string }> = {
+      submitted: { label: 'ATANDI', border: '#9ca3af' }, read: { label: 'ATANDI', border: '#9ca3af' },
+      in_production: { label: 'ÜRETİMDE', border: '#3b82f6' }, revision: { label: 'REVİZYON', border: '#ef4444' },
+      approved: { label: 'ONAY BEKLİYOR', border: '#f59e0b' }, delivered: { label: 'TESLİM', border: '#22c55e' },
+    }
+    const s = m[status] || { label: status, border: '#888' }
+    return <span style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', padding: '3px 8px', border: `1px solid ${s.border}`, color: '#0a0a0a', fontWeight: '500' }}>{s.label}</span>
+  }
+
+  if (!brief) return <div style={{ padding: '24px 28px', color: 'var(--color-text-tertiary)' }}>Yükleniyor...</div>
 
   return (
-      <div style={{flex:1,display:'flex',flexDirection:'column',background:'#f5f4f0'}}>
-        <div style={{padding:'14px 28px',background:'#fff',borderBottom:'1px solid var(--color-border-tertiary)',flexShrink:0,display:'flex',alignItems:'center',gap:'12px'}}>
-          <span onClick={()=>router.push('/dashboard/creator')} style={{fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--color-text-tertiary)',cursor:'pointer'}}>← İŞLERİME DÖN</span>
-          <span style={{color:'var(--color-text-tertiary)'}}>·</span>
-          <span style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{brief?.campaign_name}</span>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
+      {/* STICKY HEADER */}
+      <div style={{ position: 'sticky', top: 0, zIndex: 10, background: '#fff', borderBottom: '1px solid var(--color-border-tertiary)', padding: '14px 28px' }}>
+        <span onClick={() => router.push('/dashboard/creator')} style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', cursor: 'pointer', marginBottom: '6px', display: 'inline-block' }}>← İŞLERİME DÖN</span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', flexWrap: 'wrap' }}>
+          <div>
+            <div style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '4px' }}>{brief.clients?.company_name} · {brief.brief_type === 'cps_child' ? `CPS YÖN ${brief.mvc_order || ''}` : 'ANA VİDEO'}</div>
+            <div style={{ fontSize: '20px', fontWeight: '500', color: '#0a0a0a', letterSpacing: '-0.5px' }}>{brief.campaign_name}</div>
+            <div style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginTop: '4px' }}>{brief.format} · {durMap[brief.video_type] || '10sn'} · {brief.credit_cost || 0} kredi</div>
+          </div>
+          {statusBadge(brief.status)}
+        </div>
+      </div>
+
+      {/* CONTENT */}
+      <div style={{ padding: '24px 28px', maxWidth: '960px' }}>
+        {msg && <div style={{ padding: '10px 16px', background: msg.includes('Hata') || msg.includes('bulunamadı') ? 'rgba(239,68,68,0.08)' : 'rgba(34,197,94,0.08)', border: `1px solid ${msg.includes('Hata') || msg.includes('bulunamadı') ? '#ef4444' : '#22c55e'}`, fontSize: '12px', color: '#0a0a0a', marginBottom: '16px' }}>{msg}</div>}
+
+        {/* PRODUCTION STUDIO */}
+        <div style={{ marginBottom: '16px' }}>
+          <ProductionStudio briefId={briefId} source="creator" userRole="creator" />
         </div>
 
-        <div style={{flex:1,padding:'24px 28px'}}>
-          {brief && (
+        {/* 1) BRIEF DETAYLARI */}
+        <div style={{ background: '#fff', border: '1px solid #0a0a0a', padding: '22px', marginBottom: '16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginBottom: briefOpen ? '16px' : 0 }} onClick={() => setBriefOpen(!briefOpen)}>
+            <div className="label-caps">BRIEF DETAYLARI</div>
+            <span style={{ fontSize: '10px', letterSpacing: '1px', color: 'var(--color-text-tertiary)' }}>{briefOpen ? 'KAPAT' : 'DETAY'}</span>
+          </div>
+          {briefOpen && (
             <>
-              {brief.voiceover_type==='real'&&!brief.voiceover_file_url&&(
-                <div style={{background:'#fffbeb',border:'1px solid rgba(245,158,11,0.3)',borderRadius:'10px',padding:'12px 16px',marginBottom:'16px',display:'flex',alignItems:'center',gap:'10px'}}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><path d="M12 19v4M8 23h8"/></svg>
-                  <div>
-                    <div style={{fontSize:'13px',color:'#0a0a0a',fontWeight:'500'}}>Bu brief için gerçek seslendirme bekleniyor.</div>
-                    <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',marginTop:'2px'}}>Prodüktör dosyayı yükleyince burada görünecek.</div>
-                  </div>
+              {brief.message && <div style={{ fontSize: '14px', color: '#0a0a0a', lineHeight: 1.7, marginBottom: '16px' }}>{brief.message}</div>}
+              {producerBrief?.producer_note && (
+                <div style={{ borderLeft: '3px solid #3b82f6', padding: '10px 14px', background: 'rgba(59,130,246,0.04)', marginBottom: '16px' }}>
+                  <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#3b82f6', marginBottom: '4px' }}>PRODÜKTÖR NOTU</div>
+                  <div style={{ fontSize: '13px', color: '#0a0a0a', lineHeight: 1.6 }}>{producerBrief.producer_note}</div>
                 </div>
               )}
-
-              {(internalRevisions.length > 0 || clientRevisions.length > 0) && (
-                <div style={{background:'#fff',border:'2px solid #ef4444',borderRadius:'12px',padding:'20px 24px',marginBottom:'16px'}}>
-                  <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'14px'}}>
-                    <div style={{width:'8px',height:'8px',borderRadius:'50%',background:'#ef4444'}}></div>
-                    <div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>Revizyon Talepleri</div>
+              <div className="brief-meta" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '12px', marginBottom: '16px' }}>
+                {[
+                  { k: 'HOOK', v: brief.cps_hook || brief.hook },
+                  { k: 'HERO', v: brief.cps_hero || brief.hero },
+                  { k: 'TON', v: brief.cps_ton || brief.tone },
+                  { k: 'HEDEF KİTLE', v: sf.includes('target_audience') ? brief.target_audience : null },
+                  { k: 'MECRA', v: Array.isArray(brief.platforms) ? brief.platforms.join(', ') : null },
+                  { k: 'CTA', v: sf.includes('cta') ? brief.cta : null },
+                  { k: 'FORMAT', v: brief.format },
+                  { k: 'SÜRE', v: durMap[brief.video_type] || brief.video_type },
+                ].filter(m => m.v).map(m => (
+                  <div key={m.k}>
+                    <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '4px' }}>{m.k}</div>
+                    <div style={{ fontSize: '13px', color: '#0a0a0a' }}>{m.v}</div>
                   </div>
-                  {internalRevisions.map((r,i)=>{
-                    const {tc,clean}=parseTimecode(r.question.replace('İÇ REVİZYON: ',''))
-                    return (
-                      <div key={r.id} style={{padding:'10px 14px',background:'#fef2f2',borderRadius:'8px',marginBottom:'6px'}}>
-                        <div style={{fontSize:'10px',color:'#ef4444',fontWeight:'500',marginBottom:'3px',textTransform:'uppercase',letterSpacing:'0.3px'}}>Prodüktör / Admin</div>
-                        <div style={{fontSize:'13px',color:'#0a0a0a',display:'flex',alignItems:'flex-start',gap:'8px'}}>
-                          {tc!==null&&<button onClick={()=>seekTo(tc)} style={{fontSize:'10px',padding:'2px 8px',borderRadius:'100px',background:'rgba(245,158,11,0.15)',color:'#f59e0b',border:'none',cursor:'pointer',fontFamily:'monospace',fontWeight:'500',flexShrink:0,marginTop:'2px'}}>▶ {Math.floor(tc/60)}:{String(Math.floor(tc%60)).padStart(2,'0')}</button>}
-                          <span>{clean}</span>
-                        </div>
-                      </div>
-                    )
-                  })}
-                  {clientRevisions.map((r,i)=>{
-                    const {tc,clean}=parseTimecode(r.question.replace('REVİZYON: ',''))
-                    return (
-                      <div key={r.id} style={{padding:'10px 14px',background:'#fef2f2',borderRadius:'8px',marginBottom:'6px'}}>
-                        <div style={{fontSize:'10px',color:'#ef4444',fontWeight:'500',marginBottom:'3px',textTransform:'uppercase',letterSpacing:'0.3px'}}>Müşteri Revizyonu</div>
-                        <div style={{fontSize:'13px',color:'#0a0a0a',display:'flex',alignItems:'flex-start',gap:'8px'}}>
-                          {tc!==null&&<button onClick={()=>seekTo(tc)} style={{fontSize:'10px',padding:'2px 8px',borderRadius:'100px',background:'rgba(245,158,11,0.15)',color:'#f59e0b',border:'none',cursor:'pointer',fontFamily:'monospace',fontWeight:'500',flexShrink:0,marginTop:'2px'}}>▶ {Math.floor(tc/60)}:{String(Math.floor(tc%60)).padStart(2,'0')}</button>}
-                          <span>{clean}</span>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-
-              {/* 1. VIDEO SUBMISSIONS */}
-              <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'20px 24px',marginBottom:'16px'}}>
-                <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'14px'}}>Video Yükle</div>
-                <div style={{display:'flex',gap:'10px',alignItems:'center',flexWrap:'wrap'}}>
-                  <input ref={fileRef} type="file" accept="video/*" style={{flex:1,fontSize:'13px',color:'#0a0a0a',minWidth:'200px'}} />
-                  <button onClick={handleUpload} disabled={uploading} className="btn" style={{padding:"9px 20px",whiteSpace:"nowrap"}}>
-                    {uploading?'Yükleniyor...':'Yükle'}
-                  </button>
-                </div>
-                {msg&&<div style={{fontSize:'12px',color:msg.includes('bulunamadı')?'#ef4444':'#22c55e',marginTop:'10px'}}>{msg}</div>}
+                ))}
               </div>
+              {brief.voiceover_text && sf.includes('voiceover_text') && (
+                <div style={{ borderLeft: '3px solid #22c55e', padding: '10px 14px', background: 'rgba(34,197,94,0.04)', marginBottom: '16px' }}>
+                  <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '4px' }}>SESLENDİRME METNİ · {brief.voiceover_type === 'real' ? 'GERÇEK' : 'AI'} · {brief.voiceover_gender === 'male' ? 'ERKEK' : 'KADIN'}</div>
+                  <div style={{ fontSize: '13px', color: '#0a0a0a', fontStyle: 'italic', lineHeight: 1.6 }}>{brief.voiceover_text}</div>
+                </div>
+              )}
+              {brief.voiceover_type === 'real' && (
+                <div style={{ marginBottom: '16px' }}>
+                  {brief.voiceover_file_url ? (
+                    <div>
+                      <audio controls src={brief.voiceover_file_url} style={{ width: '100%', marginBottom: '6px' }} />
+                      <a href={brief.voiceover_file_url} download target="_blank" className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '10px', textDecoration: 'none' }}>SES İNDİR ↓</a>
+                    </div>
+                  ) : (
+                    <div style={{ fontSize: '12px', color: '#f59e0b' }}>Seslendirme dosyası hazırlanıyor...</div>
+                  )}
+                </div>
+              )}
+              {brief.notes && sf.includes('notes') && (
+                <div>
+                  <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '4px' }}>NOTLAR</div>
+                  <div style={{ fontSize: '13px', color: '#0a0a0a', lineHeight: 1.5 }}>{brief.notes}</div>
+                </div>
+              )}
+              {brief.format && (
+                <div style={{ marginTop: '16px', padding: '12px 16px', background: 'rgba(34,197,94,0.04)', border: '1px solid rgba(34,197,94,0.15)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  {(() => { const r = brief.format.split(':').map(Number); const scale = 32 / Math.max(r[0] || 1, r[1] || 1); return <div style={{ width: `${(r[0] || 1) * scale}px`, height: `${(r[1] || 1) * scale}px`, border: '2px solid #22c55e', background: 'rgba(34,197,94,0.08)', flexShrink: 0 }} /> })()}
+                  <div style={{ fontSize: '12px', color: '#0a0a0a' }}>Bu video <strong>{brief.format}</strong> formatında üretilmeli</div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
 
-              {submissions.length > 0 && (
-                <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'20px 24px',marginBottom:'16px'}}>
-                  <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'14px'}}>Yüklediklerim</div>
-                  {submissions.map((s,i)=>(
-                    <div key={s.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0',borderBottom:i<submissions.length-1?'0.5px solid rgba(0,0,0,0.06)':'none'}}>
+        {/* ADMIN APPROVED IDEA / SCENARIO */}
+        {(studioLocked || adminApproved) && (
+          <div style={{ background: '#fff', border: '1px solid #22c55e', padding: '18px 22px', marginBottom: '16px' }}>
+            <div className="label-caps" style={{ color: '#22c55e', marginBottom: '12px' }}>PRODÜKSIYONDAN GELENLER</div>
+            {adminApproved && (
+              <div style={{ marginBottom: '12px' }}>
+                <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a', marginBottom: '4px' }}>{adminApproved.title}</div>
+                <div style={{ fontSize: '13px', color: '#555', lineHeight: 1.7 }}>{adminApproved.concept}</div>
+              </div>
+            )}
+            {adminApproved?.scenario_status === 'approved' && adminApproved.scenario && (() => {
+              let parsed: any = adminApproved.scenario
+              if (typeof parsed === 'string') { try { const p = JSON.parse(parsed); parsed = Array.isArray(p) ? p : p?.scenario || parsed } catch { } }
+              if (!Array.isArray(parsed)) return <div style={{ fontSize: '13px', color: '#0a0a0a', lineHeight: 1.8 }}>{String(parsed)}</div>
+              return (
+                <div style={{ borderTop: '1px solid #e5e4db', paddingTop: '12px' }}>
+                  <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '8px' }}>SENARYO</div>
+                  {parsed.map((sc: any, i: number) => (
+                    <div key={i} style={{ display: 'flex', gap: '10px', marginBottom: '8px' }}>
+                      <div style={{ fontSize: '18px', fontWeight: '300', color: '#ddd', width: '20px', flexShrink: 0 }}>{sc.scene}</div>
                       <div>
-                        <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>Versiyon {s.version}</div>
-                        <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',marginTop:'2px'}}>{new Date(s.submitted_at).toLocaleDateString('tr-TR')}</div>
-                        {s.producer_notes&&<div style={{fontSize:'11px',color:'#ef4444',marginTop:'3px'}}>Not: {s.producer_notes}</div>}
-                      </div>
-                      <div style={{display:'flex',gap:'8px',alignItems:'center'}}>
-                        <span style={{fontSize:'10px',padding:'3px 8px',borderRadius:'100px',
-                          background:s.status==='pending'?'rgba(0,0,0,0.05)':s.status==='revision_requested'?'rgba(239,68,68,0.1)':'rgba(34,197,94,0.1)',
-                          color:s.status==='pending'?'#888':s.status==='revision_requested'?'#ef4444':'#22c55e',fontWeight:'500'}}>
-                          {s.status==='pending'?'Bekliyor':s.status==='revision_requested'?'Revizyon':'Onaylandı'}
-                        </span>
-                        <a href={s.video_url} target="_blank" style={{fontSize:'11px',color:'#22c55e',textDecoration:'none'}}>Görüntüle ↗</a>
+                        {sc.duration && <div style={{ fontSize: '10px', color: '#22c55e', fontWeight: '500', marginBottom: '2px' }}>{sc.duration}</div>}
+                        <div style={{ fontSize: '13px', color: '#0a0a0a', lineHeight: 1.6 }}>{sc.visual}</div>
                       </div>
                     </div>
                   ))}
                 </div>
-              )}
+              )
+            })()}
+          </div>
+        )}
 
-              {/* 2. BRIEF INFO */}
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px',marginBottom:'16px'}}>
-                <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'20px 24px'}}>
-                  <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'14px'}}>Brief</div>
-                  {(() => {
-                    const sf: string[] = producerBrief?.shared_fields || ['message','cta','target_audience','voiceover_text','notes']
-                    return [
-                      {label:'Video Tipi', field:'video_type', value: `${brief.video_type}${brief.video_type==='Bumper / Pre-roll'?' · 6 saniye':brief.video_type==='Story / Reels'?' · 15 saniye':brief.video_type==='Feed Video'?' · 30 saniye':brief.video_type==='Long Form'?' · 60 saniye':''}`, always:true},
-                      {label:'Format', field:'format', value: brief.format, always:true},
-                      {label:'Mecralar', field:'platforms', value: brief.platforms && Array.isArray(brief.platforms) && brief.platforms.length > 0 ? brief.platforms.join(', ') : null, always:true},
-                      {label:'Mesaj', field:'message', value: brief.message, always:false},
-                      {label:'CTA', field:'cta', value: brief.cta, always:false},
-                      {label:'Hedef Kitle', field:'target_audience', value: brief.target_audience, always:false},
-                      {label:'Seslendirme', field:'voiceover_type', value: brief.voiceover_type==='real'?`Gerçek Seslendirme${brief.voiceover_gender==='male'?' · Erkek':brief.voiceover_gender==='female'?' · Kadın':''}`:brief.voiceover_type==='ai'?`AI Seslendirme${brief.voiceover_gender==='male'?' · Erkek':brief.voiceover_gender==='female'?' · Kadın':''}`:null, always:true},
-                      {label:'Seslendirme Metni', field:'voiceover_text', value: brief.voiceover_type!=='real'?brief.voiceover_text:null, always:false},
-                      {label:'Notlar', field:'notes', value: brief.notes, always:false},
-                    ].filter(f => f.value && (f.always || sf.includes(f.field))).map(f=>(
-                      <div key={f.label} style={{marginBottom:'10px'}}>
-                        <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'3px'}}>{f.label}</div>
-                        <div style={{fontSize:'13px',color:'#0a0a0a',lineHeight:'1.5'}}>{f.value}</div>
-                      </div>
-                    ))
-                  })()}
+        {/* 2) ASSET'LER */}
+        <div style={{ background: '#fff', border: '1px solid #e5e4db', padding: '18px 22px', marginBottom: '16px' }}>
+          <div className="label-caps" style={{ marginBottom: '12px' }}>ASSET'LER</div>
+          {[
+            ...(brief.clients?.logo_url ? [{ name: 'Logo', url: brief.clients.logo_url, type: 'image' }] : []),
+            ...(brief.clients?.font_url ? [{ name: 'Font', url: brief.clients.font_url, type: 'font' }] : []),
+            ...brandFiles.map((f: any) => ({ name: f.file_name, url: f.file_url, type: f.file_type || '' })),
+            ...projectFiles.map((f: any) => ({ name: f.file_name, url: f.file_url, type: f.file_type || '' })),
+          ].length > 0 ? (
+            [...(brief.clients?.logo_url ? [{ name: 'Logo', url: brief.clients.logo_url, type: 'image' }] : []),
+            ...(brief.clients?.font_url ? [{ name: 'Font', url: brief.clients.font_url, type: 'font' }] : []),
+            ...brandFiles.map((f: any) => ({ name: f.file_name, url: f.file_url, type: f.file_type || '' })),
+            ...projectFiles.map((f: any) => ({ name: f.file_name, url: f.file_url, type: f.file_type || '' })),
+            ].map((asset, i) => {
+              const ext = asset.name?.split('.').pop()?.toUpperCase() || (asset.type.includes('image') ? 'IMG' : asset.type.includes('font') ? 'TTF' : 'FILE')
+              return (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 0', borderBottom: '1px solid #f0f0ee' }}>
+                  <div style={{ width: '28px', height: '28px', background: '#0a0a0a', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px', fontWeight: '600', letterSpacing: '0.5px', flexShrink: 0 }}>{ext}</div>
+                  <div style={{ flex: 1, fontSize: '12px', color: '#0a0a0a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{asset.name}</div>
+                  <a href={asset.url} target="_blank" download className="btn btn-outline" style={{ padding: '3px 10px', fontSize: '9px', textDecoration: 'none' }}>İNDİR ↓</a>
                 </div>
-
-                <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
-                  {producerBrief?.producer_note && (
-                    <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'16px 20px'}}>
-                      <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'10px'}}>Prodüktör Notu</div>
-                      <div style={{fontSize:'13px',color:'#0a0a0a',lineHeight:'1.6'}}>{producerBrief.producer_note}</div>
-                    </div>
-                  )}
-                  {brief.voiceover_type==='real'&&(
-                    <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'16px 20px',marginBottom:'12px'}}>
-                      <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'10px'}}>Seslendirme</div>
-                      {brief.voiceover_file_url ? (
-                        <div>
-                          <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'8px'}}>
-                            <div style={{width:'6px',height:'6px',borderRadius:'50%',background:'#22c55e'}}></div>
-                            <span style={{fontSize:'12px',color:'#22c55e',fontWeight:'500'}}>Seslendirme hazır</span>
-                          </div>
-                          <audio controls src={brief.voiceover_file_url} style={{width:'100%',marginBottom:'8px'}} />
-                          <a href={brief.voiceover_file_url} download target="_blank" style={{fontSize:'11px',color:'#22c55e',textDecoration:'none'}}>İndir ↓</a>
-                        </div>
-                      ) : (
-                        <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
-                          <div style={{width:'6px',height:'6px',borderRadius:'50%',background:'#f59e0b'}}></div>
-                          <span style={{fontSize:'12px',color:'#f59e0b'}}>Seslendirme hazırlanıyor</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'16px 20px',marginBottom:'12px'}}>
-                    <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'10px'}}>Marka Dosyaları</div>
-                    {brief.clients?.logo_url&&(
-                      <a href={brief.clients.logo_url} target="_blank" style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'8px',textDecoration:'none'}}>
-                        <img src={brief.clients.logo_url} style={{width:'80px',height:'80px',objectFit:'contain',borderRadius:'6px',background:'#f5f5f5',padding:'6px'}} />
-                        <span style={{fontSize:'12px',color:'#22c55e'}}>Logo ↓</span>
-                      </a>
-                    )}
-                    {brief.clients?.font_url&&(
-                      <a href={brief.clients.font_url} target="_blank" style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'8px',textDecoration:'none'}}>
-                        <div style={{width:'80px',height:'80px',borderRadius:'6px',background:'#f5f5f5',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><span style={{fontSize:'11px',fontWeight:'600',color:'rgba(255,255,255,0.4)'}}>FONT</span></div>
-                        <span style={{fontSize:'12px',color:'#22c55e'}}>Font ↓</span>
-                      </a>
-                    )}
-                    {brandFiles.map(f=>(
-                      <a key={f.id} href={f.file_url} target="_blank" style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'8px',textDecoration:'none'}}>
-                        {f.file_type?.includes('image') ? (
-                          <img src={f.file_url} style={{width:'80px',height:'80px',objectFit:'contain',borderRadius:'6px',background:'#f5f5f5',padding:'6px'}} />
-                        ) : f.file_type?.includes('video') ? (
-                          <div style={{width:'80px',height:'80px',borderRadius:'6px',background:'#111',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><span style={{fontSize:'16px',color:'rgba(255,255,255,0.5)'}}>▶</span></div>
-                        ) : f.file_type?.includes('pdf') ? (
-                          <div style={{width:'80px',height:'80px',borderRadius:'6px',background:'#f5f5f5',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><span style={{fontSize:'11px',fontWeight:'600',color:'rgba(255,255,255,0.4)'}}>PDF</span></div>
-                        ) : null}
-                        <span style={{fontSize:'12px',color:'#22c55e'}}>{f.file_name} ↓</span>
-                      </a>
-                    ))}
-                    {!brief.clients?.logo_url&&!brief.clients?.font_url&&brandFiles.length===0&&<div style={{fontSize:'12px',color:'rgba(255,255,255,0.4)'}}>Marka dosyası yüklenmemiş.</div>}
-                  </div>
-                  {projectFiles.length > 0 && (
-                    <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'16px 20px'}}>
-                      <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'10px'}}>Bu Proje Dosyaları</div>
-                      {projectFiles.map(f=>(
-                        <a key={f.id} href={f.file_url} target="_blank" style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'8px',textDecoration:'none'}}>
-                          {f.file_type?.includes('image') ? (
-                            <img src={f.file_url} style={{width:'80px',height:'80px',objectFit:'contain',borderRadius:'6px',background:'#f5f5f5',padding:'6px'}} />
-                          ) : f.file_type?.includes('video') ? (
-                            <div style={{width:'80px',height:'80px',borderRadius:'6px',background:'#111',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><span style={{fontSize:'16px',color:'rgba(255,255,255,0.5)'}}>▶</span></div>
-                          ) : f.file_type?.includes('pdf') ? (
-                            <div style={{width:'80px',height:'80px',borderRadius:'6px',background:'#f5f5f5',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><span style={{fontSize:'11px',fontWeight:'600',color:'rgba(255,255,255,0.4)'}}>PDF</span></div>
-                          ) : null}
-                          <span style={{fontSize:'12px',color:'#22c55e'}}>{f.file_name} ↓</span>
-                        </a>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {brief.format && (
-                <div style={{background:'rgba(34,197,94,0.04)',border:'1px solid rgba(34,197,94,0.15)',borderRadius:'12px',padding:'16px 20px',marginBottom:'16px',display:'flex',alignItems:'center',gap:'14px'}}>
-                  {(() => {
-                    const r = brief.format.split(':').map(Number)
-                    const scale = 40 / Math.max(r[0]||1, r[1]||1)
-                    return <div style={{width:`${(r[0]||1)*scale}px`,height:`${(r[1]||1)*scale}px`,borderRadius:'4px',border:'2px solid #22c55e',background:'rgba(34,197,94,0.08)',flexShrink:0}} />
-                  })()}
-                  <div>
-                    <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>Bu video <span style={{color:'#22c55e'}}>{brief.format}</span> formatında üretilmeli</div>
-                    <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',marginTop:'2px'}}>{brief.video_type}</div>
-                  </div>
-                </div>
-              )}
-
-              {/* 3. PRODÜKSIYONDAN GELENLER */}
-              {(studioLocked || adminApproved) && (
-                <div style={{background:'#fff',border:'1.5px solid rgba(34,197,94,0.3)',borderRadius:'12px',padding:'20px 24px',marginBottom:'16px'}}>
-                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'16px'}}>
-                    <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                      <div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a',textTransform:'uppercase',letterSpacing:'0.3px'}}>Prodüksiyondan Gelenler</div>
-                    </div>
-                  </div>
-
-                  {adminApproved && (
-                    <div style={{border:'1.5px solid #22c55e',borderRadius:'10px',padding:'14px 16px',background:'rgba(34,197,94,0.02)',marginBottom: adminApproved.scenario_status === 'approved' && adminApproved.scenario ? '14px' : '0'}}>
-                      <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'6px'}}>
-                        <span style={{fontSize:'9px',padding:'2px 8px',borderRadius:'100px',background:'rgba(34,197,94,0.1)',color:'#22c55e',fontWeight:'500'}}>Onaylanan Fikir</span>
-                      </div>
-                      <div style={{fontSize:'15px',fontWeight:'500',color:'#0a0a0a',marginBottom:'6px'}}>{adminApproved.title}</div>
-                      <div style={{fontSize:'13px',color:'#555',lineHeight:1.7}}>{adminApproved.concept}</div>
-                    </div>
-                  )}
-
-                  {adminApproved?.scenario_status === 'approved' && adminApproved.scenario && (() => {
-                    const raw = adminApproved.scenario
-                    let parsed: any = null
-                    if (Array.isArray(raw)) parsed = raw
-                    else if (typeof raw === 'string') {
-                      try { const p = JSON.parse(raw); parsed = Array.isArray(p) ? p : p?.scenario && Array.isArray(p.scenario) ? p.scenario : raw } catch { parsed = raw }
-                    }
-                    return (
-                      <div style={{border:'0.5px solid rgba(0,0,0,0.08)',borderRadius:'10px',padding:'14px 16px',background:'#fafaf8'}}>
-                        <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'10px'}}>Onaylanan Senaryo</div>
-                        {Array.isArray(parsed) ? parsed.map((sc: any, i: number) => (
-                          <div key={i} style={{display:'flex',gap:'10px',marginBottom:'10px',paddingBottom:'10px',borderBottom:i<parsed.length-1?'0.5px solid rgba(0,0,0,0.04)':'none'}}>
-                            <div style={{fontSize:'20px',fontWeight:'300',color:'#ddd',flexShrink:0,width:'24px'}}>{sc.scene}</div>
-                            <div style={{flex:1}}>
-                              {sc.duration&&<div style={{fontSize:'10px',color:'#22c55e',fontWeight:'500',marginBottom:'3px'}}>{sc.duration}</div>}
-                              <div style={{fontSize:'13px',color:'#0a0a0a',lineHeight:1.7}}>{sc.visual}</div>
-                              {sc.audio&&<div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',marginTop:'2px'}}>🎵 {sc.audio}</div>}
-                              {sc.dialogue&&<div style={{fontSize:'11px',color:'#3b82f6',fontStyle:'italic',marginTop:'2px'}}>💬 {sc.dialogue}</div>}
-                            </div>
-                          </div>
-                        )) : (
-                          <div>{String(parsed).split('\n').filter(Boolean).map((line, i) => (
-                            <p key={i} style={{fontSize:'13px',color:'#0a0a0a',lineHeight:1.8,margin:'0 0 4px'}}>{line}</p>
-                          ))}</div>
-                        )}
-                      </div>
-                    )
-                  })()}
-                </div>
-              )}
-
-              {/* CREATOR PRODUCTION STUDIO */}
-              <div style={{marginBottom:'16px'}}>
-                <ProductionStudio briefId={briefId} source="creator" userRole="creator" />
-              </div>
-            </>
+              )
+            })
+          ) : (
+            <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)' }}>Asset eklenmemiş.</div>
           )}
         </div>
+
+        {/* 3) ÜRETİM */}
+        <div style={{ background: '#fff', border: '1px solid #0a0a0a', padding: '22px', marginBottom: '16px' }}>
+          <div className="label-caps" style={{ marginBottom: '16px' }}>ÜRETİM</div>
+
+          {/* Revisions */}
+          {(internalRevisions.length > 0 || clientRevisions.length > 0) && (
+            <div style={{ border: '2px solid #ef4444', padding: '14px 18px', marginBottom: '16px' }}>
+              <div className="label-caps" style={{ color: '#ef4444', marginBottom: '10px' }}>REVİZYON TALEPLERİ</div>
+              {[...internalRevisions, ...clientRevisions].map(r => {
+                const isClient = r.question.startsWith('REVİZYON:')
+                const { tc, clean } = parseTimecode(r.question.replace(/^(İÇ )?REVİZYON: /, ''))
+                return (
+                  <div key={r.id} style={{ padding: '8px 10px', background: 'rgba(239,68,68,0.04)', marginBottom: '4px', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                    <span style={{ fontSize: '9px', letterSpacing: '1px', textTransform: 'uppercase', color: '#ef4444', flexShrink: 0, marginTop: '2px' }}>{isClient ? 'MÜŞTERİ' : 'ADMIN'}</span>
+                    {tc !== null && <button onClick={() => seekTo(tc)} style={{ fontSize: '10px', padding: '1px 6px', background: 'rgba(245,158,11,0.15)', color: '#f59e0b', border: 'none', cursor: 'pointer', fontFamily: 'monospace', flexShrink: 0 }}>▶ {Math.floor(tc / 60)}:{String(Math.floor(tc % 60)).padStart(2, '0')}</button>}
+                    <span style={{ fontSize: '12px', color: '#0a0a0a' }}>{clean}</span>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+
+          {/* Upload */}
+          {canUpload && (
+            <div onClick={() => fileRef.current?.click()} style={{ border: '1px dashed #0a0a0a', padding: '32px 24px', textAlign: 'center', cursor: 'pointer', marginBottom: '16px' }}>
+              <div style={{ fontSize: '32px', color: 'var(--color-text-tertiary)', marginBottom: '6px' }}>+</div>
+              <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>Videoyu sürükle veya tıkla</div>
+              <div style={{ fontSize: '10px', color: 'var(--color-text-tertiary)' }}>MP4, MOV · max 200MB</div>
+            </div>
+          )}
+          <input ref={fileRef} type="file" accept="video/*" onChange={handleUpload} style={{ display: 'none' }} />
+          {uploading && <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', marginBottom: '12px' }}>Yükleniyor...</div>}
+
+          {/* Submissions */}
+          {submissions.map(s => {
+            const canDelete = s.status === 'pending' && s.id === submissions[0]?.id
+            return (
+              <div key={s.id} style={{ border: '1px solid #e5e4db', padding: '14px 18px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div style={{ width: '60px', height: '80px', background: '#0a0a0a', flexShrink: 0, overflow: 'hidden' }}>
+                  <video ref={s.id === submissions[0]?.id ? videoRef : undefined} src={s.video_url + '#t=0.5'} muted playsInline preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>VERSİYON {s.version}</span>
+                    <span style={{ fontSize: '10px', color: 'var(--color-text-tertiary)' }}>{new Date(s.submitted_at).toLocaleDateString('tr-TR')}</span>
+                  </div>
+                  {statusBadge(s.status === 'pending' ? 'submitted' : s.status === 'admin_approved' || s.status === 'producer_approved' ? 'delivered' : s.status === 'revision_requested' ? 'revision' : 'submitted')}
+                  {s.producer_notes && <div style={{ fontSize: '11px', color: '#ef4444', marginTop: '4px' }}>Not: {s.producer_notes}</div>}
+                </div>
+                <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                  <a href={s.video_url} target="_blank" className="btn btn-outline" style={{ padding: '4px 10px', fontSize: '9px', textDecoration: 'none' }}>OYNAT ↗</a>
+                  {canDelete && <button onClick={() => setDeleteConfirm(s.id)} className="btn btn-outline" style={{ padding: '4px 10px', fontSize: '9px', color: '#ef4444', borderColor: 'rgba(239,68,68,0.3)' }}>× SİL</button>}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* 4) Q&A */}
+        <div style={{ background: '#fff', border: '1px solid #e5e4db', padding: '18px 22px', marginBottom: '16px' }}>
+          <div className="label-caps" style={{ marginBottom: '12px' }}>SORULAR & İLETİŞİM</div>
+          {visibleQuestions.length === 0 && <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', marginBottom: '10px' }}>Henüz soru yok.</div>}
+          {visibleQuestions.map(q => (
+            <div key={q.id} style={{ padding: '8px 10px', background: 'var(--color-background-secondary)', marginBottom: '4px' }}>
+              <div style={{ fontSize: '12px', color: '#0a0a0a' }}>{q.question}</div>
+              {q.answer && <div style={{ fontSize: '11px', color: '#22c55e', marginTop: '2px' }}>↳ {q.answer}</div>}
+            </div>
+          ))}
+          <form onSubmit={handleQuestion} style={{ display: 'flex', gap: '6px', marginTop: '10px' }}>
+            <input value={newQuestion} onChange={e => setNewQuestion(e.target.value)} placeholder="Admin'e soru sor..." style={{ flex: 1, padding: '8px 10px', border: '1px solid #e5e4db', fontSize: '12px', color: '#0a0a0a' }} />
+            <button type="submit" className="btn" style={{ padding: '8px 14px', fontSize: '10px' }}>GÖNDER</button>
+          </form>
+        </div>
       </div>
+
+      {/* DELETE CONFIRM */}
+      {deleteConfirm && (
+        <div onClick={() => setDeleteConfirm(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', border: '1px solid #0a0a0a', padding: '28px', maxWidth: '400px', width: '90%' }}>
+            <div style={{ fontSize: '16px', fontWeight: '500', color: '#0a0a0a', marginBottom: '10px' }}>Versiyonu Sil</div>
+            <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '20px' }}>Bu versiyonu silmek istediğine emin misin? Video dosyası da kaldırılacak.</div>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={() => setDeleteConfirm(null)} className="btn btn-outline" style={{ flex: 1, padding: '10px' }}>İPTAL</button>
+              <button onClick={() => deleteSubmission(deleteConfirm)} className="btn" style={{ flex: 1, padding: '10px', background: '#ef4444' }}>SİL</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style>{`@media (max-width: 768px) { .brief-meta { grid-template-columns: repeat(2, 1fr) !important; } }`}</style>
+    </div>
   )
 }
