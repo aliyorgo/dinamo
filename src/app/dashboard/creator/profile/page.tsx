@@ -15,6 +15,7 @@ export default function CreatorProfile() {
   const [showAgreement, setShowAgreement] = useState(false)
   const [agreementChecked, setAgreementChecked] = useState(false)
   const [agreementAccepted, setAgreementAccepted] = useState(false)
+  const [showAgreementView, setShowAgreementView] = useState(false)
   const [unavailDates, setUnavailDates] = useState<string[]>([])
   const [calMonth, setCalMonth] = useState(() => { const d = new Date(); return { year: d.getFullYear(), month: d.getMonth() } })
   const [agreementDate, setAgreementDate] = useState<string | null>(null)
@@ -179,9 +180,12 @@ export default function CreatorProfile() {
       <div style={{ background: '#fff', border: '1px solid #e5e4db', padding: '20px 24px' }}>
         <div style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '12px' }}>TAAHHÜTNAME</div>
         {agreementAccepted ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', padding: '3px 8px', border: '1px solid #22c55e', color: '#22c55e' }}>ONAYLANDI</span>
-            {agreementDate && <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>{new Date(agreementDate).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', padding: '3px 8px', border: '1px solid #22c55e', color: '#22c55e' }}>ONAYLANDI</span>
+              {agreementDate && <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>{new Date(agreementDate).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>}
+            </div>
+            <button onClick={() => setShowAgreementView(true)} style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#0a0a0a', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>TAAHHÜTNAMEYİ OKU</button>
           </div>
         ) : (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -213,6 +217,28 @@ export default function CreatorProfile() {
               <button onClick={handleAgreementAccept} disabled={!agreementChecked} className="btn" style={{ width: '100%', padding: '13px', opacity: agreementChecked ? 1 : 0.4 }}>
                 Onaylıyorum
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* VIEW AGREEMENT MODAL (read-only) */}
+      {showAgreementView && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}>
+          <div style={{ background: '#fff', border: '1px solid #0a0a0a', width: '100%', maxWidth: '600px', maxHeight: '80vh', display: 'flex', flexDirection: 'column', margin: '24px' }}>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid #e5e4db', flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ fontSize: '16px', fontWeight: '500', color: '#0a0a0a' }}>Dinamo Creator Taahhütnamesi</div>
+              {agreementDate && <span style={{ fontSize: '10px', color: 'var(--color-text-tertiary)' }}>{new Date(agreementDate).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })} tarihinde onayladın</span>}
+            </div>
+            <div style={{ flex: 1, padding: '20px 24px', fontSize: '13px', color: '#333', lineHeight: 1.8, overflowY: 'auto' }}>
+              <p style={{ marginBottom: '16px' }}>Dinamo platformu üzerinden gerçekleştireceğim tüm prodüksiyon çalışmalarında aşağıdaki koşulları kabul ettiğimi beyan ederim.</p>
+              <p style={{ marginBottom: '8px' }}><strong>TELİF HAKLARI:</strong> Ürettiğim içeriklerde telif hakkı koruması altındaki hiçbir görsel, ses, müzik veya materyali izinsiz kullanmayacağımı taahhüt ederim.</p>
+              <p style={{ marginBottom: '8px' }}><strong>YAPAY ZEKA ARAÇLARI:</strong> AI ile ürettiğim tüm içeriklerde yalnızca ticari kullanıma izin veren platformları kullanacağımı taahhüt ederim.</p>
+              <p style={{ marginBottom: '8px' }}><strong>GİZLİLİK:</strong> Müşteri bilgilerini ve brief içeriklerini gizli tutacağımı taahhüt ederim.</p>
+              <p style={{ marginBottom: '8px' }}><strong>PLATFORM DIŞI İLETİŞİM:</strong> Müşterilerle platform dışında ticari ilişki kurmayacağımı kabul ederim.</p>
+              <p><strong>SORUMLULUK:</strong> Bu taahhütname kapsamındaki yükümlülüklerimi yerine getirmediğim durumlarda doğabilecek sorumluluğun tarafıma ait olduğunu kabul ederim.</p>
+            </div>
+            <div style={{ padding: '16px 24px', borderTop: '1px solid #e5e4db', flexShrink: 0 }}>
+              <button onClick={() => setShowAgreementView(false)} className="btn btn-outline" style={{ width: '100%', padding: '10px' }}>KAPAT</button>
             </div>
           </div>
         </div>
