@@ -1,0 +1,1 @@
+ALTER TABLE creators ADD COLUMN IF NOT EXISTS is_available BOOLEAN DEFAULT true;
