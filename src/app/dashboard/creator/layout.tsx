@@ -66,15 +66,27 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
   return (
     <div className="dashboard-scale" style={{ display: 'flex', minHeight: '100vh' }}>
       {/* SIDEBAR */}
-      <div className="dinamo-sidebar" style={{ width: '240px', background: '#0A0A0A', display: 'flex', flexDirection: 'column', flexShrink: 0, height: '100vh', position: 'sticky', top: 0 }}>
+      <div className="dinamo-sidebar" style={{ width: '240px', background: '#0A0A0A', flexShrink: 0, overflowY: 'auto' }}>
+        {/* 1) Logo */}
         <div style={{ padding: '18px 16px 14px', borderBottom: '0.5px solid rgba(255,255,255,0.07)' }}>
           <img src="/dinamo_logo.png" alt="Dinamo" style={{ height: '28px', display: 'block', marginBottom: '12px' }} />
           <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', marginBottom: '3px' }}>Creator</div>
           <div style={{ fontSize: '13px', fontWeight: '500', color: '#fff' }}>{userName}</div>
         </div>
 
+        {/* 2) Navigation */}
+        <nav style={{ padding: '10px 8px' }}>
+          {NAV.map(link => (
+            <Link key={link.href} href={link.href}
+              style={{ display: 'flex', alignItems: 'center', padding: '7px 8px', marginBottom: '1px', cursor: 'pointer', background: isActive(link.href) ? 'rgba(255,255,255,0.08)' : 'transparent', borderLeft: isActive(link.href) ? '2px solid #22c55e' : '2px solid transparent', textDecoration: 'none' }}>
+              <span style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', color: isActive(link.href) ? '#fff' : 'rgba(255,255,255,0.4)', fontWeight: '500' }}>{link.label}</span>
+            </Link>
+          ))}
+        </nav>
+
+        {/* 3) Stats */}
         {creditRate > 0 && (
-          <div style={{ padding: '12px 16px', borderBottom: '0.5px solid rgba(255,255,255,0.07)' }}>
+          <div style={{ padding: '12px 16px' }}>
             <div style={{ padding: '10px 12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)' }}>
               {[
                 { label: 'KREDİ KURU', value: `1 kr → ${creditRate.toLocaleString('tr-TR')} ₺` },
@@ -95,19 +107,18 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
           </div>
         )}
 
-        <nav style={{ padding: '10px 8px', flex: 1 }}>
-          {NAV.map(link => (
-            <Link key={link.href} href={link.href}
-              style={{ display: 'flex', alignItems: 'center', padding: '7px 8px', marginBottom: '1px', cursor: 'pointer', background: isActive(link.href) ? 'rgba(255,255,255,0.08)' : 'transparent', borderLeft: isActive(link.href) ? '2px solid #22c55e' : '2px solid transparent', textDecoration: 'none' }}>
-              <span style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', color: isActive(link.href) ? '#fff' : 'rgba(255,255,255,0.4)', fontWeight: '500' }}>{link.label}</span>
-            </Link>
-          ))}
-        </nav>
-
-        <div style={{ padding: '10px 8px', borderTop: '0.5px solid rgba(255,255,255,0.07)' }}>
+        {/* 4) Logout */}
+        <div style={{ padding: '10px 8px' }}>
           <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', padding: '6px 8px', cursor: 'pointer', width: '100%', background: 'none', border: 'none' }}>
             <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)' }}>Çıkış yap</span>
           </button>
+        </div>
+
+        {/* 5) DCC */}
+        <div style={{ padding: '8px 16px 16px' }}>
+          <a href="https://dirtycheapcreative.com" target="_blank" rel="noopener noreferrer">
+            <img src="/powered_by_dcc.png" alt="Powered by DCC" style={{ height: '18px', opacity: 0.4 }} />
+          </a>
         </div>
       </div>
 
