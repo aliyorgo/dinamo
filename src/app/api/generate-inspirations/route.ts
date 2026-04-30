@@ -59,6 +59,11 @@ Her konsept için SADECE şunları ver:
 
 3 fikir birbirinden farklı yaklaşımda olsun: biri sade ve minimal, biri orta düzey, biri yaratıcı ve sinematik. Türkiye pazarına uygun ol.
 
+Süre bazlı derinlik:
+- 10-15sn: kısa ve direkt fikir, tek konsept
+- 30sn: kavramsal akış, orta derinlik
+- 60sn+: hikaye anlatımı, başlangıç-orta-son yapısı
+
 YASAK:
 - VFX terminolojisi (pırıltı, patlama, ışıltı, slow-motion, time-lapse, hyperlapse)
 - Cinsel/duygusal abartı klişeleri

@@ -47,7 +47,10 @@ CTA: ${insp.briefs?.cta || ''}
 ${context ? `\nMÜŞTERİ BAĞLAMI:\n${context}` : ''}
 
 KURALLAR:
-- 1 paragraf, 4-6 cümle
+Süre bazlı uzunluk:
+- 10-15sn: 1 paragraf, 3-4 cümle
+- 30sn: 2 paragraf, sahne akışı detaylı
+- 60sn+: 3+ paragraf, hikaye yapısı (başlangıç-orta-son)
 - Müzik, ton, ışık gibi teknik detay YAZMA
 - Teknik kamera dili YAZMA (close-up, wide shot, drone shot burada değil)
 - Renk kodu (#hex) veya spesifik renk adı (mavi, kırmızı vb.) YAZMA

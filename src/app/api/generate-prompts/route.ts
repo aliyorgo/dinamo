@@ -79,12 +79,17 @@ Konsept: ${insp.title} — ${insp.concept}
 Senaryo: ${scenarioText}
 ${(() => { const c = (insp.briefs as any)?.clients; return c?.brand_primary_color ? `\nMARKA RENKLERİ:\n- Primary: ${c.brand_primary_color}\n- Secondary: ${c.brand_secondary_color || 'yok'}\n- Forbidden: ${c.brand_forbidden_colors || 'yok'}\nBu renkleri sahne ışığı, kostüm, atmosfer veya prop renkleri olarak kullan. Logo rengi olarak değil, ortam içinde.` : '' })()}
 
+Video süresi: ${(() => { const d: Record<string,number> = {'Bumper / Pre-roll':6,'Story / Reels':15,'Feed Video':30,'Long Form':60}; return d[(insp.briefs as any)?.video_type] || 30 })()} saniye
+
 Kurallar:
 - İngilizce yaz (AI modeller İngilizce daha iyi çalışır)
-- Multishot format yaz (TEK PLAN KABUL EDİLMEZ):
-  Shot 1 (0-3s): [açı, hareket, sahne]
-  Shot 2 (3-6s): [açı, hareket, sahne]
-  Shot 3 (6-10s): [açı, hareket, sahne]
+- Multishot format — süreye göre shot sayısı:
+  10-15sn: 2-3 shot
+  30sn: 4-6 shot
+  60sn: 6-10 shot
+  90sn+: 8-12 shot
+- Her shot için: Shot N (Xsn-Ysn): [açı, hareket, sahne]
+- Toplam süre brief süresine eşit olsun
 - Her shot teknik kamera dili kullan (close-up, medium shot, tracking, dolly, pan)
 - Model adı belirtme, generic format
 - Kopyala-yapıştır hazır olsun
