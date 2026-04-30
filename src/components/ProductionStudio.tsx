@@ -266,8 +266,8 @@ export default function ProductionStudio({ briefId, source = 'admin', userRole =
                           <div key={idea.id} className="studio-card" style={{ border: '1px solid #e5e4db', padding: '14px', background: '#fafaf7', transition: 'border-color 0.15s' }}>
                             {editingId === idea.id ? (
                               <div>
-                                <input value={editTitle} onChange={e => setEditTitle(e.target.value)} style={{ width: '100%', padding: '6px 8px', border: '1px solid #e5e4db', fontSize: '12px', marginBottom: '6px', boxSizing: 'border-box' }} />
-                                <textarea value={editConcept} onChange={e => setEditConcept(e.target.value)} rows={2} style={{ width: '100%', padding: '6px 8px', border: '1px solid #e5e4db', fontSize: '11px', marginBottom: '6px', boxSizing: 'border-box', resize: 'vertical' }} />
+                                <input value={editTitle} onChange={e => setEditTitle(e.target.value)} style={{ width: '100%', padding: '10px 14px', border: '1px solid #0a0a0a', fontSize: '14px', marginBottom: '8px', boxSizing: 'border-box' }} />
+                                <textarea value={editConcept} onChange={e => setEditConcept(e.target.value)} rows={6} style={{ width: '100%', padding: '10px 14px', border: '1px solid #0a0a0a', fontSize: '13px', lineHeight: '1.5', minHeight: '130px', marginBottom: '8px', boxSizing: 'border-box', resize: 'vertical' }} />
                                 <div style={{ display: 'flex', gap: '4px' }}>
                                   <button onClick={() => saveEditIdea(idea.id)} className="btn" style={{ padding: '4px 10px', fontSize: '10px' }}>Kaydet</button>
                                   <button onClick={() => setEditingId(null)} className="btn btn-outline" style={{ padding: '4px 8px', fontSize: '10px' }}>İptal</button>
