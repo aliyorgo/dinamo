@@ -39,7 +39,7 @@ export default function AdminDashboard() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
       const { data: userData } = await supabase.from('users').select('name, role').eq('id', user.id).single()
-      if (!userData || userData.role !== 'admin') { router.push('/login'); return }
+      if (!userData || (userData.role !== 'admin' && userData.role !== 'producer')) { router.push('/login'); return }
       setUserName(userData.name)
       const { data: b } = await supabase.from('briefs').select('*, clients(company_name)').neq('status','cancelled').is('parent_brief_id', null).eq('brief_type', 'primary').order('created_at', { ascending: false })
       const allBriefs = b || []
