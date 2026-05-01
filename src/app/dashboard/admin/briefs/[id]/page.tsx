@@ -105,7 +105,7 @@ export default function AdminBriefDetail() {
   async function loadData() {
     const { data: { user } } = await supabase.auth.getUser()
     if (user) { const { data: ud } = await supabase.from('users').select('name').eq('id', user.id).single(); setUserName(ud?.name||'') }
-    const { data: b } = await supabase.from('briefs').select('*, clients(company_name, logo_url, font_url), client_users(*, users(email, name))').eq('id', id).single()
+    const { data: b } = await supabase.from('briefs').select('*, clients(company_name, logo_url, font_url, brand_voices), client_users(*, users(email, name))').eq('id', id).single()
     setBrief(b); setEditForm(b||{})
     if (b?.client_users?.users?.email) setClientEmail(b.client_users.users.email)
     const { data: s } = await supabase.from('video_submissions').select('*').eq('brief_id', id).neq('status', 'draft').order('submitted_at', { ascending: false })
@@ -387,9 +387,13 @@ export default function AdminBriefDetail() {
   }
 
   // Voice Studio functions
+  const briefGender = brief?.voiceover_gender || 'female'
+  const brandVoice = brief?.clients?.brand_voices?.[briefGender] || null
+
   async function openVoiceStudio() {
     setVoiceStudioOpen(true)
     if (brief?.voiceover_text && !voiceText) setVoiceText(brief.voiceover_text)
+    if (brandVoice && !selectedVoice) setSelectedVoice(brandVoice.voice_id)
     if (voices.length === 0) {
       setVoicesLoading(true)
       const gender = brief?.voiceover_gender === 'male' ? 'male' : brief?.voiceover_gender === 'female' ? 'female' : ''
@@ -399,6 +403,9 @@ export default function AdminBriefDetail() {
       setVoicesLoading(false)
     }
   }
+
+  const isOverride = brandVoice && selectedVoice && selectedVoice !== brandVoice.voice_id
+  const selectedVoiceName = voices.find(v => v.voice_id === selectedVoice)?.name || ''
 
   async function generateAdminVoiceover() {
     if (!voiceText.trim() || !selectedVoice) return
@@ -917,23 +924,41 @@ export default function AdminBriefDetail() {
                 <textarea value={voiceText} onChange={e => { if (e.target.value.length <= 500) setVoiceText(e.target.value) }} rows={4} style={{ width: '100%', padding: '10px 14px', border: '1px solid #e5e4db', fontSize: '13px', color: '#0a0a0a', lineHeight: 1.6, resize: 'vertical', boxSizing: 'border-box' }} placeholder="Seslendirme metni..." />
                 <div style={{ fontSize: '10px', color: voiceText.length > 450 ? '#f59e0b' : 'var(--color-text-tertiary)', marginTop: '4px', textAlign: 'right' }}>{voiceText.length} / 500</div>
               </div>
+              {/* Brand voice info */}
+              {brandVoice && (
+                <div style={{ padding: '10px 14px', background: 'rgba(0,0,0,0.02)', border: '1px solid #e5e4db', marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>Marka sesi: <strong style={{ color: '#0a0a0a' }}>{cleanVoiceName(brandVoice.name)}</strong> · Müşteri tarafından seçildi</span>
+                  {isOverride && <button onClick={() => setSelectedVoice(brandVoice.voice_id)} style={{ fontSize: '10px', color: '#3b82f6', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>Marka Sesine Dön</button>}
+                </div>
+              )}
+              {/* Override warning */}
+              {isOverride && (
+                <div style={{ padding: '10px 14px', background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.3)', marginBottom: '12px', fontSize: '11px', color: '#92400e' }}>
+                  Marka sesinden farklı bir ses seçtin. <strong>{cleanVoiceName(brandVoice!.name)}</strong> yerine <strong>{cleanVoiceName(selectedVoiceName)}</strong> kullanılacak.
+                </div>
+              )}
+
               <div style={{ marginBottom: '24px' }}>
                 <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '12px' }}>TÜRKÇE SESLER</div>
                 {voicesLoading ? (
                   <div style={{ padding: '20px 0', textAlign: 'center', fontSize: '12px', color: 'var(--color-text-tertiary)' }}>Sesler yükleniyor...</div>
                 ) : (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
-                    {voices.map((v: any) => (
-                      <div key={v.voice_id} onClick={() => setSelectedVoice(v.voice_id)}
-                        style={{ padding: '8px 10px', cursor: 'pointer', border: selectedVoice === v.voice_id ? '1px solid #0a0a0a' : '1px solid #e5e4db', background: selectedVoice === v.voice_id ? 'rgba(0,0,0,0.02)' : '#fff' }}
-                        onMouseEnter={e => { if (selectedVoice !== v.voice_id) e.currentTarget.style.background = '#fafaf7' }}
-                        onMouseLeave={e => { if (selectedVoice !== v.voice_id) e.currentTarget.style.background = '#fff' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
-                          <span style={{ fontSize: '12px', fontWeight: '500', color: '#0a0a0a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cleanVoiceName(v.name)}</span>
-                          {v.preview_url && <button onClick={e => { e.stopPropagation(); playVoicePreview(v.preview_url, v.voice_id) }} className="btn btn-outline" style={{ padding: '2px 6px', fontSize: '8px', flexShrink: 0 }}>{playingPreview === v.voice_id ? '■' : '▶'}</button>}
+                    {voices.map((v: any) => {
+                      const isBrandVoice = brandVoice?.voice_id === v.voice_id
+                      return (
+                        <div key={v.voice_id} onClick={() => setSelectedVoice(v.voice_id)}
+                          style={{ padding: '8px 10px', cursor: 'pointer', border: selectedVoice === v.voice_id ? '1px solid #0a0a0a' : '1px solid #e5e4db', background: selectedVoice === v.voice_id ? 'rgba(0,0,0,0.02)' : '#fff' }}
+                          onMouseEnter={e => { if (selectedVoice !== v.voice_id) e.currentTarget.style.background = '#fafaf7' }}
+                          onMouseLeave={e => { if (selectedVoice !== v.voice_id) e.currentTarget.style.background = '#fff' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
+                            <span style={{ fontSize: '12px', fontWeight: '500', color: '#0a0a0a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cleanVoiceName(v.name)}</span>
+                            {v.preview_url && <button onClick={e => { e.stopPropagation(); playVoicePreview(v.preview_url, v.voice_id) }} className="btn btn-outline" style={{ padding: '2px 6px', fontSize: '8px', flexShrink: 0 }}>{playingPreview === v.voice_id ? '■' : '▶'}</button>}
+                          </div>
+                          {isBrandVoice && <div style={{ fontSize: '8px', letterSpacing: '1px', textTransform: 'uppercase', color: '#3b82f6', marginTop: '3px' }}>MARKA SESİ</div>}
                         </div>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 )}
               </div>
@@ -965,7 +990,7 @@ export default function AdminBriefDetail() {
             ) : (
               <>
                 <div style={{ fontSize: '16px', fontWeight: '500', color: '#0a0a0a', marginBottom: '10px' }}>Yeni Ses Üret</div>
-                <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '20px' }}>Mevcut ses override edilecek. Devam?</div>
+                <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '20px' }}>{isOverride ? `Marka sesi (${cleanVoiceName(brandVoice!.name)}) yerine ${cleanVoiceName(selectedVoiceName)} kullanılacak. ` : ''}Mevcut ses override edilecek. Devam?</div>
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <button onClick={() => setVoiceConfirm(false)} className="btn btn-outline" style={{ flex: 1, padding: '10px' }}>İPTAL</button>
                   <button onClick={generateAdminVoiceover} className="btn" style={{ flex: 1, padding: '10px' }}>DEVAM</button>
