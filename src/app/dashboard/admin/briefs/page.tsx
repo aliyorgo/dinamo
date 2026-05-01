@@ -10,7 +10,6 @@ export default function BriefsPage() {
   const router = useRouter()
   const [briefs, setBriefs] = useState<any[]>([])
   const [creators, setCreators] = useState<any[]>([])
-  const [tab, setTab] = useState<'briefs'|'ai'>('briefs')
   const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
   const [dateFrom, setDateFrom] = useState('')
@@ -42,9 +41,7 @@ export default function BriefsPage() {
     return creators.find(c => c.id === cid)?.users?.name || ''
   }
 
-  const isAiBrief = (b: any) => b.campaign_name?.includes('Full AI')
-  const tabBriefs = tab === 'ai' ? briefs.filter(b => isAiBrief(b) && b.ai_video_url) : briefs.filter(b => !isAiBrief(b))
-  const filtered = tabBriefs.filter(b => {
+  const filtered = briefs.filter(b => {
     if (filter !== 'all' && b.status !== filter) return false
     if (search && !b.campaign_name?.toLowerCase().includes(search.toLowerCase()) && !b.clients?.company_name?.toLowerCase().includes(search.toLowerCase())) return false
     if (dateFrom && b.created_at < dateFrom) return false
@@ -102,16 +99,6 @@ export default function BriefsPage() {
           {(search||dateFrom||dateTo||creatorFilter||filter!=='all') && (
             <button onClick={clearFilters} style={{padding:'8px 14px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'11px',color:'rgba(255,255,255,0.4)',background:'#fff',cursor:'pointer'}}>Filtreleri Temizle</button>
           )}
-        </div>
-
-        {/* MAIN TABS */}
-        <div style={{display:'flex',gap:'0',marginBottom:'20px',borderBottom:'1px solid #e8e7e3'}}>
-          {[{val:'briefs' as const,label:"Brief'ler"},{val:'ai' as const,label:'Full AI Videolar'}].map(t=>(
-            <button key={t.val} onClick={()=>{setTab(t.val);setFilter('all')}}
-              style={{padding:'8px 20px',border:'none',borderBottom:tab===t.val?'2px solid #0a0a0a':'2px solid transparent',background:'none',color:tab===t.val?'#0a0a0a':'#888',fontSize:'13px',fontWeight:tab===t.val?'600':'400',cursor:'pointer',}}>
-              {t.label}{t.val==='ai'?` (${briefs.filter(b=>isAiBrief(b)&&b.ai_video_url).length})`:''}
-            </button>
-          ))}
         </div>
 
         {/* STATUS TABS */}
