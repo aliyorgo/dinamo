@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import ProductionStudio from '@/components/ProductionStudio'
+import { cleanVoiceName } from '@/lib/voice-utils'
 import { useRouter, useParams } from 'next/navigation'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
@@ -190,10 +191,6 @@ export default function CreatorJobDetail() {
       setVoiceGenerating(false)
       setVoiceError('Bağlantı hatası, tekrar dene.')
     }
-  }
-
-  function cleanVoiceName(name: string) {
-    return name.split(/\s*[-•·]\s*/)[0].trim()
   }
 
   function playPreview(url: string, voiceId: string) {
@@ -614,7 +611,7 @@ export default function CreatorJobDetail() {
               {lockedVoice ? (
                 <div style={{ marginBottom: '24px', padding: '16px 20px', background: 'rgba(0,0,0,0.02)', border: '1px solid #e5e4db' }}>
                   <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#0a0a0a', fontWeight: '500', marginBottom: '8px' }}>MARKA SESİ KİLİTLİ</div>
-                  <div style={{ fontSize: '13px', color: '#0a0a0a', marginBottom: '4px' }}>{lockedVoice.name}</div>
+                  <div style={{ fontSize: '13px', color: '#0a0a0a', marginBottom: '4px' }}>{cleanVoiceName(lockedVoice.name)}</div>
                   <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>Bu marka için sabit ses seçilmiştir.</div>
                 </div>
               ) : (

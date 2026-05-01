@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
+import { cleanVoiceName } from '@/lib/voice-utils'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
@@ -128,10 +129,6 @@ export default function BrandIdentityPage() {
     return <div style={{ width: '100%', height: '100%', background: '#f5f4f0' }} />
   }
 
-  function cleanVoiceName(name: string) {
-    return name.split(/\s*[-•·]\s*/)[0].trim()
-  }
-
   const currentVoices = voiceTab === 'male' ? voices.male : voices.female
   const selectedForTab = voiceTab === 'male' ? selectedMaleVoice : selectedFemaleVoice
   const setSelectedForTab = voiceTab === 'male'
@@ -205,8 +202,8 @@ export default function BrandIdentityPage() {
           <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', lineHeight: 1.5, marginBottom: '12px' }}>AI seslendirme için marka sesi belirle. Erkek ve kadın için ayrı ayrı.</div>
           {brandVoices ? (
             <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-              {brandVoices.male && <span style={{ fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', color: '#0a0a0a' }}>ERKEK: {brandVoices.male.name}</span>}
-              {brandVoices.female && <span style={{ fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', color: '#0a0a0a' }}>KADIN: {brandVoices.female.name}</span>}
+              {brandVoices.male && <span style={{ fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', color: '#0a0a0a' }}>ERKEK: {cleanVoiceName(brandVoices.male.name)}</span>}
+              {brandVoices.female && <span style={{ fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', color: '#0a0a0a' }}>KADIN: {cleanVoiceName(brandVoices.female.name)}</span>}
               {!brandVoices.male && !brandVoices.female && <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>Henüz seçim yapılmadı.</span>}
             </div>
           ) : (
