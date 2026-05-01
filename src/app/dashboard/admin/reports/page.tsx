@@ -342,7 +342,53 @@ export default function ReportsPage() {
                 </table>
               </div>
 
-              {/* 7. SON İŞLEMLER */}
+              {/* 7. GELİR DAĞILIMI */}
+              {(() => {
+                const delivered = briefs.filter(b => b.status === 'delivered' || b.status === 'ai_completed')
+                const rate = Number(settings['creator_credit_rate'] || '1500')
+                const prodBriefs = delivered.filter(b => b.brief_type === 'primary' && b.status === 'delivered')
+                const aiBriefs = delivered.filter(b => b.brief_type === 'express_clone' || (b.brief_type === 'primary' && b.status === 'ai_completed'))
+                const cpsBriefs = delivered.filter(b => b.brief_type === 'cps_child')
+                const prodRev = prodBriefs.reduce((s, b) => s + (b.credit_cost || 0), 0) * rate
+                const aiRev = aiBriefs.reduce((s, b) => s + (b.credit_cost || 0), 0) * rate
+                const cpsRev = cpsBriefs.reduce((s, b) => s + (b.credit_cost || 0), 0) * rate
+                const total = prodRev + aiRev + cpsRev
+                if (total === 0) return (
+                  <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', marginBottom: '20px', overflow: 'hidden' }}>
+                    <div style={sectionTitle}>Gelir Dağılımı</div>
+                    <div style={{ padding: '40px', textAlign: 'center', color: '#888', fontSize: '13px' }}>Henüz gelir verisi yok.</div>
+                  </div>
+                )
+                const slices = [
+                  { label: 'Prodüksiyon', value: prodRev, count: prodBriefs.length, color: '#0a0a0a' },
+                  { label: 'AI Express', value: aiRev, count: aiBriefs.length, color: '#3b82f6' },
+                  { label: 'CPS', value: cpsRev, count: cpsBriefs.length, color: '#22c55e' },
+                ].filter(s => s.value > 0)
+                // CSS pie chart via conic-gradient
+                let gradParts: string[] = []; let angle = 0
+                slices.forEach(s => { const deg = (s.value / total) * 360; gradParts.push(`${s.color} ${angle}deg ${angle + deg}deg`); angle += deg })
+                return (
+                  <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', marginBottom: '20px', overflow: 'hidden' }}>
+                    <div style={sectionTitle}>Gelir Dağılımı</div>
+                    <div style={{ padding: '24px', display: 'flex', gap: '32px', alignItems: 'center', flexWrap: 'wrap' }}>
+                      <div style={{ width: '140px', height: '140px', borderRadius: '50%', background: `conic-gradient(${gradParts.join(', ')})`, flexShrink: 0 }} />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '28px', fontWeight: '300', color: '#0a0a0a', letterSpacing: '-1px', marginBottom: '16px' }}>{formatTL(total)}</div>
+                        {slices.map(s => (
+                          <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                            <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: s.color, flexShrink: 0 }} />
+                            <span style={{ fontSize: '13px', color: '#0a0a0a', fontWeight: '500', minWidth: '100px' }}>{s.label}</span>
+                            <span style={{ fontSize: '13px', color: '#0a0a0a' }}>{formatTL(s.value)}</span>
+                            <span style={{ fontSize: '11px', color: '#888' }}>{Math.round(s.value / total * 100)}% · {s.count} brief</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })()}
+
+              {/* 8. SON İŞLEMLER */}
               <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', overflow: 'hidden' }}>
                 <div style={sectionTitle}>Son Kredi Satışları</div>
                 {creditSales.length === 0 ? (

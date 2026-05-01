@@ -41,6 +41,7 @@ const STATUS_BADGE: Record<string,{label:string,bg:string,border:string}> = {
   cancelled: { label: 'İPTAL', bg: 'rgba(0,0,0,0.06)', border: '#888' },
   ai_processing: { label: 'AI ÜRETİYOR', bg: 'rgba(245,158,11,0.12)', border: '#f59e0b' },
   ai_completed: { label: 'AI HAZIR', bg: 'rgba(59,130,246,0.12)', border: '#3b82f6' },
+  ai_sold: { label: 'SATILDI', bg: 'rgba(16,185,129,0.12)', border: '#10b981' },
 }
 
 export default function AdminBriefDetail() {
@@ -637,7 +638,7 @@ export default function AdminBriefDetail() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <span style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>Versiyon {i + 1}</span>
-                        <Badge status={child.status} />
+                        <Badge status={child.status === 'delivered' ? 'ai_sold' : child.status} />
                       </div>
                       <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>{aiOpen[child.id] ? 'KAPAT' : 'DETAY'}</span>
                     </div>
