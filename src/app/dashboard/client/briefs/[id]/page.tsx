@@ -650,8 +650,8 @@ function ClientBriefDetail() {
           <div onClick={()=>router.push('/dashboard/client/brief/new')} style={{display:'flex',alignItems:'center',gap:'8px',padding:'7px 8px',borderRadius:'8px',cursor:'pointer',marginBottom:'1px'}}>
             <span style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.4)'}}>Yeni Brief</span>
           </div>
-          <div onClick={()=>router.push('/dashboard/client/brand')} style={{display:'flex',alignItems:'center',gap:'8px',padding:'7px 8px',borderRadius:'8px',cursor:'pointer',marginBottom:'1px'}}>
-            <span style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.4)'}}>Marka Paketi</span>
+          <div onClick={()=>router.push('/dashboard/client/brand-identity')} style={{display:'flex',alignItems:'center',gap:'8px',padding:'7px 8px',borderRadius:'8px',cursor:'pointer',marginBottom:'1px'}}>
+            <span style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.4)'}}>Marka Kimliği</span>
           </div>
           <div onClick={()=>router.push('/dashboard/client/certificates')} style={{display:'flex',alignItems:'center',gap:'8px',padding:'7px 8px',borderRadius:'8px',cursor:'pointer',marginBottom:'1px'}}>
             <span style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.4)'}}>Telif Belgeleri</span>

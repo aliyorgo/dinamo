@@ -40,6 +40,7 @@ export default function CreatorJobDetail() {
   const [selectedVoice, setSelectedVoice] = useState<string | null>(null)
   const [voiceGenerating, setVoiceGenerating] = useState(false)
   const [voiceConfirm, setVoiceConfirm] = useState(false)
+  const [voiceError, setVoiceError] = useState<string | null>(null)
   const [playingPreview, setPlayingPreview] = useState<string | null>(null)
   const previewAudioRef = useRef<HTMLAudioElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -60,7 +61,7 @@ export default function CreatorJobDetail() {
     if (!user) return
     const { data: ud } = await supabase.from('users').select('name').eq('id', user.id).single()
     setUserName(ud?.name || '')
-    const { data: b } = await supabase.from('briefs').select('*, clients(company_name, logo_url, font_url)').eq('id', briefId).single()
+    const { data: b } = await supabase.from('briefs').select('*, clients(company_name, logo_url, font_url, brand_voices)').eq('id', briefId).single()
     setBrief(b)
     const { data: pb } = await supabase.from('producer_briefs').select('*').eq('brief_id', briefId).maybeSingle()
     setProducerBrief(pb)
@@ -144,10 +145,17 @@ export default function CreatorJobDetail() {
     setNewQuestion(''); loadData()
   }
 
+  // Brand voice lock check
+  const brandVoices = brief?.clients?.brand_voices
+  const briefGender = brief?.voiceover_gender || 'female'
+  const lockedVoice = brandVoices?.[briefGender] || null
+
   async function openVoiceStudio() {
     setVoiceStudioOpen(true)
     if (brief?.voiceover_text && !voiceText) setVoiceText(brief.voiceover_text)
-    if (voices.length === 0) {
+    // Auto-select locked brand voice
+    if (lockedVoice && !selectedVoice) setSelectedVoice(lockedVoice.voice_id)
+    if (!lockedVoice && voices.length === 0) {
       setVoicesLoading(true)
       const gender = brief?.voiceover_gender === 'male' ? 'male' : brief?.voiceover_gender === 'female' ? 'female' : ''
       const res = await fetch(`/api/elevenlabs/voices?gender=${gender}`)
@@ -160,19 +168,27 @@ export default function CreatorJobDetail() {
   async function generateVoiceover() {
     if (!voiceText.trim() || !selectedVoice) return
     setVoiceGenerating(true)
-    const res = await fetch(`/api/briefs/${briefId}/generate-voiceover`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: voiceText, voice_id: selectedVoice }),
-    })
-    const data = await res.json()
-    setVoiceGenerating(false)
-    setVoiceConfirm(false)
-    if (data.url) {
-      setBrief((prev: any) => ({ ...prev, ai_voiceover_url: data.url, ai_voiceover_voice_id: selectedVoice, ai_voiceover_generated_at: data.generated_at }))
-      setMsg('Seslendirme üretildi.')
-    } else {
-      setMsg('Hata: ' + (data.error || 'Ses üretilemedi'))
+    setVoiceError(null)
+    try {
+      const res = await fetch(`/api/briefs/${briefId}/generate-voiceover`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: voiceText, voice_id: selectedVoice }),
+      })
+      const data = await res.json()
+      if (data.url) {
+        setBrief((prev: any) => ({ ...prev, ai_voiceover_url: data.url, ai_voiceover_voice_id: selectedVoice, ai_voiceover_generated_at: data.generated_at }))
+        setVoiceGenerating(false)
+        setVoiceConfirm(false)
+        setMsg('Seslendirme üretildi.')
+      } else {
+        setVoiceGenerating(false)
+        const errMsg = data.error?.includes('500 karakter') ? 'Metin çok uzun, kısalt.' : (data.error || 'Ses üretilemedi.')
+        setVoiceError(errMsg)
+      }
+    } catch {
+      setVoiceGenerating(false)
+      setVoiceError('Bağlantı hatası, tekrar dene.')
     }
   }
 
@@ -241,18 +257,10 @@ export default function CreatorJobDetail() {
         <div style={{ display: 'grid', gridTemplateColumns: brief?.voiceover_type === 'ai' ? '1fr 1fr' : '1fr', gap: '12px', marginBottom: '16px' }}>
           <ProductionStudio briefId={briefId} source="creator" userRole="creator" />
           {brief?.voiceover_type === 'ai' && (
-            <div onClick={openVoiceStudio} style={{ background: '#fff', border: '1px solid #e5e4db', padding: '12px 18px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', transition: 'border-color 0.15s' }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = '#0a0a0a' }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = '#e5e4db' }}>
-              <div>
-                <div style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: '#0a0a0a' }}>DIŞ SES</div>
-                <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', marginTop: '2px' }}>AI ile seslendirme üret</div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                {brief.ai_voiceover_url && <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#22c55e', display: 'inline-block' }} title="Ses mevcut" />}
-                <span className="btn" style={{ padding: '6px 14px', fontSize: '10px' }}>STÜDYOYU AÇ →</span>
-              </div>
-            </div>
+            <button onClick={openVoiceStudio} className="btn btn-outline" style={{ width: '100%', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+              <span style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500' }}>SES STÜDYOSU</span>
+              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: brief.ai_voiceover_url ? '#0a0a0a' : 'transparent', border: brief.ai_voiceover_url ? '1px solid #0a0a0a' : '1px solid #c5c5b8', display: 'inline-block' }} title={brief.ai_voiceover_url ? 'Ses mevcut' : 'Ses üretilmedi'} />
+            </button>
           )}
         </div>
 
@@ -598,7 +606,14 @@ export default function CreatorJobDetail() {
                 )}
               </div>
 
-              {/* Voice list */}
+              {/* Voice list or locked brand voice */}
+              {lockedVoice ? (
+                <div style={{ marginBottom: '24px', padding: '16px 20px', background: 'rgba(0,0,0,0.02)', border: '1px solid #e5e4db' }}>
+                  <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#0a0a0a', fontWeight: '500', marginBottom: '8px' }}>MARKA SESİ KİLİTLİ</div>
+                  <div style={{ fontSize: '13px', color: '#0a0a0a', marginBottom: '4px' }}>{lockedVoice.name}</div>
+                  <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>Bu marka için sabit ses seçilmiştir.</div>
+                </div>
+              ) : (
               <div style={{ marginBottom: '24px' }}>
                 <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '12px' }}>TÜRKÇE SESLER</div>
                 {voicesLoading ? (
@@ -606,39 +621,41 @@ export default function CreatorJobDetail() {
                 ) : voices.length === 0 ? (
                   <div style={{ padding: '20px 0', textAlign: 'center', fontSize: '12px', color: 'var(--color-text-tertiary)' }}>Türkçe ses bulunamadı.</div>
                 ) : (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '8px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
                     {voices.map((v: any) => (
                       <div
                         key={v.voice_id}
                         onClick={() => setSelectedVoice(v.voice_id)}
                         style={{
-                          padding: '12px 14px', cursor: 'pointer', transition: 'border-color 0.15s',
-                          border: selectedVoice === v.voice_id ? '2px solid #0a0a0a' : '1px solid #e5e4db',
+                          padding: '8px 10px', cursor: 'pointer', transition: 'border-color 0.15s',
+                          border: selectedVoice === v.voice_id ? '1px solid #0a0a0a' : '1px solid #e5e4db',
                           background: selectedVoice === v.voice_id ? 'rgba(0,0,0,0.02)' : '#fff',
                         }}
                         onMouseEnter={e => { if (selectedVoice !== v.voice_id) e.currentTarget.style.background = '#fafaf7' }}
                         onMouseLeave={e => { if (selectedVoice !== v.voice_id) e.currentTarget.style.background = '#fff' }}
                       >
-                        <div style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a', marginBottom: '2px' }}>{v.name}</div>
-                        {v.description && <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', marginBottom: '6px' }}>{v.description}</div>}
-                        {v.preview_url && (
-                          <button
-                            onClick={e => { e.stopPropagation(); playPreview(v.preview_url, v.voice_id) }}
-                            className="btn btn-outline"
-                            style={{ padding: '3px 10px', fontSize: '9px' }}
-                          >
-                            {playingPreview === v.voice_id ? '■ DURDUR' : '▶ DEMO DİNLE'}
-                          </button>
-                        )}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
+                          <span style={{ fontSize: '12px', fontWeight: '500', color: '#0a0a0a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name}</span>
+                          {v.preview_url && (
+                            <button
+                              onClick={e => { e.stopPropagation(); playPreview(v.preview_url, v.voice_id) }}
+                              className="btn btn-outline"
+                              style={{ padding: '2px 6px', fontSize: '8px', flexShrink: 0 }}
+                            >
+                              {playingPreview === v.voice_id ? '■' : '▶'}
+                            </button>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
+              )}
 
               {/* Generate button */}
               <button
-                onClick={() => { if (brief?.ai_voiceover_url) setVoiceConfirm(true); else generateVoiceover() }}
+                onClick={() => { if (brief?.ai_voiceover_url) { setVoiceConfirm(true) } else { setVoiceConfirm(true); generateVoiceover() } }}
                 disabled={!voiceText.trim() || !selectedVoice || voiceGenerating}
                 className="btn"
                 style={{ width: '100%', padding: '12px', fontSize: '12px', opacity: (!voiceText.trim() || !selectedVoice || voiceGenerating) ? 0.4 : 1 }}
@@ -650,23 +667,42 @@ export default function CreatorJobDetail() {
         </div>
       )}
 
-      {/* VOICE OVERRIDE CONFIRM */}
+      {/* VOICE OVERRIDE CONFIRM / GENERATING / ERROR */}
       {voiceConfirm && (
-        <div onClick={() => setVoiceConfirm(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', zIndex: 150, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div onClick={voiceGenerating ? undefined : () => { setVoiceConfirm(false); setVoiceError(null) }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', zIndex: 150, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div onClick={e => e.stopPropagation()} style={{ background: '#fff', border: '1px solid #0a0a0a', padding: '28px', maxWidth: '400px', width: '90%' }}>
-            <div style={{ fontSize: '16px', fontWeight: '500', color: '#0a0a0a', marginBottom: '10px' }}>Yeni Ses Üret</div>
-            <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '20px' }}>Bu ses ile seslendirme üretilecek. Mevcut ses override edilecek. Devam?</div>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button onClick={() => setVoiceConfirm(false)} className="btn btn-outline" style={{ flex: 1, padding: '10px' }}>İPTAL</button>
-              <button onClick={generateVoiceover} className="btn" style={{ flex: 1, padding: '10px' }}>ÜRET</button>
-            </div>
+            {voiceGenerating ? (
+              <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                <div style={{ width: '32px', height: '32px', border: '3px solid #e5e4db', borderTop: '3px solid #0a0a0a', borderRadius: '50%', animation: 'voice-spin 0.8s linear infinite', margin: '0 auto 16px', boxSizing: 'border-box' }} />
+                <div style={{ fontSize: '14px', fontWeight: '500', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#0a0a0a', marginBottom: '6px' }}>SES ÜRETİLİYOR...</div>
+                <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>Bu işlem 30-60 saniye sürebilir.</div>
+              </div>
+            ) : voiceError ? (
+              <>
+                <div style={{ fontSize: '16px', fontWeight: '500', color: '#ef4444', marginBottom: '10px' }}>Hata</div>
+                <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '20px' }}>{voiceError}</div>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button onClick={() => { setVoiceConfirm(false); setVoiceError(null) }} className="btn btn-outline" style={{ flex: 1, padding: '10px' }}>KAPAT</button>
+                  <button onClick={() => { setVoiceError(null); generateVoiceover() }} className="btn" style={{ flex: 1, padding: '10px' }}>TEKRAR DENE</button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div style={{ fontSize: '16px', fontWeight: '500', color: '#0a0a0a', marginBottom: '10px' }}>Yeni Ses Üret</div>
+                <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '20px' }}>Bu ses ile seslendirme üretilecek. Mevcut ses override edilecek. Devam?</div>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button onClick={() => setVoiceConfirm(false)} className="btn btn-outline" style={{ flex: 1, padding: '10px' }}>İPTAL</button>
+                  <button onClick={generateVoiceover} className="btn" style={{ flex: 1, padding: '10px' }}>DEVAM</button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
 
       <audio ref={previewAudioRef} style={{ display: 'none' }} />
 
-      <style>{`@media (max-width: 768px) { .brief-meta { grid-template-columns: repeat(2, 1fr) !important; } .bottom-grid { grid-template-columns: 1fr !important; } .summary-grid { grid-template-columns: 1fr !important; } }`}</style>
+      <style>{`@keyframes voice-spin{to{transform:rotate(360deg)}} @media (max-width: 768px) { .brief-meta { grid-template-columns: repeat(2, 1fr) !important; } .bottom-grid { grid-template-columns: 1fr !important; } .summary-grid { grid-template-columns: 1fr !important; } }`}</style>
     </div>
   )
 }
