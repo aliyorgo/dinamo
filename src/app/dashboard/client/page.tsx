@@ -181,8 +181,11 @@ export default function ClientDashboard() {
   function getBriefIndicators(b: any) {
     const aiKids = aiChildrenMap[b.root_campaign_id] || aiChildrenMap[b.id] || []
     const cpsKids = cpsChildrenMap[b.root_campaign_id] || cpsChildrenMap[b.id] || []
-    const indicators: { label: string }[] = []
-    if (aiKids.length > 0) indicators.push({ label: `AI EXPRESS · ${aiKids.length}` })
+    const indicators: { label: string; pulse?: boolean }[] = []
+    if (aiKids.length > 0) {
+      const processing = aiKids.some((k: any) => k.status === 'ai_processing' && !k.ai_video_url)
+      indicators.push({ label: `AI EXPRESS · ${aiKids.length}`, pulse: processing })
+    }
     if (cpsKids.length > 0) indicators.push({ label: `CPS · ${cpsKids.length} YÖN` })
     if (b.static_image_files || b.static_images_url) indicators.push({ label: 'GÖRSEL' })
     return indicators
@@ -524,7 +527,7 @@ export default function ClientDashboard() {
                         <div>
                           <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name}</div>
                           <div style={{fontSize:'10px',color:'#888',marginTop:'2px'}}>{b.video_type} · {statusLabel[b.status]}</div>
-                          {inds.length > 0 && <div style={{display:'flex',gap:'6px',marginTop:'4px'}}>{inds.map((ind,i) => <span key={i} style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'2px 7px',border:'1px solid #e5e4db',background:'#fafaf7',color:'#0a0a0a',whiteSpace:'nowrap'}}>{ind.label}</span>)}</div>}
+                          {inds.length > 0 && <div style={{display:'flex',gap:'6px',marginTop:'4px'}}>{inds.map((ind,i) => <span key={i} style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'2px 7px',border:'1px solid #e5e4db',background:'#fafaf7',color:'#0a0a0a',whiteSpace:'nowrap',display:'inline-flex',alignItems:'center',gap:'5px'}}>{ind.pulse && <span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#4ade80',display:'inline-block',animation:'ai-pulse 1.2s ease-in-out infinite'}} />}{ind.label}</span>)}</div>}
                         </div>
                         <span style={{fontSize:'10px',padding:'3px 8px',background:`${statusColor[b.status]}12`,color:statusColor[b.status],fontWeight:'500'}}>{statusLabel[b.status]}</span>
                       </div>
@@ -570,7 +573,7 @@ export default function ClientDashboard() {
                           <div style={{padding:'8px 10px'}}>
                             <div style={{fontSize:'11px',fontWeight:'500',color:'#0a0a0a',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.campaign_name}</div>
                             <div style={{fontSize:'9px',color:'#888',marginTop:'2px'}}>{new Date(b.updated_at || b.created_at).toLocaleDateString('tr-TR')}</div>
-                            {inds.length > 0 && <div style={{display:'flex',gap:'4px',marginTop:'4px',flexWrap:'wrap'}}>{inds.map((ind,i) => <span key={i} style={{fontSize:'8px',letterSpacing:'1px',textTransform:'uppercase',padding:'1px 5px',border:'1px solid #e5e4db',color:'#888',whiteSpace:'nowrap'}}>{ind.label}</span>)}</div>}
+                            {inds.length > 0 && <div style={{display:'flex',gap:'4px',marginTop:'4px',flexWrap:'wrap'}}>{inds.map((ind,i) => <span key={i} style={{fontSize:'8px',letterSpacing:'1px',textTransform:'uppercase',padding:'1px 5px',border:'1px solid #e5e4db',color:'#888',whiteSpace:'nowrap',display:'inline-flex',alignItems:'center',gap:'4px'}}>{ind.pulse && <span style={{width:'5px',height:'5px',borderRadius:'50%',background:'#4ade80',display:'inline-block',animation:'ai-pulse 1.2s ease-in-out infinite'}} />}{ind.label}</span>)}</div>}
                           </div>
                         </div>
                       )
@@ -614,6 +617,7 @@ export default function ClientDashboard() {
               )}
 
               <style>{`
+                @keyframes ai-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.3;transform:scale(0.85)} }
                 @media (max-width: 768px) {
                   .approval-grid { grid-template-columns: 1fr !important; }
                   .ai-grid { grid-template-columns: 1fr !important; }
