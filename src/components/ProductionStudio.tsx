@@ -211,7 +211,7 @@ export default function ProductionStudio({ briefId, source = 'admin', userRole =
       <style>{`.studio-btn:hover{background:#f5f4f0 !important}.studio-card:hover{border-color:#0a0a0a !important}`}</style>
       <button onClick={() => setIsOpen(true)} className="btn btn-outline" style={{ width: '100%', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
         <span style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500' }}>
-          {progress[0] && progress[1] && progress[2] ? 'STÜDYO\'YU GÖRÜNTÜLE' : progress[0] ? 'STÜDYO\'YA DEVAM ET' : 'CREATIVE STUDIO'}
+          CREATIVE STUDIO
         </span>
         <span style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
           {['Fikir', 'Senaryo', 'Prompt'].map((label, i) => (
