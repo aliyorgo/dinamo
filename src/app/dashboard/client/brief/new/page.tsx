@@ -866,36 +866,27 @@ function NewBriefPage() {
                   <textarea style={{...inputStyle,resize:'vertical',lineHeight:'1.7'}} rows={6} value={form.voiceover_text} onChange={e=>setForm({...form,voiceover_text:e.target.value})} placeholder="Seslendirme metnini yazın veya AI ile oluşturun..." />
                   {/* PREVIEW */}
                   {form.voiceover_type === 'ai' && brandVoiceForGender && form.voiceover_text.trim() && (
-                    <div style={{marginTop:'12px'}}>
+                    <div style={{marginTop:'12px',minHeight:'40px'}}>
                       {previewLimitHit ? (
                         <div style={{fontSize:'11px',color:'var(--color-text-tertiary)'}}>Preview hakkınız doldu (10/10)</div>
-                      ) : (
-                        <button
-                          onClick={previewVoiceover}
-                          disabled={previewLoading}
-                          className="btn btn-outline"
-                          style={{
-                            padding:'7px 16px',fontSize:'11px',
-                            borderColor: previewChanged ? '#f59e0b' : undefined,
-                            borderWidth: previewChanged ? '2px' : undefined,
-                          }}
-                        >
-                          {previewLoading ? (
-                            <span style={{display:'flex',alignItems:'center',gap:'8px'}}>
-                              <span style={{width:'14px',height:'14px',borderWidth:'2px',borderStyle:'solid',borderColor:'#e5e4db #e5e4db #e5e4db #0a0a0a',borderRadius:'50%',animation:'prev-spin 0.8s linear infinite',display:'inline-block'}} />
-                              ÜRETİLİYOR...
-                            </span>
-                          ) : previewChanged ? 'YENİ PREVIEW DİNLE → ▶' : previewUrl ? 'DİNLE ▶' : 'PREVIEW DİNLE → ▶'}
-                        </button>
-                      )}
-                      {previewUrl && !previewLoading && (
-                        <div style={{marginTop:'10px'}}>
+                      ) : previewLoading ? (
+                        <div style={{display:'flex',alignItems:'center',gap:'8px',padding:'8px 0'}}>
+                          <span style={{width:'14px',height:'14px',borderWidth:'2px',borderStyle:'solid',borderColor:'#e5e4db #e5e4db #e5e4db #0a0a0a',borderRadius:'50%',animation:'prev-spin 0.8s linear infinite',display:'inline-block'}} />
+                          <span style={{fontSize:'11px',color:'var(--color-text-tertiary)'}}>Üretiliyor...</span>
+                        </div>
+                      ) : previewUrl && !previewChanged ? (
+                        <div>
                           <audio controls src={previewUrl} style={{width:'100%',marginBottom:'6px'}} />
                           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                             <span style={{fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'var(--color-text-tertiary)'}}>Marka sesi: {cleanVoiceName(previewVoiceName)}</span>
                             <span style={{fontSize:'10px',color:'var(--color-text-tertiary)'}}>{previewCount}/10 preview</span>
                           </div>
                         </div>
+                      ) : (
+                        <button onClick={previewVoiceover} className="btn btn-outline"
+                          style={{padding:'7px 16px',fontSize:'11px',borderColor:previewChanged?'#f59e0b':undefined,borderWidth:previewChanged?'2px':undefined}}>
+                          {previewChanged ? 'YENİ PREVIEW DİNLE → ▶' : 'PREVIEW DİNLE → ▶'}
+                        </button>
                       )}
                     </div>
                   )}
