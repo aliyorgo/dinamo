@@ -549,7 +549,7 @@ export default function ClientDashboard() {
                         <div>
                           <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name}</div>
                           <div style={{fontSize:'10px',color:'#888',marginTop:'2px'}}>{b.video_type} · {statusLabel[b.status]}</div>
-                          {inds.length > 0 && <div style={{display:'flex',gap:'6px',marginTop:'4px'}}>{inds.map((ind,i) => <span key={i} style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'2px 7px',border:'1px solid #e5e4db',background:'#fafaf7',color:'#0a0a0a',whiteSpace:'nowrap',display:'inline-flex',alignItems:'center',gap:'5px'}}>{ind.pulse && <span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#4ade80',display:'inline-block',animation:'ai-pulse 1.2s ease-in-out infinite'}} />}{ind.label}</span>)}</div>}
+                          {inds.length > 0 && <div style={{display:'flex',gap:'6px',marginTop:'4px'}}>{inds.map((ind,i) => <span key={i} style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'2px 7px',border:'1px solid #e5e4db',background:'#fafaf7',color:'#0a0a0a',whiteSpace:'nowrap',display:'inline-flex',alignItems:'center',gap:'5px'}}>{ind.pulse && <span style={{width:'6px',height:'6px',minWidth:'6px',minHeight:'6px',borderRadius:'50%',background:'#4ade80',display:'inline-block',animation:'ai-pulse 1.2s ease-in-out infinite',flexShrink:0}} />}{ind.label}</span>)}</div>}
                         </div>
                         <span style={{fontSize:'10px',padding:'3px 8px',background:`${statusColor[b.status]}12`,color:statusColor[b.status],fontWeight:'500'}}>{statusLabel[b.status]}</span>
                       </div>
@@ -595,7 +595,7 @@ export default function ClientDashboard() {
                           <div style={{padding:'8px 10px'}}>
                             <div style={{fontSize:'11px',fontWeight:'500',color:'#0a0a0a',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.campaign_name}</div>
                             <div style={{fontSize:'9px',color:'#888',marginTop:'2px'}}>{new Date(b.updated_at || b.created_at).toLocaleDateString('tr-TR')}</div>
-                            {inds.length > 0 && <div style={{display:'flex',gap:'4px',marginTop:'4px',flexWrap:'wrap'}}>{inds.map((ind,i) => <span key={i} style={{fontSize:'8px',letterSpacing:'1px',textTransform:'uppercase',padding:'1px 5px',border:'1px solid #e5e4db',color:'#888',whiteSpace:'nowrap',display:'inline-flex',alignItems:'center',gap:'4px'}}>{ind.pulse && <span style={{width:'5px',height:'5px',borderRadius:'50%',background:'#4ade80',display:'inline-block',animation:'ai-pulse 1.2s ease-in-out infinite'}} />}{ind.label}</span>)}</div>}
+                            {inds.length > 0 && <div style={{display:'flex',gap:'4px',marginTop:'4px',flexWrap:'wrap'}}>{inds.map((ind,i) => <span key={i} style={{fontSize:'8px',letterSpacing:'1px',textTransform:'uppercase',padding:'1px 5px',border:'1px solid #e5e4db',color:'#888',whiteSpace:'nowrap',display:'inline-flex',alignItems:'center',gap:'4px'}}>{ind.pulse && <span style={{width:'5px',height:'5px',minWidth:'5px',minHeight:'5px',borderRadius:'50%',background:'#4ade80',display:'inline-block',animation:'ai-pulse 1.2s ease-in-out infinite',flexShrink:0}} />}{ind.label}</span>)}</div>}
                           </div>
                         </div>
                       )
