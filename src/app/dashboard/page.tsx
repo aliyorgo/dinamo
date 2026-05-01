@@ -27,7 +27,7 @@ export default function DashboardPage() {
 
       switch (data.role) {
         case 'admin': router.push('/dashboard/admin'); break
-        case 'producer': router.push('/dashboard/producer'); break
+        case 'producer': router.push('/dashboard/admin'); break
         case 'creator': router.push('/dashboard/creator'); break
         case 'client': router.push('/dashboard/client'); break
         case 'agency': router.push('/dashboard/agency/overview'); break

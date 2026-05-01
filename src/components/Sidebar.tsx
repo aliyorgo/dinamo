@@ -27,11 +27,7 @@ const navLinks: Record<string, NavItem[]> = {
     { href: '/dashboard/client/certificates', label: 'Telif Belgeleri' },
     { href: '/dashboard/client/guarantee', label: 'İçerik Güvencesi' },
   ],
-  producer: [
-    { href: '/dashboard/producer', label: 'Genel Bakış' },
-    { href: '/dashboard/producer/active', label: 'Aktif İşler' },
-    { href: '/dashboard/producer/completed', label: 'Tamamlanan' },
-  ],
+  producer: [],
   creator: [
     { href: '/dashboard/creator', label: 'İşlerim' },
   ],
@@ -88,11 +84,10 @@ export default function Sidebar({ role, userName, companyName, credits, extra }:
     if (!href) return false
     if (href === '/dashboard/admin' && pathname === '/dashboard/admin') return true
     if (href === '/dashboard/client' && pathname === '/dashboard/client') return true
-    if (href === '/dashboard/producer' && pathname === '/dashboard/producer') return true
     if (href === '/dashboard/creator' && pathname === '/dashboard/creator') return true
     if (href === '/dashboard/agency/overview' && pathname === '/dashboard/agency/overview') return true
     if (href === '/dashboard/agency-member/studio' && pathname === '/dashboard/agency-member/studio') return true
-    if (href !== '/dashboard/admin' && href !== '/dashboard/client' && href !== '/dashboard/producer' && href !== '/dashboard/creator' && href !== '/dashboard/agency/overview' && href !== '/dashboard/agency-member/studio') {
+    if (href !== '/dashboard/admin' && href !== '/dashboard/client' && href !== '/dashboard/creator' && href !== '/dashboard/agency/overview' && href !== '/dashboard/agency-member/studio') {
       return pathname.startsWith(href)
     }
     return false
