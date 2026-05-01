@@ -342,47 +342,80 @@ export default function ReportsPage() {
                 </table>
               </div>
 
-              {/* 7. GELİR DAĞILIMI */}
+              {/* 7. KREDİ DAĞILIMI */}
               {(() => {
-                const delivered = briefs.filter(b => b.status === 'delivered' || b.status === 'ai_completed')
-                const rate = Number(settings['creator_credit_rate'] || '1500')
-                const prodBriefs = delivered.filter(b => b.brief_type === 'primary' && b.status === 'delivered')
-                const aiBriefs = delivered.filter(b => b.brief_type === 'express_clone' || (b.brief_type === 'primary' && b.status === 'ai_completed'))
-                const cpsBriefs = delivered.filter(b => b.brief_type === 'cps_child')
-                const prodRev = prodBriefs.reduce((s, b) => s + (b.credit_cost || 0), 0) * rate
-                const aiRev = aiBriefs.reduce((s, b) => s + (b.credit_cost || 0), 0) * rate
-                const cpsRev = cpsBriefs.reduce((s, b) => s + (b.credit_cost || 0), 0) * rate
-                const total = prodRev + aiRev + cpsRev
-                if (total === 0) return (
+                const consumed = briefs.filter(b => ['delivered', 'ai_completed', 'approved', 'in_production'].includes(b.status))
+                const prodBriefs = consumed.filter(b => b.brief_type === 'primary' && b.status !== 'ai_completed')
+                const aiBriefs = consumed.filter(b => b.brief_type === 'express_clone' || (b.brief_type === 'primary' && b.status === 'ai_completed'))
+                const cpsBriefs = consumed.filter(b => b.brief_type === 'cps_child')
+                const prodCredits = prodBriefs.reduce((s, b) => s + (b.credit_cost || 0), 0)
+                const aiCredits = aiBriefs.reduce((s, b) => s + (b.credit_cost || 0), 0)
+                const cpsCredits = cpsBriefs.reduce((s, b) => s + (b.credit_cost || 0), 0)
+                const totalCredits = prodCredits + aiCredits + cpsCredits
+
+                // Top 5 clients by credit consumption
+                const clientSpend: Record<string, { name: string; credits: number }> = {}
+                consumed.forEach(b => {
+                  const cid = b.client_id
+                  const cname = b.clients?.company_name || 'Bilinmeyen'
+                  if (!cid) return
+                  if (!clientSpend[cid]) clientSpend[cid] = { name: cname, credits: 0 }
+                  clientSpend[cid].credits += (b.credit_cost || 0)
+                })
+                const top5 = Object.values(clientSpend).sort((a, b) => b.credits - a.credits).slice(0, 5)
+                const maxBar = top5[0]?.credits || 1
+
+                if (totalCredits === 0 && top5.length === 0) return (
                   <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', marginBottom: '20px', overflow: 'hidden' }}>
-                    <div style={sectionTitle}>Gelir Dağılımı</div>
-                    <div style={{ padding: '40px', textAlign: 'center', color: '#888', fontSize: '13px' }}>Henüz gelir verisi yok.</div>
+                    <div style={sectionTitle}>Kredi Dağılımı</div>
+                    <div style={{ padding: '40px', textAlign: 'center', color: '#888', fontSize: '13px' }}>Henüz veri yok.</div>
                   </div>
                 )
+
                 const slices = [
-                  { label: 'Prodüksiyon', value: prodRev, count: prodBriefs.length, color: '#0a0a0a' },
-                  { label: 'AI Express', value: aiRev, count: aiBriefs.length, color: '#3b82f6' },
-                  { label: 'CPS', value: cpsRev, count: cpsBriefs.length, color: '#22c55e' },
+                  { label: 'Prodüksiyon', value: prodCredits, count: prodBriefs.length, color: '#0a0a0a' },
+                  { label: 'AI Express', value: aiCredits, count: aiBriefs.length, color: '#3b82f6' },
+                  { label: 'CPS', value: cpsCredits, count: cpsBriefs.length, color: '#22c55e' },
                 ].filter(s => s.value > 0)
-                // CSS pie chart via conic-gradient
                 let gradParts: string[] = []; let angle = 0
-                slices.forEach(s => { const deg = (s.value / total) * 360; gradParts.push(`${s.color} ${angle}deg ${angle + deg}deg`); angle += deg })
+                if (totalCredits > 0) slices.forEach(s => { const deg = (s.value / totalCredits) * 360; gradParts.push(`${s.color} ${angle}deg ${angle + deg}deg`); angle += deg })
+
                 return (
                   <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', marginBottom: '20px', overflow: 'hidden' }}>
-                    <div style={sectionTitle}>Gelir Dağılımı</div>
-                    <div style={{ padding: '24px', display: 'flex', gap: '32px', alignItems: 'center', flexWrap: 'wrap' }}>
-                      <div className="pie-chart" style={{ width: '140px', height: '140px', background: `conic-gradient(${gradParts.join(', ')})`, flexShrink: 0 }} />
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: '28px', fontWeight: '300', color: '#0a0a0a', letterSpacing: '-1px', marginBottom: '16px' }}>{formatTL(total)}</div>
-                        {slices.map(s => (
-                          <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                            <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: s.color, flexShrink: 0 }} />
-                            <span style={{ fontSize: '13px', color: '#0a0a0a', fontWeight: '500', minWidth: '100px' }}>{s.label}</span>
-                            <span style={{ fontSize: '13px', color: '#0a0a0a' }}>{formatTL(s.value)}</span>
-                            <span style={{ fontSize: '11px', color: '#888' }}>{Math.round(s.value / total * 100)}% · {s.count} brief</span>
-                          </div>
-                        ))}
+                    <div style={sectionTitle}>Kredi Dağılımı</div>
+                    <div className="credit-dist" style={{ padding: '24px', display: 'flex', gap: '32px', alignItems: 'flex-start' }}>
+                      {/* PIE — sol */}
+                      <div style={{ flexShrink: 0 }}>
+                        {totalCredits > 0 && <div className="pie-chart" style={{ width: '120px', height: '120px', background: `conic-gradient(${gradParts.join(', ')})`, margin: '0 auto 12px' }} />}
+                        <div style={{ textAlign: 'center', fontSize: '24px', fontWeight: '300', color: '#0a0a0a', letterSpacing: '-1px' }}>{totalCredits} <span style={{ fontSize: '12px', color: '#888' }}>kredi</span></div>
+                        <div style={{ marginTop: '12px' }}>
+                          {slices.map(s => (
+                            <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                              <div style={{ width: '8px', height: '8px', background: s.color, flexShrink: 0 }} />
+                              <span style={{ fontSize: '11px', color: '#0a0a0a', minWidth: '80px' }}>{s.label}</span>
+                              <span style={{ fontSize: '11px', color: '#888' }}>{s.value} · {totalCredits > 0 ? Math.round(s.value / totalCredits * 100) : 0}%</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
+
+                      {/* BAR — sağ */}
+                      {top5.length > 0 && (
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#888', marginBottom: '12px' }}>TOP 5 MÜŞTERİ (KREDİ TÜKETİMİ)</div>
+                          {top5.map((c, i) => (
+                            <div key={i} style={{ marginBottom: '10px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                                <span style={{ fontSize: '12px', fontWeight: '500', color: '#0a0a0a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
+                                <span style={{ fontSize: '12px', color: '#0a0a0a', fontWeight: '500', flexShrink: 0, marginLeft: '8px' }}>{c.credits}</span>
+                              </div>
+                              <div style={{ width: '100%', height: '6px', background: '#f0f0ee' }}>
+                                <div style={{ width: `${(c.credits / maxBar) * 100}%`, height: '100%', background: '#0a0a0a', transition: 'width 0.3s' }} />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )
