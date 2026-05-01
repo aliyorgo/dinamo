@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
+import { NEGATIVE_PROMPT, CHARACTER_TYPES, SYSTEM_PROMPT } from '@/lib/ai-express-rules'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
@@ -21,6 +22,7 @@ export default function SettingsPage() {
   const [editingUser, setEditingUser] = useState<any>(null)
   const [editForm, setEditForm] = useState({ name: '', email: '', password: '' })
   const [addingRole, setAddingRole] = useState<string|null>(null)
+  const [rulesModalOpen, setRulesModalOpen] = useState(false)
 
   useEffect(() => { loadSettings(); loadUsers() }, [])
 
@@ -260,6 +262,62 @@ export default function SettingsPage() {
             </div>
           )
         })}
+
+        {/* AI EXPRESS GLOBAL KURALLAR */}
+        <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',overflow:'hidden',marginTop:'32px'}}>
+          <div style={{padding:'20px 24px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+            <div>
+              <div style={{fontSize:'12px',color:'rgba(255,255,255,0.4)',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'6px'}}>AI EXPRESS GLOBAL KURALLAR</div>
+              <div style={{fontSize:'13px',color:'#888'}}>Sistem tüm AI Express üretimlerinde bu kuralları kullanır. Değişiklik için kod tarafına müdahale gerekir.</div>
+            </div>
+            <button onClick={()=>setRulesModalOpen(true)} className="btn btn-outline" style={{padding:'8px 16px',fontSize:'11px',flexShrink:0}}>GÖRÜNTÜLE →</button>
+          </div>
+        </div>
+
+        {/* AI EXPRESS RULES MODAL */}
+        {rulesModalOpen && (
+          <div onClick={()=>setRulesModalOpen(false)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',backdropFilter:'blur(4px)',zIndex:100,display:'flex',alignItems:'center',justifyContent:'center'}}>
+            <div onClick={e=>e.stopPropagation()} style={{background:'#fff',border:'1px solid #0a0a0a',width:'100%',maxWidth:'800px',maxHeight:'90vh',display:'flex',flexDirection:'column'}}>
+              <div style={{padding:'16px 24px',borderBottom:'1px solid #e5e4db',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
+                <div style={{fontSize:'14px',fontWeight:'500',letterSpacing:'1.5px',textTransform:'uppercase',color:'#0a0a0a'}}>AI EXPRESS GLOBAL KURALLAR</div>
+                <button onClick={()=>setRulesModalOpen(false)} style={{width:'28px',height:'28px',border:'1px solid #e5e4db',background:'#fff',color:'#0a0a0a',fontSize:'14px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>×</button>
+              </div>
+              <div style={{padding:'28px',overflowY:'auto',flex:1}}>
+                <div style={{padding:'12px 16px',background:'rgba(239,68,68,0.06)',border:'1px solid rgba(239,68,68,0.2)',marginBottom:'24px',fontSize:'12px',color:'#ef4444'}}>
+                  Düzenleme için kod tarafına müdahale gerekir, geliştirici desteği alın.
+                </div>
+
+                {/* NEGATIVE PROMPT */}
+                <div style={{marginBottom:'24px'}}>
+                  <div style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'4px',fontWeight:'500'}}>NEGATIVE PROMPT (KLING API)</div>
+                  <div style={{fontSize:'11px',color:'#888',marginBottom:'8px'}}>Modele gönderilen yasak içerik listesi</div>
+                  <pre style={{background:'#f5f4f0',padding:'14px',fontSize:'12px',color:'#0a0a0a',overflow:'auto',whiteSpace:'pre-wrap',wordBreak:'break-word',lineHeight:1.6,margin:0,border:'1px solid #e5e4db'}}>{NEGATIVE_PROMPT}</pre>
+                </div>
+
+                {/* KARAKTER TİPLERİ */}
+                <div style={{marginBottom:'24px'}}>
+                  <div style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'4px',fontWeight:'500'}}>KARAKTER TİPLERİ</div>
+                  <div style={{fontSize:'11px',color:'#888',marginBottom:'12px'}}>Videoda gösterilen karakter varyasyonları, rastgele seçilir</div>
+                  {(['female','male'] as const).map(g=>(
+                    <div key={g} style={{marginBottom:'12px'}}>
+                      <div style={{fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'#0a0a0a',fontWeight:'500',marginBottom:'6px'}}>{g==='female'?'KADIN':'ERKEK'}</div>
+                      {CHARACTER_TYPES[g].map((c,i)=>(
+                        <div key={i} style={{padding:'6px 10px',background:'#f5f4f0',border:'1px solid #e5e4db',marginBottom:'4px',fontSize:'12px',color:'#0a0a0a',fontFamily:'monospace'}}>{c}</div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+
+                {/* SYSTEM PROMPT */}
+                <div>
+                  <div style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'4px',fontWeight:'500'}}>CLAUDE SYSTEM PROMPT</div>
+                  <div style={{fontSize:'11px',color:'#888',marginBottom:'8px'}}>AI Express için Claude'a gönderilen ana talimat metni</div>
+                  <pre style={{background:'#f5f4f0',padding:'14px',fontSize:'11px',color:'#0a0a0a',overflow:'auto',whiteSpace:'pre-wrap',wordBreak:'break-word',lineHeight:1.7,margin:0,border:'1px solid #e5e4db',maxHeight:'400px'}}>{SYSTEM_PROMPT}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
     </div>
   )
 }
