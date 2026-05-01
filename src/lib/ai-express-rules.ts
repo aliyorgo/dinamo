@@ -62,7 +62,7 @@ Her shot birbirinden farklı olmalı:
 - Farklı kompozisyon
 Karakter tutarlı kalsın.
 
-- musicPrompt maksimum 8 kelime: "upbeat modern corporate" gibi
+- music_mood: Brief'in havasına uygun müzik mood'u seç. Sadece şu değerlerden biri: ENERJİK, DUYGUSAL, EĞLENCELİ, DRAMATIK, SAKİN, LÜKS, GENEL. Mood net değilse GENEL kullan.
 - voiceoverShort: Dış ses metnini maksimum 15 kelimeye kısalt. Anlamlı ve tam bir cümle olmalı, nokta veya ünlemle bitmeli. 15 kelimeyi ASLA geçme.
 - characterGender: Karakterin cinsiyetini brief içeriğinden akıllıca seç:
   Ürün/hizmet kadınlara yönelikse (kozmetik, bikini, hamilelik, moda vs.) → "female"
