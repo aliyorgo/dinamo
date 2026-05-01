@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, Suspense } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { logClientActivity } from '@/lib/log-client'
+import { cleanVoiceName } from '@/lib/voice-utils'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
@@ -45,6 +46,13 @@ function NewBriefPage() {
   const [showProductUpload, setShowProductUpload] = useState(false)
   const [refLinkInput, setRefLinkInput] = useState('')
   const [brandFiles, setBrandFiles] = useState<{name:string}[]>([])
+  const [brandVoices, setBrandVoices] = useState<any>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [previewLoading, setPreviewLoading] = useState(false)
+  const [previewTextSnapshot, setPreviewTextSnapshot] = useState('')
+  const [previewCount, setPreviewCount] = useState(0)
+  const [previewLimitHit, setPreviewLimitHit] = useState(false)
+  const [previewVoiceName, setPreviewVoiceName] = useState('')
 
   const [form, setForm] = useState({
     campaign_name: '',
@@ -70,9 +78,10 @@ function NewBriefPage() {
       if (!user) { router.push('/login'); return }
       const { data: userData } = await supabase.from('users').select('name').eq('id', user.id).single()
       setUserName(userData?.name || '')
-      const { data: cu } = await supabase.from('client_users').select('*, clients(company_name, credit_balance, ai_video_enabled)').eq('user_id', user.id).single()
+      const { data: cu } = await supabase.from('client_users').select('*, clients(company_name, credit_balance, ai_video_enabled, brand_voices)').eq('user_id', user.id).single()
       setClientUser(cu)
       setCompanyName((cu as any)?.clients?.company_name || '')
+      setBrandVoices((cu as any)?.clients?.brand_voices || null)
       const { data: s } = await supabase.from('admin_settings').select('*')
       const map: Record<string,string> = {}
       s?.forEach((x:any) => map[x.key] = x.value)
@@ -201,6 +210,31 @@ function NewBriefPage() {
     } catch {}
     setAiLoading(false)
   }
+
+  async function previewVoiceover() {
+    const briefId = savedBriefId || editBriefId
+    if (!briefId || !form.voiceover_text.trim()) return
+    setPreviewLoading(true)
+    try {
+      const res = await fetch(`/api/briefs/${briefId}/preview-voiceover`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: form.voiceover_text }),
+      })
+      if (res.status === 429) { setPreviewLimitHit(true); setPreviewLoading(false); return }
+      const data = await res.json()
+      if (data.url) {
+        setPreviewUrl(data.url)
+        setPreviewTextSnapshot(form.voiceover_text)
+        setPreviewCount(data.count || 0)
+        if (data.voice_name) setPreviewVoiceName(data.voice_name)
+      }
+    } catch {}
+    setPreviewLoading(false)
+  }
+
+  const brandVoiceForGender = brandVoices?.[form.voiceover_gender || 'female'] || null
+  const previewTextChanged = previewUrl && form.voiceover_text !== previewTextSnapshot
 
   async function handleAiBrief() {
     if (!aiBriefInput.trim()) return
@@ -817,6 +851,41 @@ function NewBriefPage() {
                     </button>
                   </div>
                   <textarea style={{...inputStyle,resize:'vertical',lineHeight:'1.7'}} rows={6} value={form.voiceover_text} onChange={e=>setForm({...form,voiceover_text:e.target.value})} placeholder="Seslendirme metnini yazın veya AI ile oluşturun..." />
+                  {/* PREVIEW */}
+                  {brandVoiceForGender && form.voiceover_text.trim() && (savedBriefId || editBriefId) && (
+                    <div style={{marginTop:'12px'}}>
+                      {previewLimitHit ? (
+                        <div style={{fontSize:'11px',color:'var(--color-text-tertiary)'}}>Preview hakkınız doldu (10/10)</div>
+                      ) : (
+                        <button
+                          onClick={previewVoiceover}
+                          disabled={previewLoading}
+                          className="btn btn-outline"
+                          style={{
+                            padding:'7px 16px',fontSize:'11px',
+                            borderColor: previewTextChanged ? '#f59e0b' : undefined,
+                            borderWidth: previewTextChanged ? '2px' : undefined,
+                          }}
+                        >
+                          {previewLoading ? (
+                            <span style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                              <span style={{width:'14px',height:'14px',borderWidth:'2px',borderStyle:'solid',borderColor:'#e5e4db #e5e4db #e5e4db #0a0a0a',borderRadius:'50%',animation:'prev-spin 0.8s linear infinite',display:'inline-block'}} />
+                              ÜRETİLİYOR...
+                            </span>
+                          ) : previewTextChanged ? 'YENİ PREVIEW DİNLE → ▶' : previewUrl ? 'DİNLE ▶' : 'PREVIEW DİNLE → ▶'}
+                        </button>
+                      )}
+                      {previewUrl && !previewLoading && (
+                        <div style={{marginTop:'10px'}}>
+                          <audio controls src={previewUrl} style={{width:'100%',marginBottom:'6px'}} />
+                          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                            <span style={{fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'var(--color-text-tertiary)'}}>Marka sesi: {cleanVoiceName(previewVoiceName)}</span>
+                            <span style={{fontSize:'10px',color:'var(--color-text-tertiary)'}}>{previewCount}/10 preview</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
               {form.voiceover_type==='none'&&(
@@ -916,7 +985,7 @@ function NewBriefPage() {
                 )}
               </div>
 
-              <style>{`@media (max-width: 768px) { .step5-grid { grid-template-columns: 1fr !important; } }`}</style>
+              <style>{`@keyframes prev-spin{to{transform:rotate(360deg)}} @media (max-width: 768px) { .step5-grid { grid-template-columns: 1fr !important; } }`}</style>
             </div>
           )}
 
