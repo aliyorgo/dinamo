@@ -20,6 +20,10 @@ export default function CreatorDashboard() {
   const [creditRate, setCreditRate] = useState(0)
   const [customRate, setCustomRate] = useState<number | null>(null)
   const [unavailableDates, setUnavailableDates] = useState<string[]>([])
+  const [thanks, setThanks] = useState<any[]>([])
+  const [searchQuery, setSearchQuery] = useState('')
+  const [filterType, setFilterType] = useState('all')
+  const [filterStatus, setFilterStatus] = useState('all')
 
   useEffect(() => {
     async function load() {
@@ -46,6 +50,9 @@ export default function CreatorDashboard() {
         const { data: b } = await supabase.from('briefs').select('*, clients(company_name)').in('id', briefIds).neq('status', 'cancelled').neq('status', 'delivered').order('created_at', { ascending: false })
         setJobs(b || [])
       }
+      // Load unseen thanks
+      const { data: thanksData } = await supabase.from('creator_earnings').select('id, brief_id, credits, briefs(campaign_name, clients(company_name))').eq('creator_id', creator.id).eq('thanks_seen', false)
+      setThanks(thanksData || [])
       const { data: st } = await supabase.from('admin_settings').select('value').eq('key', 'creator_credit_rate').maybeSingle()
       if (st) setCreditRate(Number(st.value) || 0)
       setLoading(false)
@@ -92,6 +99,26 @@ export default function CreatorDashboard() {
     return 'ANA VİDEO'
   }
 
+  async function dismissThanks(id: string) {
+    await supabase.from('creator_earnings').update({ thanks_seen: true }).eq('id', id)
+    setThanks(prev => prev.filter(t => t.id !== id))
+  }
+
+  // Client-side filtering
+  const filteredJobs = sortedJobs.filter(job => {
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase()
+      const match = (job.campaign_name || '').toLowerCase().includes(q) || (job.clients?.company_name || '').toLowerCase().includes(q)
+      if (!match) return false
+    }
+    if (filterType !== 'all') {
+      if (filterType === 'cps' && job.brief_type !== 'cps_child') return false
+      if (filterType === 'ana' && job.brief_type === 'cps_child') return false
+    }
+    if (filterStatus !== 'all' && job.status !== filterStatus) return false
+    return true
+  })
+
   function getStatusBadge(status: string): { label: string; bg: string; border: string } {
     switch (status) {
       case 'submitted': case 'read': return { label: 'ATANDI', bg: 'rgba(156,163,175,0.12)', border: '#9ca3af' }
@@ -131,18 +158,67 @@ export default function CreatorDashboard() {
               const week = new Date(today.getTime() + 7 * 86400000)
               const upcoming = unavailableDates.filter(d => { const dt = new Date(d); return dt >= today && dt <= week })
               if (upcoming.length === 0) return null
-              const TR_MONTHS = ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara']
-              const labels = upcoming.map(d => { const dt = new Date(d); return `${dt.getDate()} ${TR_MONTHS[dt.getMonth()]}` })
-              return <div style={{ fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', color: '#ef4444' }}>MÜSAİT DEĞİL: {labels.join(', ')}</div>
+              return (
+                <div
+                  onClick={() => router.push('/dashboard/creator/profile#availability')}
+                  title={`${upcoming.length} gün müsait değilsin`}
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="1.5" y="2.5" width="13" height="12" rx="1" stroke="#0a0a0a" strokeWidth="1.2" />
+                    <line x1="1.5" y1="5.5" x2="14.5" y2="5.5" stroke="#0a0a0a" strokeWidth="1.2" />
+                    <line x1="5" y1="1" x2="5" y2="4" stroke="#0a0a0a" strokeWidth="1.2" />
+                    <line x1="11" y1="1" x2="11" y2="4" stroke="#0a0a0a" strokeWidth="1.2" />
+                  </svg>
+                  <span style={{ fontSize: '11px', letterSpacing: '1px', textTransform: 'uppercase', color: '#6b6b66', fontWeight: '500' }}>{upcoming.length}</span>
+                </div>
+              )
             })()}
           </div>
 
+          {/* THANKS BANNERS */}
+          {thanks.map(t => (
+            <div key={t.id} style={{ background: '#fff', borderLeft: '3px solid #22c55e', border: '1px solid #e5e4db', borderLeftColor: '#22c55e', padding: '14px 18px', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a' }}>Tebrikler! <span style={{ color: 'var(--color-text-tertiary)' }}>{(t as any).briefs?.clients?.company_name}</span> · {(t as any).briefs?.campaign_name} teslim edildi.</div>
+                <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', marginTop: '2px' }}>{t.credits} kredi kazandın{rate > 0 ? ` · ${(t.credits * rate).toLocaleString('tr-TR')} ₺` : ''}</div>
+              </div>
+              <button onClick={() => dismissThanks(t.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px', color: '#9ca3af', padding: '4px 8px' }}>×</button>
+            </div>
+          ))}
+          {thanks.length > 0 && <div style={{ marginBottom: '16px' }} />}
+
+          {/* SEARCH & FILTER TOOLBAR */}
+          {jobs.length > 0 && (
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
+              <input
+                type="text" placeholder="Kampanya veya marka ara..." value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{ flex: 1, minWidth: '180px', padding: '8px 12px', border: '1px solid #e5e4db', background: '#fff', fontSize: '13px', outline: 'none' }}
+              />
+              <select value={filterType} onChange={e => setFilterType(e.target.value)}
+                style={{ padding: '8px 12px', border: '1px solid #e5e4db', background: '#fff', fontSize: '13px', cursor: 'pointer' }}>
+                <option value="all">Tüm Tipler</option>
+                <option value="ana">Ana Video</option>
+                <option value="cps">CPS</option>
+              </select>
+              <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
+                style={{ padding: '8px 12px', border: '1px solid #e5e4db', background: '#fff', fontSize: '13px', cursor: 'pointer' }}>
+                <option value="all">Tüm Durumlar</option>
+                <option value="submitted">Atandı</option>
+                <option value="in_production">Üretimde</option>
+                <option value="revision">Revizyon</option>
+                <option value="approved">Onay Bekliyor</option>
+              </select>
+            </div>
+          )}
+
           {/* JOB LIST */}
-          {sortedJobs.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--color-text-tertiary)', fontSize: '14px' }}>Aktif iş yok.</div>
+          {filteredJobs.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--color-text-tertiary)', fontSize: '14px' }}>{searchQuery || filterType !== 'all' || filterStatus !== 'all' ? 'Eşleşen iş bulunamadı.' : 'Aktif iş yok.'}</div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {sortedJobs.map(job => {
+              {filteredJobs.map(job => {
                 const timer = getTimerInfo(job)
                 const jobType = getJobType(job)
                 const badge = getStatusBadge(job.status)

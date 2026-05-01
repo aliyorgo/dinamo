@@ -22,6 +22,12 @@ export default function CreatorProfile() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (!loading && window.location.hash === '#availability') {
+      document.getElementById('availability')?.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [loading])
+
+  useEffect(() => {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
@@ -104,7 +110,7 @@ export default function CreatorProfile() {
       </div>
 
       {/* MÜSAİTLİK TAKVİMİ */}
-      <div style={{ background: '#fff', border: '1px solid #e5e4db', padding: '20px 24px', marginBottom: '16px' }}>
+      <div id="availability" style={{ background: '#fff', border: '1px solid #e5e4db', padding: '20px 24px', marginBottom: '16px' }}>
         <div style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '8px' }}>MÜSAİTLİK</div>
         <div style={{ fontSize: '12px', color: '#6b6b66', lineHeight: 1.5, marginBottom: '16px' }}>Müsait olmadığın günleri işaretle. Mevcut işlerin etkilenmez, sadece yeni atamalarda görünür.</div>
 
