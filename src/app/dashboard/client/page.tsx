@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
 import { useClientContext } from './layout'
@@ -145,26 +145,48 @@ export default function ClientDashboard() {
     load()
   }, [clientId])
 
-  // Poll AI processing briefs every 5s
+  // Poll processing briefs + AI children every 10s
+  const aiChildrenRef = useRef(aiChildrenMap)
+  aiChildrenRef.current = aiChildrenMap
+  const briefsRef = useRef(briefs)
+  briefsRef.current = briefs
+
   useEffect(() => {
+    if (!clientId) return
     const interval = setInterval(async () => {
-      const processing = briefs.filter(b => b.status === 'ai_processing' || b.status === 'ai_completed')
-      if (processing.length === 0) return
-      const { data } = await supabase
-        .from('briefs')
-        .select('id, status, ai_video_status')
-        .in('id', processing.map(b => b.id))
-      if (data) {
-        setBriefs(prev => prev.map(b => {
-          const updated = data.find((d: any) => d.id === b.id)
-          return updated && (updated.status !== b.status || updated.ai_video_status !== b.ai_video_status)
-            ? { ...b, ...updated }
-            : b
-        }))
+      const currentBriefs = briefsRef.current
+      const currentAiMap = aiChildrenRef.current
+      const hasProcessing = currentBriefs.some(b => b.status === 'ai_processing' || b.status === 'ai_completed') ||
+        Object.values(currentAiMap).some((kids: any[]) => kids.some(k => k.status === 'ai_processing' && !k.ai_video_url))
+      if (!hasProcessing) return
+
+      // Refresh parent briefs
+      const processing = currentBriefs.filter(b => b.status === 'ai_processing' || b.status === 'ai_completed')
+      if (processing.length > 0) {
+        const { data } = await supabase.from('briefs').select('id, status, ai_video_status').in('id', processing.map(b => b.id))
+        if (data) {
+          setBriefs(prev => prev.map(b => {
+            const updated = data.find((d: any) => d.id === b.id)
+            return updated && (updated.status !== b.status || updated.ai_video_status !== b.ai_video_status) ? { ...b, ...updated } : b
+          }))
+        }
       }
-    }, 5000)
+      // Refresh AI children
+      const { data: aiKids } = await supabase.from('briefs')
+        .select('id, root_campaign_id, parent_brief_id, status, ai_video_status, ai_video_url, created_at, campaign_name, ai_express_viewed_at')
+        .eq('client_id', clientId)
+        .ilike('campaign_name', '%Full AI%')
+      if (aiKids) {
+        const map: Record<string, any[]> = {}
+        aiKids.forEach((k: any) => {
+          const key = k.root_campaign_id || k.parent_brief_id
+          if (key) { if (!map[key]) map[key] = []; map[key].push(k) }
+        })
+        setAiChildrenMap(map)
+      }
+    }, 10000)
     return () => clearInterval(interval)
-  }, [briefs])
+  }, [clientId])
 
   async function markNotifRead(id: string) {
     await supabase.from('notifications').update({ is_read: true }).eq('id', id)
