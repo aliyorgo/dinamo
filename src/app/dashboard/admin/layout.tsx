@@ -34,6 +34,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
       const { data } = await supabase.from('users').select('name, role').eq('id', user.id).single()
+      console.log('[ADMIN-LAYOUT] user.id:', user.id, '| DB role:', data?.role, '| name:', data?.name)
       if (!data || (data.role !== 'admin' && data.role !== 'producer')) { router.push('/login'); return }
       setUserName(data.name || user.email || '')
       setUserRole(data.role)
@@ -60,6 +61,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (!ready) return null
 
   const visibleNav = NAV.filter(link => !(link.adminOnly && userRole === 'producer'))
+  console.log('[ADMIN-LAYOUT] render | userRole:', userRole, '| visibleNav:', visibleNav.length, '/', NAV.length)
 
   return (
     <AdminContext.Provider value={{ role: userRole }}>
