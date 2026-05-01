@@ -151,19 +151,21 @@ export default function CreatorJobDetail() {
   const briefGender = brief?.voiceover_gender || 'female'
   const lockedVoice = brandVoices?.[briefGender] || null
 
+  async function loadCreatorVoices(refresh = false) {
+    setVoicesLoading(true)
+    const gender = brief?.voiceover_gender === 'male' ? 'male' : brief?.voiceover_gender === 'female' ? 'female' : ''
+    const q = refresh ? '&refresh=1' : ''
+    const res = await fetch(`/api/elevenlabs/voices?gender=${gender}${q}`)
+    const data = await res.json()
+    setVoices(data.voices || [])
+    setVoicesLoading(false)
+  }
+
   async function openVoiceStudio() {
     setVoiceStudioOpen(true)
     if (brief?.voiceover_text && !voiceText) setVoiceText(brief.voiceover_text)
-    // Auto-select locked brand voice
     if (lockedVoice && !selectedVoice) setSelectedVoice(lockedVoice.voice_id)
-    if (!lockedVoice && voices.length === 0) {
-      setVoicesLoading(true)
-      const gender = brief?.voiceover_gender === 'male' ? 'male' : brief?.voiceover_gender === 'female' ? 'female' : ''
-      const res = await fetch(`/api/elevenlabs/voices?gender=${gender}`)
-      const data = await res.json()
-      setVoices(data.voices || [])
-      setVoicesLoading(false)
-    }
+    if (!lockedVoice && voices.length === 0) loadCreatorVoices()
   }
 
   async function generateVoiceover() {
@@ -574,7 +576,10 @@ export default function CreatorJobDetail() {
             {/* Header */}
             <div style={{ padding: '16px 24px', borderBottom: '1px solid #e5e4db', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
               <div style={{ fontSize: '14px', fontWeight: '500', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#0a0a0a' }}>SES STÜDYOSU</div>
-              <button onClick={() => setVoiceStudioOpen(false)} style={{ width: '28px', height: '28px', border: '1px solid #e5e4db', background: '#fff', color: '#0a0a0a', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                {!lockedVoice && <button onClick={() => loadCreatorVoices(true)} disabled={voicesLoading} title="Ses listesini yenile" style={{ width: '28px', height: '28px', border: '1px solid #e5e4db', background: '#fff', color: '#0a0a0a', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg></button>}
+                <button onClick={() => setVoiceStudioOpen(false)} style={{ width: '28px', height: '28px', border: '1px solid #e5e4db', background: '#fff', color: '#0a0a0a', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+              </div>
             </div>
 
             {/* Body */}

@@ -83,17 +83,20 @@ export default function BrandIdentityPage() {
     setUploading(false)
   }
 
+  async function loadVoices(refresh = false) {
+    setVoicesLoading(true)
+    const q = refresh ? '&refresh=1' : ''
+    const [maleRes, femaleRes] = await Promise.all([
+      fetch(`/api/elevenlabs/voices?gender=male${q}`).then(r => r.json()),
+      fetch(`/api/elevenlabs/voices?gender=female${q}`).then(r => r.json()),
+    ])
+    setVoices({ male: maleRes.voices || [], female: femaleRes.voices || [] })
+    setVoicesLoading(false)
+  }
+
   async function openVoiceModal() {
     setVoiceModalOpen(true)
-    if (voices.male.length === 0 && voices.female.length === 0) {
-      setVoicesLoading(true)
-      const [maleRes, femaleRes] = await Promise.all([
-        fetch('/api/elevenlabs/voices?gender=male').then(r => r.json()),
-        fetch('/api/elevenlabs/voices?gender=female').then(r => r.json()),
-      ])
-      setVoices({ male: maleRes.voices || [], female: femaleRes.voices || [] })
-      setVoicesLoading(false)
-    }
+    if (voices.male.length === 0 && voices.female.length === 0) loadVoices()
   }
 
   function playPreview(url: string, voiceId: string) {
@@ -289,7 +292,10 @@ export default function BrandIdentityPage() {
             {/* Header */}
             <div style={{ padding: '16px 24px', borderBottom: '1px solid #e5e4db', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
               <div style={{ fontSize: '14px', fontWeight: '500', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#0a0a0a' }}>AI DUBLAJ SANATÇISI</div>
-              <button onClick={() => setVoiceModalOpen(false)} style={{ width: '28px', height: '28px', border: '1px solid #e5e4db', background: '#fff', color: '#0a0a0a', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                <button onClick={() => loadVoices(true)} disabled={voicesLoading} title="Ses listesini yenile" style={{ width: '28px', height: '28px', border: '1px solid #e5e4db', background: '#fff', color: '#0a0a0a', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'transform 0.3s' }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg></button>
+                <button onClick={() => setVoiceModalOpen(false)} style={{ width: '28px', height: '28px', border: '1px solid #e5e4db', background: '#fff', color: '#0a0a0a', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+              </div>
             </div>
 
             {/* Body */}

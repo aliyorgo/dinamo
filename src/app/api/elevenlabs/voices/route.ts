@@ -2,14 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 
 let cachedVoices: any[] | null = null
 let cacheTime = 0
-const CACHE_TTL = 10 * 60 * 1000 // 10 min
+const CACHE_TTL = 30 * 1000 // 30 sec
 
 export async function GET(req: NextRequest) {
   const gender = req.nextUrl.searchParams.get('gender') || ''
+  const refresh = req.nextUrl.searchParams.get('refresh') === '1'
   const apiKey = process.env.ELEVENLABS_API_KEY
   if (!apiKey) return NextResponse.json({ error: 'API key yok' }, { status: 500 })
 
-  if (!cachedVoices || Date.now() - cacheTime > CACHE_TTL) {
+  if (refresh || !cachedVoices || Date.now() - cacheTime > CACHE_TTL) {
     const res = await fetch('https://api.elevenlabs.io/v1/voices', {
       headers: { 'xi-api-key': apiKey },
     })
