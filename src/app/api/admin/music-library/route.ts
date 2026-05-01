@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   let query = supabase.from('music_library').select('*, clients(company_name)').order('created_at', { ascending: false })
 
   if (activeOnly) query = query.eq('is_active', true)
-  if (mood) query = query.eq('mood', mood)
+  if (mood) query = query.contains('mood', [mood])
   if (clientId === 'general') query = query.is('client_id', null)
   else if (clientId) query = query.eq('client_id', clientId)
   if (search) query = query.ilike('name', `%${search}%`)
@@ -26,7 +26,8 @@ export async function POST(req: NextRequest) {
   const formData = await req.formData()
   const file = formData.get('file') as File
   const name = formData.get('name') as string || file?.name || 'Untitled'
-  const mood = formData.get('mood') as string || null
+  const moodRaw = formData.get('mood') as string || ''
+  const moodArr = moodRaw ? moodRaw.split(',').filter(Boolean) : null
   const clientId = formData.get('client_id') as string || null
 
   if (!file) return NextResponse.json({ error: 'Dosya gerekli' }, { status: 400 })
@@ -52,7 +53,7 @@ export async function POST(req: NextRequest) {
     name,
     file_url: urlData.publicUrl,
     storage_path: storagePath,
-    mood,
+    mood: moodArr,
     client_id: clientId || null,
     size_bytes: buffer.length,
     is_active: true,

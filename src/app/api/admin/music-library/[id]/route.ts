@@ -9,7 +9,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const updates: any = {}
   if (body.name !== undefined) updates.name = body.name
-  if (body.mood !== undefined) updates.mood = body.mood || null
+  if (body.mood !== undefined) updates.mood = Array.isArray(body.mood) && body.mood.length > 0 ? body.mood : null
   if (body.client_id !== undefined) updates.client_id = body.client_id || null
   if (body.is_active !== undefined) updates.is_active = body.is_active
 

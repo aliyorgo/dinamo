@@ -27,11 +27,11 @@ export default function MusicLibraryPage() {
   const [showUpload, setShowUpload] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [uploadName, setUploadName] = useState('')
-  const [uploadMood, setUploadMood] = useState('')
+  const [uploadMoods, setUploadMoods] = useState<string[]>([])
   const [uploadClient, setUploadClient] = useState('')
   const [msg, setMsg] = useState('')
   const [editId, setEditId] = useState<string | null>(null)
-  const [editData, setEditData] = useState({ name: '', mood: '', client_id: '' })
+  const [editData, setEditData] = useState({ name: '', moods: [] as string[], client_id: '' })
   const [migrating, setMigrating] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
@@ -64,14 +64,14 @@ export default function MusicLibraryPage() {
     const form = new FormData()
     form.append('file', file)
     form.append('name', uploadName || file.name.replace(/\.[^.]+$/, ''))
-    if (uploadMood) form.append('mood', uploadMood)
+    if (uploadMoods.length) form.append('mood', uploadMoods.join(','))
     if (uploadClient) form.append('client_id', uploadClient)
     const res = await fetch('/api/admin/music-library', { method: 'POST', body: form })
     const data = await res.json()
     setUploading(false)
     if (data.error) { setMsg('Hata: ' + data.error); return }
     setShowUpload(false)
-    setUploadName(''); setUploadMood(''); setUploadClient('')
+    setUploadName(''); setUploadMoods([]); setUploadClient('')
     if (fileRef.current) fileRef.current.value = ''
     loadMusic()
   }
@@ -90,7 +90,7 @@ export default function MusicLibraryPage() {
     await fetch(`/api/admin/music-library/${editId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: editData.name, mood: editData.mood || null, client_id: editData.client_id || null }),
+      body: JSON.stringify({ name: editData.name, mood: editData.moods.length > 0 ? editData.moods : null, client_id: editData.client_id || null }),
     })
     setEditId(null)
     loadMusic()
@@ -119,14 +119,31 @@ export default function MusicLibraryPage() {
   }
 
   const totalCount = music.length
-  const moodCounts = MOODS.reduce((a, m) => { a[m] = music.filter(x => x.mood === m).length; return a }, {} as Record<string, number>)
+  const moodCounts = MOODS.reduce((a, m) => { a[m] = music.filter(x => Array.isArray(x.mood) ? x.mood.includes(m) : x.mood === m).length; return a }, {} as Record<string, number>)
   const brandCount = music.filter(m => m.client_id).length
-  const untaggedCount = music.filter(m => !m.mood).length
+  const untaggedCount = music.filter(m => !m.mood || (Array.isArray(m.mood) && m.mood.length === 0)).length
 
-  function MoodBadge({ mood }: { mood: string | null }) {
-    if (!mood) return <span style={{ fontSize: '9px', letterSpacing: '1px', padding: '2px 6px', border: '1px solid #e5e4db', color: '#9ca3af', textTransform: 'uppercase' }}>ETİKETSİZ</span>
-    const c = MOOD_COLORS[mood] || MOOD_COLORS['GENEL']
-    return <span style={{ fontSize: '9px', letterSpacing: '1px', padding: '2px 6px', background: c.bg, border: `1px solid ${c.border}`, color: '#0a0a0a', textTransform: 'uppercase' }}>{mood}</span>
+  function MoodBadges({ mood }: { mood: string[] | null }) {
+    if (!mood || mood.length === 0) return <span style={{ fontSize: '9px', letterSpacing: '1px', padding: '2px 6px', border: '1px solid #e5e4db', color: '#9ca3af', textTransform: 'uppercase' }}>ETİKETSİZ</span>
+    return <>{mood.map(m => { const c = MOOD_COLORS[m] || MOOD_COLORS['GENEL']; return <span key={m} style={{ fontSize: '9px', letterSpacing: '1px', padding: '2px 6px', background: c.bg, border: `1px solid ${c.border}`, color: '#0a0a0a', textTransform: 'uppercase' }}>{m}</span> })}</>
+  }
+
+  function MoodCheckboxes({ selected, onChange }: { selected: string[]; onChange: (v: string[]) => void }) {
+    return (
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+        {MOODS.map(m => {
+          const active = selected.includes(m)
+          const c = MOOD_COLORS[m] || MOOD_COLORS['GENEL']
+          return (
+            <span key={m} onClick={() => onChange(active ? selected.filter(x => x !== m) : [...selected, m])}
+              style={{ fontSize: '10px', letterSpacing: '1px', padding: '4px 10px', cursor: 'pointer', textTransform: 'uppercase', fontWeight: active ? '600' : '400',
+                background: active ? c.bg : '#fff', border: `1px solid ${active ? c.border : '#e5e4db'}`, color: '#0a0a0a' }}>
+              {m}
+            </span>
+          )
+        })}
+      </div>
+    )
   }
 
   return (
@@ -189,7 +206,7 @@ export default function MusicLibraryPage() {
               </div>
               <audio controls src={m.file_url} style={{ width: '100%', marginBottom: '8px', height: '32px' }} />
               <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '8px' }}>
-                <MoodBadge mood={m.mood} />
+                <MoodBadges mood={m.mood} />
                 {m.clients?.company_name && <span style={{ fontSize: '9px', letterSpacing: '1px', padding: '2px 6px', border: '1px solid #3b82f6', color: '#3b82f6', textTransform: 'uppercase' }}>{m.clients.company_name}</span>}
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -197,7 +214,7 @@ export default function MusicLibraryPage() {
                   {m.size_bytes ? `${(m.size_bytes / 1024 / 1024).toFixed(1)} MB` : ''}
                 </span>
                 <div style={{ display: 'flex', gap: '6px' }}>
-                  <button onClick={() => { setEditId(m.id); setEditData({ name: m.name, mood: m.mood || '', client_id: m.client_id || '' }) }} className="btn btn-outline" style={{ padding: '3px 8px', fontSize: '9px' }}>DÜZENLE</button>
+                  <button onClick={() => { setEditId(m.id); setEditData({ name: m.name, moods: Array.isArray(m.mood) ? m.mood : m.mood ? [m.mood] : [], client_id: m.client_id || '' }) }} className="btn btn-outline" style={{ padding: '3px 8px', fontSize: '9px' }}>DÜZENLE</button>
                   <button onClick={() => deleteMusic(m.id, m.name)} className="btn btn-outline" style={{ padding: '3px 8px', fontSize: '9px', color: '#ef4444', borderColor: 'rgba(239,68,68,0.3)' }}>SİL</button>
                 </div>
               </div>
@@ -227,10 +244,7 @@ export default function MusicLibraryPage() {
             </div>
             <div style={{ marginBottom: '12px' }}>
               <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '6px' }}>MOOD</div>
-              <select value={uploadMood} onChange={e => setUploadMood(e.target.value)} style={{ width: '100%', padding: '9px 12px', border: '1px solid #e5e4db', fontSize: '13px', color: '#0a0a0a', background: '#fff' }}>
-                <option value="">Seçilmedi</option>
-                {MOODS.map(m => <option key={m} value={m}>{m}</option>)}
-              </select>
+              <MoodCheckboxes selected={uploadMoods} onChange={setUploadMoods} />
             </div>
             <div style={{ marginBottom: '20px' }}>
               <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '6px' }}>MARKA (OPSİYONEL)</div>
@@ -257,10 +271,7 @@ export default function MusicLibraryPage() {
             </div>
             <div style={{ marginBottom: '12px' }}>
               <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '6px' }}>MOOD</div>
-              <select value={editData.mood} onChange={e => setEditData({ ...editData, mood: e.target.value })} style={{ width: '100%', padding: '9px 12px', border: '1px solid #e5e4db', fontSize: '13px', color: '#0a0a0a', background: '#fff' }}>
-                <option value="">Seçilmedi</option>
-                {MOODS.map(m => <option key={m} value={m}>{m}</option>)}
-              </select>
+              <MoodCheckboxes selected={editData.moods} onChange={v => setEditData({ ...editData, moods: v })} />
             </div>
             <div style={{ marginBottom: '20px' }}>
               <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '6px' }}>MARKA</div>
