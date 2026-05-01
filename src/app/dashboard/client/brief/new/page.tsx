@@ -53,6 +53,7 @@ function NewBriefPage() {
   const [previewCount, setPreviewCount] = useState(0)
   const [previewLimitHit, setPreviewLimitHit] = useState(false)
   const [previewVoiceName, setPreviewVoiceName] = useState('')
+  const [savedVoiceoverText, setSavedVoiceoverText] = useState('')
 
   const [form, setForm] = useState({
     campaign_name: '',
@@ -212,15 +213,25 @@ function NewBriefPage() {
   }
 
   async function previewVoiceover() {
-    const briefId = savedBriefId || editBriefId
-    if (!briefId || !form.voiceover_text.trim()) return
+    if (!form.voiceover_text.trim()) return
     setPreviewLoading(true)
     try {
-      const res = await fetch(`/api/briefs/${briefId}/preview-voiceover`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: form.voiceover_text }),
-      })
+      const briefId = savedBriefId || editBriefId
+      const clientId = clientUser?.client_id
+      let res: Response
+      if (briefId) {
+        res = await fetch(`/api/briefs/${briefId}/preview-voiceover`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: form.voiceover_text }),
+        })
+      } else {
+        res = await fetch('/api/preview-voiceover', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: form.voiceover_text, client_id: clientId, gender: form.voiceover_gender || 'female' }),
+        })
+      }
       if (res.status === 429) { setPreviewLimitHit(true); setPreviewLoading(false); return }
       const data = await res.json()
       if (data.url) {
@@ -387,7 +398,7 @@ function NewBriefPage() {
                 <span style={{fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.4)'}}>Bu brief</span>
                 <span style={{fontSize:'14px',fontWeight:'500',color:'#4ade80'}}>{cost} kredi</span>
               </div>
-              {form.voiceover_type==='real' && <div style={{fontSize:'9px',color:'rgba(255,255,255,0.25)',marginTop:'2px'}}>+6 gerçek seslendirme</div>}
+              {form.voiceover_type==='real' && <div style={{fontSize:'9px',color:'rgba(255,255,255,0.25)',marginTop:'2px'}}>+6 profesyonel seslendirme</div>}
               {form.languages.length>0 && <div style={{fontSize:'9px',color:'rgba(255,255,255,0.25)',marginTop:'2px'}}>+{form.languages.length*2} dil versiyonu ({form.languages.length} dil)</div>}
             </div>
           )}
@@ -828,9 +839,9 @@ function NewBriefPage() {
               <div style={{marginBottom:'22px'}}>
                 <div style={{fontSize:'11px',color:'var(--color-text-secondary)',letterSpacing:'2px',textTransform:'uppercase',fontWeight:'500',marginBottom:'8px'}}>Seslendirme Tipi</div>
                 <div>
-                  <span style={pillStyle(form.voiceover_type==='none')} onClick={()=>setForm({...form,voiceover_type:'none',voiceover_gender:'',voiceover_text:''})}>Yok</span>
-                  <span style={pillStyle(form.voiceover_type==='ai')} onClick={()=>setForm({...form,voiceover_type:'ai',voiceover_gender:'female'})}>AI Seslendirme</span>
-                  <span style={pillStyle(form.voiceover_type==='real')} onClick={()=>setForm({...form,voiceover_type:'real',voiceover_gender:'female'})}>Gerçek Seslendirme (+6 kredi)</span>
+                  <span style={pillStyle(form.voiceover_type==='none')} onClick={()=>{if(form.voiceover_text)setSavedVoiceoverText(form.voiceover_text);setForm({...form,voiceover_type:'none',voiceover_gender:''})}}>Yok</span>
+                  <span style={pillStyle(form.voiceover_type==='ai')} onClick={()=>setForm({...form,voiceover_type:'ai',voiceover_gender:form.voiceover_gender||'female',voiceover_text:form.voiceover_text||savedVoiceoverText})}>AI Seslendirme</span>
+                  <span style={pillStyle(form.voiceover_type==='real')} onClick={()=>setForm({...form,voiceover_type:'real',voiceover_gender:form.voiceover_gender||'female',voiceover_text:form.voiceover_text||savedVoiceoverText})}>Profesyonel Seslendirme (+6 kredi)</span>
                 </div>
               </div>
               {form.voiceover_type!=='none'&&(
@@ -852,7 +863,7 @@ function NewBriefPage() {
                   </div>
                   <textarea style={{...inputStyle,resize:'vertical',lineHeight:'1.7'}} rows={6} value={form.voiceover_text} onChange={e=>setForm({...form,voiceover_text:e.target.value})} placeholder="Seslendirme metnini yazın veya AI ile oluşturun..." />
                   {/* PREVIEW */}
-                  {brandVoiceForGender && form.voiceover_text.trim() && (savedBriefId || editBriefId) && (
+                  {brandVoiceForGender && form.voiceover_text.trim() && (
                     <div style={{marginTop:'12px'}}>
                       {previewLimitHit ? (
                         <div style={{fontSize:'11px',color:'var(--color-text-tertiary)'}}>Preview hakkınız doldu (10/10)</div>
@@ -1019,7 +1030,7 @@ function NewBriefPage() {
                   {form.message&&(<div style={{marginTop:'20px'}}><div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'6px'}}>Brief Metni</div><div style={{fontSize:'14px',color:'#333',lineHeight:1.7}}>{form.message}</div></div>)}
                   {form.has_cta==='yes'&&form.cta&&(<div style={{marginTop:'14px'}}><div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>CTA</div><div style={{fontSize:'14px',color:'#333',lineHeight:1.7}}>{form.cta}</div></div>)}
                   {form.target_audience&&(<div style={{marginTop:'14px'}}><div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>Hedef Kitle</div><div style={{fontSize:'14px',color:'#333',lineHeight:1.7}}>{form.target_audience}</div></div>)}
-                  {form.voiceover_type!=='none'&&(<div style={{marginTop:'14px'}}><div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>Seslendirme</div><div style={{fontSize:'14px',color:'#333'}}>{form.voiceover_type==='real'?'Gerçek Seslendirme':'AI Seslendirme'}{form.voiceover_gender?` (${form.voiceover_gender==='male'?'Erkek':'Kadın'})`:''}</div></div>)}
+                  {form.voiceover_type!=='none'&&(<div style={{marginTop:'14px'}}><div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>Seslendirme</div><div style={{fontSize:'14px',color:'#333'}}>{form.voiceover_type==='real'?'Profesyonel Seslendirme':'AI Seslendirme'}{form.voiceover_gender?` (${form.voiceover_gender==='male'?'Erkek':'Kadın'})`:''}</div></div>)}
                   {form.languages.length>0&&(<div style={{marginTop:'14px'}}><div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'6px'}}>Yabancı Dil Versiyonları</div><div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>{form.languages.map(lid=>{const langMap:Record<string,{label:string,flag:string}>={en:{label:'İngilizce',flag:'🇬🇧'},de:{label:'Almanca',flag:'🇩🇪'},fr:{label:'Fransızca',flag:'🇫🇷'},ru:{label:'Rusça',flag:'🇷🇺'},ar:{label:'Arapça',flag:'🇸🇦'},it:{label:'İtalyanca',flag:'🇮🇹'},es:{label:'İspanyolca',flag:'🇪🇸'}};const l=langMap[lid];return l?<span key={lid} style={{fontSize:'12px',padding:'4px 12px',background:'rgba(34,197,94,0.08)',color:'#22c55e',fontWeight:'500'}}>{l.flag} {l.label}</span>:null})}</div></div>)}
                   {productImageUrl&&(<div style={{marginTop:'14px'}}><div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>Ürün Görseli</div><div style={{fontSize:'12px',color:'#22c55e'}}>Yüklendi</div></div>)}
                   {brandFiles.length>0&&(<div style={{marginTop:'14px'}}><div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'4px'}}>Marka Materyalleri</div><div style={{fontSize:'12px',color:'#0a0a0a'}}>{brandFiles.length} dosya</div></div>)}

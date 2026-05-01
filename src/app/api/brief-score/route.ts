@@ -14,7 +14,7 @@ export async function POST(request: Request) {
     { key: 'Format', val: brief?.format || '' },
     { key: 'Mecralar', val: Array.isArray(brief?.platforms) ? brief.platforms.join(', ') : '' },
     { key: 'CTA', val: brief?.has_cta === 'yes' ? (brief?.cta || '') : '' },
-    { key: 'Seslendirme Tipi', val: brief?.voiceover_type === 'real' ? `Gerçek · ${brief?.voiceover_gender === 'male' ? 'Erkek' : 'Kadın'}` : brief?.voiceover_type === 'ai' ? `AI · ${brief?.voiceover_gender === 'male' ? 'Erkek' : 'Kadın'}` : 'Yok' },
+    { key: 'Seslendirme Tipi', val: brief?.voiceover_type === 'real' ? `Profesyonel · ${brief?.voiceover_gender === 'male' ? 'Erkek' : 'Kadın'}` : brief?.voiceover_type === 'ai' ? `AI · ${brief?.voiceover_gender === 'male' ? 'Erkek' : 'Kadın'}` : 'Yok' },
     { key: 'Seslendirme Metni', val: brief?.voiceover_text || '' },
     { key: 'Notlar / Uyarılar', val: brief?.notes || '' },
   ]

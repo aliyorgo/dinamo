@@ -562,7 +562,7 @@ function AgencyNewBrief() {
                 <div>
                   <span style={pillStyle(form.voiceover_type === 'none')} onClick={() => setForm({ ...form, voiceover_type: 'none', voiceover_gender: '', voiceover_text: '' })}>Yok</span>
                   <span style={pillStyle(form.voiceover_type === 'ai')} onClick={() => setForm({ ...form, voiceover_type: 'ai', voiceover_gender: 'female' })}>AI Seslendirme</span>
-                  <span style={pillStyle(form.voiceover_type === 'real')} onClick={() => setForm({ ...form, voiceover_type: 'real', voiceover_gender: 'female' })}>Gerçek Seslendirme (+6 kredi)</span>
+                  <span style={pillStyle(form.voiceover_type === 'real')} onClick={() => setForm({ ...form, voiceover_type: 'real', voiceover_gender: 'female' })}>Profesyonel Seslendirme (+6 kredi)</span>
                 </div>
               </div>
               {form.voiceover_type !== 'none' && (

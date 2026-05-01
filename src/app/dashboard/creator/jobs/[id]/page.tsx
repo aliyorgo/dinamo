@@ -346,7 +346,7 @@ export default function CreatorJobDetail() {
               </div>
               {brief.voiceover_text && sf.includes('voiceover_text') && (
                 <div style={{ borderLeft: '3px solid #22c55e', padding: '10px 14px', background: 'rgba(34,197,94,0.04)', marginBottom: '16px' }}>
-                  <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '4px' }}>SESLENDİRME METNİ · {brief.voiceover_type === 'real' ? 'GERÇEK' : 'AI'} · {brief.voiceover_gender === 'male' ? 'ERKEK' : 'KADIN'}</div>
+                  <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '4px' }}>SESLENDİRME METNİ · {brief.voiceover_type === 'real' ? 'PROFESYONEL' : 'AI'} · {brief.voiceover_gender === 'male' ? 'ERKEK' : 'KADIN'}</div>
                   <div style={{ fontSize: '13px', color: '#0a0a0a', fontStyle: 'italic', lineHeight: 1.6 }}>{brief.voiceover_text}</div>
                 </div>
               )}
@@ -674,7 +674,7 @@ export default function CreatorJobDetail() {
           <div onClick={e => e.stopPropagation()} style={{ background: '#fff', border: '1px solid #0a0a0a', padding: '28px', maxWidth: '400px', width: '90%' }}>
             {voiceGenerating ? (
               <div style={{ textAlign: 'center', padding: '20px 0' }}>
-                <div style={{ width: '32px', height: '32px', border: '3px solid #e5e4db', borderTop: '3px solid #0a0a0a', borderRadius: '50%', animation: 'voice-spin 0.8s linear infinite', margin: '0 auto 16px', boxSizing: 'border-box' }} />
+                <div style={{ width: '40px', height: '40px', borderWidth: '3px', borderStyle: 'solid', borderColor: '#e5e4db #e5e4db #e5e4db #0a0a0a', borderRadius: '50%', animation: 'voice-spin 0.8s linear infinite', margin: '0 auto 16px' }} />
                 <div style={{ fontSize: '14px', fontWeight: '500', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#0a0a0a', marginBottom: '6px' }}>SES ÜRETİLİYOR...</div>
                 <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>Bu işlem 30-60 saniye sürebilir.</div>
               </div>

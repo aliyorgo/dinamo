@@ -288,7 +288,7 @@ export default function AiVideoPage() {
                   { label: 'Kampanya', value: brief?.campaign_name },
                   { label: 'Format', value: `${brief?.video_type || ''} · ${formatLabel}` },
                   { label: 'Süre', value: durationMap[brief?.video_type] || '' },
-                  { label: 'Dış Ses', value: brief?.voiceover_type === 'ai' ? `AI (${brief?.voiceover_gender === 'male' ? 'Erkek' : 'Kadın'})` : brief?.voiceover_type === 'real' ? 'Gerçek Seslendirme' : brief?.voiceover_type === 'none' ? 'Yok' : brief?.voiceover_type || '' },
+                  { label: 'Dış Ses', value: brief?.voiceover_type === 'ai' ? `AI (${brief?.voiceover_gender === 'male' ? 'Erkek' : 'Kadın'})` : brief?.voiceover_type === 'real' ? 'Profesyonel Seslendirme' : brief?.voiceover_type === 'none' ? 'Yok' : brief?.voiceover_type || '' },
                 ].filter(f => f.value).map(f => (
                   <div key={f.label} style={{marginBottom:'12px',paddingBottom:'12px',borderBottom:'0.5px solid rgba(0,0,0,0.06)'}}>
                     <div style={{fontSize:'9px',color:'#888',textTransform:'uppercase',letterSpacing:'0.3px',marginBottom:'3px'}}>{f.label}</div>

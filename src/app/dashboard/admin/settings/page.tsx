@@ -123,7 +123,7 @@ export default function SettingsPage() {
     { key: 'credit_longform', label: 'Long Form kredi değeri', type: 'number', unit: 'kredi' },
     { key: 'credit_extra_format', label: 'Ekstra format kredi değeri', type: 'number', unit: 'kredi' },
     { key: 'credit_revision', label: 'Müşteri revizyon kredi değeri', type: 'number', unit: 'kredi' },
-    { key: 'credit_voiceover_real', label: 'Gerçek seslendirme kredi değeri', type: 'number', unit: 'kredi' },
+    { key: 'credit_voiceover_real', label: 'Profesyonel seslendirme kredi değeri', type: 'number', unit: 'kredi' },
   ]
 
   return (
