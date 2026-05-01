@@ -192,6 +192,10 @@ export default function CreatorJobDetail() {
     }
   }
 
+  function cleanVoiceName(name: string) {
+    return name.split(/\s*[-•·]\s*/)[0].trim()
+  }
+
   function playPreview(url: string, voiceId: string) {
     if (playingPreview === voiceId) {
       previewAudioRef.current?.pause()
@@ -635,7 +639,7 @@ export default function CreatorJobDetail() {
                         onMouseLeave={e => { if (selectedVoice !== v.voice_id) e.currentTarget.style.background = '#fff' }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
-                          <span style={{ fontSize: '12px', fontWeight: '500', color: '#0a0a0a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name}</span>
+                          <span style={{ fontSize: '12px', fontWeight: '500', color: '#0a0a0a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cleanVoiceName(v.name)}</span>
                           {v.preview_url && (
                             <button
                               onClick={e => { e.stopPropagation(); playPreview(v.preview_url, v.voice_id) }}

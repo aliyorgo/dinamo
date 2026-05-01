@@ -128,6 +128,10 @@ export default function BrandIdentityPage() {
     return <div style={{ width: '100%', height: '100%', background: '#f5f4f0' }} />
   }
 
+  function cleanVoiceName(name: string) {
+    return name.split(/\s*[-•·]\s*/)[0].trim()
+  }
+
   const currentVoices = voiceTab === 'male' ? voices.male : voices.female
   const selectedForTab = voiceTab === 'male' ? selectedMaleVoice : selectedFemaleVoice
   const setSelectedForTab = voiceTab === 'male'
@@ -251,11 +255,18 @@ export default function BrandIdentityPage() {
       {showUploadModal && (
         <div onClick={() => setShowUploadModal(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
           <div onClick={e => e.stopPropagation()} style={{ background: '#fff', border: '1px solid #0a0a0a', padding: '28px', width: '440px', maxWidth: '90vw' }}>
-            <div style={{ fontSize: '16px', fontWeight: '500', color: '#0a0a0a', marginBottom: '20px' }}>Dosya Ekle</div>
-            <div style={{ marginBottom: '16px' }}>
-              <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '6px' }}>DOSYA</div>
-              <input ref={fileRef} type="file" style={{ width: '100%', fontSize: '13px', color: '#0a0a0a' }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <div style={{ fontSize: '14px', fontWeight: '500', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#0a0a0a' }}>DOSYA EKLE</div>
+              <button onClick={() => { setShowUploadModal(false); setMsg('') }} style={{ width: '28px', height: '28px', border: '1px solid #e5e4db', background: '#fff', color: '#0a0a0a', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
             </div>
+            <div onClick={() => fileRef.current?.click()} style={{ border: '1px dashed #0a0a0a', padding: '28px 20px', textAlign: 'center', cursor: 'pointer', marginBottom: '16px' }}>
+              <div style={{ fontSize: '28px', color: 'var(--color-text-tertiary)', marginBottom: '6px' }}>+</div>
+              <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>
+                {fileRef.current?.files?.[0] ? fileRef.current.files[0].name : 'Dosya seç veya sürükle'}
+              </div>
+              <div style={{ fontSize: '10px', color: 'var(--color-text-tertiary)' }}>Logo, font, marka rehberi, ürün görseli</div>
+            </div>
+            <input ref={fileRef} type="file" onChange={() => setMsg('')} style={{ display: 'none' }} />
             <div style={{ marginBottom: '16px' }}>
               <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '6px' }}>DOSYA ADI / ETİKETİ</div>
               <input value={fileLabel} onChange={e => setFileLabel(e.target.value)} placeholder="örn. Ana Logo, Marka Fontu..." style={{ width: '100%', padding: '9px 12px', border: '1px solid #e5e4db', fontSize: '13px', color: '#0a0a0a', boxSizing: 'border-box' }} />
@@ -267,12 +278,9 @@ export default function BrandIdentityPage() {
                 {briefs.map(b => <option key={b.id} value={b.id}>{b.campaign_name}</option>)}
               </select>
             </div>
-            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-              <button onClick={() => { setShowUploadModal(false); setMsg('') }} className="btn btn-outline" style={{ padding: '9px 20px' }}>İptal</button>
-              <button onClick={handleUpload} disabled={uploading} className="btn" style={{ padding: '9px 20px' }}>
-                {uploading ? 'Yükleniyor...' : 'Yükle'}
-              </button>
-            </div>
+            <button onClick={handleUpload} disabled={uploading} className="btn" style={{ width: '100%', padding: '10px' }}>
+              {uploading ? 'Yükleniyor...' : 'YÜKLE'}
+            </button>
           </div>
         </div>
       )}
@@ -329,7 +337,7 @@ export default function BrandIdentityPage() {
                       onMouseLeave={e => { if (selectedForTab?.voice_id !== v.voice_id) e.currentTarget.style.background = '#fff' }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
-                        <span style={{ fontSize: '12px', fontWeight: '500', color: '#0a0a0a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name}</span>
+                        <span style={{ fontSize: '12px', fontWeight: '500', color: '#0a0a0a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cleanVoiceName(v.name)}</span>
                         {v.preview_url && (
                           <button
                             onClick={e => { e.stopPropagation(); playPreview(v.preview_url, v.voice_id) }}
