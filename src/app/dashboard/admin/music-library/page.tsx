@@ -32,6 +32,7 @@ export default function MusicLibraryPage() {
   const [msg, setMsg] = useState('')
   const [editId, setEditId] = useState<string | null>(null)
   const [editData, setEditData] = useState({ name: '', mood: '', client_id: '' })
+  const [migrating, setMigrating] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { loadMusic(); loadClients() }, [])
@@ -106,6 +107,17 @@ export default function MusicLibraryPage() {
     loadMusic()
   }
 
+  async function handleMigrate() {
+    if (!confirm('Pipeline\'daki 8 mevcut müzik dosyasını DB\'ye kaydet?')) return
+    setMigrating(true)
+    const res = await fetch('/api/admin/music-library/migrate', { method: 'POST' })
+    const data = await res.json()
+    setMigrating(false)
+    setMsg(data.message || 'Migration tamamlandı')
+    setTimeout(() => setMsg(''), 3000)
+    loadMusic()
+  }
+
   const totalCount = music.length
   const moodCounts = MOODS.reduce((a, m) => { a[m] = music.filter(x => x.mood === m).length; return a }, {} as Record<string, number>)
   const brandCount = music.filter(m => m.client_id).length
@@ -124,6 +136,12 @@ export default function MusicLibraryPage() {
         <h1 style={{ fontSize: '28px', fontWeight: '300', letterSpacing: '-1px', margin: 0, color: '#0a0a0a' }}>Music Library</h1>
         <button onClick={() => setShowUpload(true)} className="btn" style={{ padding: '10px 20px' }}>+ MÜZİK YÜKLE</button>
       </div>
+
+      {!loading && music.length === 0 && (
+        <div style={{ marginBottom: '16px', padding: '14px 18px', background: '#fff', border: '1px solid #f59e0b', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ fontSize: '13px', color: '#0a0a0a' }}>Library boş — yukarıdaki <strong>+ MÜZİK YÜKLE</strong> butonuyla MP3 dosyaları ekle.</div>
+        </div>
+      )}
 
       {msg && <div style={{ marginBottom: '16px', padding: '10px 14px', background: msg.includes('Hata') ? 'rgba(239,68,68,0.08)' : 'rgba(34,197,94,0.08)', border: `1px solid ${msg.includes('Hata') ? '#ef4444' : '#22c55e'}`, fontSize: '12px', color: '#0a0a0a' }}>{msg}</div>}
 
