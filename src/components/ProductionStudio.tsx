@@ -215,7 +215,7 @@ export default function ProductionStudio({ briefId, source = 'admin', userRole =
         </span>
         <span style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
           {['Fikir', 'Senaryo', 'Prompt'].map((label, i) => (
-            <span key={i} title={label} style={{ width: '7px', height: '7px', borderRadius: '50%', background: progress[i] ? '#0a0a0a' : 'transparent', border: progress[i] ? '1px solid #0a0a0a' : '1px solid #c5c5b8', display: 'inline-block' }} />
+            <span key={i} title={label} className="dot" style={{ width: '7px', height: '7px', background: progress[i] ? '#0a0a0a' : 'transparent', border: progress[i] ? '1px solid #0a0a0a' : '1px solid #c5c5b8', display: 'inline-block' }} />
           ))}
         </span>
       </button>

@@ -262,7 +262,7 @@ export default function CreatorJobDetail() {
           {brief?.voiceover_type === 'ai' && (
             <button onClick={openVoiceStudio} className="btn btn-outline" style={{ width: '100%', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
               <span style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500' }}>SES STÜDYOSU</span>
-              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: brief.ai_voiceover_url ? '#0a0a0a' : 'transparent', border: brief.ai_voiceover_url ? '1px solid #0a0a0a' : '1px solid #c5c5b8', display: 'inline-block' }} title={brief.ai_voiceover_url ? 'Ses mevcut' : 'Ses üretilmedi'} />
+              <span className="dot" style={{ width: '7px', height: '7px', background: brief.ai_voiceover_url ? '#0a0a0a' : 'transparent', border: brief.ai_voiceover_url ? '1px solid #0a0a0a' : '1px solid #c5c5b8', display: 'inline-block' }} title={brief.ai_voiceover_url ? 'Ses mevcut' : 'Ses üretilmedi'} />
             </button>
           )}
         </div>
@@ -679,7 +679,7 @@ export default function CreatorJobDetail() {
           <div onClick={e => e.stopPropagation()} style={{ background: '#fff', border: '1px solid #0a0a0a', padding: '28px', maxWidth: '400px', width: '90%' }}>
             {voiceGenerating ? (
               <div style={{ textAlign: 'center', padding: '20px 0' }}>
-                <div style={{ width: '40px', height: '40px', borderWidth: '3px', borderStyle: 'solid', borderColor: '#e5e4db #e5e4db #e5e4db #0a0a0a', borderRadius: '50%', animation: 'voice-spin 0.8s linear infinite', margin: '0 auto 16px' }} />
+                <div className="spinner" style={{ width: '40px', height: '40px', borderWidth: '3px', borderStyle: 'solid', borderColor: '#e5e4db #e5e4db #e5e4db #0a0a0a', animation: 'voice-spin 0.8s linear infinite', margin: '0 auto 16px' }} />
                 <div style={{ fontSize: '14px', fontWeight: '500', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#0a0a0a', marginBottom: '6px' }}>SES ÜRETİLİYOR...</div>
                 <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>Bu işlem 30-60 saniye sürebilir.</div>
               </div>

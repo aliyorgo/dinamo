@@ -871,7 +871,7 @@ function NewBriefPage() {
                         <div style={{fontSize:'11px',color:'var(--color-text-tertiary)'}}>Preview hakkınız doldu (10/10)</div>
                       ) : previewLoading ? (
                         <div style={{display:'flex',alignItems:'center',gap:'8px',padding:'8px 0'}}>
-                          <span style={{width:'14px',height:'14px',borderWidth:'2px',borderStyle:'solid',borderColor:'#e5e4db #e5e4db #e5e4db #0a0a0a',borderRadius:'50%',animation:'prev-spin 0.8s linear infinite',display:'inline-block'}} />
+                          <span className="spinner" style={{width:'14px',height:'14px',borderWidth:'2px',borderStyle:'solid',borderColor:'#e5e4db #e5e4db #e5e4db #0a0a0a',animation:'prev-spin 0.8s linear infinite',display:'inline-block'}} />
                           <span style={{fontSize:'11px',color:'var(--color-text-tertiary)'}}>Üretiliyor...</span>
                         </div>
                       ) : previewUrl && !previewChanged ? (

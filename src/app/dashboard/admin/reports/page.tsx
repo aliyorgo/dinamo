@@ -371,7 +371,7 @@ export default function ReportsPage() {
                   <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', marginBottom: '20px', overflow: 'hidden' }}>
                     <div style={sectionTitle}>Gelir Dağılımı</div>
                     <div style={{ padding: '24px', display: 'flex', gap: '32px', alignItems: 'center', flexWrap: 'wrap' }}>
-                      <div style={{ width: '140px', height: '140px', borderRadius: '50%', background: `conic-gradient(${gradParts.join(', ')})`, flexShrink: 0 }} />
+                      <div className="pie-chart" style={{ width: '140px', height: '140px', background: `conic-gradient(${gradParts.join(', ')})`, flexShrink: 0 }} />
                       <div style={{ flex: 1 }}>
                         <div style={{ fontSize: '28px', fontWeight: '300', color: '#0a0a0a', letterSpacing: '-1px', marginBottom: '16px' }}>{formatTL(total)}</div>
                         {slices.map(s => (

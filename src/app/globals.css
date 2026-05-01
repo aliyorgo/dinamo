@@ -48,9 +48,10 @@ body {
 *, *::before, *::after {
   border-radius: 0 !important;
 }
-.spinner, [data-spinner], .rounded-full {
+.spinner, [data-spinner], .rounded-full, .dot, .pie-chart {
   border-radius: 9999px !important;
 }
+.pie-chart { border-radius: 50% !important; }
 
 @keyframes pulse {
   0%, 100% { opacity: 1; }
