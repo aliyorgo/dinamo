@@ -50,6 +50,7 @@ function NewBriefPage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [previewLoading, setPreviewLoading] = useState(false)
   const [previewTextSnapshot, setPreviewTextSnapshot] = useState('')
+  const [previewGenderSnapshot, setPreviewGenderSnapshot] = useState('')
   const [previewCount, setPreviewCount] = useState(0)
   const [previewLimitHit, setPreviewLimitHit] = useState(false)
   const [previewVoiceName, setPreviewVoiceName] = useState('')
@@ -237,6 +238,7 @@ function NewBriefPage() {
       if (data.url) {
         setPreviewUrl(data.url)
         setPreviewTextSnapshot(form.voiceover_text)
+        setPreviewGenderSnapshot(form.voiceover_gender)
         setPreviewCount(data.count || 0)
         if (data.voice_name) setPreviewVoiceName(data.voice_name)
       }
@@ -245,7 +247,7 @@ function NewBriefPage() {
   }
 
   const brandVoiceForGender = brandVoices?.[form.voiceover_gender || 'female'] || null
-  const previewTextChanged = previewUrl && form.voiceover_text !== previewTextSnapshot
+  const previewChanged = previewUrl && (form.voiceover_text !== previewTextSnapshot || form.voiceover_gender !== previewGenderSnapshot)
 
   async function handleAiBrief() {
     if (!aiBriefInput.trim()) return
@@ -863,7 +865,7 @@ function NewBriefPage() {
                   </div>
                   <textarea style={{...inputStyle,resize:'vertical',lineHeight:'1.7'}} rows={6} value={form.voiceover_text} onChange={e=>setForm({...form,voiceover_text:e.target.value})} placeholder="Seslendirme metnini yazın veya AI ile oluşturun..." />
                   {/* PREVIEW */}
-                  {brandVoiceForGender && form.voiceover_text.trim() && (
+                  {form.voiceover_type === 'ai' && brandVoiceForGender && form.voiceover_text.trim() && (
                     <div style={{marginTop:'12px'}}>
                       {previewLimitHit ? (
                         <div style={{fontSize:'11px',color:'var(--color-text-tertiary)'}}>Preview hakkınız doldu (10/10)</div>
@@ -874,8 +876,8 @@ function NewBriefPage() {
                           className="btn btn-outline"
                           style={{
                             padding:'7px 16px',fontSize:'11px',
-                            borderColor: previewTextChanged ? '#f59e0b' : undefined,
-                            borderWidth: previewTextChanged ? '2px' : undefined,
+                            borderColor: previewChanged ? '#f59e0b' : undefined,
+                            borderWidth: previewChanged ? '2px' : undefined,
                           }}
                         >
                           {previewLoading ? (
@@ -883,7 +885,7 @@ function NewBriefPage() {
                               <span style={{width:'14px',height:'14px',borderWidth:'2px',borderStyle:'solid',borderColor:'#e5e4db #e5e4db #e5e4db #0a0a0a',borderRadius:'50%',animation:'prev-spin 0.8s linear infinite',display:'inline-block'}} />
                               ÜRETİLİYOR...
                             </span>
-                          ) : previewTextChanged ? 'YENİ PREVIEW DİNLE → ▶' : previewUrl ? 'DİNLE ▶' : 'PREVIEW DİNLE → ▶'}
+                          ) : previewChanged ? 'YENİ PREVIEW DİNLE → ▶' : previewUrl ? 'DİNLE ▶' : 'PREVIEW DİNLE → ▶'}
                         </button>
                       )}
                       {previewUrl && !previewLoading && (
