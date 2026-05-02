@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import UGCSettingsModal, { UGCSettings, DEFAULT_SETTINGS } from './UGCSettingsModal'
 import InfoModal, { InfoParagraph } from './InfoModal'
@@ -20,15 +20,13 @@ function simpleHash(str: string): string {
 
 export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
   const [personas, setPersonas] = useState<any[]>([])
-  // Start loading=false if we have cached persona data in brief prop
   const [personaLoading, setPersonaLoading] = useState(!brief?.ugc_persona_analysis?.recommended_persona_id)
   const [personaError, setPersonaError] = useState(false)
-  const [stateReady, setStateReady] = useState(false)
   const [selectedPersona, setSelectedPersona] = useState<number | null>(null)
   const [recommendedPersona, setRecommendedPersona] = useState<number | null>(null)
-  const [script, setScript] = useState<any>(null)
+  // Persona-based scripts: { "1": { shots, max_length, edited, settings_at_generation }, "5": {...} }
+  const [ugcScripts, setUgcScripts] = useState<Record<string, any>>({})
   const [scriptText, setScriptText] = useState('')
-  const [scriptMaxLength, setScriptMaxLength] = useState<number>(0)
   const [scriptLoading, setScriptLoading] = useState(false)
   const [useProduct, setUseProduct] = useState(true)
   const [productAnalysis, setProductAnalysis] = useState<any>(null)
@@ -44,25 +42,37 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
   })
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [settings, setSettings] = useState<UGCSettings>(DEFAULT_SETTINGS)
-  const [scriptSnapshot, setScriptSnapshot] = useState<{ persona_id: number; settings: UGCSettings } | null>(null)
   const [brandDefaults, setBrandDefaults] = useState<{ cta?: boolean; music?: boolean } | null>(null)
 
+  // Current persona's script
+  const currentScript = selectedPersona ? ugcScripts[String(selectedPersona)] : null
+  const currentMaxLength = currentScript?.max_length || 0
+
   useEffect(() => { loadData() }, [briefId])
+
+  // When persona changes, update scriptText from stored scripts
+  useEffect(() => {
+    if (!selectedPersona) { setScriptText(''); return }
+    const s = ugcScripts[String(selectedPersona)]
+    if (s?.shots) {
+      setScriptText(s.shots.map((sh: any) => sh.dialogue).join(' '))
+    } else {
+      setScriptText('')
+    }
+  }, [selectedPersona, ugcScripts])
 
   async function loadData() {
     setPersonaError(false)
 
-    // Load personas
     const { data: p } = await supabase.from('personas').select('*').order('id')
     setPersonas(p || [])
 
-    // Load existing UGC video
     if (brief?.ugc_video_id) {
       const { data: v } = await supabase.from('ugc_videos').select('*').eq('id', brief.ugc_video_id).single()
       if (v) setUgcVideo(v)
     }
 
-    // Restore persisted state from brief — use * to avoid column-not-found errors
+    // Fetch fresh brief data
     const { data: freshBrief, error: fetchErr } = await supabase.from('briefs').select('*').eq('id', briefId).single()
     if (fetchErr) console.warn('[AI-UGC] brief fetch error:', fetchErr.message)
     const b = freshBrief || brief
@@ -77,32 +87,25 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
       }
     }
 
-    // Script (persisted) — snapshot embedded in ugc_script._snapshot
-    console.log('[SCRIPT-READ]', { briefId, hasScript: !!b?.ugc_script, shots: b?.ugc_script?.shots?.length })
-    if (b?.ugc_script) {
-      setScript(b.ugc_script)
-      const merged = (b.ugc_script.shots || []).map((s: any) => s.dialogue).join('\n\n')
-      setScriptText(merged)
-      setScriptMaxLength(b.ugc_script_max_length || merged.length)
-      if (b.ugc_script._snapshot) {
-        setScriptSnapshot(b.ugc_script._snapshot)
-      } else {
-        setScriptSnapshot({ persona_id: b.ugc_selected_persona_id || b.ugc_persona_analysis?.recommended_persona_id, settings: b.ugc_settings || DEFAULT_SETTINGS })
-      }
+    // Load persona-based scripts
+    const scripts = b?.ugc_scripts || {}
+    // Fallback: migrate old ugc_script if ugc_scripts is empty
+    if (Object.keys(scripts).length === 0 && b?.ugc_script?.shots) {
+      const pid = String(b.ugc_selected_persona_id || '0')
+      scripts[pid] = { shots: b.ugc_script.shots, max_length: b.ugc_script_max_length || 0, edited: b.ugc_script_edited || false }
     }
+    setUgcScripts(scripts)
 
     // Persona — cache check
     try {
       const briefHash = simpleHash(JSON.stringify({ m: b?.message, p: b?.product_image_url, c: b?.client_id }))
       const cached = b?.ugc_persona_analysis
-      console.log('[PERSONA-CACHE]', { hasCache: !!cached, savedHash: cached?.brief_hash, currentHash: briefHash, match: cached?.brief_hash === briefHash, recommendedId: cached?.recommended_persona_id })
+      console.log('[PERSONA-CACHE]', { hasCache: !!cached, savedHash: cached?.brief_hash, currentHash: briefHash, match: cached?.brief_hash === briefHash })
       if (cached && cached.brief_hash === briefHash && cached.recommended_persona_id) {
-        // Cache hit — no loading, no API
         setRecommendedPersona(cached.recommended_persona_id)
         setSelectedPersona(b?.ugc_selected_persona_id || cached.recommended_persona_id)
         setPersonaLoading(false)
       } else {
-        // Cache miss — show loading, call API
         setPersonaLoading(true)
         const res = await fetch('/api/ugc/recommend-persona', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId }) })
         const data = await res.json()
@@ -114,7 +117,6 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
         setPersonaLoading(false)
       }
     } catch { setPersonaError(true); setPersonaLoading(false) }
-    setStateReady(true)
 
     // Product analysis
     if (b?.product_image_url) {
@@ -131,35 +133,28 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
     const res = await fetch('/api/ugc/generate-script', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: selectedPersona, use_product: useProduct && !!brief?.product_image_url, settings }) })
     const data = await res.json()
     if (data.shots) {
-      const snapshot = { persona_id: selectedPersona, settings: { ...settings } }
-      const scriptWithSnapshot = { ...data, _snapshot: snapshot }
-      setScript(scriptWithSnapshot)
-      setScriptSnapshot(snapshot)
-      const merged = (data.shots || []).map((s: any) => s.dialogue).join('\n\n')
-      setScriptText(merged)
+      const merged = data.shots.map((s: any) => s.dialogue).join(' ')
       const maxLen = merged.length
-      setScriptMaxLength(maxLen)
-      // Persist to DB
-      const { error: writeErr } = await supabase.from('briefs').update({ ugc_script: scriptWithSnapshot, ugc_script_edited: false, ugc_script_max_length: maxLen }).eq('id', briefId)
-      console.log('[SCRIPT-WRITE]', { briefId, success: !writeErr, error: writeErr?.message })
+      const scriptEntry = { shots: data.shots, max_length: maxLen, edited: false, settings_at_generation: { ...settings }, generated_at: new Date().toISOString() }
+      const updated = { ...ugcScripts, [String(selectedPersona)]: scriptEntry }
+      setUgcScripts(updated)
+      setScriptText(merged)
+      // Persist
+      await supabase.from('briefs').update({ ugc_scripts: updated, ugc_selected_persona_id: selectedPersona }).eq('id', briefId)
+      console.log('[SCRIPT-WRITE]', { persona: selectedPersona, maxLen })
     }
     setScriptLoading(false)
   }
 
   async function triggerGenerate() {
-    if (!script || !selectedPersona) return
+    if (!currentScript || !selectedPersona) return
     setGenerating(true)
-    const res = await fetch('/api/ugc/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: selectedPersona, use_product: useProduct && !!brief?.product_image_url, script, settings }) })
+    const res = await fetch('/api/ugc/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: selectedPersona, use_product: useProduct && !!brief?.product_image_url, script: currentScript, settings }) })
     const data = await res.json()
     if (data.ugc_video_id) {
-      // Poll
       const poll = setInterval(async () => {
         const { data: v } = await supabase.from('ugc_videos').select('*').eq('id', data.ugc_video_id).single()
-        if (v && (v.status === 'ready' || v.status === 'failed')) {
-          clearInterval(poll)
-          setUgcVideo(v)
-          setGenerating(false)
-        }
+        if (v && (v.status === 'ready' || v.status === 'failed')) { clearInterval(poll); setUgcVideo(v); setGenerating(false) }
       }, 10000)
     } else { setGenerating(false); setMsg(data.error || 'Üretim başarısız.') }
   }
@@ -186,19 +181,26 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
     supabase.from('briefs').update({ ugc_selected_persona_id: id }).eq('id', briefId)
   }
 
-
-  // Snapshot-based stale detection — only after state is ready from DB
-  const isStale = useMemo(() => {
-    if (!stateReady || !script || !scriptSnapshot) return false
-    if (Number(scriptSnapshot.persona_id) !== Number(selectedPersona)) return true
-    // Sort keys for stable comparison
-    const sortObj = (o: any) => JSON.stringify(Object.keys(o).sort().reduce((a: any, k) => { a[k] = o[k]; return a }, {}))
-    return sortObj(scriptSnapshot.settings) !== sortObj(settings)
-  }, [stateReady, script, scriptSnapshot, selectedPersona, settings])
-
-  function acceptStaleScript() {
-    // Accept current script as-is by updating snapshot to match current state
-    if (selectedPersona) setScriptSnapshot({ persona_id: selectedPersona, settings: { ...settings } })
+  function handleScriptEdit(val: string) {
+    if (val.length > currentMaxLength) return
+    setScriptText(val)
+    clearTimeout((window as any).__ugcSaveTimer)
+    ;(window as any).__ugcSaveTimer = setTimeout(() => {
+      if (!selectedPersona) return
+      // Split into 3 roughly equal parts by sentences
+      const sentences = val.match(/[^.!?]+[.!?]+/g) || [val]
+      const third = Math.ceil(sentences.length / 3)
+      const parts = [
+        sentences.slice(0, third).join('').trim(),
+        sentences.slice(third, third * 2).join('').trim(),
+        sentences.slice(third * 2).join('').trim(),
+      ]
+      const updatedShots = (currentScript?.shots || []).map((s: any, i: number) => ({ ...s, dialogue: parts[i] || '' }))
+      const updatedEntry = { ...currentScript, shots: updatedShots, edited: true }
+      const updatedScripts = { ...ugcScripts, [String(selectedPersona)]: updatedEntry }
+      setUgcScripts(updatedScripts)
+      supabase.from('briefs').update({ ugc_scripts: updatedScripts }).eq('id', briefId)
+    }, 2000)
   }
 
   const hasVideo = ugcVideo?.status === 'ready' || ugcVideo?.status === 'sold'
@@ -208,7 +210,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
 
   return (
     <div>
-      {/* HEADER ROW: [info] [gear] ... [kredi] — single line, no wrap */}
+      {/* HEADER ROW */}
       <div style={{ display: 'flex', flexWrap: 'nowrap', alignItems: 'center', marginBottom: '16px', gap: '8px' }}>
         <button onClick={() => setInfoOpen(true)} title="AI UGC Hakkında"
           onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.06)' }}
@@ -228,16 +230,15 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
 
       {msg && <div style={{ padding: '10px 14px', background: 'rgba(239,68,68,0.08)', border: '1px solid #ef4444', fontSize: '12px', color: '#0a0a0a', marginBottom: '12px' }}>{msg}</div>}
 
-      {/* VIDEO CARD — AI Express pattern (ready/sold/processing/failed) */}
+      {/* VIDEO CARD */}
       {(hasVideo || isProcessing || isFailed) && (
         <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '20px 24px', marginBottom: '16px' }}>
           <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
-            {/* Video preview */}
             <div style={{ width: '200px', aspectRatio: '9/16', background: '#0a0a0a', flexShrink: 0, position: 'relative', overflow: 'hidden' }}>
               {hasVideo && ugcVideo.final_url ? (
                 <video src={ugcVideo.final_url} controls preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'contain', backgroundColor: 'black' }} />
               ) : isProcessing ? (
-                <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '16px', background: '#0a0a0a' }}>
+                <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '16px' }}>
                   <div style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#6b6b66', marginBottom: '12px' }}>TAHMİNİ SÜRE: 3-5 dakika</div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <div className="spinner" style={{ width: '14px', height: '14px', borderWidth: '2px', borderStyle: 'solid', borderColor: '#4ade80 transparent transparent transparent' }} />
@@ -247,12 +248,10 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
               ) : (
                 <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                   <span style={{ fontSize: '20px', color: '#555' }}>&#9888;</span>
-                  <span style={{ fontSize: '10px', color: '#999', fontWeight: '500' }}>Üretilemedi</span>
+                  <span style={{ fontSize: '10px', color: '#999' }}>Üretilemedi</span>
                 </div>
               )}
             </div>
-
-            {/* Info */}
             <div style={{ flex: 1, minWidth: 0, paddingTop: '4px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
                 <span style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>AI UGC Video</span>
@@ -261,11 +260,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
                 {isFailed && <span style={{ fontSize: '9px', color: '#ef4444', fontWeight: '500' }}>Başarısız</span>}
               </div>
               {ugcVideo?.created_at && <div style={{ fontSize: '11px', color: '#888', marginBottom: '10px' }}>{new Date(ugcVideo.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</div>}
-
-              {isFailed && (
-                <button onClick={() => { setUgcVideo(null); setGenerating(false) }} style={{ padding: '5px 12px', background: '#0a0a0a', color: '#fff', border: 'none', fontSize: '11px', fontWeight: '500', cursor: 'pointer' }}>Tekrar Dene</button>
-              )}
-
+              {isFailed && <button onClick={() => { setUgcVideo(null); setGenerating(false) }} style={{ padding: '5px 12px', background: '#0a0a0a', color: '#fff', border: 'none', fontSize: '11px', fontWeight: '500', cursor: 'pointer' }}>Tekrar Dene</button>}
               {hasVideo && (
                 <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                   {isPurchased ? (
@@ -286,13 +281,12 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
         </div>
       )}
 
-      {/* PERSONA + SCRIPT + GENERATE — only if no video yet */}
+      {/* PERSONA + SCRIPT + GENERATE */}
       {!hasVideo && !isProcessing && !isFailed && (
         <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '20px 24px' }}>
-          {/* Persona selection — fixed height container */}
+          {/* Persona selection */}
           <div style={{ minHeight: '200px', marginBottom: '20px' }}>
             <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '10px' }}>PERSONA SEÇ</div>
-
             {personaLoading ? (
               <div style={{ minHeight: '170px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
                 <div className="spinner" style={{ width: '32px', height: '32px', borderWidth: '2px', borderStyle: 'solid', borderColor: '#e5e4db #e5e4db #e5e4db #0a0a0a' }} />
@@ -305,7 +299,6 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
               </div>
             ) : (
               <div style={{ animation: 'ugc-fade-in 0.3s ease' }}>
-                {/* Selected persona large card */}
                 {selectedPersona && (() => {
                   const p = personas.find(x => x.id === selectedPersona)
                   if (!p) return null
@@ -325,7 +318,6 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
                     </div>
                   )
                 })()}
-                {/* Thumbnails */}
                 <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px' }}>
                   {personas.map(p => (
                     <div key={p.id} onClick={() => handlePersonaChange(p.id)} style={{ flexShrink: 0, width: '60px', textAlign: 'center', cursor: 'pointer', opacity: selectedPersona === p.id ? 1 : 0.6, transition: 'opacity 0.15s' }}>
@@ -360,64 +352,54 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
           {/* Script */}
           <div style={{ marginBottom: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-              <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)' }}>SCRİPT</div>
-              {/* DURUM A: no script → "SCRİPT ÜRET" / DURUM B: script + not stale → "YENİDEN ÖNER" / DURUM C: stale → hidden (banner has action) */}
-              {(!script || !isStale) && (
-                <button onClick={generateScript} disabled={scriptLoading || !selectedPersona}
-                  className="btn btn-outline"
-                  style={{ padding: '4px 12px', fontSize: '9px' }}>
-                  {scriptLoading ? 'ÜRETİLİYOR...' : script ? 'KONUŞMA METNİNİ GÜNCELLE' : 'SCRİPT ÜRET'}
+              <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)' }}>KONUŞMA METNİ</div>
+              {currentScript && (
+                <button onClick={generateScript} disabled={scriptLoading} className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '9px' }}>
+                  {scriptLoading ? 'ÜRETİLİYOR...' : 'YENİDEN ÜRET'}
                 </button>
               )}
             </div>
-            {/* Stale banner */}
-            {isStale && script && (
-              <div style={{ display: 'flex', gap: '12px', alignItems: 'center', padding: '16px', background: 'rgba(245,158,11,0.04)', border: '0.5px solid rgba(245,158,11,0.25)', marginBottom: '12px', flexWrap: 'wrap' }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="1.5" style={{ flexShrink: 0 }}><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                <span style={{ fontSize: '13px', color: '#b45309', flex: 1 }}>Ayarları değiştirdiniz. İsterseniz konuşma metnini yeni ayarlarla güncelleyebiliriz.</span>
-                <button onClick={generateScript} className="btn" style={{ padding: '6px 14px', fontSize: '11px' }}>KONUŞMA METNİNİ GÜNCELLE</button>
-                <button onClick={acceptStaleScript} style={{ fontSize: '11px', color: '#888', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>Mevcut metni koru</button>
-              </div>
-            )}
-            {script?.shots ? (
-              <div style={{ opacity: isStale ? 0.5 : 1, transition: 'opacity 0.3s' }}>
+            {currentScript?.shots ? (
+              <div>
                 <textarea
                   value={scriptText}
-                  onChange={e => {
-                    const val = e.target.value
-                    if (val.length > scriptMaxLength) return // uzatma yasak
-                    setScriptText(val)
-                    // Debounced DB save — split back to 3 shots proportionally
-                    clearTimeout((window as any).__ugcScriptSaveTimer)
-                    ;(window as any).__ugcScriptSaveTimer = setTimeout(() => {
-                      const parts = val.split('\n\n')
-                      const updated = { ...script, shots: script.shots.map((s: any, i: number) => ({ ...s, dialogue: parts[i] || '' })) }
-                      setScript(updated)
-                      supabase.from('briefs').update({ ugc_script: updated, ugc_script_edited: true }).eq('id', briefId)
-                    }, 2000)
-                  }}
-                  style={{ width: '100%', minHeight: '120px', fontSize: '14px', color: '#0a0a0a', lineHeight: 1.7, border: '1px solid #e5e4db', padding: '16px', resize: 'none', boxSizing: 'border-box', background: '#fff', fontFamily: 'var(--font-sans, Inter, sans-serif)' }}
+                  onChange={e => handleScriptEdit(e.target.value)}
+                  style={{ width: '100%', minHeight: '180px', fontSize: '14px', color: '#0a0a0a', lineHeight: 1.7, border: '1px solid #e5e4db', padding: '16px', resize: 'none', boxSizing: 'border-box', background: '#fff', fontFamily: 'var(--font-sans, Inter, sans-serif)' }}
                 />
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
-                  {scriptText.length < scriptMaxLength ? (
-                    <span style={{ fontSize: '11px', color: '#22c55e' }}>✓ {scriptMaxLength - scriptText.length} karakter kısaltıldı</span>
+                  {scriptText.length < currentMaxLength ? (
+                    <span style={{ fontSize: '11px', color: '#22c55e' }}>✓ {currentMaxLength - scriptText.length} karakter kısaltıldı</span>
                   ) : <span />}
-                  <span style={{ fontSize: '11px', color: scriptText.length >= scriptMaxLength * 0.9 ? '#f59e0b' : 'var(--color-text-tertiary)' }}>{scriptText.length} / {scriptMaxLength}</span>
+                  <span style={{ fontSize: '11px', color: scriptText.length >= currentMaxLength * 0.9 ? '#f59e0b' : 'var(--color-text-tertiary)' }}>{scriptText.length} / {currentMaxLength}</span>
                 </div>
               </div>
-            ) : !scriptLoading && (
-              <div style={{ padding: '20px', textAlign: 'center', color: '#888', fontSize: '12px', border: '1px dashed #e5e4db' }}>Persona seç, ardından script üret.</div>
+            ) : (
+              <div style={{ padding: '20px', textAlign: 'center' }}>
+                {scriptLoading ? (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                    <div className="spinner" style={{ width: '16px', height: '16px', borderWidth: '2px', borderStyle: 'solid', borderColor: '#e5e4db #e5e4db #e5e4db #0a0a0a' }} />
+                    <span style={{ fontSize: '12px', color: '#888' }}>Üretiliyor...</span>
+                  </div>
+                ) : (
+                  <>
+                    <div style={{ fontSize: '12px', color: '#888', marginBottom: '12px' }}>Bu persona için henüz konuşma metni üretilmedi.</div>
+                    <button onClick={generateScript} disabled={!selectedPersona} className="btn" style={{ padding: '10px 24px' }}>SCRİPT ÜRET</button>
+                  </>
+                )}
+              </div>
             )}
           </div>
 
-          {/* Generate button — AI Express pattern */}
-          <button onClick={triggerGenerate} disabled={!script || generating} className="btn" style={{ width: '100%', padding: '12px', fontSize: '13px', fontWeight: '600', opacity: (!script || generating) ? 0.4 : 1 }}>
-            AI UGC ÜRET (1 KREDİ)
-          </button>
+          {/* Generate video button */}
+          {currentScript && (
+            <button onClick={triggerGenerate} disabled={generating} className="btn" style={{ width: '100%', padding: '12px', fontSize: '13px', fontWeight: '600' }}>
+              AI UGC ÜRET (1 KREDİ)
+            </button>
+          )}
         </div>
       )}
 
-      <style>{`@keyframes ugc-pulse { 0%,100%{box-shadow:0 0 0 0 rgba(10,10,10,0.2)} 50%{box-shadow:0 0 0 4px rgba(10,10,10,0.08)} } @keyframes ugc-fade-in { from{opacity:0} to{opacity:1} }`}</style>
+      <style>{`@keyframes ugc-fade-in { from{opacity:0} to{opacity:1} }`}</style>
 
       {/* Info Modal */}
       <InfoModal open={infoOpen} onClose={() => setInfoOpen(false)} title="AI UGC hakkında" badge="BETA">
