@@ -751,7 +751,7 @@ export default function AdminBriefDetail() {
                   <div style={{ padding: '8px 12px', background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)', marginBottom: '16px', fontSize: '11px', color: '#92400e' }}>AI UGC beta sürümünde, kalite gelişmeye açık.</div>
 
                   {/* Video ready/sold state */}
-                  {ugcVideo?.status === 'ready' || ugcVideo?.status === 'sold' ? (
+                  {(ugcVideo?.status === 'ready' || ugcVideo?.status === 'sold') ? (
                     <div>
                       {ugcVideo.final_url && <video controls style={{ width: '100%', maxHeight: '400px', background: '#000', marginBottom: '12px' }}><source src={ugcVideo.final_url} /></video>}
                       {ugcVideo.status === 'ready' && (
