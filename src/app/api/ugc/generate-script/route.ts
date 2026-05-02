@@ -4,7 +4,9 @@ import { createClient } from '@supabase/supabase-js'
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
 export async function POST(req: NextRequest) {
+  try {
   const { brief_id, persona_id, use_product, settings } = await req.json()
+  console.log('[GENERATE-SCRIPT] request:', { brief_id, persona_id, use_product })
   if (!brief_id || !persona_id) return NextResponse.json({ error: 'brief_id ve persona_id gerekli' }, { status: 400 })
   const tone = settings?.tone || 'samimi'
   const includeCta = settings?.cta !== false
@@ -42,19 +44,46 @@ KURALLAR:
 - Reklamcı klişesi yasak (dene, kazandıran, tam aradığın).
 - Doğal Türkçe, persona tonuna sadık.
 
-JSON formatında dön:
-{"segments": [{"timestamp": "00:00-00:04", "camera": "medium shot", "action": "kısa aksiyon tarifi", "dialogue": "40-50 char"}, {"timestamp": "00:04-00:08", "camera": "close-up shot", "action": "kısa aksiyon tarifi", "dialogue": "40-50 char"}]}`,
-      messages: [{ role: 'user', content: `Brief: ${brief.campaign_name}\nMesaj: ${brief.message || ''}\nHedef Kitle: ${brief.target_audience || ''}\nCTA: ${brief.cta || ''}\n\nJSON:` }],
+KESINLIKLE SADECE JSON DÖNDÜR. Açıklama yazma, analiz yapma, markdown kullanma. Yanıtın direkt { ile başlasın } ile bitsin. Hiçbir açıklayıcı metin, başlık, emoji, checkmark olmasın.
+
+ÖRNEK DOĞRU CEVAP:
+{"segments":[{"timestamp":"00:00-00:04","camera":"medium shot","action":"speaks to camera","dialogue":"40-50 char Türkçe"},{"timestamp":"00:04-00:08","camera":"close-up shot","action":"leans forward","dialogue":"40-50 char Türkçe"}]}`,
+      messages: [
+        { role: 'user', content: `Brief: ${brief.campaign_name}\nMesaj: ${brief.message || ''}\nHedef Kitle: ${brief.target_audience || ''}\nCTA: ${brief.cta || ''}\n\nJSON:` },
+        { role: 'assistant', content: '{"segments":[{' }
+      ],
     }),
   })
 
-  if (!res.ok) return NextResponse.json({ error: 'AI hatası' }, { status: 500 })
-  const data = await res.json()
-  const text = (data.content?.[0]?.text || '').trim()
+  if (!res.ok) {
+    const errBody = await res.text().catch(() => '')
+    console.error('[GENERATE-SCRIPT] Claude API error:', res.status, errBody.substring(0, 300))
+    return NextResponse.json({ error: 'AI hatası', detail: errBody.substring(0, 200) }, { status: 500 })
+  }
+  const aiData = await res.json()
+  // Prepend assistant prefix to complete the JSON
+  const rawText = '{"segments":[{' + (aiData.content?.[0]?.text || '').trim()
+  console.log('[GENERATE-SCRIPT] Claude response (reconstructed):', rawText.substring(0, 300))
+
+  let script
   try {
-    const script = JSON.parse(text.replace(/```json|```/g, '').trim())
-    return NextResponse.json(script)
+    script = JSON.parse(rawText.replace(/```json|```/g, '').trim())
   } catch {
-    return NextResponse.json({ error: 'Parse hatası', raw: text }, { status: 500 })
+    // Fallback: try to find JSON object in response
+    const jsonMatch = rawText.match(/\{[\s\S]*\}/)
+    if (jsonMatch) {
+      try { script = JSON.parse(jsonMatch[0]) } catch {}
+    }
+  }
+
+  if (!script?.segments || !Array.isArray(script.segments) || script.segments.length < 2) {
+    console.error('[GENERATE-SCRIPT] Invalid format:', rawText.substring(0, 500))
+    return NextResponse.json({ error: 'Geçersiz format', raw: rawText.substring(0, 200) }, { status: 500 })
+  }
+
+  return NextResponse.json(script)
+  } catch (err: any) {
+    console.error('[GENERATE-SCRIPT] FATAL:', err.message, err.stack)
+    return NextResponse.json({ error: err.message }, { status: 500 })
   }
 }

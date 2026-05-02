@@ -135,18 +135,25 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
   async function generateScript() {
     if (!selectedPersona) return
     setScriptLoading(true)
-    const res = await fetch('/api/ugc/generate-script', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: selectedPersona, use_product: useProduct && !!brief?.product_image_url, settings }) })
-    const data = await res.json()
-    if (data.segments) {
-      const merged = data.segments.map((s: any) => s.dialogue).join(' ')
-      const maxLen = merged.length
-      const scriptEntry = { segments: data.segments, max_length: maxLen, edited: false, settings_at_generation: { ...settings }, generated_at: new Date().toISOString() }
-      const updated = { ...ugcScripts, [String(selectedPersona)]: scriptEntry }
-      setUgcScripts(updated)
-      setScriptText(merged)
-      // Persist
-      await supabase.from('briefs').update({ ugc_scripts: updated, ugc_selected_persona_id: selectedPersona }).eq('id', briefId)
-      console.log('[SCRIPT-WRITE]', { persona: selectedPersona, maxLen })
+    try {
+      const res = await fetch('/api/ugc/generate-script', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: selectedPersona, use_product: useProduct && !!brief?.product_image_url, settings }) })
+      const data = await res.json()
+      console.log('[UGC-SCRIPT-CLIENT] response:', data)
+      if (data.segments) {
+        const merged = data.segments.map((s: any) => s.dialogue).join(' ')
+        const maxLen = merged.length
+        const scriptEntry = { segments: data.segments, max_length: maxLen, edited: false, settings_at_generation: { ...settings }, generated_at: new Date().toISOString() }
+        const updated = { ...ugcScripts, [String(selectedPersona)]: scriptEntry }
+        setUgcScripts(updated)
+        setScriptText(merged)
+        await supabase.from('briefs').update({ ugc_scripts: updated, ugc_selected_persona_id: selectedPersona }).eq('id', briefId)
+      } else {
+        console.error('[UGC-SCRIPT-CLIENT] no segments in response:', data)
+        setMsg(data.error || 'Script üretimi başarısız — yanıt beklenen formatta değil')
+      }
+    } catch (err: any) {
+      console.error('[UGC-SCRIPT-CLIENT] fetch error:', err)
+      setMsg('Script üretimi hatası: ' + err.message)
     }
     setScriptLoading(false)
   }
