@@ -366,7 +366,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
                   value={scriptText}
                   onChange={e => handleScriptEdit(e.target.value)}
                   onBlur={handleScriptBlur}
-                  style={{ width: '100%', minHeight: '180px', fontSize: '14px', color: '#0a0a0a', lineHeight: 1.7, border: '1px solid #e5e4db', padding: '16px', resize: 'none', boxSizing: 'border-box', background: '#fff', fontFamily: 'var(--font-sans, Inter, sans-serif)' }}
+                  style={{ width: '100%', minHeight: '140px', fontSize: '14px', color: '#0a0a0a', lineHeight: 1.7, border: '1px solid #e5e4db', padding: '16px', resize: 'none', boxSizing: 'border-box', background: '#fff', fontFamily: 'var(--font-sans, Inter, sans-serif)' }}
                 />
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
                   <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>AI yaklaşık 350 karakter üretir. Maksimum 390'a kadar düzenleyebilirsiniz.</span>
