@@ -26,7 +26,12 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
   const [generating, setGenerating] = useState(false)
   const [purchasing, setPurchasing] = useState(false)
   const [msg, setMsg] = useState('')
-  const [infoOpen, setInfoOpen] = useState(false)
+  const [infoOpen, setInfoOpen] = useState(() => {
+    if (typeof window === 'undefined') return false
+    const key = 'dinamo_seen_intro_ugc'
+    if (!localStorage.getItem(key)) { localStorage.setItem(key, 'true'); return true }
+    return false
+  })
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [settings, setSettings] = useState<UGCSettings>(DEFAULT_SETTINGS)
   const [scriptSnapshot, setScriptSnapshot] = useState<{ persona_id: number; settings: UGCSettings } | null>(null)
@@ -153,7 +158,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
           onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.06)' }}
           onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
           style={{ width: '28px', height: '28px', minWidth: '28px', border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s', flexShrink: 0, padding: '4px' }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
         </button>
         <button onClick={() => setSettingsOpen(true)} title="AI UGC Ayarları"
           onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.04)' }}

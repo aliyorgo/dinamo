@@ -115,6 +115,19 @@ function ClientBriefDetail() {
   const [expressInfoOpen, setExpressInfoOpen] = useState(false)
   const [cpsInfoOpen, setCpsInfoOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'hybrid'|'cps'|'express'|'ugc'|'summary'>(searchParams.get('tab') === 'express' ? 'express' : searchParams.get('tab') === 'ugc' ? 'ugc' : searchParams.get('tab') === 'cps' ? 'cps' : searchParams.get('tab') === 'summary' ? 'summary' : 'hybrid')
+
+  // Onboarding: auto-open info modal on first visit per module
+  useEffect(() => {
+    const map: Record<string, () => void> = {
+      express: () => setExpressInfoOpen(true),
+      cps: () => setCpsInfoOpen(true),
+    }
+    const key = `dinamo_seen_intro_${activeTab}`
+    if (map[activeTab] && !localStorage.getItem(key)) {
+      map[activeTab]()
+      localStorage.setItem(key, 'true')
+    }
+  }, [activeTab])
   const aiChildParam = searchParams.get('ai_child')
   const [briefExpanded, setBriefExpanded] = useState(false)
   const [autoGenerateTriggered, setAutoGenerateTriggered] = useState(false)
@@ -1212,7 +1225,7 @@ function ClientBriefDetail() {
                   onMouseEnter={e=>{e.currentTarget.style.background='rgba(0,0,0,0.06)'}}
                   onMouseLeave={e=>{e.currentTarget.style.background='transparent'}}
                   style={{width:'28px',height:'28px',minWidth:'28px',border:'none',background:'transparent',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',padding:'4px',transition:'background 0.15s',flexShrink:0}}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
                 </button>
                 <div style={{flex:1}} />
                 {(() => { const total = aiChildren.length + aiChildren.filter(c => c.status === 'delivered').length * 2; return <div style={{display:'inline-flex',padding:'6px 14px',border:'1px solid #0a0a0a',fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:total > 0 ? '#0a0a0a' : '#9ca3af',flexShrink:0,whiteSpace:'nowrap'}}>{total} KREDİ</div> })()}
@@ -1447,7 +1460,7 @@ function ClientBriefDetail() {
                     onMouseEnter={e=>{e.currentTarget.style.background='rgba(0,0,0,0.06)'}}
                     onMouseLeave={e=>{e.currentTarget.style.background='transparent'}}
                     style={{width:'28px',height:'28px',minWidth:'28px',border:'none',background:'transparent',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',padding:'4px',transition:'background 0.15s',flexShrink:0}}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
                   </button>
                   <div style={{flex:1}} />
                   {(() => { const total = cpsChildren.reduce((s: number, c: any) => s + (c.credit_cost || 0), 0); return <div style={{display:'inline-flex',padding:'6px 14px',border:'1px solid #0a0a0a',fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:total > 0 ? '#0a0a0a' : '#9ca3af',flexShrink:0,whiteSpace:'nowrap'}}>{total} KREDİ</div> })()}
