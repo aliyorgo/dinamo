@@ -78,7 +78,7 @@ export default function UGCSettingsModal({ open, onClose, settings, onChange, br
         </SettingRow>
 
         {/* Music */}
-        <SettingRow label="Müzik" desc="Veo'nun ürettiği ortam müziği/sesi">
+        <SettingRow label="Müzik" desc="Arka planda müzik olsun mu?">
           <Toggle value={settings.music} onChange={v => onChange({ ...settings, music: v })} />
         </SettingRow>
 
