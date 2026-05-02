@@ -62,8 +62,9 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
       if (v) setUgcVideo(v)
     }
 
-    // Restore persisted state from brief
-    const { data: freshBrief } = await supabase.from('briefs').select('ugc_persona_analysis, ugc_selected_persona_id, ugc_settings, ugc_script, ugc_script_edited, product_image_url, message, client_id').eq('id', briefId).single()
+    // Restore persisted state from brief — use * to avoid column-not-found errors
+    const { data: freshBrief, error: fetchErr } = await supabase.from('briefs').select('*').eq('id', briefId).single()
+    if (fetchErr) console.warn('[AI-UGC] brief fetch error:', fetchErr.message)
     const b = freshBrief || brief
 
     // Settings
@@ -76,13 +77,18 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
       }
     }
 
-    // Script (persisted)
+    // Script (persisted) — snapshot embedded in ugc_script._snapshot
+    console.log('[SCRIPT-READ]', { briefId, hasScript: !!b?.ugc_script, shots: b?.ugc_script?.shots?.length })
     if (b?.ugc_script) {
       setScript(b.ugc_script)
       const merged = (b.ugc_script.shots || []).map((s: any) => s.dialogue).join('\n\n')
       setScriptText(merged)
       setScriptMaxLength(b.ugc_script_max_length || merged.length)
-      setScriptSnapshot({ persona_id: b.ugc_selected_persona_id || b.ugc_persona_analysis?.recommended_persona_id, settings: b.ugc_settings || DEFAULT_SETTINGS })
+      if (b.ugc_script._snapshot) {
+        setScriptSnapshot(b.ugc_script._snapshot)
+      } else {
+        setScriptSnapshot({ persona_id: b.ugc_selected_persona_id || b.ugc_persona_analysis?.recommended_persona_id, settings: b.ugc_settings || DEFAULT_SETTINGS })
+      }
     }
 
     // Persona — cache check
@@ -125,13 +131,17 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
     const res = await fetch('/api/ugc/generate-script', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: selectedPersona, use_product: useProduct && !!brief?.product_image_url, settings }) })
     const data = await res.json()
     if (data.shots) {
-      setScript(data)
+      const snapshot = { persona_id: selectedPersona, settings: { ...settings } }
+      const scriptWithSnapshot = { ...data, _snapshot: snapshot }
+      setScript(scriptWithSnapshot)
+      setScriptSnapshot(snapshot)
       const merged = (data.shots || []).map((s: any) => s.dialogue).join('\n\n')
       setScriptText(merged)
       const maxLen = merged.length
       setScriptMaxLength(maxLen)
-      setScriptSnapshot({ persona_id: selectedPersona, settings: { ...settings } })
-      await supabase.from('briefs').update({ ugc_script: data, ugc_script_edited: false, ugc_script_max_length: maxLen }).eq('id', briefId)
+      // Persist to DB
+      const { error: writeErr } = await supabase.from('briefs').update({ ugc_script: scriptWithSnapshot, ugc_script_edited: false, ugc_script_max_length: maxLen }).eq('id', briefId)
+      console.log('[SCRIPT-WRITE]', { briefId, success: !writeErr, error: writeErr?.message })
     }
     setScriptLoading(false)
   }
@@ -356,17 +366,17 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
                 <button onClick={generateScript} disabled={scriptLoading || !selectedPersona}
                   className="btn btn-outline"
                   style={{ padding: '4px 12px', fontSize: '9px' }}>
-                  {scriptLoading ? 'ÜRETİLİYOR...' : script ? 'YENİDEN ÖNER' : 'SCRİPT ÜRET'}
+                  {scriptLoading ? 'ÜRETİLİYOR...' : script ? 'KONUŞMA METNİNİ GÜNCELLE' : 'SCRİPT ÜRET'}
                 </button>
               )}
             </div>
             {/* Stale banner */}
             {isStale && script && (
-              <div style={{ display: 'flex', gap: '12px', alignItems: 'center', padding: '12px 16px', background: 'rgba(245,158,11,0.06)', border: '0.5px solid rgba(245,158,11,0.3)', marginBottom: '12px', flexWrap: 'wrap' }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#92400e" strokeWidth="1.5" style={{ flexShrink: 0 }}><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                <span style={{ fontSize: '13px', color: '#92400e', flex: 1 }}>Ayarlar değişti, mevcut metin yeni ayarlarla uyuşmuyor.</span>
-                <button onClick={generateScript} className="btn" style={{ padding: '5px 12px', fontSize: '11px' }}>Yeniden Öner</button>
-                <button onClick={acceptStaleScript} style={{ fontSize: '11px', color: '#888', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>Mevcut Metni Kabul Et</button>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center', padding: '16px', background: 'rgba(245,158,11,0.04)', border: '0.5px solid rgba(245,158,11,0.25)', marginBottom: '12px', flexWrap: 'wrap' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="1.5" style={{ flexShrink: 0 }}><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <span style={{ fontSize: '13px', color: '#b45309', flex: 1 }}>Ayarları değiştirdiniz. İsterseniz konuşma metnini yeni ayarlarla güncelleyebiliriz.</span>
+                <button onClick={generateScript} className="btn" style={{ padding: '6px 14px', fontSize: '11px' }}>KONUŞMA METNİNİ GÜNCELLE</button>
+                <button onClick={acceptStaleScript} style={{ fontSize: '11px', color: '#888', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>Mevcut metni koru</button>
               </div>
             )}
             {script?.shots ? (
@@ -386,7 +396,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
                       supabase.from('briefs').update({ ugc_script: updated, ugc_script_edited: true }).eq('id', briefId)
                     }, 2000)
                   }}
-                  style={{ width: '100%', minHeight: '120px', fontSize: '15px', color: '#0a0a0a', lineHeight: 1.7, border: '1px solid #e5e4db', padding: '16px', resize: 'none', boxSizing: 'border-box', background: '#fff', fontFamily: 'var(--font-sans, Inter, sans-serif)' }}
+                  style={{ width: '100%', minHeight: '120px', fontSize: '14px', color: '#0a0a0a', lineHeight: 1.7, border: '1px solid #e5e4db', padding: '16px', resize: 'none', boxSizing: 'border-box', background: '#fff', fontFamily: 'var(--font-sans, Inter, sans-serif)' }}
                 />
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
                   {scriptText.length < scriptMaxLength ? (
