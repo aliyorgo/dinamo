@@ -29,7 +29,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
   const [ugcScripts, setUgcScripts] = useState<Record<string, any>>({})
   const [scriptText, setScriptText] = useState('')
   const [scriptLoading, setScriptLoading] = useState(false)
-  const [useProduct, setUseProduct] = useState(true)
+  const [useProduct, setUseProduct] = useState(false)
   const [productAnalysis, setProductAnalysis] = useState<any>(null)
   const [ugcVideo, setUgcVideo] = useState<any>(null)
   const [generating, setGenerating] = useState(false)
@@ -123,7 +123,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
       const res2 = await fetch('/api/ugc/analyze-product', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId }) })
       const data2 = await res2.json()
       setProductAnalysis(data2)
-      if (data2.suggested_toggle_default !== undefined) setUseProduct(data2.suggested_toggle_default)
+      // Claude analysis cached but does NOT override default OFF
     }
   }
 
@@ -376,17 +376,20 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
             <div>
               {/* Product toggle — sade row */}
               {brief?.product_image_url && (
-                <div style={{ padding: '12px 0', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="1.5" style={{ flexShrink: 0 }}><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '14px', color: '#0a0a0a' }}>Ürünü videoya dahil et</div>
-                    {productAnalysis && !productAnalysis.product_works_in_video && (
-                      <div style={{ fontSize: '11px', color: '#92400e', marginTop: '2px' }}>{productAnalysis.warning_message || 'Bu ürün AI\'da iyi çıkmayabilir, kapatmanı öneririz'}</div>
-                    )}
+                <div style={{ marginBottom: '12px' }}>
+                  <div style={{ padding: '12px 0', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="1.5" style={{ flexShrink: 0 }}><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                    <span style={{ flex: 1, fontSize: '14px', color: '#0a0a0a' }}>Ürünü videoya dahil et</span>
+                    <button onClick={() => setUseProduct(!useProduct)} style={{ width: '36px', height: '20px', border: 'none', cursor: 'pointer', background: useProduct ? '#22c55e' : '#ddd', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
+                      <span className="dot" style={{ position: 'absolute', top: '2px', left: useProduct ? '18px' : '2px', width: '16px', height: '16px', background: '#fff', transition: 'left 0.2s' }} />
+                    </button>
                   </div>
-                  <button onClick={() => setUseProduct(!useProduct)} style={{ width: '36px', height: '20px', border: 'none', cursor: 'pointer', background: useProduct ? '#22c55e' : '#ddd', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
-                    <span className="dot" style={{ position: 'absolute', top: '2px', left: useProduct ? '18px' : '2px', width: '16px', height: '16px', background: '#fff', transition: 'left 0.2s' }} />
-                  </button>
+                  {useProduct && (
+                    <div style={{ marginTop: '8px', padding: '12px 16px', background: 'rgba(245,158,11,0.05)', border: '0.5px solid rgba(245,158,11,0.25)', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="1.5" style={{ flexShrink: 0, marginTop: '2px' }}><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                      <span style={{ fontSize: '13px', color: '#92400e', lineHeight: 1.6 }}>Ürün yerleştirme AI UGC beta sürümünde sunulmaktadır. Ürünün boyut oranları, farklı açılardan görünümü ve detayları gerçek halinden farklı çıkabilir. Beğenmezseniz toggle'ı kapatabilirsiniz.</span>
+                    </div>
+                  )}
                 </div>
               )}
 
