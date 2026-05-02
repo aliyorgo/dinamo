@@ -417,7 +417,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
               )}
 
               {/* Generate button */}
-              <button onClick={triggerGenerate} disabled={generating} className="btn" style={{ width: '100%', padding: '12px', fontSize: '13px', fontWeight: '600' }}>
+              <button onClick={triggerGenerate} disabled={generating || !currentScript} title={!currentScript ? 'Önce konuşma metnini üretin' : ''} className="btn" style={{ width: '100%', padding: '12px', fontSize: '13px', fontWeight: '600', opacity: !currentScript ? 0.4 : 1 }}>
                 AI UGC VIDEO ÜRET (1 KREDİ)
               </button>
             </div>
