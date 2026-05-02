@@ -12,6 +12,12 @@ interface Props {
   clientUser: any
 }
 
+function simpleHash(str: string): string {
+  let hash = 0
+  for (let i = 0; i < str.length; i++) { hash = ((hash << 5) - hash) + str.charCodeAt(i); hash |= 0 }
+  return hash.toString(36)
+}
+
 export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
   const [personas, setPersonas] = useState<any[]>([])
   const [personaLoading, setPersonaLoading] = useState(true)
@@ -53,12 +59,23 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
       if (v) setUgcVideo(v)
     }
 
-    // Recommend persona
+    // Recommend persona — with cache
     try {
-      const res = await fetch('/api/ugc/recommend-persona', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId }) })
-      const data = await res.json()
-      if (data.recommended_persona_id) { setRecommendedPersona(data.recommended_persona_id); setSelectedPersona(data.recommended_persona_id) }
-      else { setPersonaError(true) }
+      const briefHash = simpleHash(JSON.stringify({ m: brief?.message, p: brief?.product_image_url, c: brief?.client_id }))
+      const cached = brief?.ugc_persona_analysis
+      if (cached && cached.brief_hash === briefHash && cached.recommended_persona_id) {
+        setRecommendedPersona(cached.recommended_persona_id)
+        setSelectedPersona(cached.recommended_persona_id)
+      } else {
+        const res = await fetch('/api/ugc/recommend-persona', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId }) })
+        const data = await res.json()
+        if (data.recommended_persona_id) {
+          setRecommendedPersona(data.recommended_persona_id)
+          setSelectedPersona(data.recommended_persona_id)
+          // Save cache
+          await supabase.from('briefs').update({ ugc_persona_analysis: { ...data, brief_hash: briefHash, analyzed_at: new Date().toISOString() } }).eq('id', briefId)
+        } else { setPersonaError(true) }
+      }
     } catch { setPersonaError(true) }
     setPersonaLoading(false)
 
@@ -131,6 +148,24 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
 
   function handlePersonaChange(id: number) {
     setSelectedPersona(id)
+  }
+
+  async function reanalyzePersona() {
+    setPersonaLoading(true)
+    setPersonaError(false)
+    try {
+      // Invalidate cache
+      await supabase.from('briefs').update({ ugc_persona_analysis: null }).eq('id', briefId)
+      const res = await fetch('/api/ugc/recommend-persona', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId }) })
+      const data = await res.json()
+      if (data.recommended_persona_id) {
+        setRecommendedPersona(data.recommended_persona_id)
+        setSelectedPersona(data.recommended_persona_id)
+        const briefHash = simpleHash(JSON.stringify({ m: brief?.message, p: brief?.product_image_url, c: brief?.client_id }))
+        await supabase.from('briefs').update({ ugc_persona_analysis: { ...data, brief_hash: briefHash, analyzed_at: new Date().toISOString() } }).eq('id', briefId)
+      } else { setPersonaError(true) }
+    } catch { setPersonaError(true) }
+    setPersonaLoading(false)
   }
 
   // Snapshot-based stale detection
@@ -240,7 +275,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
             {personaLoading ? (
               <div style={{ minHeight: '170px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
                 <div className="spinner" style={{ width: '32px', height: '32px', borderWidth: '2px', borderStyle: 'solid', borderColor: '#e5e4db #e5e4db #e5e4db #0a0a0a' }} />
-                <div style={{ fontSize: '13px', color: '#888' }}>Sana uygun persona belirleniyor...</div>
+                <div style={{ fontSize: '13px', color: '#888' }}>Brief'e uygun persona belirleniyor...</div>
               </div>
             ) : personaError ? (
               <div style={{ minHeight: '170px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
@@ -279,6 +314,10 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
                       <div style={{ fontSize: '9px', color: '#0a0a0a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
                     </div>
                   ))}
+                </div>
+                {/* Reanalyze link */}
+                <div style={{ marginTop: '8px', textAlign: 'right' }}>
+                  <button onClick={reanalyzePersona} disabled={personaLoading} style={{ fontSize: '10px', color: '#888', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>Yeniden analiz et</button>
                 </div>
               </div>
             )}

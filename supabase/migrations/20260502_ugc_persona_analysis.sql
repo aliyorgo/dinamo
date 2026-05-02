@@ -1,0 +1,1 @@
+ALTER TABLE briefs ADD COLUMN IF NOT EXISTS ugc_persona_analysis JSONB DEFAULT NULL;
