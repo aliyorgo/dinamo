@@ -84,6 +84,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
     try {
       const briefHash = simpleHash(JSON.stringify({ m: b?.message, p: b?.product_image_url, c: b?.client_id }))
       const cached = b?.ugc_persona_analysis
+      console.log('[PERSONA-CACHE]', { hasCache: !!cached, savedHash: cached?.brief_hash, currentHash: briefHash, match: cached?.brief_hash === briefHash, recommendedId: cached?.recommended_persona_id })
       if (cached && cached.brief_hash === briefHash && cached.recommended_persona_id) {
         // Cache hit — no loading, no API
         setRecommendedPersona(cached.recommended_persona_id)
@@ -168,23 +169,6 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
     supabase.from('briefs').update({ ugc_selected_persona_id: id }).eq('id', briefId)
   }
 
-  async function reanalyzePersona() {
-    setPersonaLoading(true)
-    setPersonaError(false)
-    try {
-      // Invalidate cache
-      await supabase.from('briefs').update({ ugc_persona_analysis: null }).eq('id', briefId)
-      const res = await fetch('/api/ugc/recommend-persona', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId }) })
-      const data = await res.json()
-      if (data.recommended_persona_id) {
-        setRecommendedPersona(data.recommended_persona_id)
-        setSelectedPersona(data.recommended_persona_id)
-        const briefHash = simpleHash(JSON.stringify({ m: brief?.message, p: brief?.product_image_url, c: brief?.client_id }))
-        await supabase.from('briefs').update({ ugc_persona_analysis: { ...data, brief_hash: briefHash, analyzed_at: new Date().toISOString() } }).eq('id', briefId)
-      } else { setPersonaError(true) }
-    } catch { setPersonaError(true) }
-    setPersonaLoading(false)
-  }
 
   // Snapshot-based stale detection — only after state is ready from DB
   const isStale = useMemo(() => {
@@ -335,10 +319,6 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
                     </div>
                   ))}
                 </div>
-                {/* Reanalyze link */}
-                <div style={{ marginTop: '8px', textAlign: 'right' }}>
-                  <button onClick={reanalyzePersona} disabled={personaLoading} style={{ fontSize: '10px', color: '#888', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>Yeniden analiz et</button>
-                </div>
               </div>
             )}
           </div>
@@ -364,11 +344,14 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
           <div style={{ marginBottom: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
               <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)' }}>SCRİPT</div>
-              <button onClick={generateScript} disabled={scriptLoading || !selectedPersona}
-                className={isStale && script ? 'btn' : 'btn btn-outline'}
-                style={{ padding: '4px 12px', fontSize: '9px', ...(isStale && script ? { animation: 'ugc-pulse 2s ease-in-out infinite' } : {}) }}>
-                {scriptLoading ? 'ÜRETİLİYOR...' : script ? 'YENİDEN ÖNER' : 'SCRİPT ÜRET'}
-              </button>
+              {/* DURUM A: no script → "SCRİPT ÜRET" / DURUM B: script + not stale → "YENİDEN ÖNER" / DURUM C: stale → hidden (banner has action) */}
+              {(!script || !isStale) && (
+                <button onClick={generateScript} disabled={scriptLoading || !selectedPersona}
+                  className="btn btn-outline"
+                  style={{ padding: '4px 12px', fontSize: '9px' }}>
+                  {scriptLoading ? 'ÜRETİLİYOR...' : script ? 'YENİDEN ÖNER' : 'SCRİPT ÜRET'}
+                </button>
+              )}
             </div>
             {/* Stale banner */}
             {isStale && script && (
