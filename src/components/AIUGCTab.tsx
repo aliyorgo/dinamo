@@ -59,39 +59,47 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
       if (v) setUgcVideo(v)
     }
 
-    // Recommend persona — with cache
+    // Restore persisted state from brief
+    const { data: freshBrief } = await supabase.from('briefs').select('ugc_persona_analysis, ugc_selected_persona_id, ugc_settings, ugc_script, ugc_script_edited, product_image_url, message, client_id').eq('id', briefId).single()
+    const b = freshBrief || brief
+
+    // Settings
+    if (b?.ugc_settings) setSettings({ ...DEFAULT_SETTINGS, ...b.ugc_settings })
+    if (b?.client_id) {
+      const { data: cl } = await supabase.from('clients').select('ugc_brand_defaults').eq('id', b.client_id).single()
+      if (cl?.ugc_brand_defaults) {
+        setBrandDefaults(cl.ugc_brand_defaults)
+        if (!b?.ugc_settings) setSettings(prev => ({ ...prev, cta: cl.ugc_brand_defaults.cta ?? prev.cta, music: cl.ugc_brand_defaults.music ?? prev.music }))
+      }
+    }
+
+    // Script (persisted)
+    if (b?.ugc_script) {
+      setScript(b.ugc_script)
+      setScriptSnapshot({ persona_id: b.ugc_selected_persona_id || b.ugc_persona_analysis?.recommended_persona_id, settings: b.ugc_settings || DEFAULT_SETTINGS })
+    }
+
+    // Persona — cache check
     try {
-      const briefHash = simpleHash(JSON.stringify({ m: brief?.message, p: brief?.product_image_url, c: brief?.client_id }))
-      const cached = brief?.ugc_persona_analysis
+      const briefHash = simpleHash(JSON.stringify({ m: b?.message, p: b?.product_image_url, c: b?.client_id }))
+      const cached = b?.ugc_persona_analysis
       if (cached && cached.brief_hash === briefHash && cached.recommended_persona_id) {
         setRecommendedPersona(cached.recommended_persona_id)
-        setSelectedPersona(cached.recommended_persona_id)
+        setSelectedPersona(b?.ugc_selected_persona_id || cached.recommended_persona_id)
       } else {
         const res = await fetch('/api/ugc/recommend-persona', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId }) })
         const data = await res.json()
         if (data.recommended_persona_id) {
           setRecommendedPersona(data.recommended_persona_id)
-          setSelectedPersona(data.recommended_persona_id)
-          // Save cache
+          setSelectedPersona(b?.ugc_selected_persona_id || data.recommended_persona_id)
           await supabase.from('briefs').update({ ugc_persona_analysis: { ...data, brief_hash: briefHash, analyzed_at: new Date().toISOString() } }).eq('id', briefId)
         } else { setPersonaError(true) }
       }
     } catch { setPersonaError(true) }
     setPersonaLoading(false)
 
-    // Load settings
-    if (brief?.ugc_settings) setSettings({ ...DEFAULT_SETTINGS, ...brief.ugc_settings })
-    if (brief?.client_id) {
-      const { data: cl } = await supabase.from('clients').select('ugc_brand_defaults').eq('id', brief.client_id).single()
-      if (cl?.ugc_brand_defaults) {
-        setBrandDefaults(cl.ugc_brand_defaults)
-        // Apply brand defaults if no brief-level override
-        if (!brief?.ugc_settings) setSettings(prev => ({ ...prev, cta: cl.ugc_brand_defaults.cta ?? prev.cta, music: cl.ugc_brand_defaults.music ?? prev.music }))
-      }
-    }
-
-    // Analyze product
-    if (brief?.product_image_url) {
+    // Product analysis
+    if (b?.product_image_url) {
       const res2 = await fetch('/api/ugc/analyze-product', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId }) })
       const data2 = await res2.json()
       setProductAnalysis(data2)
@@ -106,7 +114,10 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
     const data = await res.json()
     if (data.shots) {
       setScript(data)
-      setScriptSnapshot({ persona_id: selectedPersona, settings: { ...settings } })
+      const snapshot = { persona_id: selectedPersona, settings: { ...settings } }
+      setScriptSnapshot(snapshot)
+      // Persist script to DB
+      await supabase.from('briefs').update({ ugc_script: data, ugc_script_edited: false }).eq('id', briefId)
     }
     setScriptLoading(false)
   }
@@ -148,6 +159,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
 
   function handlePersonaChange(id: number) {
     setSelectedPersona(id)
+    supabase.from('briefs').update({ ugc_selected_persona_id: id }).eq('id', briefId)
   }
 
   async function reanalyzePersona() {
@@ -350,17 +362,34 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
                 {scriptLoading ? 'ÜRETİLİYOR...' : script ? 'YENİDEN ÖNER' : 'SCRİPT ÜRET'}
               </button>
             </div>
+            {/* Stale banner */}
             {isStale && script && (
-              <div onClick={acceptStaleScript} style={{ fontSize: '10px', color: '#888', marginBottom: '8px', cursor: 'pointer' }}>
-                Ayarlar değişti — yeniden önermek için butona bas, veya <span style={{ textDecoration: 'underline' }}>mevcut metni kabul et</span>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center', padding: '12px 16px', background: 'rgba(245,158,11,0.06)', border: '0.5px solid rgba(245,158,11,0.3)', marginBottom: '12px', flexWrap: 'wrap' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#92400e" strokeWidth="1.5" style={{ flexShrink: 0 }}><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <span style={{ fontSize: '13px', color: '#92400e', flex: 1 }}>Ayarlar değişti, mevcut metin yeni ayarlarla uyuşmuyor.</span>
+                <button onClick={generateScript} className="btn" style={{ padding: '5px 12px', fontSize: '11px' }}>Yeniden Öner</button>
+                <button onClick={acceptStaleScript} style={{ fontSize: '11px', color: '#888', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>Mevcut Metni Kabul Et</button>
               </div>
             )}
             {script?.shots ? (
-              <div onClick={isStale ? acceptStaleScript : undefined} style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', opacity: isStale ? 0.5 : 1, transition: 'opacity 0.3s', cursor: isStale ? 'pointer' : 'default' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', opacity: isStale ? 0.5 : 1, transition: 'opacity 0.3s' }}>
                 {script.shots.map((shot: any, i: number) => (
                   <div key={i} style={{ padding: '10px 12px', border: '1px solid #e5e4db', background: '#fafaf7' }}>
                     <div style={{ fontSize: '9px', letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '6px' }}>SHOT {shot.shot} · {shot.camera || ['wide', 'close-up', 'medium'][i]}</div>
-                    <div style={{ fontSize: '12px', color: '#0a0a0a', lineHeight: 1.5 }}>"{shot.dialogue}"</div>
+                    <textarea
+                      value={shot.dialogue}
+                      onChange={e => {
+                        const updated = { ...script, shots: script.shots.map((s: any, j: number) => j === i ? { ...s, dialogue: e.target.value } : s) }
+                        setScript(updated)
+                        // Debounced DB save
+                        clearTimeout((window as any).__ugcScriptSaveTimer)
+                        ;(window as any).__ugcScriptSaveTimer = setTimeout(() => {
+                          supabase.from('briefs').update({ ugc_script: updated, ugc_script_edited: true }).eq('id', briefId)
+                        }, 2000)
+                      }}
+                      rows={3}
+                      style={{ width: '100%', fontSize: '12px', color: '#0a0a0a', lineHeight: 1.5, border: '1px solid #e5e4db', padding: '6px 8px', resize: 'vertical', boxSizing: 'border-box', background: '#fff' }}
+                    />
                     {shot.action && <div style={{ fontSize: '10px', color: '#888', marginTop: '4px' }}>{shot.action}</div>}
                   </div>
                 ))}
