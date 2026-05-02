@@ -22,8 +22,8 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
   const [ugcVideo, setUgcVideo] = useState<any>(null)
   const [generating, setGenerating] = useState(false)
   const [purchasing, setPurchasing] = useState(false)
-  const [warningDismissed, setWarningDismissed] = useState(false)
   const [msg, setMsg] = useState('')
+  const [infoOpen, setInfoOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [settings, setSettings] = useState<UGCSettings>(DEFAULT_SETTINGS)
   const [scriptSnapshot, setScriptSnapshot] = useState<{ persona_id: number; settings: UGCSettings } | null>(null)
@@ -137,27 +137,20 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
 
   return (
     <div>
-      {/* HEADER with settings gear */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', fontWeight: '500' }}>AI UGC</span>
-          <span style={{ fontSize: '9px', letterSpacing: '1px', padding: '2px 6px', background: 'rgba(245,158,11,0.1)', border: '1px solid #f59e0b', color: '#92400e' }}>BETA</span>
-        </div>
-        <button onClick={() => setSettingsOpen(true)} title="AI UGC Ayarları" style={{ width: '28px', height: '28px', border: '1px solid #e5e4db', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" strokeWidth="1.5"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-1.42 3.42 2 2 0 0 1-1.42-.59l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-3.42-1.42 2 2 0 0 1 .59-1.42l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 1.42-3.42 2 2 0 0 1 1.42.59l.06.06A1.65 1.65 0 0 0 9 4.6h.09A1.65 1.65 0 0 0 10.07 3V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 3.42 1.42 2 2 0 0 1-.59 1.42l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
-        </button>
-      </div>
-
-
-      {/* BETA INFO BANNER — AI Express pattern */}
-      {!warningDismissed && (
-        <div style={{ background: '#2a2a25', border: '1px solid #33332e', padding: '16px 18px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px' }}>
-          <div style={{ fontSize: '13px', color: '#fff', lineHeight: 1.65, fontStyle: 'italic', flex: 1 }}>
-            AI UGC ile gerçek influencer görünümlü videolar oluşturun. Beta sürümünde — kalite gelişmeye açık. Persona seçin, script'i inceleyin, üretin. Videolar tamamen yapay zeka tarafından oluşturulur.
-          </div>
-          <button onClick={() => setWarningDismissed(true)} style={{ width: '26px', height: '26px', flexShrink: 0, border: '1px solid rgba(255,255,255,0.3)', background: 'transparent', color: '#fff', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>&#215;</button>
+      {/* CREDIT INDICATOR — AI Express pattern */}
+      {ugcVideo && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '12px' }}>
+          <div style={{ display: 'inline-flex', padding: '6px 14px', border: '1px solid #0a0a0a', fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: '#0a0a0a' }}>{ugcVideo.status === 'sold' ? 2 : 1} KREDİ</div>
         </div>
       )}
+
+      {/* FIRST ROW: gear left, info right */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <button onClick={() => setSettingsOpen(true)} title="AI UGC Ayarları" style={{ width: '28px', height: '28px', border: '1px solid #e5e4db', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" strokeWidth="1.5"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-1.42 3.42 2 2 0 0 1-1.42-.59l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-3.42-1.42 2 2 0 0 1 .59-1.42l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 1.42-3.42 2 2 0 0 1 1.42.59l.06.06A1.65 1.65 0 0 0 9 4.6h.09A1.65 1.65 0 0 0 10.07 3V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 3.42 1.42 2 2 0 0 1-.59 1.42l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+        </button>
+        <button onClick={() => setInfoOpen(true)} title="AI UGC Hakkında" style={{ width: '28px', height: '28px', border: '1px solid #e5e4db', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: '600', color: '#888' }}>i</button>
+      </div>
 
       {msg && <div style={{ padding: '10px 14px', background: 'rgba(239,68,68,0.08)', border: '1px solid #ef4444', fontSize: '12px', color: '#0a0a0a', marginBottom: '12px' }}>{msg}</div>}
 
@@ -313,6 +306,21 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
       )}
 
       <style>{`@keyframes ugc-pulse { 0%,100%{box-shadow:0 0 0 0 rgba(10,10,10,0.2)} 50%{box-shadow:0 0 0 4px rgba(10,10,10,0.08)} }`}</style>
+
+      {/* Info Modal */}
+      {infoOpen && (
+        <div onClick={() => setInfoOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', border: '1px solid #0a0a0a', padding: '28px', maxWidth: '500px', width: '90%' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <span style={{ fontSize: '14px', fontWeight: '500', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#0a0a0a' }}>AI UGC Hakkında</span>
+              <button onClick={() => setInfoOpen(false)} style={{ width: '28px', height: '28px', border: '1px solid #e5e4db', background: '#fff', color: '#0a0a0a', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+            </div>
+            <div style={{ fontSize: '13px', color: '#555', lineHeight: 1.7 }}>
+              AI UGC ile gerçek influencer görünümlü videolar oluşturun. Beta sürümünde — kalite gelişmeye açık. Persona seçin, script'i inceleyin, üretin. Videolar tamamen yapay zeka tarafından oluşturulur.
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Settings Modal */}
       <UGCSettingsModal

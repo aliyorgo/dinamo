@@ -111,8 +111,8 @@ function ClientBriefDetail() {
   const [selectedAiIdx, setSelectedAiIdx] = useState<number>(0)
   const [showAiGenerate, setShowAiGenerate] = useState(false)
   const [aiGenerating, setAiGenerating] = useState(false)
-  const [aiWarningDismissed, setAiWarningDismissed] = useState(false)
-  const [cpsBannerDismissed, setCpsBannerDismissed] = useState(false)
+  const [expressInfoOpen, setExpressInfoOpen] = useState(false)
+  const [cpsInfoOpen, setCpsInfoOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'hybrid'|'cps'|'express'|'ugc'|'summary'>(searchParams.get('tab') === 'express' ? 'express' : searchParams.get('tab') === 'ugc' ? 'ugc' : searchParams.get('tab') === 'cps' ? 'cps' : searchParams.get('tab') === 'summary' ? 'summary' : 'hybrid')
   const aiChildParam = searchParams.get('ai_child')
   const [briefExpanded, setBriefExpanded] = useState(false)
@@ -1215,15 +1215,10 @@ function ClientBriefDetail() {
                 ) : null
               })()}
 
-              {/* AI EXPRESS INFO BANNER */}
-              {!aiWarningDismissed && (
-                <div style={{background:'#2a2a25',border:'1px solid #33332e',padding:'16px 18px',marginBottom:'16px',display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'16px'}}>
-                  <div style={{fontSize:'13px',color:'#fff',lineHeight:1.65,fontStyle:'italic',flex:1}}>
-                    AI Express ile yayına çıkmadan önce fikir geliştirin ve test edin. Deneysel bir özelliktir — sonuçlar garanti edilmez. Videolar tamamen brief'inizden yola çıkarak yapay zeka tarafından üretilmektedir. Fikir, görsel, ses ve müzik tamamen AI tarafından oluşturulur. Ekrandaki yazılar sosyal medyada native text olarak eklenmelidir. Dinamo sadece marka bilgileri ile AI prompt'larına müdahale eder.
-                  </div>
-                  <button onClick={()=>setAiWarningDismissed(true)} style={{width:'26px',height:'26px',flexShrink:0,border:'1px solid rgba(255,255,255,0.3)',background:'transparent',color:'#fff',fontSize:'14px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>&#215;</button>
-                </div>
-              )}
+              {/* AI EXPRESS INFO ICON */}
+              <div style={{display:'flex',justifyContent:'flex-end',marginBottom:'12px'}}>
+                <button onClick={()=>setExpressInfoOpen(true)} title="AI Express Hakkında" style={{width:'28px',height:'28px',border:'1px solid #e5e4db',background:'#fff',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:'600',color:'#888'}}>i</button>
+              </div>
 
               {/* AI VIDEO STUDIO */}
               {brief && brief.status !== 'cancelled' && brief.status !== 'draft' && (
@@ -1448,16 +1443,10 @@ function ClientBriefDetail() {
                     </div>
                   ) : null
                 })()}
-                {/* CPS info banner */}
-                {!cpsBannerDismissed && (
-                  <div style={{background:'#2a2a25',border:'1px solid #33332e',padding:'16px 18px',marginBottom:'16px',display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'16px'}}>
-                    <div style={{flex:1,fontSize:'13px',color:'#fff',lineHeight:1.65,fontStyle:'italic'}}>
-                      Creative Performance System ile aynı brief'ten farklı yaratıcı yönler üretin. Hook'tan ton'a varyasyonları kontrol edin. Test edin, kazanan içeriği bulun. İsterseniz AI otomatik plan oluşturur, ekip üretir. Yapım süresi ilk varyasyon için 24 saat garantilidir, tamamlanması 48 saat sürebilir.
-                    </div>
-                    <button onClick={()=>setCpsBannerDismissed(true)}
-                      style={{width:'26px',height:'26px',flexShrink:0,border:'1px solid rgba(255,255,255,0.3)',background:'transparent',color:'#fff',fontSize:'14px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>&#215;</button>
-                  </div>
-                )}
+                {/* CPS INFO ICON */}
+                <div style={{display:'flex',justifyContent:'flex-end',marginBottom:'12px'}}>
+                  <button onClick={()=>setCpsInfoOpen(true)} title="CPS Hakkında" style={{width:'28px',height:'28px',border:'1px solid #e5e4db',background:'#fff',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:'600',color:'#888'}}>i</button>
+                </div>
 
                 {/* Package selection — show if no CPS children yet */}
                 {cpsChildren.length === 0 && cpsPackage === 0 && (
@@ -1822,6 +1811,31 @@ function ClientBriefDetail() {
             logClientActivity({ actionType: 'static_images.generated', userName, clientName: companyName, clientId: brief?.client_id, targetType: 'brief', targetId: staticImageModal.briefId, targetLabel: brief?.campaign_name })
           }}
         />
+      )}
+      {/* AI EXPRESS INFO MODAL */}
+      {expressInfoOpen && (
+        <div onClick={()=>setExpressInfoOpen(false)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',backdropFilter:'blur(4px)',zIndex:100,display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <div onClick={e=>e.stopPropagation()} style={{background:'#fff',border:'1px solid #0a0a0a',padding:'28px',maxWidth:'500px',width:'90%'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px'}}>
+              <span style={{fontSize:'14px',fontWeight:'500',letterSpacing:'1.5px',textTransform:'uppercase',color:'#0a0a0a'}}>AI Express Hakkında</span>
+              <button onClick={()=>setExpressInfoOpen(false)} style={{width:'28px',height:'28px',border:'1px solid #e5e4db',background:'#fff',color:'#0a0a0a',fontSize:'14px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>×</button>
+            </div>
+            <div style={{fontSize:'13px',color:'#555',lineHeight:1.7}}>AI Express ile yayına çıkmadan önce fikir geliştirin ve test edin. Deneysel bir özelliktir — sonuçlar garanti edilmez. Videolar tamamen brief'inizden yola çıkarak yapay zeka tarafından üretilmektedir. Fikir, görsel, ses ve müzik tamamen AI tarafından oluşturulur. Ekrandaki yazılar sosyal medyada native text olarak eklenmelidir. Dinamo sadece marka bilgileri ile AI prompt'larına müdahale eder.</div>
+          </div>
+        </div>
+      )}
+
+      {/* CPS INFO MODAL */}
+      {cpsInfoOpen && (
+        <div onClick={()=>setCpsInfoOpen(false)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',backdropFilter:'blur(4px)',zIndex:100,display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <div onClick={e=>e.stopPropagation()} style={{background:'#fff',border:'1px solid #0a0a0a',padding:'28px',maxWidth:'500px',width:'90%'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px'}}>
+              <span style={{fontSize:'14px',fontWeight:'500',letterSpacing:'1.5px',textTransform:'uppercase',color:'#0a0a0a'}}>CPS Hakkında</span>
+              <button onClick={()=>setCpsInfoOpen(false)} style={{width:'28px',height:'28px',border:'1px solid #e5e4db',background:'#fff',color:'#0a0a0a',fontSize:'14px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>×</button>
+            </div>
+            <div style={{fontSize:'13px',color:'#555',lineHeight:1.7}}>Creative Performance System ile aynı brief'ten farklı yaratıcı yönler üretin. Hook'tan ton'a varyasyonları kontrol edin. Test edin, kazanan içeriği bulun. İsterseniz AI otomatik plan oluşturur, ekip üretir. Yapım süresi ilk varyasyon için 24 saat garantilidir, tamamlanması 48 saat sürebilir.</div>
+          </div>
+        </div>
       )}
     </div>
   )
