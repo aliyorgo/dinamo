@@ -13,6 +13,8 @@ interface Props {
 
 export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
   const [personas, setPersonas] = useState<any[]>([])
+  const [personaLoading, setPersonaLoading] = useState(true)
+  const [personaError, setPersonaError] = useState(false)
   const [selectedPersona, setSelectedPersona] = useState<number | null>(null)
   const [recommendedPersona, setRecommendedPersona] = useState<number | null>(null)
   const [script, setScript] = useState<any>(null)
@@ -32,6 +34,9 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
   useEffect(() => { loadData() }, [briefId])
 
   async function loadData() {
+    setPersonaLoading(true)
+    setPersonaError(false)
+
     // Load personas
     const { data: p } = await supabase.from('personas').select('*').order('id')
     setPersonas(p || [])
@@ -43,9 +48,13 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
     }
 
     // Recommend persona
-    const res = await fetch('/api/ugc/recommend-persona', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId }) })
-    const data = await res.json()
-    if (data.recommended_persona_id) { setRecommendedPersona(data.recommended_persona_id); setSelectedPersona(data.recommended_persona_id) }
+    try {
+      const res = await fetch('/api/ugc/recommend-persona', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId }) })
+      const data = await res.json()
+      if (data.recommended_persona_id) { setRecommendedPersona(data.recommended_persona_id); setSelectedPersona(data.recommended_persona_id) }
+      else { setPersonaError(true) }
+    } catch { setPersonaError(true) }
+    setPersonaLoading(false)
 
     // Load settings
     if (brief?.ugc_settings) setSettings({ ...DEFAULT_SETTINGS, ...brief.ugc_settings })
@@ -216,41 +225,56 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
       {/* PERSONA + SCRIPT + GENERATE — only if no video yet */}
       {!hasVideo && !isProcessing && !isFailed && (
         <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '20px 24px' }}>
-          {/* Persona selection */}
-          {personas.length > 0 && (
-            <div style={{ marginBottom: '20px' }}>
-              <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '10px' }}>PERSONA SEÇ</div>
-              {selectedPersona && (() => {
-                const p = personas.find(x => x.id === selectedPersona)
-                if (!p) return null
-                return (
-                  <div style={{ padding: '16px 0', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '20px' }}>
-                    <div className="dot" style={{ width: '100px', height: '100px', minWidth: '100px', background: '#f5f4f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px', overflow: 'hidden' }}>
-                      {p.thumbnail_url ? <img src={p.thumbnail_url} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : p.name[0]}
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                        <span style={{ fontSize: '18px', fontWeight: '500', color: '#0a0a0a' }}>{p.name}</span>
-                        {recommendedPersona === p.id && <span style={{ fontSize: '9px', letterSpacing: '1px', padding: '2px 7px', background: 'rgba(34,197,94,0.1)', border: '1px solid #22c55e', color: '#166534' }}>ÖNERİLEN</span>}
-                      </div>
-                      <div style={{ fontSize: '13px', color: 'var(--color-text-tertiary)', lineHeight: 1.5 }}>{p.description} · {p.age_range} · {p.gender === 'female' ? 'Kadın' : 'Erkek'}</div>
-                      <div style={{ fontSize: '11px', color: '#888', marginTop: '4px', lineHeight: 1.4 }}>{p.tone_description}</div>
-                    </div>
-                  </div>
-                )
-              })()}
-              <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px' }}>
-                {personas.map(p => (
-                  <div key={p.id} onClick={() => handlePersonaChange(p.id)} style={{ flexShrink: 0, width: '60px', textAlign: 'center', cursor: 'pointer', opacity: selectedPersona === p.id ? 1 : 0.6, transition: 'opacity 0.15s' }}>
-                    <div className="dot" style={{ width: '40px', height: '40px', minWidth: '40px', margin: '0 auto 4px', background: '#f5f4f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', border: selectedPersona === p.id ? '2px solid #22c55e' : '1px solid #e5e4db', overflow: 'hidden', transition: 'border-color 0.15s' }}>
-                      {p.thumbnail_url ? <img src={p.thumbnail_url} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : p.name[0]}
-                    </div>
-                    <div style={{ fontSize: '9px', color: '#0a0a0a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
-                  </div>
-                ))}
+          {/* Persona selection — fixed height container */}
+          <div style={{ minHeight: '200px', marginBottom: '20px' }}>
+            <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '10px' }}>PERSONA SEÇ</div>
+
+            {personaLoading ? (
+              <div style={{ minHeight: '170px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+                <div className="spinner" style={{ width: '32px', height: '32px', borderWidth: '2px', borderStyle: 'solid', borderColor: '#e5e4db #e5e4db #e5e4db #0a0a0a' }} />
+                <div style={{ fontSize: '13px', color: '#888' }}>Sana uygun persona belirleniyor...</div>
               </div>
-            </div>
-          )}
+            ) : personaError ? (
+              <div style={{ minHeight: '170px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                <div style={{ fontSize: '13px', color: '#888' }}>Persona belirlenemedi.</div>
+                <button onClick={loadData} className="btn btn-outline" style={{ padding: '6px 14px', fontSize: '11px' }}>Tekrar Dene</button>
+              </div>
+            ) : (
+              <div style={{ animation: 'ugc-fade-in 0.3s ease' }}>
+                {/* Selected persona large card */}
+                {selectedPersona && (() => {
+                  const p = personas.find(x => x.id === selectedPersona)
+                  if (!p) return null
+                  return (
+                    <div style={{ padding: '16px 0', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '20px' }}>
+                      <div className="dot" style={{ width: '100px', height: '100px', minWidth: '100px', background: '#f5f4f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px', overflow: 'hidden' }}>
+                        {p.thumbnail_url ? <img src={p.thumbnail_url} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : p.name[0]}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                          <span style={{ fontSize: '18px', fontWeight: '500', color: '#0a0a0a' }}>{p.name}</span>
+                          {recommendedPersona === p.id && <span style={{ fontSize: '9px', letterSpacing: '1px', padding: '2px 7px', background: 'rgba(34,197,94,0.1)', border: '1px solid #22c55e', color: '#166534' }}>ÖNERİLEN</span>}
+                        </div>
+                        <div style={{ fontSize: '13px', color: 'var(--color-text-tertiary)', lineHeight: 1.5 }}>{p.description} · {p.age_range} · {p.gender === 'female' ? 'Kadın' : 'Erkek'}</div>
+                        <div style={{ fontSize: '11px', color: '#888', marginTop: '4px', lineHeight: 1.4 }}>{p.tone_description}</div>
+                      </div>
+                    </div>
+                  )
+                })()}
+                {/* Thumbnails */}
+                <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px' }}>
+                  {personas.map(p => (
+                    <div key={p.id} onClick={() => handlePersonaChange(p.id)} style={{ flexShrink: 0, width: '60px', textAlign: 'center', cursor: 'pointer', opacity: selectedPersona === p.id ? 1 : 0.6, transition: 'opacity 0.15s' }}>
+                      <div className="dot" style={{ width: '40px', height: '40px', minWidth: '40px', margin: '0 auto 4px', background: '#f5f4f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', border: selectedPersona === p.id ? '2px solid #22c55e' : '1px solid #e5e4db', overflow: 'hidden', transition: 'border-color 0.15s' }}>
+                        {p.thumbnail_url ? <img src={p.thumbnail_url} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : p.name[0]}
+                      </div>
+                      <div style={{ fontSize: '9px', color: '#0a0a0a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Product toggle */}
           {brief?.product_image_url && (
@@ -306,7 +330,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
         </div>
       )}
 
-      <style>{`@keyframes ugc-pulse { 0%,100%{box-shadow:0 0 0 0 rgba(10,10,10,0.2)} 50%{box-shadow:0 0 0 4px rgba(10,10,10,0.08)} }`}</style>
+      <style>{`@keyframes ugc-pulse { 0%,100%{box-shadow:0 0 0 0 rgba(10,10,10,0.2)} 50%{box-shadow:0 0 0 4px rgba(10,10,10,0.08)} } @keyframes ugc-fade-in { from{opacity:0} to{opacity:1} }`}</style>
 
       {/* Info Modal */}
       {infoOpen && (
