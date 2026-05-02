@@ -1215,12 +1215,14 @@ function ClientBriefDetail() {
                 ) : null
               })()}
 
-              {/* AI EXPRESS HEADER ROW: [info] ... [kredi] */}
+              {/* AI EXPRESS HEADER ROW: [info] */}
               <div style={{display:'flex',alignItems:'center',marginBottom:'12px'}}>
                 <button onClick={()=>setExpressInfoOpen(true)} title="AI Express Hakkında"
-                  onMouseEnter={e=>{e.currentTarget.style.background='rgba(0,0,0,0.04)'}}
+                  onMouseEnter={e=>{e.currentTarget.style.background='rgba(0,0,0,0.06)'}}
                   onMouseLeave={e=>{e.currentTarget.style.background='transparent'}}
-                  style={{width:'28px',height:'28px',border:'none',background:'transparent',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:'600',color:'#888',padding:'8px',transition:'background 0.15s'}}>i</button>
+                  style={{width:'28px',height:'28px',border:'none',background:'transparent',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',padding:'4px',transition:'background 0.15s'}}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                </button>
                 <div style={{flex:1}} />
               </div>
 
@@ -1450,9 +1452,11 @@ function ClientBriefDetail() {
                 {/* CPS HEADER ROW: [info] */}
                 <div style={{display:'flex',alignItems:'center',marginBottom:'12px'}}>
                   <button onClick={()=>setCpsInfoOpen(true)} title="CPS Hakkında"
-                    onMouseEnter={e=>{e.currentTarget.style.background='rgba(0,0,0,0.04)'}}
+                    onMouseEnter={e=>{e.currentTarget.style.background='rgba(0,0,0,0.06)'}}
                     onMouseLeave={e=>{e.currentTarget.style.background='transparent'}}
-                    style={{width:'28px',height:'28px',border:'none',background:'transparent',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:'600',color:'#888',padding:'8px',transition:'background 0.15s'}}>i</button>
+                    style={{width:'28px',height:'28px',border:'none',background:'transparent',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',padding:'4px',transition:'background 0.15s'}}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                  </button>
                   <div style={{flex:1}} />
                 </div>
 

@@ -148,10 +148,12 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
     <div>
       {/* HEADER ROW: [info] [gear] ... [kredi] — single line, no wrap */}
       <div style={{ display: 'flex', flexWrap: 'nowrap', alignItems: 'center', marginBottom: '16px', gap: '8px' }}>
-        <button onClick={() => setInfoOpen(true)} title="AI UGC Hakkında" className="dot"
+        <button onClick={() => setInfoOpen(true)} title="AI UGC Hakkında"
           onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.06)' }}
           onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
-          style={{ width: '24px', height: '24px', minWidth: '24px', border: '1.5px solid #0a0a0a', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '600', color: '#0a0a0a', transition: 'background 0.15s', flexShrink: 0 }}>i</button>
+          style={{ width: '28px', height: '28px', minWidth: '28px', border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s', flexShrink: 0, padding: '4px' }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+        </button>
         <button onClick={() => setSettingsOpen(true)} title="AI UGC Ayarları"
           onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.04)' }}
           onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
@@ -341,7 +343,11 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
               <button onClick={() => setInfoOpen(false)} style={{ width: '28px', height: '28px', border: '1px solid #e5e4db', background: '#fff', color: '#0a0a0a', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
             </div>
             <div style={{ fontSize: '13px', color: '#555', lineHeight: 1.7 }}>
-              AI UGC ile gerçek influencer görünümlü videolar oluşturun. Beta sürümünde — kalite gelişmeye açık. Persona seçin, script'i inceleyin, üretin. Videolar tamamen yapay zeka tarafından oluşturulur.
+              AI UGC ile gerçek bir influencer/creator izlenimi veren dikey video içerikleri üretin. Deneysel bir özelliktir — sonuçlar garanti edilmez. 24 saniyelik üç planlı anlatım, brief'inize ve seçtiğiniz personaya göre tamamen yapay zeka tarafından oluşturulur. Karakter, ortam, metin, ses ve dudak senkronu AI tarafından üretilir; ton, konuşma hızı, CTA ve müzik tercihleri ayarlardan özelleştirilebilir.
+              <br /><br />
+              AI ile üretilmiş influencer/creator içeriklerinde yapay zeka kullanıldığını belirtmek bazı sektörlerde, ülkelerde veya şirket politikalarında zorunlu olabilir. Bu nedenle ürettiğimiz videolar varsayılan olarak küçük bir "AI ile üretildi" işareti taşır; ayarlardan kapatabilirsiniz.
+              <br /><br />
+              Dinamo sadece marka bilgileri ve seçtiğiniz tercihlerle AI prompt'larına müdahale eder. Beta sürümünde özellikle Türkçe seslendirme ve karakter tutarlılığında iyileştirmeler devam etmektedir — geri bildirimleriniz değerlidir.
             </div>
           </div>
         </div>
