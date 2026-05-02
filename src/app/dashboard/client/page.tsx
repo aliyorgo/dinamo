@@ -156,18 +156,18 @@ export default function ClientDashboard() {
     const interval = setInterval(async () => {
       const currentBriefs = briefsRef.current
       const currentAiMap = aiChildrenRef.current
-      const hasProcessing = currentBriefs.some(b => b.status === 'ai_processing' || b.status === 'ai_completed') ||
+      const hasProcessing = currentBriefs.some(b => b.status === 'ai_processing' || b.status === 'ai_completed' || b.ugc_status === 'queued' || b.ugc_status === 'generating') ||
         Object.values(currentAiMap).some((kids: any[]) => kids.some(k => k.status === 'ai_processing' && !k.ai_video_url))
       if (!hasProcessing) return
 
       // Refresh parent briefs
-      const processing = currentBriefs.filter(b => b.status === 'ai_processing' || b.status === 'ai_completed')
+      const processing = currentBriefs.filter(b => b.status === 'ai_processing' || b.status === 'ai_completed' || b.ugc_status === 'queued' || b.ugc_status === 'generating')
       if (processing.length > 0) {
-        const { data } = await supabase.from('briefs').select('id, status, ai_video_status').in('id', processing.map(b => b.id))
+        const { data } = await supabase.from('briefs').select('id, status, ai_video_status, ugc_status').in('id', processing.map(b => b.id))
         if (data) {
           setBriefs(prev => prev.map(b => {
             const updated = data.find((d: any) => d.id === b.id)
-            return updated && (updated.status !== b.status || updated.ai_video_status !== b.ai_video_status) ? { ...b, ...updated } : b
+            return updated && (updated.status !== b.status || updated.ai_video_status !== b.ai_video_status || updated.ugc_status !== b.ugc_status) ? { ...b, ...updated } : b
           }))
         }
       }
@@ -209,6 +209,10 @@ export default function ClientDashboard() {
       indicators.push({ label: `AI EXPRESS · ${aiKids.length}`, pulse: processing })
     }
     if (cpsKids.length > 0) indicators.push({ label: `CPS · ${cpsKids.length} YÖN` })
+    if (b.ugc_status) {
+      const ugcProcessing = b.ugc_status === 'queued' || b.ugc_status === 'generating'
+      indicators.push({ label: 'AI UGC', pulse: ugcProcessing })
+    }
     if (b.static_image_files || b.static_images_url) indicators.push({ label: 'GÖRSEL' })
     return indicators
   }
