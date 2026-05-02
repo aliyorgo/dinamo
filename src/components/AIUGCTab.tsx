@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import UGCSettingsModal, { UGCSettings, DEFAULT_SETTINGS } from './UGCSettingsModal'
 
@@ -26,7 +26,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
   const [msg, setMsg] = useState('')
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [settings, setSettings] = useState<UGCSettings>(DEFAULT_SETTINGS)
-  const [settingsChanged, setSettingsChanged] = useState(false)
+  const [scriptSnapshot, setScriptSnapshot] = useState<{ persona_id: number; settings: UGCSettings } | null>(null)
   const [brandDefaults, setBrandDefaults] = useState<{ cta?: boolean; music?: boolean } | null>(null)
 
   useEffect(() => { loadData() }, [briefId])
@@ -72,7 +72,10 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
     setScriptLoading(true)
     const res = await fetch('/api/ugc/generate-script', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: selectedPersona, use_product: useProduct && !!brief?.product_image_url, settings }) })
     const data = await res.json()
-    if (data.shots) setScript(data)
+    if (data.shots) {
+      setScript(data)
+      setScriptSnapshot({ persona_id: selectedPersona, settings: { ...settings } })
+    }
     setScriptLoading(false)
   }
 
@@ -108,17 +111,23 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
 
   function handleSettingsChange(newSettings: UGCSettings) {
     setSettings(newSettings)
-    setSettingsChanged(true)
     supabase.from('briefs').update({ ugc_settings: newSettings }).eq('id', briefId)
   }
 
   function handlePersonaChange(id: number) {
     setSelectedPersona(id)
-    if (script) setSettingsChanged(true)
   }
 
+  // Snapshot-based stale detection
+  const isStale = useMemo(() => {
+    if (!script || !scriptSnapshot) return false
+    if (scriptSnapshot.persona_id !== selectedPersona) return true
+    return JSON.stringify(scriptSnapshot.settings) !== JSON.stringify(settings)
+  }, [script, scriptSnapshot, selectedPersona, settings])
+
   function acceptStaleScript() {
-    setSettingsChanged(false)
+    // Accept current script as-is by updating snapshot to match current state
+    if (selectedPersona) setScriptSnapshot({ persona_id: selectedPersona, settings: { ...settings } })
   }
 
   const hasVideo = ugcVideo?.status === 'ready' || ugcVideo?.status === 'sold'
@@ -270,19 +279,19 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
           <div style={{ marginBottom: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
               <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)' }}>SCRİPT</div>
-              <button onClick={() => { generateScript(); setSettingsChanged(false) }} disabled={scriptLoading || !selectedPersona}
-                className={settingsChanged && script ? 'btn' : 'btn btn-outline'}
-                style={{ padding: '4px 12px', fontSize: '9px', ...(settingsChanged && script ? { animation: 'ugc-pulse 2s ease-in-out infinite' } : {}) }}>
+              <button onClick={generateScript} disabled={scriptLoading || !selectedPersona}
+                className={isStale && script ? 'btn' : 'btn btn-outline'}
+                style={{ padding: '4px 12px', fontSize: '9px', ...(isStale && script ? { animation: 'ugc-pulse 2s ease-in-out infinite' } : {}) }}>
                 {scriptLoading ? 'ÜRETİLİYOR...' : script ? 'YENİDEN ÖNER' : 'SCRİPT ÜRET'}
               </button>
             </div>
-            {settingsChanged && script && (
+            {isStale && script && (
               <div onClick={acceptStaleScript} style={{ fontSize: '10px', color: '#888', marginBottom: '8px', cursor: 'pointer' }}>
                 Ayarlar değişti — yeniden önermek için butona bas, veya <span style={{ textDecoration: 'underline' }}>mevcut metni kabul et</span>
               </div>
             )}
             {script?.shots ? (
-              <div onClick={settingsChanged ? acceptStaleScript : undefined} style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', opacity: settingsChanged ? 0.5 : 1, transition: 'opacity 0.3s', cursor: settingsChanged ? 'pointer' : 'default' }}>
+              <div onClick={isStale ? acceptStaleScript : undefined} style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', opacity: isStale ? 0.5 : 1, transition: 'opacity 0.3s', cursor: isStale ? 'pointer' : 'default' }}>
                 {script.shots.map((shot: any, i: number) => (
                   <div key={i} style={{ padding: '10px 12px', border: '1px solid #e5e4db', background: '#fafaf7' }}>
                     <div style={{ fontSize: '9px', letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '6px' }}>SHOT {shot.shot} · {shot.camera || ['wide', 'close-up', 'medium'][i]}</div>
