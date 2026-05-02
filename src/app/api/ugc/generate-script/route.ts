@@ -4,8 +4,12 @@ import { createClient } from '@supabase/supabase-js'
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
 export async function POST(req: NextRequest) {
-  const { brief_id, persona_id, use_product } = await req.json()
+  const { brief_id, persona_id, use_product, settings } = await req.json()
   if (!brief_id || !persona_id) return NextResponse.json({ error: 'brief_id ve persona_id gerekli' }, { status: 400 })
+  const tone = settings?.tone || 'samimi'
+  const speed = settings?.speed || 'normal'
+  const includeCta = settings?.cta !== false
+  const includeMusic = settings?.music !== false
 
   const { data: brief } = await supabase.from('briefs').select('campaign_name, message, target_audience, cta, product_image_url').eq('id', brief_id).single()
   if (!brief) return NextResponse.json({ error: 'Brief bulunamadı' }, { status: 404 })
@@ -17,6 +21,9 @@ export async function POST(req: NextRequest) {
   if (!apiKey) return NextResponse.json({ error: 'API key yok' }, { status: 500 })
 
   const productNote = use_product ? 'Ürün videoda görünecek, persona ürünü eline alıp gösteriyor/kullanıyor.' : 'Ürün videoda görünmeyecek, persona sadece sözlü anlatım yapıyor.'
+  const toneNote = tone === 'samimi' ? 'Çok samimi, günlük konuşma dili, "kanka/abi" tarzı hitap.' : tone === 'resmi' ? 'Profesyonel ve resmi, tam cümleler, jargonsuz ama ciddi.' : 'Normal günlük konuşma tonu.'
+  const speedNote = speed === 'yavas' ? 'Yavaş ve düşünceli konuşma, duraklar bırak.' : speed === 'hizli' ? 'Hızlı ve enerjik konuşma, kısa keskin cümleler.' : 'Normal konuşma temposu.'
+  const ctaNote = includeCta ? 'Son shot\'ta CTA ekle (linke tıkla, dene, sor vb.)' : 'CTA EKLEME, son shot sadece samimi kapanış olsun.'
 
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -36,6 +43,9 @@ KURALLAR:
 - Persona'nın dilinde yaz (Z kuşağı kız "ya bak şunu denedim" der, esnaf abi "evladım" der)
 - Doğal UGC hissi, stüdyo reklamı DEĞİL
 - ${productNote}
+- TON: ${toneNote}
+- HIZ: ${speedNote}
+- ${ctaNote}
 
 SHOT YAPISI:
 - Shot 1: Geniş plan açılış, kanca + ortam tanıtımı${use_product ? ' + ürünü gösterme' : ''}

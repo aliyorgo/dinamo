@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
+import UGCSettingsModal, { UGCSettings, DEFAULT_SETTINGS } from './UGCSettingsModal'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
@@ -23,6 +24,10 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
   const [purchasing, setPurchasing] = useState(false)
   const [warningDismissed, setWarningDismissed] = useState(false)
   const [msg, setMsg] = useState('')
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [settings, setSettings] = useState<UGCSettings>(DEFAULT_SETTINGS)
+  const [settingsChanged, setSettingsChanged] = useState(false)
+  const [brandDefaults, setBrandDefaults] = useState<{ cta?: boolean; music?: boolean } | null>(null)
 
   useEffect(() => { loadData() }, [briefId])
 
@@ -42,6 +47,17 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
     const data = await res.json()
     if (data.recommended_persona_id) { setRecommendedPersona(data.recommended_persona_id); setSelectedPersona(data.recommended_persona_id) }
 
+    // Load settings
+    if (brief?.ugc_settings) setSettings({ ...DEFAULT_SETTINGS, ...brief.ugc_settings })
+    if (brief?.client_id) {
+      const { data: cl } = await supabase.from('clients').select('ugc_brand_defaults').eq('id', brief.client_id).single()
+      if (cl?.ugc_brand_defaults) {
+        setBrandDefaults(cl.ugc_brand_defaults)
+        // Apply brand defaults if no brief-level override
+        if (!brief?.ugc_settings) setSettings(prev => ({ ...prev, cta: cl.ugc_brand_defaults.cta ?? prev.cta, music: cl.ugc_brand_defaults.music ?? prev.music }))
+      }
+    }
+
     // Analyze product
     if (brief?.product_image_url) {
       const res2 = await fetch('/api/ugc/analyze-product', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId }) })
@@ -54,7 +70,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
   async function generateScript() {
     if (!selectedPersona) return
     setScriptLoading(true)
-    const res = await fetch('/api/ugc/generate-script', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: selectedPersona, use_product: useProduct && !!brief?.product_image_url }) })
+    const res = await fetch('/api/ugc/generate-script', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: selectedPersona, use_product: useProduct && !!brief?.product_image_url, settings }) })
     const data = await res.json()
     if (data.shots) setScript(data)
     setScriptLoading(false)
@@ -90,6 +106,12 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
     setPurchasing(false)
   }
 
+  function handleSettingsChange(newSettings: UGCSettings) {
+    setSettings(newSettings)
+    setSettingsChanged(true)
+    supabase.from('briefs').update({ ugc_settings: newSettings }).eq('id', briefId)
+  }
+
   const hasVideo = ugcVideo?.status === 'ready' || ugcVideo?.status === 'sold'
   const isPurchased = ugcVideo?.status === 'sold'
   const isFailed = ugcVideo?.status === 'failed'
@@ -97,6 +119,25 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
 
   return (
     <div>
+      {/* HEADER with settings gear */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', fontWeight: '500' }}>AI UGC</span>
+          <span style={{ fontSize: '9px', letterSpacing: '1px', padding: '2px 6px', background: 'rgba(245,158,11,0.1)', border: '1px solid #f59e0b', color: '#92400e' }}>BETA</span>
+        </div>
+        <button onClick={() => setSettingsOpen(true)} title="AI UGC Ayarları" style={{ width: '28px', height: '28px', border: '1px solid #e5e4db', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" strokeWidth="1.5"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-1.42 3.42 2 2 0 0 1-1.42-.59l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-3.42-1.42 2 2 0 0 1 .59-1.42l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 1.42-3.42 2 2 0 0 1 1.42.59l.06.06A1.65 1.65 0 0 0 9 4.6h.09A1.65 1.65 0 0 0 10.07 3V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 3.42 1.42 2 2 0 0 1-.59 1.42l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+        </button>
+      </div>
+
+      {/* Settings changed warning */}
+      {settingsChanged && script && (
+        <div style={{ padding: '8px 12px', background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)', marginBottom: '12px', fontSize: '11px', color: '#92400e', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>Ayarlar değişti, script'i yeniden önermek ister misin?</span>
+          <button onClick={generateScript} className="btn btn-outline" style={{ padding: '3px 10px', fontSize: '9px' }}>YENİDEN ÖNER</button>
+        </div>
+      )}
+
       {/* BETA INFO BANNER — AI Express pattern */}
       {!warningDismissed && (
         <div style={{ background: '#2a2a25', border: '1px solid #33332e', padding: '16px 18px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px' }}>
@@ -180,7 +221,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
                 return (
                   <div style={{ padding: '20px', border: '1px solid #0a0a0a', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '20px' }}>
                     <div className="dot" style={{ width: '120px', height: '120px', minWidth: '120px', background: '#f5f4f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '36px', overflow: 'hidden', border: '2px solid #e5e4db' }}>
-                      {p.thumbnail_url ? <img src={p.thumbnail_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : p.name[0]}
+                      {p.thumbnail_url ? <img src={p.thumbnail_url} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : p.name[0]}
                     </div>
                     <div style={{ flex: 1 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
@@ -197,7 +238,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
                 {personas.map(p => (
                   <div key={p.id} onClick={() => setSelectedPersona(p.id)} style={{ flexShrink: 0, width: '60px', textAlign: 'center', cursor: 'pointer', opacity: selectedPersona === p.id ? 1 : 0.6, transition: 'opacity 0.15s' }}>
                     <div className="dot" style={{ width: '40px', height: '40px', minWidth: '40px', margin: '0 auto 4px', background: '#f5f4f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', border: selectedPersona === p.id ? '2px solid #0a0a0a' : '1px solid #e5e4db', overflow: 'hidden' }}>
-                      {p.thumbnail_url ? <img src={p.thumbnail_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : p.name[0]}
+                      {p.thumbnail_url ? <img src={p.thumbnail_url} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : p.name[0]}
                     </div>
                     <div style={{ fontSize: '9px', color: '#0a0a0a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
                   </div>
@@ -252,6 +293,15 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
           </button>
         </div>
       )}
+
+      {/* Settings Modal */}
+      <UGCSettingsModal
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        settings={settings}
+        onChange={handleSettingsChange}
+        brandDefaults={brandDefaults}
+      />
     </div>
   )
 }
