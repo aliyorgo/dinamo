@@ -1,6 +1,10 @@
 // AI UGC Beta — Kural Seti (AI Express'ten BAĞIMSIZ)
 // Çıktıları gördükten sonra revize edilecek
 
+// Karakter limitleri
+export const UGC_MAX_CHARS = 390 // Müşterinin yazabileceği mutlak üst sınır
+export const UGC_TARGET_CHARS = 350 // Claude'un hedeflemesi gereken toplam dialogue uzunluğu
+
 export const UGC_NEGATIVE_PROMPT = [
   'no on-screen text, no captions, no subtitles',
   'no background music, no graphics overlay',
@@ -34,7 +38,14 @@ YASAK:
 - Stüdyo reklamı hissi
 - Overproduced görüntü
 - Birden fazla kişi (tek persona)
-- Yabancı dil karışımı`
+- Yabancı dil karışımı
+
+KARAKTER LİMİTİ:
+- Üç shot dialogue'unun toplam uzunluğu yaklaşık 350 karakter olmalı.
+- Üst sınır 360 karakter, geçmeyin.
+- Her shot ortalama 110-120 karakter olmalı.
+- Kullanıcının küçük eklemeler yapabilmesi için sınırın altında kalın.
+- Karakter sayısını her cümlede mental olarak kontrol edin, gereksiz uzun cümlelerden kaçının.`
 
 // TODO: brand-level overrides (clients.ugc_rules JSONB)
 // TODO: persona-level kural ezme (örn lüks_kadin için kıyafet kuralı)

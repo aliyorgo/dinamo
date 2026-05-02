@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import UGCSettingsModal, { UGCSettings, DEFAULT_SETTINGS } from './UGCSettingsModal'
 import InfoModal, { InfoParagraph } from './InfoModal'
+import { UGC_MAX_CHARS } from '@/lib/ai-ugc-rules'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
@@ -46,7 +47,6 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
 
   // Current persona's script
   const currentScript = selectedPersona ? ugcScripts[String(selectedPersona)] : null
-  const currentMaxLength = currentScript?.max_length || 0
 
   useEffect(() => { loadData() }, [briefId])
 
@@ -182,7 +182,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
   }
 
   function handleScriptEdit(val: string) {
-    if (val.length > currentMaxLength) return
+    if (val.length > UGC_MAX_CHARS) return
     setScriptText(val)
     clearTimeout((window as any).__ugcSaveTimer)
     ;(window as any).__ugcSaveTimer = setTimeout(() => {
@@ -367,10 +367,8 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
                   style={{ width: '100%', minHeight: '180px', fontSize: '14px', color: '#0a0a0a', lineHeight: 1.7, border: '1px solid #e5e4db', padding: '16px', resize: 'none', boxSizing: 'border-box', background: '#fff', fontFamily: 'var(--font-sans, Inter, sans-serif)' }}
                 />
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
-                  {scriptText.length < currentMaxLength ? (
-                    <span style={{ fontSize: '11px', color: '#22c55e' }}>✓ {currentMaxLength - scriptText.length} karakter kısaltıldı</span>
-                  ) : <span />}
-                  <span style={{ fontSize: '11px', color: scriptText.length >= currentMaxLength * 0.9 ? '#f59e0b' : 'var(--color-text-tertiary)' }}>{scriptText.length} / {currentMaxLength}</span>
+                  <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>AI yaklaşık 350 karakter üretir. Maksimum 390'a kadar düzenleyebilirsiniz.</span>
+                  <span style={{ fontSize: '11px', fontWeight: '500', flexShrink: 0, marginLeft: '12px', color: scriptText.length >= 380 ? '#ef4444' : scriptText.length >= 350 ? '#f59e0b' : 'var(--color-text-tertiary)' }}>{scriptText.length} / {UGC_MAX_CHARS}</span>
                 </div>
               </div>
             ) : (

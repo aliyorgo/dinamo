@@ -39,6 +39,7 @@ Ton: ${persona.tone_description}
 Ortam: ${persona.environment_prompt}
 
 KURALLAR:
+- KARAKTERLİMİTİ: 3 shot toplam dialogue YAKLAŞIK 350 karakter olmalı, 360'ı ASLA geçme. Her shot ~110-120 karakter.
 - Her shot tam 8 saniye = 15-20 kelime Türkçe dialogue
 - Persona'nın dilinde yaz (Z kuşağı kız "ya bak şunu denedim" der, esnaf abi "evladım" der)
 - Doğal UGC hissi, stüdyo reklamı DEĞİL
