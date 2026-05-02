@@ -50,7 +50,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
 
   useEffect(() => { loadData() }, [briefId])
 
-  // When persona changes, update scriptText from stored scripts
+  // When persona changes, load that persona's script text (NOT on ugcScripts change — avoids overwrite during edit)
   useEffect(() => {
     if (!selectedPersona) { setScriptText(''); return }
     const s = ugcScripts[String(selectedPersona)]
@@ -59,7 +59,8 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
     } else {
       setScriptText('')
     }
-  }, [selectedPersona, ugcScripts])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPersona])
 
   async function loadData() {
     setPersonaError(false)
@@ -184,10 +185,10 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
   function handleScriptEdit(val: string) {
     if (val.length > UGC_MAX_CHARS) return
     setScriptText(val)
+    // Debounce: save to DB silently (do NOT setState ugcScripts — avoids textarea overwrite)
     clearTimeout((window as any).__ugcSaveTimer)
     ;(window as any).__ugcSaveTimer = setTimeout(() => {
       if (!selectedPersona) return
-      // Split into 3 roughly equal parts by sentences
       const sentences = val.match(/[^.!?]+[.!?]+/g) || [val]
       const third = Math.ceil(sentences.length / 3)
       const parts = [
@@ -198,9 +199,26 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
       const updatedShots = (currentScript?.shots || []).map((s: any, i: number) => ({ ...s, dialogue: parts[i] || '' }))
       const updatedEntry = { ...currentScript, shots: updatedShots, edited: true }
       const updatedScripts = { ...ugcScripts, [String(selectedPersona)]: updatedEntry }
-      setUgcScripts(updatedScripts)
+      // Silent DB write — do NOT setUgcScripts() to avoid re-render overwrite
       supabase.from('briefs').update({ ugc_scripts: updatedScripts }).eq('id', briefId)
     }, 2000)
+  }
+
+  // Save on blur (final split + sync state for next mount)
+  function handleScriptBlur() {
+    if (!selectedPersona || !scriptText) return
+    const sentences = scriptText.match(/[^.!?]+[.!?]+/g) || [scriptText]
+    const third = Math.ceil(sentences.length / 3)
+    const parts = [
+      sentences.slice(0, third).join('').trim(),
+      sentences.slice(third, third * 2).join('').trim(),
+      sentences.slice(third * 2).join('').trim(),
+    ]
+    const updatedShots = (currentScript?.shots || []).map((s: any, i: number) => ({ ...s, dialogue: parts[i] || '' }))
+    const updatedEntry = { ...currentScript, shots: updatedShots, edited: true }
+    const updatedScripts = { ...ugcScripts, [String(selectedPersona)]: updatedEntry }
+    setUgcScripts(updatedScripts) // safe to setState on blur — user is done typing
+    supabase.from('briefs').update({ ugc_scripts: updatedScripts }).eq('id', briefId)
   }
 
   const hasVideo = ugcVideo?.status === 'ready' || ugcVideo?.status === 'sold'
@@ -347,6 +365,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
                 <textarea
                   value={scriptText}
                   onChange={e => handleScriptEdit(e.target.value)}
+                  onBlur={handleScriptBlur}
                   style={{ width: '100%', minHeight: '180px', fontSize: '14px', color: '#0a0a0a', lineHeight: 1.7, border: '1px solid #e5e4db', padding: '16px', resize: 'none', boxSizing: 'border-box', background: '#fff', fontFamily: 'var(--font-sans, Inter, sans-serif)' }}
                 />
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
@@ -385,12 +404,14 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
                 </div>
               )}
 
-              {/* Context-aware beta note */}
-              <div style={{ fontSize: '12px', color: '#888', marginBottom: '12px', transition: 'opacity 0.2s' }}>
-                {useProduct && brief?.product_image_url
-                  ? 'Ürün yerleştirme AI UGC beta sürümünde sunulmaktadır. Ürünün boyut oranları, farklı açılardan görünümü ve detayları gerçek halinden farklı çıkabilir.'
-                  : 'AI UGC beta sürümünde sunulmaktadır. Çıktıların kalitesi gelişmeye açıktır, garanti edilmez.'}
-              </div>
+              {/* Product warning — reserved height, only visible when ON */}
+              {brief?.product_image_url && (
+                <div style={{ minHeight: '56px', marginBottom: '12px' }}>
+                  <div style={{ fontSize: '12px', color: '#888', lineHeight: 1.6, opacity: useProduct ? 1 : 0, transition: 'opacity 0.2s', pointerEvents: useProduct ? 'auto' : 'none' }}>
+                    Ürün yerleştirme AI UGC beta sürümünde sunulmaktadır. Ürünün boyut oranları, farklı açılardan görünümü ve detayları gerçek halinden farklı çıkabilir.
+                  </div>
+                </div>
+              )}
 
               {/* Generate button */}
               <button onClick={triggerGenerate} disabled={generating} className="btn" style={{ width: '100%', padding: '12px', fontSize: '13px', fontWeight: '600' }}>
