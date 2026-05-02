@@ -178,16 +178,17 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
                 const p = personas.find(x => x.id === selectedPersona)
                 if (!p) return null
                 return (
-                  <div style={{ padding: '14px 18px', border: '1px solid #0a0a0a', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '14px' }}>
-                    <div className="dot" style={{ width: '48px', height: '48px', minWidth: '48px', background: '#f5f4f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', overflow: 'hidden' }}>
+                  <div style={{ padding: '20px', border: '1px solid #0a0a0a', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '20px' }}>
+                    <div className="dot" style={{ width: '120px', height: '120px', minWidth: '120px', background: '#f5f4f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '36px', overflow: 'hidden', border: '2px solid #e5e4db' }}>
                       {p.thumbnail_url ? <img src={p.thumbnail_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : p.name[0]}
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a' }}>{p.name}</span>
-                        {recommendedPersona === p.id && <span style={{ fontSize: '8px', letterSpacing: '1px', padding: '1px 5px', background: 'rgba(34,197,94,0.1)', border: '1px solid #22c55e', color: '#166534' }}>ÖNERİLEN</span>}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                        <span style={{ fontSize: '18px', fontWeight: '500', color: '#0a0a0a' }}>{p.name}</span>
+                        {recommendedPersona === p.id && <span style={{ fontSize: '9px', letterSpacing: '1px', padding: '2px 7px', background: 'rgba(34,197,94,0.1)', border: '1px solid #22c55e', color: '#166534' }}>ÖNERİLEN</span>}
                       </div>
-                      <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', marginTop: '2px' }}>{p.description} · {p.age_range} · {p.gender === 'female' ? 'Kadın' : 'Erkek'}</div>
+                      <div style={{ fontSize: '13px', color: 'var(--color-text-tertiary)', lineHeight: 1.5 }}>{p.description} · {p.age_range} · {p.gender === 'female' ? 'Kadın' : 'Erkek'}</div>
+                      <div style={{ fontSize: '11px', color: '#888', marginTop: '4px', lineHeight: 1.4 }}>{p.tone_description}</div>
                     </div>
                   </div>
                 )
