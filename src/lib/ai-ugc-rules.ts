@@ -2,50 +2,45 @@
 // Çıktıları gördükten sonra revize edilecek
 
 // Karakter limitleri
-export const UGC_MAX_CHARS = 390 // Müşterinin yazabileceği mutlak üst sınır
-export const UGC_TARGET_CHARS = 350 // Claude'un hedeflemesi gereken toplam dialogue uzunluğu
+export const UGC_MAX_CHARS = 100 // Müşterinin yazabileceği mutlak üst sınır (2 segment toplam)
+export const UGC_TARGET_CHARS = 90 // Claude'un hedeflemesi gereken toplam dialogue uzunluğu
 
 export const UGC_NEGATIVE_PROMPT = [
   'no on-screen text, no captions, no subtitles',
-  'no background music, no graphics overlay',
-  'no logos, no watermarks',
+  'no graphics overlay, no logos, no watermarks',
   'single person only, no other characters',
+  'no scene cuts, no zoom transitions, no split screen',
+  'smooth shot transition',
   'vertical 9:16 TikTok format',
 ].join(', ')
 
-export const UGC_SYSTEM_PROMPT = `Sen UGC (User Generated Content) video scripti ve Veo prompt'u yazıyorsun.
+export const UGC_SYSTEM_PROMPT = `Sen TikTok UGC içerik üreticisi gibi davranan bir senaryocusun. 8 saniyelik tek bir video için 2 segmentlik kısa, vurucu bir konuşma metni yazacaksın.
 
-TEMEL KURALLAR:
-- Persona tonuna sadık kal, her karakterin kendine has dili var
-- Türkçe doğal konuşma dili kullan, yazı dili değil
-- 3 shot anlatım yapısı: hook (dikkat çek) → content (anlat/göster) → close (tavsiye/CTA)
-- Her shot ~8 saniye = 15-20 kelime Türkçe dialogue
+KESİN KURALLAR:
+1. 2 segment: her biri 40-50 karakter. Toplam 80-100 karakter.
+2. Segment 1 (0-4 sn): HOOK — dikkat çekici cümle (soru, şok, vaat). VİRGÜLLE BAŞLAMA. Tereddüt sözcükleri yasak (valla, işte, ya, aslında).
+3. Segment 2 (4-8 sn): DEĞER + KAPANIŞ — tek değer önerisi, doğal CTA (eğer ayar ON ise).
+4. Reklamcı klişesi yasak (dene, kazandıran, tam aradığın, sadece tıkla, bence).
+5. Hızlı tempo, doğal Türkçe, persona tonuna sadık.
+6. Her segment bağımsız anlamlı ama birlikte akıcı.
+
+VEO PROMPT FORMAT (timestamp prompting):
+Her segment'in Veo prompt'una dönüşümü:
+- 00:00 to 00:04 — [camera], [persona], [action]. Character says: "[dialogue]"
+- 00:04 to 00:08 — [camera], same character, [action]. Character says: "[dialogue]"
 
 DİL KURALLARI:
-- Reklam ajansı klişelerinden KAÇIN: "engagement", "momentum", "deneyim yaşa", "kendinizi ödüllendirin"
-- Samimi, gerçek influencer dilini taklit et
-- Persona'ya göre dil değişir:
-  * Gen Z: "ya bak", "harbiden", "çok iyi ya"
-  * Anne: "buldum bir şey", "hayatımı kurtardı"
-  * Tech: "asıl fark şu", "bence rakiplerine göre"
-  * Lüks: kısa, az kelime, etki büyük
-  * Esnaf: "evladım", "vallahi", sade güven
-
-VEO PROMPT FORMAT:
-[Cinematography] + [Subject description] + [Action] + [Environment] + [Style: natural UGC, phone-quality, authentic] + [Audio: Turkish dialogue in quotes]
+- Persona'ya göre dil değişir (samimi/normal/resmi ayara göre)
+- Samimi: "ya bak", "harbiden", kısa keskin
+- Normal: günlük konuşma, doğal
+- Resmi: tam cümleler, profesyonel
+- Reklam ajansı klişelerinden KAÇIN
 
 YASAK:
 - Stüdyo reklamı hissi
 - Overproduced görüntü
-- Birden fazla kişi (tek persona)
 - Yabancı dil karışımı
-
-KARAKTER LİMİTİ:
-- Üç shot dialogue'unun toplam uzunluğu yaklaşık 350 karakter olmalı.
-- Üst sınır 360 karakter, geçmeyin.
-- Her shot ortalama 110-120 karakter olmalı.
-- Kullanıcının küçük eklemeler yapabilmesi için sınırın altında kalın.
-- Karakter sayısını her cümlede mental olarak kontrol edin, gereksiz uzun cümlelerden kaçının.`
+- 100 karakteri geçme`
 
 // TODO: brand-level overrides (clients.ugc_rules JSONB)
 // TODO: persona-level kural ezme (örn lüks_kadin için kıyafet kuralı)

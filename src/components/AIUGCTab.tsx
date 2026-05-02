@@ -54,8 +54,8 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
   useEffect(() => {
     if (!selectedPersona) { setScriptText(''); return }
     const s = ugcScripts[String(selectedPersona)]
-    if (s?.shots) {
-      setScriptText(s.shots.map((sh: any) => sh.dialogue).join(' '))
+    if (s?.segments) {
+      setScriptText(s.segments.map((sh: any) => sh.dialogue).join(' '))
     } else {
       setScriptText('')
     }
@@ -91,9 +91,9 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
     // Load persona-based scripts
     const scripts = b?.ugc_scripts || {}
     // Fallback: migrate old ugc_script if ugc_scripts is empty
-    if (Object.keys(scripts).length === 0 && b?.ugc_script?.shots) {
+    if (Object.keys(scripts).length === 0 && b?.ugc_script?.segments) {
       const pid = String(b.ugc_selected_persona_id || '0')
-      scripts[pid] = { shots: b.ugc_script.shots, max_length: b.ugc_script_max_length || 0, edited: b.ugc_script_edited || false }
+      scripts[pid] = { segments: b.ugc_script.segments, max_length: b.ugc_script_max_length || 0, edited: b.ugc_script_edited || false }
     }
     setUgcScripts(scripts)
 
@@ -133,10 +133,10 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
     setScriptLoading(true)
     const res = await fetch('/api/ugc/generate-script', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: selectedPersona, use_product: useProduct && !!brief?.product_image_url, settings }) })
     const data = await res.json()
-    if (data.shots) {
-      const merged = data.shots.map((s: any) => s.dialogue).join(' ')
+    if (data.segments) {
+      const merged = data.segments.map((s: any) => s.dialogue).join(' ')
       const maxLen = merged.length
-      const scriptEntry = { shots: data.shots, max_length: maxLen, edited: false, settings_at_generation: { ...settings }, generated_at: new Date().toISOString() }
+      const scriptEntry = { segments: data.segments, max_length: maxLen, edited: false, settings_at_generation: { ...settings }, generated_at: new Date().toISOString() }
       const updated = { ...ugcScripts, [String(selectedPersona)]: scriptEntry }
       setUgcScripts(updated)
       setScriptText(merged)
@@ -193,14 +193,13 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
     ;(window as any).__ugcSaveTimer = setTimeout(() => {
       if (!selectedPersona) return
       const sentences = val.match(/[^.!?]+[.!?]+/g) || [val]
-      const third = Math.ceil(sentences.length / 3)
+      const half = Math.ceil(sentences.length / 2)
       const parts = [
-        sentences.slice(0, third).join('').trim(),
-        sentences.slice(third, third * 2).join('').trim(),
-        sentences.slice(third * 2).join('').trim(),
+        sentences.slice(0, half).join('').trim(),
+        sentences.slice(half).join('').trim(),
       ]
-      const updatedShots = (currentScript?.shots || []).map((s: any, i: number) => ({ ...s, dialogue: parts[i] || '' }))
-      const updatedEntry = { ...currentScript, shots: updatedShots, edited: true }
+      const updatedShots = (currentScript?.segments || []).map((s: any, i: number) => ({ ...s, dialogue: parts[i] || '' }))
+      const updatedEntry = { ...currentScript, segments: updatedShots, edited: true }
       const updatedScripts = { ...ugcScripts, [String(selectedPersona)]: updatedEntry }
       // Silent DB write — do NOT setUgcScripts() to avoid re-render overwrite
       supabase.from('briefs').update({ ugc_scripts: updatedScripts }).eq('id', briefId)
@@ -217,8 +216,8 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
       sentences.slice(third, third * 2).join('').trim(),
       sentences.slice(third * 2).join('').trim(),
     ]
-    const updatedShots = (currentScript?.shots || []).map((s: any, i: number) => ({ ...s, dialogue: parts[i] || '' }))
-    const updatedEntry = { ...currentScript, shots: updatedShots, edited: true }
+    const updatedShots = (currentScript?.segments || []).map((s: any, i: number) => ({ ...s, dialogue: parts[i] || '' }))
+    const updatedEntry = { ...currentScript, segments: updatedShots, edited: true }
     const updatedScripts = { ...ugcScripts, [String(selectedPersona)]: updatedEntry }
     setUgcScripts(updatedScripts) // safe to setState on blur — user is done typing
     supabase.from('briefs').update({ ugc_scripts: updatedScripts }).eq('id', briefId)
@@ -260,7 +259,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
                 <video src={ugcVideo.final_url} controls preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'contain', backgroundColor: 'black' }} />
               ) : isProcessing ? (
                 <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '16px' }}>
-                  <div style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#6b6b66', marginBottom: '12px' }}>TAHMİNİ SÜRE: 6-9 dakika</div>
+                  <div style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#6b6b66', marginBottom: '12px' }}>TAHMİNİ SÜRE: 2-3 dakika</div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <div className="spinner" style={{ width: '14px', height: '14px', borderWidth: '2px', borderStyle: 'solid', borderColor: '#4ade80 transparent transparent transparent' }} />
                     <span style={{ fontSize: '13px', color: '#fff' }}>Üretiliyor</span>
@@ -363,17 +362,17 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
                 </button>
               )}
             </div>
-            {currentScript?.shots ? (
+            {currentScript?.segments ? (
               <div>
                 <textarea
                   value={scriptText}
                   onChange={e => handleScriptEdit(e.target.value)}
                   onBlur={handleScriptBlur}
-                  style={{ width: '100%', minHeight: '140px', fontSize: '14px', color: '#0a0a0a', lineHeight: 1.7, border: '1px solid #e5e4db', padding: '16px', resize: 'none', boxSizing: 'border-box', background: '#fff', fontFamily: 'var(--font-sans, Inter, sans-serif)' }}
+                  style={{ width: '100%', minHeight: '80px', fontSize: '14px', color: '#0a0a0a', lineHeight: 1.7, border: '1px solid #e5e4db', padding: '16px', resize: 'none', boxSizing: 'border-box', background: '#fff', fontFamily: 'var(--font-sans, Inter, sans-serif)' }}
                 />
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
-                  <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>AI yaklaşık 350 karakter üretir. Maksimum 390'a kadar düzenleyebilirsiniz.</span>
-                  <span style={{ fontSize: '11px', fontWeight: '500', flexShrink: 0, marginLeft: '12px', color: scriptText.length >= 380 ? '#ef4444' : scriptText.length >= 350 ? '#f59e0b' : 'var(--color-text-tertiary)' }}>{scriptText.length} / {UGC_MAX_CHARS}</span>
+                  <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>AI yaklaşık 90 karakter üretir. Maksimum 100'e kadar düzenleyebilirsiniz.</span>
+                  <span style={{ fontSize: '11px', fontWeight: '500', flexShrink: 0, marginLeft: '12px', color: scriptText.length >= 95 ? '#ef4444' : scriptText.length >= 85 ? '#f59e0b' : 'var(--color-text-tertiary)' }}>{scriptText.length} / {UGC_MAX_CHARS}</span>
                 </div>
               </div>
             ) : (
