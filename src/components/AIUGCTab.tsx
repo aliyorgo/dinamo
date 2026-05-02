@@ -332,23 +332,6 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
             )}
           </div>
 
-          {/* Product toggle */}
-          {brief?.product_image_url && (
-            <div style={{ marginBottom: '16px', padding: '10px 14px', border: '1px solid #e5e4db' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-                <span style={{ fontSize: '12px', color: '#0a0a0a' }}>Ürünü videoya dahil et</span>
-                <button onClick={() => setUseProduct(!useProduct)} style={{ width: '36px', height: '20px', border: 'none', cursor: 'pointer', background: useProduct ? '#22c55e' : '#ddd', position: 'relative', transition: 'background 0.2s' }}>
-                  <span className="dot" style={{ position: 'absolute', top: '2px', left: useProduct ? '18px' : '2px', width: '16px', height: '16px', background: '#fff', transition: 'left 0.2s' }} />
-                </button>
-              </div>
-              {productAnalysis && (
-                <div style={{ marginTop: '8px', fontSize: '11px', color: productAnalysis.product_works_in_video ? '#166534' : '#92400e', padding: '4px 8px', background: productAnalysis.product_works_in_video ? 'rgba(34,197,94,0.06)' : 'rgba(245,158,11,0.06)' }}>
-                  {productAnalysis.product_works_in_video ? 'Ürün videoya dahil edilecek' : productAnalysis.warning_message || 'Bu ürün AI\'da iyi çıkmayabilir, kapatmanı öneririz'}
-                </div>
-              )}
-            </div>
-          )}
-
           {/* Script */}
           <div style={{ marginBottom: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
@@ -388,11 +371,33 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
             )}
           </div>
 
-          {/* Generate video button */}
+          {/* Generate video section */}
           {currentScript && (
-            <button onClick={triggerGenerate} disabled={generating} className="btn" style={{ width: '100%', padding: '12px', fontSize: '13px', fontWeight: '600' }}>
-              AI UGC ÜRET (1 KREDİ)
-            </button>
+            <div>
+              {/* Product toggle — sade row */}
+              {brief?.product_image_url && (
+                <div style={{ padding: '12px 0', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="1.5" style={{ flexShrink: 0 }}><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '14px', color: '#0a0a0a' }}>Ürünü videoya dahil et</div>
+                    {productAnalysis && !productAnalysis.product_works_in_video && (
+                      <div style={{ fontSize: '11px', color: '#92400e', marginTop: '2px' }}>{productAnalysis.warning_message || 'Bu ürün AI\'da iyi çıkmayabilir, kapatmanı öneririz'}</div>
+                    )}
+                  </div>
+                  <button onClick={() => setUseProduct(!useProduct)} style={{ width: '36px', height: '20px', border: 'none', cursor: 'pointer', background: useProduct ? '#22c55e' : '#ddd', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
+                    <span className="dot" style={{ position: 'absolute', top: '2px', left: useProduct ? '18px' : '2px', width: '16px', height: '16px', background: '#fff', transition: 'left 0.2s' }} />
+                  </button>
+                </div>
+              )}
+
+              {/* Beta warning */}
+              <div style={{ fontSize: '12px', color: '#888', marginBottom: '12px' }}>AI UGC beta sürümünde sunulmaktadır. Çıktıların kalitesi gelişmeye açıktır, garanti edilmez.</div>
+
+              {/* Generate button */}
+              <button onClick={triggerGenerate} disabled={generating} className="btn" style={{ width: '100%', padding: '12px', fontSize: '13px', fontWeight: '600' }}>
+                AI UGC VIDEO ÜRET (1 KREDİ)
+              </button>
+            </div>
           )}
         </div>
       )}
