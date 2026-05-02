@@ -8,6 +8,7 @@ import StaticImageGeneratorModal from '@/components/StaticImageGeneratorModal'
 import CampaignSummaryTab from '@/components/CampaignSummaryTab'
 import VideoLoadingBox from '@/components/VideoLoadingBox'
 import { logClientActivity } from '@/lib/log-client'
+import AIUGCTab from '@/components/AIUGCTab'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
@@ -112,7 +113,7 @@ function ClientBriefDetail() {
   const [aiGenerating, setAiGenerating] = useState(false)
   const [aiWarningDismissed, setAiWarningDismissed] = useState(false)
   const [cpsBannerDismissed, setCpsBannerDismissed] = useState(false)
-  const [activeTab, setActiveTab] = useState<'hybrid'|'cps'|'express'|'summary'>(searchParams.get('tab') === 'express' ? 'express' : searchParams.get('tab') === 'cps' ? 'cps' : searchParams.get('tab') === 'summary' ? 'summary' : 'hybrid')
+  const [activeTab, setActiveTab] = useState<'hybrid'|'cps'|'express'|'ugc'|'summary'>(searchParams.get('tab') === 'express' ? 'express' : searchParams.get('tab') === 'ugc' ? 'ugc' : searchParams.get('tab') === 'cps' ? 'cps' : searchParams.get('tab') === 'summary' ? 'summary' : 'hybrid')
   const aiChildParam = searchParams.get('ai_child')
   const [briefExpanded, setBriefExpanded] = useState(false)
   const [autoGenerateTriggered, setAutoGenerateTriggered] = useState(false)
@@ -691,6 +692,7 @@ function ClientBriefDetail() {
               {key:'hybrid' as const, label:'Ana Video'},
               {key:'cps' as const, label:'CPS'},
               {key:'express' as const, label:'AI Express'},
+              {key:'ugc' as const, label:'AI UGC'},
               ...(hasSummary ? [{key:'summary' as const, label:'Kampanya Özeti'}] : []),
             ]
             return tabs.map((t,ti)=>{
@@ -703,6 +705,7 @@ function ClientBriefDetail() {
                   onMouseLeave={e=>{if(!isActive)e.currentTarget.style.background='#fff'}}>
                   {t.label}
                   {t.key==='express' && <span style={{marginLeft:'4px',fontSize:'9px',padding:'1px 5px',background:'#1DB81D',color:'#fff',fontWeight:'600',verticalAlign:'middle'}}>Beta</span>}
+                  {t.key==='ugc' && <span style={{marginLeft:'4px',fontSize:'9px',padding:'1px 5px',background:'#f59e0b',color:'#fff',fontWeight:'600',verticalAlign:'middle'}}>Beta</span>}
                   {t.key==='express' && aiChildren.length > 0 && <span style={{marginLeft:'6px',fontSize:'10px',color:'#1DB81D',fontWeight:'600'}}>{aiChildren.filter(c=>c.ai_video_url).length}</span>}
                   {t.key==='cps' && cpsChildren.length > 0 && <span style={{marginLeft:'6px',fontSize:'10px',color:'#3b82f6',fontWeight:'600'}}>{cpsChildren.length}</span>}
                 </button>
@@ -1620,6 +1623,11 @@ function ClientBriefDetail() {
                 )}
 
               </>}
+
+              {/* ═══ UGC TAB ═══ */}
+              {activeTab === 'ugc' && brief && (
+                <AIUGCTab briefId={id} brief={brief} clientUser={clientUser} />
+              )}
 
               {/* ═══ SUMMARY TAB ═══ */}
               {activeTab === 'summary' && brief && (

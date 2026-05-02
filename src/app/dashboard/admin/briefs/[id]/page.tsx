@@ -89,18 +89,8 @@ export default function AdminBriefDetail() {
   const [cpsProducerBriefs, setCpsProducerBriefs] = useState<Record<string,any>>({})
   const [cpsReassignConfirm, setCpsReassignConfirm] = useState<string|null>(null)
   const [unavailWarning, setUnavailWarning] = useState<{creatorName:string,dates:string[],callback:()=>void}|null>(null)
-  // UGC
-  const [ugcTab, setUgcTab] = useState(false)
-  const [personas, setPersonas] = useState<any[]>([])
-  const [selectedPersona, setSelectedPersona] = useState<number | null>(null)
-  const [recommendedPersona, setRecommendedPersona] = useState<number | null>(null)
-  const [ugcScript, setUgcScript] = useState<any>(null)
-  const [ugcScriptLoading, setUgcScriptLoading] = useState(false)
-  const [ugcUseProduct, setUgcUseProduct] = useState(true)
-  const [ugcProductAnalysis, setUgcProductAnalysis] = useState<any>(null)
+  // UGC (admin: monitoring only)
   const [ugcVideo, setUgcVideo] = useState<any>(null)
-  const [ugcGenerating, setUgcGenerating] = useState(false)
-  const [ugcPurchasing, setUgcPurchasing] = useState(false)
 
   // Voice Studio
   const [voiceStudioOpen, setVoiceStudioOpen] = useState(false)
@@ -437,74 +427,12 @@ export default function AdminBriefDetail() {
     if (previewAudioRef.current) { previewAudioRef.current.src = url; previewAudioRef.current.play(); setPlayingPreview(voiceId); previewAudioRef.current.onended = () => setPlayingPreview(null) }
   }
 
-  // UGC functions
-  async function loadUgcTab() {
-    setUgcTab(true)
-    if (personas.length === 0) {
-      const { data: p } = await supabase.from('personas').select('*').order('id')
-      setPersonas(p || [])
+  // UGC video load (admin monitoring)
+  useEffect(() => {
+    if (brief?.ugc_video_id && !ugcVideo) {
+      supabase.from('ugc_videos').select('*').eq('id', brief.ugc_video_id).single().then(({ data }) => { if (data) setUgcVideo(data) })
     }
-    // Load existing UGC video if any
-    if (brief?.ugc_video_id) {
-      const { data: v } = await supabase.from('ugc_videos').select('*').eq('id', brief.ugc_video_id).single()
-      if (v) setUgcVideo(v)
-    }
-    // Recommend persona
-    if (!recommendedPersona) {
-      const res = await fetch('/api/ugc/recommend-persona', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: id }) })
-      const data = await res.json()
-      if (data.recommended_persona_id) { setRecommendedPersona(data.recommended_persona_id); if (!selectedPersona) setSelectedPersona(data.recommended_persona_id) }
-    }
-    // Analyze product if exists
-    if (brief?.product_image_url && !ugcProductAnalysis) {
-      const res = await fetch('/api/ugc/analyze-product', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: id }) })
-      const data = await res.json()
-      setUgcProductAnalysis(data)
-      if (data.suggested_toggle_default !== undefined) setUgcUseProduct(data.suggested_toggle_default)
-    }
-  }
-
-  async function generateUgcScript() {
-    if (!selectedPersona) return
-    setUgcScriptLoading(true)
-    const res = await fetch('/api/ugc/generate-script', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: id, persona_id: selectedPersona, use_product: ugcUseProduct && !!brief?.product_image_url }) })
-    const data = await res.json()
-    if (data.shots) setUgcScript(data)
-    setUgcScriptLoading(false)
-  }
-
-  async function triggerUgcGenerate() {
-    if (!ugcScript || !selectedPersona) return
-    setUgcGenerating(true)
-    const res = await fetch('/api/ugc/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: id, persona_id: selectedPersona, use_product: ugcUseProduct && !!brief?.product_image_url, script: ugcScript }) })
-    const data = await res.json()
-    if (data.ugc_video_id) {
-      setBrief((p: any) => ({ ...p, ugc_video_id: data.ugc_video_id, ugc_status: 'queued' }))
-      // Poll for completion
-      const poll = setInterval(async () => {
-        const { data: v } = await supabase.from('ugc_videos').select('*').eq('id', data.ugc_video_id).single()
-        if (v && (v.status === 'ready' || v.status === 'failed')) {
-          clearInterval(poll)
-          setUgcVideo(v)
-          setUgcGenerating(false)
-          setBrief((p: any) => ({ ...p, ugc_status: v.status }))
-        }
-      }, 10000)
-    } else { setUgcGenerating(false); setMsg('Hata: ' + (data.error || 'UGC üretilemedi')) }
-  }
-
-  async function purchaseUgcVideo() {
-    if (!ugcVideo) return
-    setUgcPurchasing(true)
-    // Deduct 1 credit
-    const { data: cu } = await supabase.from('client_users').select('allocated_credits').eq('id', brief?.client_user_id).single()
-    if (!cu || cu.allocated_credits < 1) { setMsg('Yetersiz kredi'); setUgcPurchasing(false); return }
-    await supabase.from('client_users').update({ allocated_credits: cu.allocated_credits - 1 }).eq('id', brief?.client_user_id)
-    await supabase.from('credit_transactions').insert({ client_id: brief?.client_id, client_user_id: brief?.client_user_id, brief_id: id, amount: -1, type: 'deduct', description: 'AI UGC satın alma' })
-    await supabase.from('ugc_videos').update({ status: 'sold', sold_at: new Date().toISOString() }).eq('id', ugcVideo.id)
-    setUgcVideo({ ...ugcVideo, status: 'sold' })
-    setUgcPurchasing(false)
-  }
+  }, [brief?.ugc_video_id])
 
   if (!brief) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', color: 'var(--color-text-tertiary)' }}>Yükleniyor...</div>
 
@@ -734,139 +662,38 @@ export default function AdminBriefDetail() {
               </div>
             )}
 
-            {/* 3.5) AI UGC (BETA) */}
-            <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '18px 22px', marginBottom: '16px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: ugcTab ? '16px' : '0', cursor: 'pointer' }} onClick={() => { if (!ugcTab) loadUgcTab(); else setUgcTab(!ugcTab) }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {/* 3.5) AI UGC (BETA) — Admin Monitoring Only */}
+            {brief.ugc_video_id && (
+              <div style={{ marginBottom: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
                   <div className="label-caps">AI UGC</div>
                   <span style={{ fontSize: '9px', letterSpacing: '1px', padding: '2px 6px', background: 'rgba(245,158,11,0.1)', border: '1px solid #f59e0b', color: '#92400e' }}>BETA</span>
-                  {ugcVideo?.status === 'sold' && <span style={{ fontSize: '9px', letterSpacing: '1px', padding: '2px 6px', background: 'rgba(16,185,129,0.1)', border: '1px solid #10b981', color: '#065f46' }}>SATILDI</span>}
                 </div>
-                <span style={{ fontSize: '10px', color: 'var(--color-text-tertiary)' }}>{ugcTab ? 'KAPAT' : 'AÇ'}</span>
-              </div>
-
-              {ugcTab && (
-                <div>
-                  {/* Beta banner */}
-                  <div style={{ padding: '8px 12px', background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)', marginBottom: '16px', fontSize: '11px', color: '#92400e' }}>AI UGC beta sürümünde, kalite gelişmeye açık.</div>
-
-                  {/* Video ready/sold state */}
-                  {(ugcVideo?.status === 'ready' || ugcVideo?.status === 'sold') ? (
-                    <div>
-                      {ugcVideo.final_url && <video controls style={{ width: '100%', maxHeight: '400px', background: '#000', marginBottom: '12px' }}><source src={ugcVideo.final_url} /></video>}
-                      {ugcVideo.status === 'ready' && (
-                        <button onClick={purchaseUgcVideo} disabled={ugcPurchasing} className="btn" style={{ width: '100%', padding: '12px' }}>
-                          {ugcPurchasing ? 'İŞLENİYOR...' : 'SATIN AL (1 KREDİ)'}
-                        </button>
-                      )}
-                      {ugcVideo.status === 'sold' && (
-                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                          <a href={ugcVideo.final_url} download target="_blank" className="btn btn-outline" style={{ padding: '8px 16px', textDecoration: 'none', flex: 1, textAlign: 'center' }}>İNDİR ↓</a>
-                          <span style={{ fontSize: '10px', letterSpacing: '1px', padding: '4px 10px', background: 'rgba(16,185,129,0.1)', border: '1px solid #10b981', color: '#065f46' }}>SATILDI</span>
-                        </div>
-                      )}
-                    </div>
-                  ) : ugcVideo?.status === 'failed' ? (
-                    <div>
-                      <div style={{ padding: '10px 14px', background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)', marginBottom: '12px', fontSize: '12px', color: '#ef4444' }}>{ugcVideo.error || 'Üretim başarısız.'}</div>
-                      <button onClick={() => { setUgcVideo(null); setBrief((p: any) => ({ ...p, ugc_video_id: null, ugc_status: null })) }} className="btn btn-outline" style={{ padding: '8px 16px' }}>TEKRAR DENE</button>
-                    </div>
-                  ) : ugcGenerating ? (
-                    <div style={{ textAlign: 'center', padding: '32px 0' }}>
-                      <div className="spinner" style={{ width: '32px', height: '32px', borderWidth: '3px', borderStyle: 'solid', borderColor: '#e5e4db #e5e4db #e5e4db #0a0a0a', margin: '0 auto 12px' }} />
-                      <div style={{ fontSize: '13px', color: '#0a0a0a', marginBottom: '4px' }}>Üretiliyor...</div>
-                      <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>Yaklaşık 3-5 dakika sürer.</div>
-                    </div>
-                  ) : (
-                    <>
-                      {/* Persona selection */}
-                      {personas.length > 0 && (
-                        <div style={{ marginBottom: '20px' }}>
-                          <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '10px' }}>PERSONA SEÇ</div>
-                          {/* Selected persona large card */}
-                          {selectedPersona && (() => {
-                            const p = personas.find(x => x.id === selectedPersona)
-                            if (!p) return null
-                            return (
-                              <div style={{ padding: '14px 18px', border: '1px solid #0a0a0a', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '14px' }}>
-                                <div className="dot" style={{ width: '48px', height: '48px', minWidth: '48px', background: '#f5f4f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', overflow: 'hidden' }}>
-                                  {p.thumbnail_url ? <img src={p.thumbnail_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : p.name[0]}
-                                </div>
-                                <div style={{ flex: 1 }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    <span style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a' }}>{p.name}</span>
-                                    {recommendedPersona === p.id && <span style={{ fontSize: '8px', letterSpacing: '1px', padding: '1px 5px', background: 'rgba(34,197,94,0.1)', border: '1px solid #22c55e', color: '#166534' }}>ÖNERİLEN</span>}
-                                  </div>
-                                  <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', marginTop: '2px' }}>{p.description} · {p.age_range} · {p.gender === 'female' ? 'Kadın' : 'Erkek'}</div>
-                                </div>
-                              </div>
-                            )
-                          })()}
-                          {/* Persona thumbnails horizontal scroll */}
-                          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px' }}>
-                            {personas.map(p => (
-                              <div key={p.id} onClick={() => setSelectedPersona(p.id)}
-                                style={{ flexShrink: 0, width: '60px', textAlign: 'center', cursor: 'pointer', opacity: selectedPersona === p.id ? 1 : 0.6, transition: 'opacity 0.15s' }}>
-                                <div className="dot" style={{ width: '40px', height: '40px', minWidth: '40px', margin: '0 auto 4px', background: '#f5f4f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', border: selectedPersona === p.id ? '2px solid #0a0a0a' : '1px solid #e5e4db', overflow: 'hidden' }}>
-                                  {p.thumbnail_url ? <img src={p.thumbnail_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : p.name[0]}
-                                </div>
-                                <div style={{ fontSize: '9px', color: '#0a0a0a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Product toggle */}
-                      {brief.product_image_url && (
-                        <div style={{ marginBottom: '16px', padding: '10px 14px', border: '1px solid #e5e4db' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-                            <span style={{ fontSize: '12px', color: '#0a0a0a' }}>Ürünü videoya dahil et</span>
-                            <button onClick={() => setUgcUseProduct(!ugcUseProduct)}
-                              style={{ width: '36px', height: '20px', border: 'none', cursor: 'pointer', background: ugcUseProduct ? '#22c55e' : '#ddd', position: 'relative', transition: 'background 0.2s' }}>
-                              <span className="dot" style={{ position: 'absolute', top: '2px', left: ugcUseProduct ? '18px' : '2px', width: '16px', height: '16px', background: '#fff', transition: 'left 0.2s' }} />
-                            </button>
-                          </div>
-                          {ugcProductAnalysis && (
-                            <div style={{ marginTop: '8px', fontSize: '11px', color: ugcProductAnalysis.product_works_in_video ? '#166534' : '#92400e', padding: '4px 8px', background: ugcProductAnalysis.product_works_in_video ? 'rgba(34,197,94,0.06)' : 'rgba(245,158,11,0.06)' }}>
-                              {ugcProductAnalysis.product_works_in_video ? 'Ürün videoya dahil edilecek' : ugcProductAnalysis.warning_message || 'Bu ürün AI\'da iyi çıkmayabilir, kapatmanı öneririz'}
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Script */}
-                      <div style={{ marginBottom: '16px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                          <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)' }}>SCRİPT</div>
-                          <button onClick={generateUgcScript} disabled={ugcScriptLoading || !selectedPersona} className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '9px' }}>
-                            {ugcScriptLoading ? 'ÜRETİLİYOR...' : ugcScript ? 'YENİDEN ÖNER' : 'SCRİPT ÜRET'}
-                          </button>
-                        </div>
-                        {ugcScript?.shots ? (
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-                            {ugcScript.shots.map((shot: any, i: number) => (
-                              <div key={i} style={{ padding: '10px 12px', border: '1px solid #e5e4db', background: '#fafaf7' }}>
-                                <div style={{ fontSize: '9px', letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '6px' }}>SHOT {shot.shot} · {shot.camera || ['wide', 'close-up', 'medium'][i]}</div>
-                                <div style={{ fontSize: '12px', color: '#0a0a0a', lineHeight: 1.5 }}>"{shot.dialogue}"</div>
-                                {shot.action && <div style={{ fontSize: '10px', color: '#888', marginTop: '4px' }}>{shot.action}</div>}
-                              </div>
-                            ))}
-                          </div>
-                        ) : !ugcScriptLoading && (
-                          <div style={{ padding: '20px', textAlign: 'center', color: '#888', fontSize: '12px', border: '1px dashed #e5e4db' }}>Persona seç, ardından script üret.</div>
-                        )}
+                {ugcVideo ? (
+                  <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '14px 18px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: ugcVideo.final_url ? '12px' : '0' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>UGC Video</span>
+                        <Badge status={ugcVideo.status === 'sold' ? 'ai_sold' : ugcVideo.status === 'ready' ? 'ai_completed' : ugcVideo.status === 'generating' || ugcVideo.status === 'queued' ? 'ai_processing' : 'cancelled'} />
                       </div>
-
-                      {/* Generate button */}
-                      <button onClick={triggerUgcGenerate} disabled={!ugcScript || ugcGenerating} className="btn" style={{ width: '100%', padding: '12px', opacity: (!ugcScript || ugcGenerating) ? 0.4 : 1 }}>
-                        ÜRET (1 KREDİ)
-                      </button>
-                    </>
-                  )}
+                      {ugcVideo.persona_id && <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>Persona #{ugcVideo.persona_id}</span>}
+                    </div>
+                    {ugcVideo.final_url && <video controls style={{ width: '100%', maxHeight: '300px', objectFit: 'contain', background: '#000', display: 'block' }}><source src={ugcVideo.final_url} /></video>}
+                  </div>
+                ) : (
+                  <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)' }}>Video yükleniyor...</div>
+                )}
+              </div>
+            )}
+            {!brief.ugc_video_id && (
+              <div style={{ marginBottom: '16px', padding: '14px 18px', background: '#fff', border: '1px solid var(--color-border-tertiary)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div className="label-caps" style={{ color: 'var(--color-text-tertiary)' }}>AI UGC</div>
+                  <span style={{ fontSize: '9px', letterSpacing: '1px', padding: '2px 6px', background: 'rgba(245,158,11,0.1)', border: '1px solid #f59e0b', color: '#92400e' }}>BETA</span>
+                  <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', marginLeft: '8px' }}>Henüz UGC üretilmedi</span>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* 4) ÜRETİM & ONAY */}
             <div style={{ marginBottom: '16px' }}>
