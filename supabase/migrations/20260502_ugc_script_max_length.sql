@@ -1,0 +1,1 @@
+ALTER TABLE briefs ADD COLUMN IF NOT EXISTS ugc_script_max_length INTEGER DEFAULT NULL;

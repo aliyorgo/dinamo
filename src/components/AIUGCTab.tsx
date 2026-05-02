@@ -27,6 +27,8 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
   const [selectedPersona, setSelectedPersona] = useState<number | null>(null)
   const [recommendedPersona, setRecommendedPersona] = useState<number | null>(null)
   const [script, setScript] = useState<any>(null)
+  const [scriptText, setScriptText] = useState('')
+  const [scriptMaxLength, setScriptMaxLength] = useState<number>(0)
   const [scriptLoading, setScriptLoading] = useState(false)
   const [useProduct, setUseProduct] = useState(true)
   const [productAnalysis, setProductAnalysis] = useState<any>(null)
@@ -77,6 +79,9 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
     // Script (persisted)
     if (b?.ugc_script) {
       setScript(b.ugc_script)
+      const merged = (b.ugc_script.shots || []).map((s: any) => s.dialogue).join('\n\n')
+      setScriptText(merged)
+      setScriptMaxLength(b.ugc_script_max_length || merged.length)
       setScriptSnapshot({ persona_id: b.ugc_selected_persona_id || b.ugc_persona_analysis?.recommended_persona_id, settings: b.ugc_settings || DEFAULT_SETTINGS })
     }
 
@@ -121,10 +126,12 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
     const data = await res.json()
     if (data.shots) {
       setScript(data)
-      const snapshot = { persona_id: selectedPersona, settings: { ...settings } }
-      setScriptSnapshot(snapshot)
-      // Persist script to DB
-      await supabase.from('briefs').update({ ugc_script: data, ugc_script_edited: false }).eq('id', briefId)
+      const merged = (data.shots || []).map((s: any) => s.dialogue).join('\n\n')
+      setScriptText(merged)
+      const maxLen = merged.length
+      setScriptMaxLength(maxLen)
+      setScriptSnapshot({ persona_id: selectedPersona, settings: { ...settings } })
+      await supabase.from('briefs').update({ ugc_script: data, ugc_script_edited: false, ugc_script_max_length: maxLen }).eq('id', briefId)
     }
     setScriptLoading(false)
   }
@@ -363,27 +370,30 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
               </div>
             )}
             {script?.shots ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', opacity: isStale ? 0.5 : 1, transition: 'opacity 0.3s' }}>
-                {script.shots.map((shot: any, i: number) => (
-                  <div key={i} style={{ padding: '10px 12px', border: '1px solid #e5e4db', background: '#fafaf7' }}>
-                    <div style={{ fontSize: '9px', letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '6px' }}>SHOT {shot.shot} · {shot.camera || ['wide', 'close-up', 'medium'][i]}</div>
-                    <textarea
-                      value={shot.dialogue}
-                      onChange={e => {
-                        const updated = { ...script, shots: script.shots.map((s: any, j: number) => j === i ? { ...s, dialogue: e.target.value } : s) }
-                        setScript(updated)
-                        // Debounced DB save
-                        clearTimeout((window as any).__ugcScriptSaveTimer)
-                        ;(window as any).__ugcScriptSaveTimer = setTimeout(() => {
-                          supabase.from('briefs').update({ ugc_script: updated, ugc_script_edited: true }).eq('id', briefId)
-                        }, 2000)
-                      }}
-                      rows={3}
-                      style={{ width: '100%', fontSize: '12px', color: '#0a0a0a', lineHeight: 1.5, border: '1px solid #e5e4db', padding: '6px 8px', resize: 'vertical', boxSizing: 'border-box', background: '#fff' }}
-                    />
-                    {shot.action && <div style={{ fontSize: '10px', color: '#888', marginTop: '4px' }}>{shot.action}</div>}
-                  </div>
-                ))}
+              <div style={{ opacity: isStale ? 0.5 : 1, transition: 'opacity 0.3s' }}>
+                <textarea
+                  value={scriptText}
+                  onChange={e => {
+                    const val = e.target.value
+                    if (val.length > scriptMaxLength) return // uzatma yasak
+                    setScriptText(val)
+                    // Debounced DB save — split back to 3 shots proportionally
+                    clearTimeout((window as any).__ugcScriptSaveTimer)
+                    ;(window as any).__ugcScriptSaveTimer = setTimeout(() => {
+                      const parts = val.split('\n\n')
+                      const updated = { ...script, shots: script.shots.map((s: any, i: number) => ({ ...s, dialogue: parts[i] || '' })) }
+                      setScript(updated)
+                      supabase.from('briefs').update({ ugc_script: updated, ugc_script_edited: true }).eq('id', briefId)
+                    }, 2000)
+                  }}
+                  style={{ width: '100%', minHeight: '120px', fontSize: '15px', color: '#0a0a0a', lineHeight: 1.7, border: '1px solid #e5e4db', padding: '16px', resize: 'none', boxSizing: 'border-box', background: '#fff', fontFamily: 'var(--font-sans, Inter, sans-serif)' }}
+                />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
+                  {scriptText.length < scriptMaxLength ? (
+                    <span style={{ fontSize: '11px', color: '#22c55e' }}>✓ {scriptMaxLength - scriptText.length} karakter kısaltıldı</span>
+                  ) : <span />}
+                  <span style={{ fontSize: '11px', color: scriptText.length >= scriptMaxLength * 0.9 ? '#f59e0b' : 'var(--color-text-tertiary)' }}>{scriptText.length} / {scriptMaxLength}</span>
+                </div>
               </div>
             ) : !scriptLoading && (
               <div style={{ padding: '20px', textAlign: 'center', color: '#888', fontSize: '12px', border: '1px dashed #e5e4db' }}>Persona seç, ardından script üret.</div>
