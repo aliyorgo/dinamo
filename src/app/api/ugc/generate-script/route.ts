@@ -46,6 +46,8 @@ KURALLAR:
 - TON: ${toneNote}
 - HIZ: ${speedNote}
 - ${ctaNote}
+- MÜZİK: ${includeMusic ? 'Arka planda hafif ortam müziği olacak, buna göre sessiz anlar bırakabilirsin.' : 'Müzik YOK, sadece ses. Konuşma arasında sessizlik doğal olsun.'}
+- VEO PROMPT NOTU: Dialogue yazarken konuşma hızını dikkate al. ${speed === 'yavas' ? '8 saniyeye 12-15 kelime sığdır.' : speed === 'hizli' ? '8 saniyeye 20-25 kelime sığdır.' : '8 saniyeye 15-20 kelime sığdır.'}
 
 SHOT YAPISI:
 - Shot 1: Geniş plan açılış, kanca + ortam tanıtımı${use_product ? ' + ürünü gösterme' : ''}

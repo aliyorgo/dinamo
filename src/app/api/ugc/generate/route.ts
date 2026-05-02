@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js'
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
 export async function POST(req: NextRequest) {
-  const { brief_id, persona_id, use_product, script } = await req.json()
+  const { brief_id, persona_id, use_product, script, settings } = await req.json()
   if (!brief_id || !persona_id || !script) return NextResponse.json({ error: 'brief_id, persona_id, script gerekli' }, { status: 400 })
 
   const { data: brief } = await supabase.from('briefs').select('id, client_id, client_user_id, product_image_url').eq('id', brief_id).single()
@@ -18,6 +18,9 @@ export async function POST(req: NextRequest) {
   await supabase.from('credit_transactions').insert({ client_id: brief.client_id, client_user_id: brief.client_user_id, brief_id, amount: -1, type: 'deduct', description: 'AI UGC üretim' })
 
   // Create ugc_videos record
+  // TODO: Pipeline aşamasında settings.watermark=true ise ffmpeg overlay eklenecek
+  // TODO: settings.music=false ise Veo prompt'a "no music" eklenir
+  // TODO: settings.speed Veo prompt'a "speaks at X pace" olarak eklenir
   const { data: ugcVideo, error: insErr } = await supabase.from('ugc_videos').insert({
     brief_id,
     persona_id,

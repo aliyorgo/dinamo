@@ -79,7 +79,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
   async function triggerGenerate() {
     if (!script || !selectedPersona) return
     setGenerating(true)
-    const res = await fetch('/api/ugc/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: selectedPersona, use_product: useProduct && !!brief?.product_image_url, script }) })
+    const res = await fetch('/api/ugc/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: selectedPersona, use_product: useProduct && !!brief?.product_image_url, script, settings }) })
     const data = await res.json()
     if (data.ugc_video_id) {
       // Poll
