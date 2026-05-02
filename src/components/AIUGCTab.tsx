@@ -163,12 +163,15 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
   async function handlePurchase() {
     if (!ugcVideo) return
     setPurchasing(true)
-    const credits = clientUser?.allocated_credits || 0
-    if (credits < 1) { setMsg('Yetersiz kredi'); setPurchasing(false); return }
-    await supabase.from('client_users').update({ allocated_credits: credits - 1 }).eq('id', clientUser?.id)
-    await supabase.from('credit_transactions').insert({ client_id: brief?.client_id, client_user_id: clientUser?.id, brief_id: briefId, amount: -1, type: 'deduct', description: 'AI UGC satın alma' })
-    await supabase.from('ugc_videos').update({ status: 'sold', sold_at: new Date().toISOString() }).eq('id', ugcVideo.id)
-    setUgcVideo({ ...ugcVideo, status: 'sold' })
+    try {
+      const res = await fetch('/api/ugc/purchase', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ugc_video_id: ugcVideo.id }) })
+      const data = await res.json()
+      if (data.download_url) {
+        setUgcVideo({ ...ugcVideo, status: 'sold' })
+        // Trigger download
+        const a = document.createElement('a'); a.href = data.download_url; a.download = `ugc_${ugcVideo.id}.mp4`; a.click()
+      } else { setMsg(data.error || 'Satın alma başarısız') }
+    } catch { setMsg('Bağlantı hatası') }
     setPurchasing(false)
   }
 
