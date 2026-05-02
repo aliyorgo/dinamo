@@ -20,8 +20,10 @@ function simpleHash(str: string): string {
 
 export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
   const [personas, setPersonas] = useState<any[]>([])
-  const [personaLoading, setPersonaLoading] = useState(true)
+  // Start loading=false if we have cached persona data in brief prop
+  const [personaLoading, setPersonaLoading] = useState(!brief?.ugc_persona_analysis?.recommended_persona_id)
   const [personaError, setPersonaError] = useState(false)
+  const [stateReady, setStateReady] = useState(false)
   const [selectedPersona, setSelectedPersona] = useState<number | null>(null)
   const [recommendedPersona, setRecommendedPersona] = useState<number | null>(null)
   const [script, setScript] = useState<any>(null)
@@ -46,7 +48,6 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
   useEffect(() => { loadData() }, [briefId])
 
   async function loadData() {
-    setPersonaLoading(true)
     setPersonaError(false)
 
     // Load personas
@@ -84,9 +85,13 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
       const briefHash = simpleHash(JSON.stringify({ m: b?.message, p: b?.product_image_url, c: b?.client_id }))
       const cached = b?.ugc_persona_analysis
       if (cached && cached.brief_hash === briefHash && cached.recommended_persona_id) {
+        // Cache hit — no loading, no API
         setRecommendedPersona(cached.recommended_persona_id)
         setSelectedPersona(b?.ugc_selected_persona_id || cached.recommended_persona_id)
+        setPersonaLoading(false)
       } else {
+        // Cache miss — show loading, call API
+        setPersonaLoading(true)
         const res = await fetch('/api/ugc/recommend-persona', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId }) })
         const data = await res.json()
         if (data.recommended_persona_id) {
@@ -94,9 +99,10 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
           setSelectedPersona(b?.ugc_selected_persona_id || data.recommended_persona_id)
           await supabase.from('briefs').update({ ugc_persona_analysis: { ...data, brief_hash: briefHash, analyzed_at: new Date().toISOString() } }).eq('id', briefId)
         } else { setPersonaError(true) }
+        setPersonaLoading(false)
       }
-    } catch { setPersonaError(true) }
-    setPersonaLoading(false)
+    } catch { setPersonaError(true); setPersonaLoading(false) }
+    setStateReady(true)
 
     // Product analysis
     if (b?.product_image_url) {
@@ -180,12 +186,14 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
     setPersonaLoading(false)
   }
 
-  // Snapshot-based stale detection
+  // Snapshot-based stale detection — only after state is ready from DB
   const isStale = useMemo(() => {
-    if (!script || !scriptSnapshot) return false
-    if (scriptSnapshot.persona_id !== selectedPersona) return true
-    return JSON.stringify(scriptSnapshot.settings) !== JSON.stringify(settings)
-  }, [script, scriptSnapshot, selectedPersona, settings])
+    if (!stateReady || !script || !scriptSnapshot) return false
+    if (Number(scriptSnapshot.persona_id) !== Number(selectedPersona)) return true
+    // Sort keys for stable comparison
+    const sortObj = (o: any) => JSON.stringify(Object.keys(o).sort().reduce((a: any, k) => { a[k] = o[k]; return a }, {}))
+    return sortObj(scriptSnapshot.settings) !== sortObj(settings)
+  }, [stateReady, script, scriptSnapshot, selectedPersona, settings])
 
   function acceptStaleScript() {
     // Accept current script as-is by updating snapshot to match current state
