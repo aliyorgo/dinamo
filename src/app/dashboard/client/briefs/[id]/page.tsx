@@ -1445,15 +1445,6 @@ function ClientBriefDetail() {
 
               {/* ═══ CPS TAB ═══ */}
               {activeTab === 'cps' && <>
-                {/* CPS CREDIT BOX */}
-                {cpsChildren.length > 0 && (() => {
-                  const total = cpsChildren.reduce((s: number, c: any) => s + (c.credit_cost || 0), 0)
-                  return total > 0 ? (
-                    <div style={{display:'flex',justifyContent:'flex-end',marginBottom:'12px'}}>
-                      <div style={{display:'inline-flex',padding:'6px 14px',border:'1px solid #0a0a0a',fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'#0a0a0a'}}>{total} KREDİ</div>
-                    </div>
-                  ) : null
-                })()}
                 {/* CPS HEADER ROW: [info] ... [kredi] */}
                 <div style={{display:'flex',flexWrap:'nowrap',alignItems:'center',marginBottom:'12px',gap:'8px'}}>
                   <button onClick={()=>setCpsInfoOpen(true)} title="CPS Hakkında"
