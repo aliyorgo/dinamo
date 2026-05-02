@@ -1215,9 +1215,13 @@ function ClientBriefDetail() {
                 ) : null
               })()}
 
-              {/* AI EXPRESS INFO ICON */}
-              <div style={{display:'flex',justifyContent:'flex-end',marginBottom:'12px'}}>
-                <button onClick={()=>setExpressInfoOpen(true)} title="AI Express Hakkında" style={{width:'28px',height:'28px',border:'1px solid #e5e4db',background:'#fff',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:'600',color:'#888'}}>i</button>
+              {/* AI EXPRESS HEADER ROW: [info] ... [kredi] */}
+              <div style={{display:'flex',alignItems:'center',marginBottom:'12px'}}>
+                <button onClick={()=>setExpressInfoOpen(true)} title="AI Express Hakkında"
+                  onMouseEnter={e=>{e.currentTarget.style.background='rgba(0,0,0,0.04)'}}
+                  onMouseLeave={e=>{e.currentTarget.style.background='transparent'}}
+                  style={{width:'28px',height:'28px',border:'none',background:'transparent',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:'600',color:'#888',padding:'8px',transition:'background 0.15s'}}>i</button>
+                <div style={{flex:1}} />
               </div>
 
               {/* AI VIDEO STUDIO */}
@@ -1443,9 +1447,13 @@ function ClientBriefDetail() {
                     </div>
                   ) : null
                 })()}
-                {/* CPS INFO ICON */}
-                <div style={{display:'flex',justifyContent:'flex-end',marginBottom:'12px'}}>
-                  <button onClick={()=>setCpsInfoOpen(true)} title="CPS Hakkında" style={{width:'28px',height:'28px',border:'1px solid #e5e4db',background:'#fff',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:'600',color:'#888'}}>i</button>
+                {/* CPS HEADER ROW: [info] */}
+                <div style={{display:'flex',alignItems:'center',marginBottom:'12px'}}>
+                  <button onClick={()=>setCpsInfoOpen(true)} title="CPS Hakkında"
+                    onMouseEnter={e=>{e.currentTarget.style.background='rgba(0,0,0,0.04)'}}
+                    onMouseLeave={e=>{e.currentTarget.style.background='transparent'}}
+                    style={{width:'28px',height:'28px',border:'none',background:'transparent',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:'600',color:'#888',padding:'8px',transition:'background 0.15s'}}>i</button>
+                  <div style={{flex:1}} />
                 </div>
 
                 {/* Package selection — show if no CPS children yet */}
