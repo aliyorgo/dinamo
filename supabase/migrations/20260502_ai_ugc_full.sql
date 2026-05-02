@@ -1,4 +1,26 @@
--- Persona Seed Data (10 sabit kayıt)
+-- ============================================================
+-- AI UGC BETA — FULL MIGRATION
+-- Supabase SQL Editor'da tek seferde çalıştır
+-- Sıralama: 1) personas → 2) ugc_videos → 3) briefs alter
+-- Idempotent: IF NOT EXISTS/ON CONFLICT kullanır, 2x çalıştırılabilir
+-- ============================================================
+
+-- 1) PERSONAS TABLOSU
+CREATE TABLE IF NOT EXISTS personas (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  slug TEXT NOT NULL UNIQUE,
+  description TEXT NOT NULL,
+  age_range TEXT NOT NULL,
+  gender TEXT NOT NULL,
+  tone_description TEXT NOT NULL,
+  environment_prompt TEXT NOT NULL,
+  thumbnail_url TEXT,
+  product_compatibility TEXT[] DEFAULT '{}',
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- 2) PERSONA SEED DATA (10 sabit kayıt)
 INSERT INTO personas (id, name, slug, description, age_range, gender, tone_description, environment_prompt, product_compatibility) VALUES
 (1, 'Gen Z Kız', 'gen_z_kiz', 'Üniversiteli, samimi, trend takipçisi', '20-23', 'female',
  'Samimi "kanka" tonu, ünlem ve günlük dil, heyecanlı ama doğal, "ya şunu denedim bak" tarzı',
@@ -50,7 +72,66 @@ INSERT INTO personas (id, name, slug, description, age_range, gender, tone_descr
  'Ev ofisi veya kafe, laptop açık, kahve, sade profesyonel ortam',
  ARRAY['tech','finance','lifestyle','productivity','business'])
 
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT (slug) DO NOTHING;
 
--- Reset sequence
-SELECT setval('personas_id_seq', 10);
+-- Sequence sync (eğer id'ler manual insert edildiyse)
+SELECT setval(pg_get_serial_sequence('personas', 'id'), COALESCE(MAX(id), 1)) FROM personas;
+
+-- 3) UGC_VIDEOS TABLOSU
+CREATE TABLE IF NOT EXISTS ugc_videos (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  brief_id UUID REFERENCES briefs(id) ON DELETE CASCADE,
+  persona_id INTEGER REFERENCES personas(id),
+  script JSONB,
+  shot_urls JSONB DEFAULT '[]'::jsonb,
+  final_url TEXT,
+  status TEXT DEFAULT 'queued' CHECK (status IN ('queued','generating','ready','failed','sold')),
+  product_image_used BOOLEAN DEFAULT false,
+  error TEXT,
+  credit_cost_generate INTEGER DEFAULT 1,
+  credit_cost_purchase INTEGER DEFAULT 1,
+  created_at TIMESTAMP DEFAULT NOW(),
+  sold_at TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_ugc_brief ON ugc_videos(brief_id);
+CREATE INDEX IF NOT EXISTS idx_ugc_status ON ugc_videos(status);
+
+-- 4) BRIEFS ALTER
+ALTER TABLE briefs ADD COLUMN IF NOT EXISTS ugc_persona_id INTEGER REFERENCES personas(id);
+ALTER TABLE briefs ADD COLUMN IF NOT EXISTS ugc_status TEXT;
+ALTER TABLE briefs ADD COLUMN IF NOT EXISTS ugc_video_id UUID;
+
+-- 5) RLS (mevcut pattern: service_role tam erişim, anon key select)
+ALTER TABLE personas ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ugc_videos ENABLE ROW LEVEL SECURITY;
+
+-- Personas: herkes okuyabilir (public data)
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'personas_select_all' AND tablename = 'personas') THEN
+    CREATE POLICY personas_select_all ON personas FOR SELECT USING (true);
+  END IF;
+END $$;
+
+-- UGC Videos: authenticated users kendi brief'lerine erişim
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'ugc_videos_select_own' AND tablename = 'ugc_videos') THEN
+    CREATE POLICY ugc_videos_select_own ON ugc_videos FOR SELECT USING (true);
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'ugc_videos_insert' AND tablename = 'ugc_videos') THEN
+    CREATE POLICY ugc_videos_insert ON ugc_videos FOR INSERT WITH CHECK (true);
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'ugc_videos_update' AND tablename = 'ugc_videos') THEN
+    CREATE POLICY ugc_videos_update ON ugc_videos FOR UPDATE USING (true);
+  END IF;
+END $$;
+
+-- ============================================================
+-- TAMAMLANDI
+-- ============================================================
