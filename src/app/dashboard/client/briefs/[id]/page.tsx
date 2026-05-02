@@ -9,6 +9,7 @@ import CampaignSummaryTab from '@/components/CampaignSummaryTab'
 import VideoLoadingBox from '@/components/VideoLoadingBox'
 import { logClientActivity } from '@/lib/log-client'
 import AIUGCTab from '@/components/AIUGCTab'
+import InfoModal, { InfoParagraph } from '@/components/InfoModal'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
@@ -1205,25 +1206,16 @@ function ClientBriefDetail() {
               {/* ═══ AI EXPRESS TAB ═══ */}
               {activeTab === 'express' && <>
 
-              {/* AI EXPRESS CREDIT BOX */}
-              {aiChildren.length > 0 && (() => {
-                const total = aiChildren.length + aiChildren.filter(c => c.status === 'delivered').length * 2
-                return total > 0 ? (
-                  <div style={{display:'flex',justifyContent:'flex-end',marginBottom:'12px'}}>
-                    <div style={{display:'inline-flex',padding:'6px 14px',border:'1px solid #0a0a0a',fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'#0a0a0a'}}>{total} KREDİ</div>
-                  </div>
-                ) : null
-              })()}
-
-              {/* AI EXPRESS HEADER ROW: [info] */}
-              <div style={{display:'flex',alignItems:'center',marginBottom:'12px'}}>
+              {/* AI EXPRESS HEADER ROW: [info] ... [kredi] */}
+              <div style={{display:'flex',flexWrap:'nowrap',alignItems:'center',marginBottom:'12px',gap:'8px'}}>
                 <button onClick={()=>setExpressInfoOpen(true)} title="AI Express Hakkında"
                   onMouseEnter={e=>{e.currentTarget.style.background='rgba(0,0,0,0.06)'}}
                   onMouseLeave={e=>{e.currentTarget.style.background='transparent'}}
-                  style={{width:'28px',height:'28px',border:'none',background:'transparent',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',padding:'4px',transition:'background 0.15s'}}>
+                  style={{width:'28px',height:'28px',minWidth:'28px',border:'none',background:'transparent',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',padding:'4px',transition:'background 0.15s',flexShrink:0}}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
                 </button>
                 <div style={{flex:1}} />
+                {(() => { const total = aiChildren.length + aiChildren.filter(c => c.status === 'delivered').length * 2; return <div style={{display:'inline-flex',padding:'6px 14px',border:'1px solid #0a0a0a',fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:total > 0 ? '#0a0a0a' : '#9ca3af',flexShrink:0,whiteSpace:'nowrap'}}>{total} KREDİ</div> })()}
               </div>
 
               {/* AI VIDEO STUDIO */}
@@ -1449,15 +1441,16 @@ function ClientBriefDetail() {
                     </div>
                   ) : null
                 })()}
-                {/* CPS HEADER ROW: [info] */}
-                <div style={{display:'flex',alignItems:'center',marginBottom:'12px'}}>
+                {/* CPS HEADER ROW: [info] ... [kredi] */}
+                <div style={{display:'flex',flexWrap:'nowrap',alignItems:'center',marginBottom:'12px',gap:'8px'}}>
                   <button onClick={()=>setCpsInfoOpen(true)} title="CPS Hakkında"
                     onMouseEnter={e=>{e.currentTarget.style.background='rgba(0,0,0,0.06)'}}
                     onMouseLeave={e=>{e.currentTarget.style.background='transparent'}}
-                    style={{width:'28px',height:'28px',border:'none',background:'transparent',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',padding:'4px',transition:'background 0.15s'}}>
+                    style={{width:'28px',height:'28px',minWidth:'28px',border:'none',background:'transparent',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',padding:'4px',transition:'background 0.15s',flexShrink:0}}>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
                   </button>
                   <div style={{flex:1}} />
+                  {(() => { const total = cpsChildren.reduce((s: number, c: any) => s + (c.credit_cost || 0), 0); return <div style={{display:'inline-flex',padding:'6px 14px',border:'1px solid #0a0a0a',fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:total > 0 ? '#0a0a0a' : '#9ca3af',flexShrink:0,whiteSpace:'nowrap'}}>{total} KREDİ</div> })()}
                 </div>
 
                 {/* Package selection — show if no CPS children yet */}
@@ -1825,30 +1818,18 @@ function ClientBriefDetail() {
         />
       )}
       {/* AI EXPRESS INFO MODAL */}
-      {expressInfoOpen && (
-        <div onClick={()=>setExpressInfoOpen(false)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',backdropFilter:'blur(4px)',zIndex:100,display:'flex',alignItems:'center',justifyContent:'center'}}>
-          <div onClick={e=>e.stopPropagation()} style={{background:'#fff',border:'1px solid #0a0a0a',padding:'28px',maxWidth:'500px',width:'90%'}}>
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px'}}>
-              <span style={{fontSize:'14px',fontWeight:'500',letterSpacing:'1.5px',textTransform:'uppercase',color:'#0a0a0a'}}>AI Express Hakkında</span>
-              <button onClick={()=>setExpressInfoOpen(false)} style={{width:'28px',height:'28px',border:'1px solid #e5e4db',background:'#fff',color:'#0a0a0a',fontSize:'14px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>×</button>
-            </div>
-            <div style={{fontSize:'13px',color:'#555',lineHeight:1.7}}>AI Express ile yayına çıkmadan önce fikir geliştirin ve test edin. Deneysel bir özelliktir — sonuçlar garanti edilmez. Videolar tamamen brief'inizden yola çıkarak yapay zeka tarafından üretilmektedir. Fikir, görsel, ses ve müzik tamamen AI tarafından oluşturulur. Ekrandaki yazılar sosyal medyada native text olarak eklenmelidir. Dinamo sadece marka bilgileri ile AI prompt'larına müdahale eder.</div>
-          </div>
-        </div>
-      )}
+      <InfoModal open={expressInfoOpen} onClose={()=>setExpressInfoOpen(false)} title="AI Express hakkında" badge="BETA">
+        <InfoParagraph primary>AI Express ile yayına çıkmadan önce fikir geliştirin ve test edin. Deneysel bir özelliktir — sonuçlar garanti edilmez.</InfoParagraph>
+        <InfoParagraph>Videolar tamamen brief'inizden yola çıkarak yapay zeka tarafından üretilmektedir. Fikir, görsel, ses ve müzik tamamen AI tarafından oluşturulur. Ekrandaki yazılar sosyal medyada native text olarak eklenmelidir.</InfoParagraph>
+        <InfoParagraph>Dinamo sadece marka bilgileri ile AI prompt'larına müdahale eder.</InfoParagraph>
+      </InfoModal>
 
       {/* CPS INFO MODAL */}
-      {cpsInfoOpen && (
-        <div onClick={()=>setCpsInfoOpen(false)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',backdropFilter:'blur(4px)',zIndex:100,display:'flex',alignItems:'center',justifyContent:'center'}}>
-          <div onClick={e=>e.stopPropagation()} style={{background:'#fff',border:'1px solid #0a0a0a',padding:'28px',maxWidth:'500px',width:'90%'}}>
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px'}}>
-              <span style={{fontSize:'14px',fontWeight:'500',letterSpacing:'1.5px',textTransform:'uppercase',color:'#0a0a0a'}}>CPS Hakkında</span>
-              <button onClick={()=>setCpsInfoOpen(false)} style={{width:'28px',height:'28px',border:'1px solid #e5e4db',background:'#fff',color:'#0a0a0a',fontSize:'14px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>×</button>
-            </div>
-            <div style={{fontSize:'13px',color:'#555',lineHeight:1.7}}>Creative Performance System ile aynı brief'ten farklı yaratıcı yönler üretin. Hook'tan ton'a varyasyonları kontrol edin. Test edin, kazanan içeriği bulun. İsterseniz AI otomatik plan oluşturur, ekip üretir. Yapım süresi ilk varyasyon için 24 saat garantilidir, tamamlanması 48 saat sürebilir.</div>
-          </div>
-        </div>
-      )}
+      <InfoModal open={cpsInfoOpen} onClose={()=>setCpsInfoOpen(false)} title="CPS hakkında">
+        <InfoParagraph primary>Creative Performance System ile aynı brief'ten farklı yaratıcı yönler üretin.</InfoParagraph>
+        <InfoParagraph>Hook'tan ton'a varyasyonları kontrol edin. Test edin, kazanan içeriği bulun. İsterseniz AI otomatik plan oluşturur, ekip üretir.</InfoParagraph>
+        <InfoParagraph>Yapım süresi ilk varyasyon için 24 saat garantilidir, tamamlanması 48 saat sürebilir.</InfoParagraph>
+      </InfoModal>
     </div>
   )
 }

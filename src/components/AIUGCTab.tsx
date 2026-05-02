@@ -2,6 +2,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import UGCSettingsModal, { UGCSettings, DEFAULT_SETTINGS } from './UGCSettingsModal'
+import InfoModal, { InfoParagraph } from './InfoModal'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
@@ -335,23 +336,12 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
       <style>{`@keyframes ugc-pulse { 0%,100%{box-shadow:0 0 0 0 rgba(10,10,10,0.2)} 50%{box-shadow:0 0 0 4px rgba(10,10,10,0.08)} } @keyframes ugc-fade-in { from{opacity:0} to{opacity:1} }`}</style>
 
       {/* Info Modal */}
-      {infoOpen && (
-        <div onClick={() => setInfoOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', border: '1px solid #0a0a0a', padding: '28px', maxWidth: '500px', width: '90%' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <span style={{ fontSize: '14px', fontWeight: '500', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#0a0a0a' }}>AI UGC Hakkında</span>
-              <button onClick={() => setInfoOpen(false)} style={{ width: '28px', height: '28px', border: '1px solid #e5e4db', background: '#fff', color: '#0a0a0a', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
-            </div>
-            <div style={{ fontSize: '13px', color: '#555', lineHeight: 1.7 }}>
-              AI UGC ile gerçek bir influencer/creator izlenimi veren dikey video içerikleri üretin. Deneysel bir özelliktir — sonuçlar garanti edilmez. 24 saniyelik üç planlı anlatım, brief'inize ve seçtiğiniz personaya göre tamamen yapay zeka tarafından oluşturulur. Karakter, ortam, metin, ses ve dudak senkronu AI tarafından üretilir; ton, konuşma hızı, CTA ve müzik tercihleri ayarlardan özelleştirilebilir.
-              <br /><br />
-              AI ile üretilmiş influencer/creator içeriklerinde yapay zeka kullanıldığını belirtmek bazı sektörlerde, ülkelerde veya şirket politikalarında zorunlu olabilir. Bu nedenle ürettiğimiz videolar varsayılan olarak küçük bir "AI ile üretildi" işareti taşır; ayarlardan kapatabilirsiniz.
-              <br /><br />
-              Dinamo sadece marka bilgileri ve seçtiğiniz tercihlerle AI prompt'larına müdahale eder. Beta sürümünde özellikle Türkçe seslendirme ve karakter tutarlılığında iyileştirmeler devam etmektedir — geri bildirimleriniz değerlidir.
-            </div>
-          </div>
-        </div>
-      )}
+      <InfoModal open={infoOpen} onClose={() => setInfoOpen(false)} title="AI UGC hakkında" badge="BETA">
+        <InfoParagraph primary>AI UGC ile gerçek bir influencer/creator izlenimi veren dikey video içerikleri üretin. Deneysel bir özelliktir — sonuçlar garanti edilmez.</InfoParagraph>
+        <InfoParagraph>24 saniyelik üç planlı anlatım, brief'inize ve seçtiğiniz personaya göre tamamen yapay zeka tarafından oluşturulur. Karakter, ortam, metin, ses ve dudak senkronu AI tarafından üretilir; ton, konuşma hızı, CTA ve müzik tercihleri ayarlardan özelleştirilebilir.</InfoParagraph>
+        <InfoParagraph>AI ile üretilmiş influencer/creator içeriklerinde yapay zeka kullanıldığını belirtmek bazı sektörlerde, ülkelerde veya şirket politikalarında zorunlu olabilir. Bu nedenle ürettiğimiz videolar varsayılan olarak küçük bir "AI ile üretildi" işareti taşır; ayarlardan kapatabilirsiniz.</InfoParagraph>
+        <InfoParagraph>Dinamo sadece marka bilgileri ve seçtiğiniz tercihlerle AI prompt'larına müdahale eder. Beta sürümünde özellikle Türkçe seslendirme ve karakter tutarlılığında iyileştirmeler devam etmektedir — geri bildirimleriniz değerlidir.</InfoParagraph>
+      </InfoModal>
 
       {/* Settings Modal */}
       <UGCSettingsModal
