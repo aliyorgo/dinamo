@@ -260,7 +260,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
                 <video src={ugcVideo.final_url} controls preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'contain', backgroundColor: 'black' }} />
               ) : isProcessing ? (
                 <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '16px' }}>
-                  <div style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#6b6b66', marginBottom: '12px' }}>TAHMİNİ SÜRE: 3-5 dakika</div>
+                  <div style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#6b6b66', marginBottom: '12px' }}>TAHMİNİ SÜRE: 6-9 dakika</div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <div className="spinner" style={{ width: '14px', height: '14px', borderWidth: '2px', borderStyle: 'solid', borderColor: '#4ade80 transparent transparent transparent' }} />
                     <span style={{ fontSize: '13px', color: '#fff' }}>Üretiliyor</span>
