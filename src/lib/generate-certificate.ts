@@ -90,3 +90,82 @@ export function generateCertificatePDF(brief: any, companyName: string) {
   const campaign = (brief.campaign_name || 'brief').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
   doc.save(`dinamo_telif_${client}_${campaign}.pdf`)
 }
+
+export function generateUgcCertificatePDF(brief: any, companyName: string, personaName?: string) {
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+
+  doc.addFileToVFS('Roboto-Regular.ttf', ROBOTO_REGULAR)
+  doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal')
+  doc.addFont('Roboto-Regular.ttf', 'Roboto', 'bold')
+
+  const pw = doc.internal.pageSize.getWidth()
+  const margin = 25
+  const contentW = pw - margin * 2
+  let y = 30
+
+  doc.setTextColor(0, 0, 0)
+  doc.setFont('Roboto', 'bold')
+  doc.setFontSize(16)
+  doc.text('AI UGC İÇERİK LİSANS SERTİFİKASI', pw / 2, y, { align: 'center' })
+  y += 8
+  doc.setFont('Roboto', 'normal')
+  doc.setFontSize(11)
+  doc.text('Dinamo — DCC Film Yapım San. ve Tic. Ltd. Şti.', pw / 2, y, { align: 'center' })
+  y += 14
+
+  doc.setDrawColor(200)
+  doc.line(margin, y, pw - margin, y)
+  y += 10
+
+  doc.setFontSize(11)
+  const deliverDate = new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })
+  const info: [string, string][] = [
+    ['Kampanya:', brief.campaign_name || ''],
+    ['Müşteri:', companyName || ''],
+    ['AI Persona:', personaName || 'Belirtilmemiş'],
+    ['Satın Alma Tarihi:', deliverDate],
+    ['Referans No:', (brief.id || '').substring(0, 8).toUpperCase()],
+  ]
+  info.forEach(([label, value]) => {
+    doc.setFont('Roboto', 'bold')
+    doc.text(label, margin, y)
+    doc.setFont('Roboto', 'normal')
+    doc.text(value, margin + 40, y)
+    y += 6
+  })
+  y += 8
+
+  const sections: [string, string][] = [
+    ['1. İçerik Türü', 'Bu video tamamen yapay zeka tarafından üretilmiş bir UGC (User Generated Content) içeriktir. Videodaki karakter, ses, ortam ve görüntüler AI tarafından oluşturulmuştur. Gerçek bir kişi veya influencer tarafından çekilmemiştir.'],
+    ['2. Kullanım Hakkı', 'Müşteri, satın aldığı AI UGC videoyu tüm dijital platformlarda (sosyal medya, web sitesi, dijital reklam, TikTok, Instagram Reels, YouTube Shorts) süresiz olarak kullanabilir.'],
+    ['3. Yapay Zeka Bildirimi', 'Bu içerik yapay zeka ile üretilmiştir. Bazı sektörlerde, ülkelerde veya platformlarda AI kullanımının belirtilmesi zorunlu olabilir. Kullanıcının yerel mevzuatı ve platform kurallarını kontrol etmesi tavsiye edilir.'],
+    ['4. Telif Hakkı', 'AI tarafından üretilen içerikler DCC Film tarafından lisanslanmıştır. Satın alma tarihi itibarıyla kullanım hakları müşteriye aittir. Üçüncü taraf telif talepleri DCC Film tarafından karşılanır.'],
+    ['5. Sorumluluk', 'DCC Film, AI üretim altyapısının ticari lisans kapsamında olduğunu ve içeriğin güvenle kullanılabileceğini taahhüt eder.'],
+  ]
+
+  sections.forEach(([title, body]) => {
+    if (y > 260) { doc.addPage(); y = 25 }
+    doc.setFont('Roboto', 'bold')
+    doc.setFontSize(11)
+    doc.text(title, margin, y)
+    y += 6
+    doc.setFont('Roboto', 'normal')
+    const lines = doc.splitTextToSize(body, contentW)
+    doc.text(lines, margin, y)
+    y += lines.length * 5 + 6
+  })
+
+  if (y > 250) { doc.addPage(); y = 25 }
+  y += 10
+  doc.setDrawColor(200)
+  doc.line(margin, y, pw - margin, y)
+  y += 8
+  doc.setFontSize(9)
+  doc.text('Bu belge Dinamo platformu üzerinden otomatik oluşturulmuştur.', pw / 2, y, { align: 'center' })
+  y += 4
+  doc.text('DCC Film Yapım San. ve Tic. Ltd. Şti. — dinamo.media', pw / 2, y, { align: 'center' })
+
+  const client = (companyName || 'client').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+  const campaign = (brief.campaign_name || 'brief').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+  doc.save(`dinamo_ugc_telif_${client}_${campaign}.pdf`)
+}

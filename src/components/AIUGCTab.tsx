@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js'
 import UGCSettingsModal, { UGCSettings, DEFAULT_SETTINGS } from './UGCSettingsModal'
 import InfoModal, { InfoParagraph } from './InfoModal'
 import { UGC_MAX_CHARS } from '@/lib/ai-ugc-rules'
+import { generateUgcCertificatePDF } from '@/lib/generate-certificate'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
@@ -34,6 +35,9 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
   const [ugcVideo, setUgcVideo] = useState<any>(null)
   const [generating, setGenerating] = useState(false)
   const [purchasing, setPurchasing] = useState(false)
+  const [revisionOpen, setRevisionOpen] = useState(false)
+  const [revisionComment, setRevisionComment] = useState('')
+  const [revising, setRevising] = useState(false)
   const [msg, setMsg] = useState('')
   const [infoOpen, setInfoOpen] = useState(() => {
     if (typeof window === 'undefined') return false
@@ -168,11 +172,35 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
       const data = await res.json()
       if (data.download_url) {
         setUgcVideo({ ...ugcVideo, status: 'sold' })
-        // Trigger download
+        // Download video
         const a = document.createElement('a'); a.href = data.download_url; a.download = `ugc_${ugcVideo.id}.mp4`; a.click()
+        // Generate certificate PDF
+        const personaName = personas.find(p => p.id === selectedPersona)?.name
+        generateUgcCertificatePDF(brief, clientUser?.clients?.company_name || '', personaName)
       } else { setMsg(data.error || 'Satın alma başarısız') }
     } catch { setMsg('Bağlantı hatası') }
     setPurchasing(false)
+  }
+
+  async function handleRevision() {
+    if (!ugcVideo || !revisionComment.trim()) return
+    setRevising(true)
+    try {
+      const res = await fetch('/api/ugc/revise', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ugc_video_id: ugcVideo.id, revision_comment: revisionComment }) })
+      const data = await res.json()
+      if (data.ugc_video_id) {
+        setUgcVideo({ id: data.ugc_video_id, status: 'queued' })
+        setGenerating(true)
+        setRevisionOpen(false)
+        setRevisionComment('')
+        // Poll new video
+        const poll = setInterval(async () => {
+          const { data: v } = await supabase.from('ugc_videos').select('*').eq('id', data.ugc_video_id).single()
+          if (v && (v.status === 'ready' || v.status === 'failed')) { clearInterval(poll); setUgcVideo(v); setGenerating(false) }
+        }, 10000)
+      } else { setMsg(data.error || 'Revizyon başarısız') }
+    } catch { setMsg('Bağlantı hatası') }
+    setRevising(false)
   }
 
   function handleSettingsChange(newSettings: UGCSettings) {
@@ -282,17 +310,39 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
               {ugcVideo?.created_at && <div style={{ fontSize: '11px', color: '#888', marginBottom: '10px' }}>{new Date(ugcVideo.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</div>}
               {isFailed && <button onClick={() => { setUgcVideo(null); setGenerating(false) }} style={{ padding: '5px 12px', background: '#0a0a0a', color: '#fff', border: 'none', fontSize: '11px', fontWeight: '500', cursor: 'pointer' }}>Tekrar Dene</button>}
               {hasVideo && (
-                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                <div>
                   {isPurchased ? (
-                    <a href={ugcVideo.final_url} download target="_blank" style={{ fontSize: '11px', color: '#0a0a0a', textDecoration: 'none', border: '0.5px solid rgba(0,0,0,0.15)', padding: '5px 12px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                      <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M8 2v9M4 8l4 4 4-4" stroke="#0a0a0a" strokeWidth="1.5" strokeLinecap="round"/><path d="M2 13h12" stroke="#0a0a0a" strokeWidth="1.5" strokeLinecap="round"/></svg>
-                      İndir
-                    </a>
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                      <a href={ugcVideo.final_url} download target="_blank" style={{ fontSize: '11px', color: '#0a0a0a', textDecoration: 'none', border: '0.5px solid rgba(0,0,0,0.15)', padding: '5px 12px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M8 2v9M4 8l4 4 4-4" stroke="#0a0a0a" strokeWidth="1.5" strokeLinecap="round"/><path d="M2 13h12" stroke="#0a0a0a" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                        İndir
+                      </a>
+                      <button onClick={() => { const p = personas.find(x => x.id === selectedPersona); generateUgcCertificatePDF(brief, clientUser?.clients?.company_name || '', p?.name) }} style={{ fontSize: '11px', color: '#555', background: 'none', border: '0.5px solid rgba(0,0,0,0.12)', padding: '5px 12px', cursor: 'pointer' }}>Telif Belgesi</button>
+                    </div>
                   ) : (
-                    <>
-                      <button onClick={handlePurchase} disabled={purchasing || (clientUser?.allocated_credits || 0) < 1} className="btn btn-accent" style={{ padding: '6px 16px' }}>SATIN AL</button>
-                      <span style={{ fontSize: '13px', color: '#888' }}>1 kredi</span>
-                    </>
+                    <div>
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '10px' }}>
+                        <button onClick={handlePurchase} disabled={purchasing || (clientUser?.allocated_credits || 0) < 1} className="btn btn-accent" style={{ padding: '6px 16px' }}>SATIN AL VE İNDİR (1 KREDİ)</button>
+                        <button onClick={() => setRevisionOpen(!revisionOpen)} className="btn btn-outline" style={{ padding: '6px 12px', fontSize: '11px' }}>YORUM YAZ VE YENİ VERSİYON ÜRET</button>
+                      </div>
+                      {revisionOpen && (
+                        <div style={{ marginTop: '8px' }}>
+                          <textarea
+                            value={revisionComment}
+                            onChange={e => { if (e.target.value.length <= 200) setRevisionComment(e.target.value) }}
+                            placeholder="Bu videoyu nasıl iyileştirelim? (örn: Daha enerjik konuşsun, ürünü daha net göster)"
+                            rows={3}
+                            style={{ width: '100%', padding: '10px 12px', border: '1px solid #e5e4db', fontSize: '13px', color: '#0a0a0a', resize: 'none', boxSizing: 'border-box' }}
+                          />
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
+                            <span style={{ fontSize: '10px', color: '#888' }}>{revisionComment.length} / 200</span>
+                            <button onClick={handleRevision} disabled={revising || !revisionComment.trim()} className="btn" style={{ padding: '6px 14px', fontSize: '11px' }}>
+                              {revising ? 'ÜRETİLİYOR...' : 'YENİ VERSİYON ÜRET (1 KREDİ)'}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
               )}
