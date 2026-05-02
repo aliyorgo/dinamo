@@ -112,6 +112,15 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
     supabase.from('briefs').update({ ugc_settings: newSettings }).eq('id', briefId)
   }
 
+  function handlePersonaChange(id: number) {
+    setSelectedPersona(id)
+    if (script) setSettingsChanged(true)
+  }
+
+  function acceptStaleScript() {
+    setSettingsChanged(false)
+  }
+
   const hasVideo = ugcVideo?.status === 'ready' || ugcVideo?.status === 'sold'
   const isPurchased = ugcVideo?.status === 'sold'
   const isFailed = ugcVideo?.status === 'failed'
@@ -130,13 +139,6 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
         </button>
       </div>
 
-      {/* Settings changed warning */}
-      {settingsChanged && script && (
-        <div style={{ padding: '8px 12px', background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)', marginBottom: '12px', fontSize: '11px', color: '#92400e', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span>Ayarlar değişti, script'i yeniden önermek ister misin?</span>
-          <button onClick={generateScript} className="btn btn-outline" style={{ padding: '3px 10px', fontSize: '9px' }}>YENİDEN ÖNER</button>
-        </div>
-      )}
 
       {/* BETA INFO BANNER — AI Express pattern */}
       {!warningDismissed && (
@@ -219,12 +221,12 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
                 const p = personas.find(x => x.id === selectedPersona)
                 if (!p) return null
                 return (
-                  <div style={{ padding: '20px', border: '1px solid #0a0a0a', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '20px' }}>
-                    <div className="dot" style={{ width: '120px', height: '120px', minWidth: '120px', background: '#f5f4f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '36px', overflow: 'hidden', border: '2px solid #e5e4db' }}>
+                  <div style={{ padding: '16px 0', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '20px' }}>
+                    <div className="dot" style={{ width: '100px', height: '100px', minWidth: '100px', background: '#f5f4f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px', overflow: 'hidden' }}>
                       {p.thumbnail_url ? <img src={p.thumbnail_url} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : p.name[0]}
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                         <span style={{ fontSize: '18px', fontWeight: '500', color: '#0a0a0a' }}>{p.name}</span>
                         {recommendedPersona === p.id && <span style={{ fontSize: '9px', letterSpacing: '1px', padding: '2px 7px', background: 'rgba(34,197,94,0.1)', border: '1px solid #22c55e', color: '#166534' }}>ÖNERİLEN</span>}
                       </div>
@@ -236,8 +238,8 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
               })()}
               <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px' }}>
                 {personas.map(p => (
-                  <div key={p.id} onClick={() => setSelectedPersona(p.id)} style={{ flexShrink: 0, width: '60px', textAlign: 'center', cursor: 'pointer', opacity: selectedPersona === p.id ? 1 : 0.6, transition: 'opacity 0.15s' }}>
-                    <div className="dot" style={{ width: '40px', height: '40px', minWidth: '40px', margin: '0 auto 4px', background: '#f5f4f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', border: selectedPersona === p.id ? '2px solid #0a0a0a' : '1px solid #e5e4db', overflow: 'hidden' }}>
+                  <div key={p.id} onClick={() => handlePersonaChange(p.id)} style={{ flexShrink: 0, width: '60px', textAlign: 'center', cursor: 'pointer', opacity: selectedPersona === p.id ? 1 : 0.6, transition: 'opacity 0.15s' }}>
+                    <div className="dot" style={{ width: '40px', height: '40px', minWidth: '40px', margin: '0 auto 4px', background: '#f5f4f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', border: selectedPersona === p.id ? '2px solid #22c55e' : '1px solid #e5e4db', overflow: 'hidden', transition: 'border-color 0.15s' }}>
                       {p.thumbnail_url ? <img src={p.thumbnail_url} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : p.name[0]}
                     </div>
                     <div style={{ fontSize: '9px', color: '#0a0a0a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
@@ -268,12 +270,19 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
           <div style={{ marginBottom: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
               <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)' }}>SCRİPT</div>
-              <button onClick={generateScript} disabled={scriptLoading || !selectedPersona} className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '9px' }}>
+              <button onClick={() => { generateScript(); setSettingsChanged(false) }} disabled={scriptLoading || !selectedPersona}
+                className={settingsChanged && script ? 'btn' : 'btn btn-outline'}
+                style={{ padding: '4px 12px', fontSize: '9px', ...(settingsChanged && script ? { animation: 'ugc-pulse 2s ease-in-out infinite' } : {}) }}>
                 {scriptLoading ? 'ÜRETİLİYOR...' : script ? 'YENİDEN ÖNER' : 'SCRİPT ÜRET'}
               </button>
             </div>
+            {settingsChanged && script && (
+              <div onClick={acceptStaleScript} style={{ fontSize: '10px', color: '#888', marginBottom: '8px', cursor: 'pointer' }}>
+                Ayarlar değişti — yeniden önermek için butona bas, veya <span style={{ textDecoration: 'underline' }}>mevcut metni kabul et</span>
+              </div>
+            )}
             {script?.shots ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+              <div onClick={settingsChanged ? acceptStaleScript : undefined} style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', opacity: settingsChanged ? 0.5 : 1, transition: 'opacity 0.3s', cursor: settingsChanged ? 'pointer' : 'default' }}>
                 {script.shots.map((shot: any, i: number) => (
                   <div key={i} style={{ padding: '10px 12px', border: '1px solid #e5e4db', background: '#fafaf7' }}>
                     <div style={{ fontSize: '9px', letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '6px' }}>SHOT {shot.shot} · {shot.camera || ['wide', 'close-up', 'medium'][i]}</div>
@@ -293,6 +302,8 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
           </button>
         </div>
       )}
+
+      <style>{`@keyframes ugc-pulse { 0%,100%{box-shadow:0 0 0 0 rgba(10,10,10,0.2)} 50%{box-shadow:0 0 0 4px rgba(10,10,10,0.08)} }`}</style>
 
       {/* Settings Modal */}
       <UGCSettingsModal
