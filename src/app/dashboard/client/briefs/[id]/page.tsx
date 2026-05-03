@@ -187,9 +187,16 @@ function ClientBriefDetail() {
     const { data: b } = await supabase.from('briefs').select('*, clients(ai_video_enabled)').eq('id', id).single()
     setBrief(b)
     if (b?.caption) { setCaptionText(b.caption); setSavedCaption(b.caption) }
-    // AI Express settings
-    const defaultExpSettings = { logo: !pUrl, cta: false, packshot: !!pUrl }
-    setExpressSettings(b?.ai_express_settings || defaultExpSettings)
+    // AI Express settings — DB is single source of truth
+    const stored = b?.ai_express_settings
+    if (!stored) {
+      // First open — compute defaults based on packshot availability, persist immediately
+      const defaults = { logo: !pUrl, cta: false, packshot: !!pUrl }
+      setExpressSettings(defaults)
+      supabase.from('briefs').update({ ai_express_settings: defaults }).eq('id', id)
+    } else {
+      setExpressSettings(stored)
+    }
     const { data: q } = await supabase.from('brief_questions').select('*').eq('brief_id', id).order('asked_at')
     setQuestions(q || [])
     const { data: v } = await supabase.from('video_submissions').select('*').eq('brief_id', id).order('version', { ascending: true })
