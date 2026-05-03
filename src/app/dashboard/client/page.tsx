@@ -590,7 +590,7 @@ export default function ClientDashboard() {
                   <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'#4ade80',marginBottom:'10px'}}>AI UGC HAZIR · {ugcReadyCount}</div>
                   <div className="ai-grid" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'10px'}}>
                     {ugcReadyList.map(({ brief: parent, videos }) => videos.map((vid: any, i: number) => (
-                      <div key={vid.id} onClick={() => router.push(`/dashboard/client/briefs/${parent.id}?tab=ugc`)}
+                      <div key={vid.id} onClick={() => router.push(`/dashboard/client/briefs/${parent.id}?tab=ugc&video=${vid.id}`)}
                         style={{padding:'12px 14px',background:'#fff',borderLeft:'3px solid #4ade80',border:'1px solid #e5e4db',cursor:'pointer',position:'relative'}}>
                         <div style={{position:'absolute',top:'8px',right:'8px',width:'8px',height:'8px',borderRadius:'50%',background:'#4ade80'}} />
                         <div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>{parent.campaign_name}</div>

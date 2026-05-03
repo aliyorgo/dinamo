@@ -15,7 +15,7 @@ const UGC_STAGES = [
   { key: 'merge', label: 'Ses ve görüntü birleştiriliyor', duration: 25 },
 ]
 
-interface Props { briefId: string; brief: any; clientUser: any }
+interface Props { briefId: string; brief: any; clientUser: any; autoPlayVideoId?: string }
 
 function simpleHash(str: string): string {
   let hash = 0
@@ -31,10 +31,11 @@ function readScript(scripts: Record<string, any>, personaId: number | string): s
   return ''
 }
 
-export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
+export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }: Props) {
   // Data
   const [ugcVideos, setUgcVideos] = useState<any[]>([])
   const [personas, setPersonas] = useState<any[]>([])
+  const videoCardRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const [feedbacks, setFeedbacks] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [personaLoading, setPersonaLoading] = useState(true)
@@ -162,6 +163,18 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
       })()
     }
   }, [selectedPersona, loading, recommendedPersona])
+
+  // Auto-scroll + autoplay from dashboard notification click
+  useEffect(() => {
+    if (!autoPlayVideoId || loading || ugcVideos.length === 0) return
+    const el = videoCardRefs.current[autoPlayVideoId]
+    if (!el) return
+    setTimeout(() => {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      const vid = el.querySelector('video') as HTMLVideoElement
+      if (vid) vid.play().catch(() => {})
+    }, 400)
+  }, [autoPlayVideoId, loading, ugcVideos.length])
 
   // Feedback save (AI Express pattern: inline supabase update to brief.ugc_feedbacks)
   async function saveFeedback(videoId: string, videoVersion: string, personaSlug: string) {
@@ -345,7 +358,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
           const currentFbText = feedbackText[video.id] ?? ''
 
           return (
-            <div key={video.id} style={{ display: 'flex', gap: '14px', padding: '14px', marginBottom: '8px', border: highlightId === video.id ? '2px solid #22c55e' : '1px solid var(--color-border-tertiary)', background: '#fff', alignItems: 'flex-start', transition: 'all 0.3s' }} onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-background-secondary)' }} onMouseLeave={e => { e.currentTarget.style.background = '#fff' }}>
+            <div key={video.id} ref={el => { videoCardRefs.current[video.id] = el }} style={{ display: 'flex', gap: '14px', padding: '14px', marginBottom: '8px', border: highlightId === video.id ? '2px solid #22c55e' : '1px solid var(--color-border-tertiary)', background: '#fff', alignItems: 'flex-start', transition: 'all 0.3s' }} onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-background-secondary)' }} onMouseLeave={e => { e.currentTarget.style.background = '#fff' }}>
               {/* Video */}
               <div style={{ width: '200px', aspectRatio: '9/16', background: '#0a0a0a', flexShrink: 0, position: 'relative', overflow: 'hidden' }}>
                 {hasVideo ? (

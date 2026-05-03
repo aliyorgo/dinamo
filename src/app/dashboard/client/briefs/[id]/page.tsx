@@ -1725,7 +1725,7 @@ function ClientBriefDetail() {
 
               {/* ═══ UGC TAB ═══ */}
               {activeTab === 'ugc' && brief && (
-                <AIUGCTab briefId={id} brief={brief} clientUser={clientUser} />
+                <AIUGCTab briefId={id} brief={brief} clientUser={clientUser} autoPlayVideoId={searchParams.get('video') || undefined} />
               )}
 
               {/* ═══ SUMMARY TAB ═══ */}
