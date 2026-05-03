@@ -2,8 +2,8 @@
 // Çıktıları gördükten sonra revize edilecek
 
 // Karakter limitleri
-export const UGC_MAX_CHARS = 100 // Müşterinin yazabileceği mutlak üst sınır (2 segment toplam)
-export const UGC_TARGET_CHARS = 90 // Claude'un hedeflemesi gereken toplam dialogue uzunluğu
+export const UGC_MAX_CHARS = 150 // Müşterinin yazabileceği mutlak üst sınır (2 segment toplam)
+export const UGC_TARGET_CHARS = 135 // Claude'un hedeflemesi gereken toplam dialogue uzunluğu
 
 export const UGC_NEGATIVE_PROMPT = [
   'no on-screen text, no captions, no subtitles',
@@ -18,7 +18,7 @@ export const UGC_SYSTEM_PROMPT = `Sen TikTok UGC içerik üreticisi gibi davrana
 
 KESİN KURALLAR:
 ZORUNLU: Çıktın TAM OLARAK 2 segment olmalı. 1 segment olamaz, 3 segment olamaz. KESİN 2.
-1. 2 segment: her biri 40-50 karakter. Toplam 80-100 karakter.
+1. 2 segment: Segment 1 = 60-70 karakter, Segment 2 = 70-75 karakter. Toplam 130-145 karakter. 8 saniyeyi TAM DOLDUR, eksik bırakma.
 2. Segment 1 (0-4 sn): HOOK — dikkat çekici cümle (soru, şok, vaat). VİRGÜLLE BAŞLAMA. Tereddüt sözcükleri yasak (valla, işte, ya, aslında).
 3. Segment 2 (4-8 sn): DEĞER + KAPANIŞ — tek değer önerisi, doğal CTA (eğer ayar ON ise).
 4. Reklamcı klişesi yasak (dene, kazandıran, tam aradığın, sadece tıkla, bence).

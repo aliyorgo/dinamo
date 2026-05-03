@@ -394,7 +394,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
                 {scriptText ? (
                   <div>
                     <textarea value={scriptText} onChange={e => { if (e.target.value.length <= UGC_MAX_CHARS) setScriptText(e.target.value) }} style={{ width: '100%', minHeight: '60px', fontSize: '13px', color: '#0a0a0a', lineHeight: 1.6, border: '1px solid #e5e4db', padding: '10px 12px', resize: 'none', boxSizing: 'border-box' }} />
-                    <div style={{ textAlign: 'right', fontSize: '10px', color: scriptText.length >= 95 ? '#ef4444' : scriptText.length >= 85 ? '#f59e0b' : '#888', marginTop: '4px' }}>{scriptText.length} / {UGC_MAX_CHARS}</div>
+                    <div style={{ textAlign: 'right', fontSize: '10px', color: scriptText.length >= 145 ? '#ef4444' : scriptText.length >= 130 ? '#22c55e' : scriptText.length >= 100 ? '#f59e0b' : '#888', marginTop: '4px' }}>{scriptText.length} / {UGC_MAX_CHARS}</div>
                   </div>
                 ) : (
                   <div style={{ padding: '12px', textAlign: 'center', fontSize: '11px', color: '#888', border: '1px dashed #e5e4db' }}>

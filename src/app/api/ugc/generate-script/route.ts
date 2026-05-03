@@ -42,7 +42,7 @@ ${ctaNote}
 ${productNote}${feedbackBlock}
 
 KURALLAR:
-- 2 segment: her biri 40-50 karakter, toplam 80-100 karakter.
+- 2 segment: her biri Segment 1 = 60-70 karakter, Segment 2 = 70-75 karakter. Toplam 130-145 karakter. 8 saniyeyi TAM DOLDUR.
 - Segment 1 (0-4 sn): HOOK — dikkat çekici, VİRGÜLLE BAŞLAMA, tereddüt yasak.
 - Segment 2 (4-8 sn): DEĞER + doğal kapanış.
 - Reklamcı klişesi yasak (dene, kazandıran, tam aradığın).
@@ -51,7 +51,7 @@ KURALLAR:
 KESINLIKLE SADECE JSON DÖNDÜR. Açıklama yazma, analiz yapma, markdown kullanma. Yanıtın direkt { ile başlasın } ile bitsin. Hiçbir açıklayıcı metin, başlık, emoji, checkmark olmasın.
 
 ÖRNEK DOĞRU CEVAP:
-{"segments":[{"timestamp":"00:00-00:04","camera":"medium shot","action":"speaks to camera","dialogue":"40-50 char Türkçe"},{"timestamp":"00:04-00:08","camera":"close-up shot","action":"leans forward","dialogue":"40-50 char Türkçe"}]}`,
+{"segments":[{"timestamp":"00:00-00:04","camera":"medium shot","action":"speaks to camera","dialogue":"60-75 char Türkçe"},{"timestamp":"00:04-00:08","camera":"close-up shot","action":"leans forward","dialogue":"60-75 char Türkçe"}]}`,
       messages: [
         { role: 'user', content: `Brief: ${brief.campaign_name}\nMesaj: ${brief.message || ''}\nHedef Kitle: ${brief.target_audience || ''}\nCTA: ${brief.cta || ''}\n\nJSON:` },
         { role: 'assistant', content: '{"segments":[{' }
@@ -88,7 +88,7 @@ KESINLIKLE SADECE JSON DÖNDÜR. Açıklama yazma, analiz yapma, markdown kullan
     const retryRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 400, system: 'Return ONLY valid JSON. No markdown. Format: {"segments":[{"timestamp":"00:00-00:04","camera":"medium shot","action":"...","dialogue":"..."},{"timestamp":"00:04-00:08","camera":"close-up shot","action":"...","dialogue":"..."}]}', messages: [{ role: 'user', content: `Brief: ${brief.campaign_name}. Persona: ${persona.name}. Write 2 segments of Turkish UGC dialogue, 40-50 chars each. JSON only:` }, { role: 'assistant', content: '{"segments":[{' }] }),
+      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 400, system: 'Return ONLY valid JSON. No markdown. Format: {"segments":[{"timestamp":"00:00-00:04","camera":"medium shot","action":"...","dialogue":"..."},{"timestamp":"00:04-00:08","camera":"close-up shot","action":"...","dialogue":"..."}]}', messages: [{ role: 'user', content: `Brief: ${brief.campaign_name}. Persona: ${persona.name}. Write 2 segments of Turkish UGC dialogue, 60-75 chars each, total 130-145 chars. JSON only:` }, { role: 'assistant', content: '{"segments":[{' }] }),
     })
     if (retryRes.ok) {
       const retryData = await retryRes.json()
