@@ -2,7 +2,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import UGCSettingsModal, { UGCSettings, DEFAULT_SETTINGS } from './UGCSettingsModal'
-import InfoModal, { InfoParagraph } from './InfoModal'
 import { UGC_MAX_CHARS } from '@/lib/ai-ugc-rules'
 import { generateUgcCertificatePDF } from '@/lib/generate-certificate'
 import { downloadFile } from '@/lib/download-helper'
@@ -245,8 +244,12 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
     <div>
       {/* HEADER ROW */}
       <div style={{ display: 'flex', flexWrap: 'nowrap', alignItems: 'center', marginBottom: '16px', gap: '8px' }}>
-        <button onClick={() => setInfoOpen(true)} title="AI UGC Hakkında" onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.06)' }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }} style={{ width: '28px', height: '28px', minWidth: '28px', border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s', flexShrink: 0, padding: '4px' }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+        <button onClick={() => setInfoOpen(!infoOpen)} title="AI UGC Hakkında"
+          onMouseEnter={e => { e.currentTarget.style.background = '#0a0a0a'; e.currentTarget.style.color = '#fff' }}
+          onMouseLeave={e => { e.currentTarget.style.background = '#f5f4f0'; e.currentTarget.style.color = '#888' }}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '4px 10px', background: '#f5f4f0', border: 'none', fontSize: '11px', color: '#888', cursor: 'pointer', transition: 'all 0.15s', flexShrink: 0 }}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          Bilgi
         </button>
         <button onClick={() => setSettingsOpen(true)} title="AI UGC Ayarları" onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.04)' }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }} style={{ width: '28px', height: '28px', minWidth: '28px', border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s', flexShrink: 0 }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="1.5"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-1.42 3.42 2 2 0 0 1-1.42-.59l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-3.42-1.42 2 2 0 0 1 .59-1.42l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 1.42-3.42 2 2 0 0 1 1.42.59l.06.06A1.65 1.65 0 0 0 9 4.6h.09A1.65 1.65 0 0 0 10.07 3V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 3.42 1.42 2 2 0 0 1-.59 1.42l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
@@ -254,6 +257,22 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
         <div style={{ flex: 1 }} />
         <div style={{ display: 'inline-flex', padding: '6px 14px', border: '1px solid #0a0a0a', fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: ugcVideos.length > 0 ? '#0a0a0a' : '#9ca3af', flexShrink: 0, whiteSpace: 'nowrap' }}>{ugcVideos.reduce((s, v) => s + (v.status === 'sold' ? 2 : 1), 0)} KREDİ</div>
       </div>
+
+      {/* Info Collapse Panel */}
+      {infoOpen && (
+        <div style={{ background: '#f9f7f3', border: '1px solid #e5e4db', padding: '20px', marginBottom: '16px', transition: 'all 0.2s' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <div style={{ fontSize: '14px', fontWeight: '600', color: '#0a0a0a' }}>AI UGC Hakkında</div>
+            <button onClick={() => setInfoOpen(false)} style={{ width: '24px', height: '24px', border: 'none', background: 'none', cursor: 'pointer', fontSize: '16px', color: '#888', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={e => { e.currentTarget.style.color = '#0a0a0a' }} onMouseLeave={e => { e.currentTarget.style.color = '#888' }}>×</button>
+          </div>
+          <div style={{ fontSize: '13px', color: '#333', lineHeight: 1.6 }}>
+            <p style={{ margin: '0 0 12px' }}>AI UGC ile gerçek bir influencer/creator izlenimi veren dikey video içerikleri üretin. Deneysel bir özelliktir — sonuçlar garanti edilmez. Beta sürümü mevcut modellerde en iyi sonuçları elde edebilmek için 8 saniye ile sınırlıdır.</p>
+            <p style={{ margin: '0 0 12px' }}>Brief'inize ve seçtiğiniz personaya göre tamamen yapay zeka tarafından oluşturulur. Karakter, ortam, metin, ses ve dudak senkronu AI tarafından üretilir; ton ve CTA tercihleri ayarlardan özelleştirilebilir.</p>
+            <p style={{ margin: '0 0 12px' }}>Dinamo sadece marka bilgileri ve seçtiğiniz tercihlerle AI prompt'larına müdahale eder. Beta sürümünde özellikle Türkçe seslendirme ve karakter tutarlılığında iyileştirmeler devam etmektedir.</p>
+            <p style={{ margin: 0 }}>AI ile üretilen bu tarzda içeriklere watermark koymak kanun, şirket politikası ya da etik gereklilik olabilir. Ayarlardan bu uyarıyı videonuza ekleyebilirsiniz.</p>
+          </div>
+        </div>
+      )}
 
       {msg && <div style={{ padding: '10px 14px', background: 'rgba(239,68,68,0.08)', border: '1px solid #ef4444', fontSize: '12px', color: '#0a0a0a', marginBottom: '12px' }}>{msg}<button onClick={() => setMsg('')} style={{ float: 'right', background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}>×</button></div>}
 
@@ -466,13 +485,6 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
         )}
       </div>
 
-      {/* Info Modal */}
-      <InfoModal open={infoOpen} onClose={() => setInfoOpen(false)} title="AI UGC hakkında" badge="BETA">
-        <InfoParagraph primary>AI UGC ile gerçek bir influencer/creator izlenimi veren dikey video içerikleri üretin. Deneysel bir özelliktir — sonuçlar garanti edilmez.</InfoParagraph>
-        <InfoParagraph>24 saniyelik üç planlı anlatım, brief'inize ve seçtiğiniz personaya göre tamamen yapay zeka tarafından oluşturulur. Karakter, ortam, metin, ses ve dudak senkronu AI tarafından üretilir; ton, konuşma hızı, CTA ve müzik tercihleri ayarlardan özelleştirilebilir.</InfoParagraph>
-        <InfoParagraph>Dinamo sadece marka bilgileri ve seçtiğiniz tercihlerle AI prompt'larına müdahale eder. Beta sürümünde özellikle Türkçe seslendirme ve karakter tutarlılığında iyileştirmeler devam etmektedir — geri bildirimleriniz değerlidir.</InfoParagraph>
-        <InfoParagraph>Şu anda test edebilmeniz için AI UGC videoları 8 saniye ile sınırlıdır.</InfoParagraph>
-      </InfoModal>
 
       {/* Settings Modal */}
       <UGCSettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} settings={settings} onChange={handleSettingsChange} brandDefaults={null} />
