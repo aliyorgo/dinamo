@@ -489,6 +489,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
         <InfoParagraph>24 saniyelik üç planlı anlatım, brief'inize ve seçtiğiniz personaya göre tamamen yapay zeka tarafından oluşturulur. Karakter, ortam, metin, ses ve dudak senkronu AI tarafından üretilir; ton, konuşma hızı, CTA ve müzik tercihleri ayarlardan özelleştirilebilir.</InfoParagraph>
         <InfoParagraph>AI ile üretilmiş influencer/creator içeriklerinde yapay zeka kullanıldığını belirtmek bazı sektörlerde, ülkelerde veya şirket politikalarında zorunlu olabilir. Bu nedenle ürettiğimiz videolar varsayılan olarak küçük bir "AI ile üretildi" işareti taşır; ayarlardan kapatabilirsiniz.</InfoParagraph>
         <InfoParagraph>Dinamo sadece marka bilgileri ve seçtiğiniz tercihlerle AI prompt'larına müdahale eder. Beta sürümünde özellikle Türkçe seslendirme ve karakter tutarlılığında iyileştirmeler devam etmektedir — geri bildirimleriniz değerlidir.</InfoParagraph>
+        <InfoParagraph>Şu anda test edebilmeniz için AI UGC videoları 8 saniye ile sınırlıdır.</InfoParagraph>
       </InfoModal>
 
       {/* Settings Modal */}

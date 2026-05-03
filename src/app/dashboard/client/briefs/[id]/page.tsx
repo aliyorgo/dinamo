@@ -1826,6 +1826,7 @@ function ClientBriefDetail() {
         <InfoParagraph primary>AI Express ile yayına çıkmadan önce fikir geliştirin ve test edin. Deneysel bir özelliktir — sonuçlar garanti edilmez.</InfoParagraph>
         <InfoParagraph>Videolar tamamen brief'inizden yola çıkarak yapay zeka tarafından üretilmektedir. Fikir, görsel, ses ve müzik tamamen AI tarafından oluşturulur. Ekrandaki yazılar sosyal medyada native text olarak eklenmelidir.</InfoParagraph>
         <InfoParagraph>Dinamo sadece marka bilgileri ile AI prompt'larına müdahale eder.</InfoParagraph>
+        <InfoParagraph>Şu anda test edebilmeniz için AI Express videoları 10 saniye ile sınırlıdır.</InfoParagraph>
       </InfoModal>
 
       {/* CPS INFO MODAL */}
