@@ -425,16 +425,10 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
                   {scriptLoading ? 'ÜRETİLİYOR...' : scriptText ? 'YENİDEN ÜRET' : 'SCRİPT ÜRET'}
                 </button>
               </div>
-              {scriptText ? (
-                <div>
-                  <textarea value={scriptText} onChange={e => { if (e.target.value.length <= UGC_MAX_CHARS) setScriptText(e.target.value) }} onBlur={() => { if (!selectedPersona || scriptText === readScript(ugcScripts, selectedPersona)) return; const updated = { ...ugcScripts, [String(selectedPersona)]: scriptText }; setUgcScripts(updated); supabase.from('briefs').update({ ugc_scripts: updated }).eq('id', briefId) }} style={{ width: '100%', minHeight: '60px', fontSize: '13px', color: '#0a0a0a', lineHeight: 1.6, border: '1px solid #e5e4db', padding: '10px 12px', resize: 'none', boxSizing: 'border-box' }} />
-                  <div style={{ textAlign: 'right', fontSize: '10px', color: scriptText.length >= 145 ? '#ef4444' : scriptText.length >= 130 ? '#22c55e' : scriptText.length >= 100 ? '#f59e0b' : '#888', marginTop: '4px' }}>{scriptText.length} / {UGC_MAX_CHARS}</div>
-                </div>
-              ) : (
-                <div style={{ padding: '12px', textAlign: 'center', fontSize: '11px', color: '#888', border: '1px dashed #e5e4db' }}>
-                  {scriptLoading ? 'Üretiliyor...' : 'Önce SCRİPT ÜRET butonuna basın.'}
-                </div>
-              )}
+              <div>
+                <textarea value={scriptText} onChange={e => { if (e.target.value.length <= UGC_MAX_CHARS) setScriptText(e.target.value) }} onBlur={() => { if (!selectedPersona || scriptText === readScript(ugcScripts, selectedPersona)) return; const updated = { ...ugcScripts, [String(selectedPersona)]: scriptText }; setUgcScripts(updated); supabase.from('briefs').update({ ugc_scripts: updated }).eq('id', briefId) }} placeholder={scriptLoading ? 'Üretiliyor...' : 'Konuşma metnini buraya yazın veya SCRİPT ÜRET butonuna basın.'} style={{ width: '100%', minHeight: '60px', fontSize: '13px', color: '#0a0a0a', lineHeight: 1.6, border: '1px solid #e5e4db', padding: '10px 12px', resize: 'none', boxSizing: 'border-box' }} />
+                <div style={{ textAlign: 'right', fontSize: '10px', color: scriptText.length >= 145 ? '#ef4444' : scriptText.length >= 130 ? '#22c55e' : scriptText.length >= 100 ? '#f59e0b' : '#888', marginTop: '4px' }}>{scriptText.length} / {UGC_MAX_CHARS}</div>
+              </div>
             </div>
             {/* ÜRET */}
             <button onClick={handleGenerate} disabled={generating || !selectedPersona || !scriptText || (clientUser?.allocated_credits || 0) < 1} style={{ width: '100%', padding: '12px', background: (!selectedPersona || !scriptText || (clientUser?.allocated_credits || 0) < 1) ? '#ccc' : '#0a0a0a', color: '#fff', border: 'none', fontSize: '13px', fontWeight: '600', cursor: (!selectedPersona || !scriptText) ? 'default' : 'pointer' }}>
