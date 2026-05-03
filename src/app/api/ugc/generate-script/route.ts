@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
   if (!apiKey) return NextResponse.json({ error: 'API key yok' }, { status: 500 })
 
   const toneNote = tone === 'samimi' ? 'Çok samimi, günlük konuşma dili.' : tone === 'resmi' ? 'Profesyonel ve resmi.' : 'Normal günlük konuşma.'
-  const ctaNote = includeCta ? 'Sona doğal CTA ekle (dene, bak, linkten ulaş gibi kısa).' : 'CTA EKLEME, sadece doğal kapanış.'
+  const ctaNote = includeCta ? `ZORUNLU CTA: Dialogue'un son 20-30 karakteri CTA olmalı. Brief CTA: "${brief.cta || 'platformda bul'}". Bu CTA'yı doğal şekilde dialogue'a yedir. Boşsa generic CTA yaz (linkten bak, hemen dene).` : 'CTA EKLEME, sadece doğal kapanış.'
   const productNote = use_product ? 'Ürün videoda görünecek, persona ürünü gösteriyor.' : 'Ürün görünmüyor, sadece sözlü anlatım.'
 
   const model = await getClaudeModel('ugc-script', (brief as any).clients?.use_fast_mode || false)
@@ -47,10 +47,10 @@ ${ctaNote}
 ${productNote}${feedbackBlock}
 
 KURALLAR:
-- Tek string dialogue, toplam 140-155 karakter. 8 saniyeyi TAM DOLDUR.
+- Tek string dialogue, toplam ${includeCta ? '145-165' : '140-155'} karakter. 8 saniyeyi TAM DOLDUR.
 - HOOK + DEĞER + KAPANIŞ tek akışta.
 - VİRGÜLLE BAŞLAMA yasak, tereddüt yasak.
-- Reklamcı klişesi yasak (dene, kazandıran, tam aradığın).
+- Reklamcı klişesi yasak (kazandıran, tam aradığın, bence). CTA gerekiyorsa istisna: 'dene', 'bak', 'al', 'linkten ulaş' gibi doğal CTA cümleleri kullanılabilir.
 - Emoji yasak, sadece düz Türkçe metin.
 - Doğal Türkçe, persona tonuna sadık.
 

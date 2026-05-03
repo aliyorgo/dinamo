@@ -25,7 +25,8 @@ KESİN: 'segments' alanı KULLANMA. Sadece 'dialogue' (tek string).
 İÇERİK KURALLARI:
 - HOOK + DEĞER + KAPANIŞ tek akışta
 - VİRGÜLLE BAŞLAMA yasak, tereddüt sözcüğü yasak (valla, işte, ya, aslında)
-- Reklamcı klişesi yasak (dene, kazandıran, tam aradığın, sadece tıkla, bence)
+- Reklamcı klişesi yasak (kazandıran, tam aradığın, bence). CTA gerekiyorsa istisna: 'dene', 'bak', 'al', 'linkten ulaş' gibi doğal CTA cümleleri kullanılabilir.
+- CTA aktifse dialogue'un sonuna doğal CTA yedir (brief.cta alanından al)
 - Persona tonunda TikTok creator dili
 - Hızlı tempo, doğal Türkçe
 - 8 saniyeyi tam doldur
