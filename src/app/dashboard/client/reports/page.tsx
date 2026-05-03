@@ -218,7 +218,7 @@ export default function ClientReportsPage() {
           {[
             { label: 'Projelerim', href: '/dashboard/client' },
             { label: 'Yeni Brief', href: '/dashboard/client/brief/new' },
-            { label: 'Marka Kimliği', href: '/dashboard/client/brand-identity' },
+            { label: 'Marka Ayarları', href: '/dashboard/client/brand-identity' },
             { label: 'Raporlar', href: '/dashboard/client/reports', active: true },
             { label: 'Telif Belgeleri', href: '/dashboard/client/certificates' },
             { label: 'İçerik Güvencesi', href: '/dashboard/client/guarantee' },

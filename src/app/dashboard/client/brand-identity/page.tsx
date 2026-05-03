@@ -33,6 +33,27 @@ export default function BrandIdentityPage() {
   const [voiceSaving, setVoiceSaving] = useState(false)
   const previewAudioRef = useRef<HTMLAudioElement>(null)
 
+  // AI Mode
+  const [globalAiMode, setGlobalAiMode] = useState<'fast' | 'quality'>('fast')
+  const [clientFastMode, setClientFastMode] = useState(false)
+
+  useEffect(() => {
+    async function loadAiMode() {
+      const res = await fetch('/api/client/ai-mode')
+      if (res.ok) {
+        const d = await res.json()
+        setGlobalAiMode(d.global_mode)
+        setClientFastMode(d.use_fast_mode)
+      }
+    }
+    loadAiMode()
+  }, [])
+
+  async function toggleAiMode(fast: boolean) {
+    setClientFastMode(fast)
+    await fetch('/api/client/ai-mode', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ use_fast_mode: fast }) })
+  }
+
   useEffect(() => {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
@@ -159,7 +180,7 @@ export default function BrandIdentityPage() {
           {[
             { label: 'Projelerim', href: '/dashboard/client', active: false },
             { label: 'Yeni Brief', href: '/dashboard/client/brief/new', active: false },
-            { label: 'Marka Kimliği', href: '/dashboard/client/brand-identity', active: true },
+            { label: 'Marka Ayarları', href: '/dashboard/client/brand-identity', active: true },
             { label: 'Raporlar', href: '/dashboard/client/reports', active: false },
             { label: 'Telif Belgeleri', href: '/dashboard/client/certificates', active: false },
             { label: 'İçerik Güvencesi', href: '/dashboard/client/guarantee', active: false },
@@ -181,14 +202,32 @@ export default function BrandIdentityPage() {
 
       <div style={{ flex: 1, background: '#f5f4f0', display: 'flex', flexDirection: 'column' }}>
         <div style={{ padding: '14px 28px', background: '#fff', borderBottom: '0.5px solid rgba(0,0,0,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a' }}>Marka Kimliği</div>
+          <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a' }}>Marka Ayarları</div>
         </div>
 
         <div style={{ flex: 1, padding: '24px 28px', overflowY: 'auto' }}>
+      {/* AI MODE TOGGLE */}
+      {globalAiMode === 'quality' && (
+        <div style={{ marginBottom: '24px', padding: '20px', background: '#fff', border: '1px solid var(--color-border-tertiary)' }}>
+          <div style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: '#0a0a0a', marginBottom: '12px' }}>AI MODU</div>
+          <div style={{ display: 'flex', gap: '0', marginBottom: '8px' }}>
+            {([['false', 'KALİTE'], ['true', 'HIZ']] as const).map(([val, label]) => (
+              <button key={val} onClick={() => toggleAiMode(val === 'true')}
+                style={{ padding: '10px 28px', fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', cursor: 'pointer', border: '1px solid #0a0a0a', background: (clientFastMode ? 'true' : 'false') === val ? '#0a0a0a' : '#fff', color: (clientFastMode ? 'true' : 'false') === val ? '#fff' : '#0a0a0a', marginRight: val === 'false' ? '-1px' : '0', transition: 'all 0.15s' }}>
+                {label}
+              </button>
+            ))}
+          </div>
+          <div style={{ fontSize: '12px', color: '#888' }}>
+            {clientFastMode ? 'AI kalitesi düşer, hızlı işler için.' : 'AI kalitesi artar, bekleme süreleri biraz artar.'}
+          </div>
+        </div>
+      )}
+
       {/* Page header */}
       <div style={{ marginBottom: '24px' }}>
-        <div style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: '#0a0a0a', marginBottom: '6px' }}>MARKA KİMLİĞİ</div>
-        <div style={{ fontSize: '13px', color: 'var(--color-text-tertiary)' }}>Markanın görsel ve sesli kimliğini buradan yönet.</div>
+        <div style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: '#0a0a0a', marginBottom: '6px' }}>MARKA AYARLARI</div>
+        <div style={{ fontSize: '13px', color: 'var(--color-text-tertiary)' }}>Marka ayarlarını ve AI tercihlerini buradan yönet.</div>
       </div>
 
       {msg && <div style={{ marginBottom: '16px', padding: '10px 14px', background: msg.includes('Hata') || msg.includes('hatası') ? 'rgba(239,68,68,0.08)' : 'rgba(34,197,94,0.08)', border: `1px solid ${msg.includes('Hata') || msg.includes('hatası') ? '#ef4444' : '#22c55e'}`, fontSize: '12px', color: '#0a0a0a' }}>{msg}</div>}

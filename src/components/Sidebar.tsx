@@ -22,7 +22,7 @@ const navLinks: Record<string, NavItem[]> = {
   client: [
     { href: '/dashboard/client', label: 'Projelerim' },
     { href: '/dashboard/client/brief/new', label: 'Yeni Brief' },
-    { href: '/dashboard/client/brand-identity', label: 'Marka Kimliği' },
+    { href: '/dashboard/client/brand-identity', label: 'Marka Ayarları' },
     { href: '/dashboard/client/reports', label: 'Raporlar' },
     { href: '/dashboard/client/certificates', label: 'Telif Belgeleri' },
     { href: '/dashboard/client/guarantee', label: 'İçerik Güvencesi' },

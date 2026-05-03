@@ -53,7 +53,7 @@ export default function GuaranteePage() {
           {[
             { label: 'Projelerim', href: '/dashboard/client', active: false },
             { label: 'Yeni Brief', href: '/dashboard/client/brief/new', active: false },
-            { label: 'Marka Kimliği', href: '/dashboard/client/brand-identity', active: false },
+            { label: 'Marka Ayarları', href: '/dashboard/client/brand-identity', active: false },
             { label: 'Raporlar', href: '/dashboard/client/reports', active: false },
             { label: 'Telif Belgeleri', href: '/dashboard/client/certificates', active: false },
             { label: 'İçerik Güvencesi', href: '/dashboard/client/guarantee', active: true },
