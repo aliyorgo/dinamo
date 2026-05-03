@@ -45,6 +45,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
   const [recommendedPersona, setRecommendedPersona] = useState<number | null>(null)
   const [scriptText, setScriptText] = useState('')
   const [scriptLoading, setScriptLoading] = useState(false)
+  const [generateScriptData, setGenerateScriptData] = useState<any>(null)
   const [generating, setGenerating] = useState(false)
   // Product toggle disabled: Veo 3.1 Fast image_url = first-frame, not reference. Kalitesiz sonuç verir.
   const useProduct = false
@@ -116,15 +117,13 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
 
   // Generate new version
   async function handleGenerate() {
-    if (!selectedPersona) return
+    if (!selectedPersona || !scriptText) return
     setGenerating(true)
     try {
-      // Generate script with feedbacks injected
-      const scriptRes = await fetch('/api/ugc/generate-script', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: selectedPersona, use_product: useProduct && !!brief?.product_image_url, settings, previous_feedbacks: feedbacks }) })
-      const scriptData = await scriptRes.json()
-      if (!scriptData.segments) { setMsg(scriptData.error || 'Script üretilemedi'); setGenerating(false); return }
+      // Use already-generated script data, or build from edited text
+      const scriptPayload = generateScriptData || { segments: [{ timestamp: '00:00-00:04', dialogue: scriptText.substring(0, 50), camera: 'medium shot', action: 'speaks to camera' }, { timestamp: '00:04-00:08', dialogue: scriptText.substring(50), camera: 'close-up shot', action: 'leans forward' }] }
       // Trigger video generation
-      const genRes = await fetch('/api/ugc/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: selectedPersona, use_product: useProduct && !!brief?.product_image_url, script: scriptData, settings }) })
+      const genRes = await fetch('/api/ugc/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: selectedPersona, use_product: false, script: scriptPayload, settings }) })
       const genData = await genRes.json()
       if (genData.ugc_video_id) {
         setGenerateOpen(false)
@@ -307,11 +306,11 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
             </div>
           ) : generateOpen ? (
             <div style={{ border: '1px solid var(--color-border-tertiary)', padding: '16px', marginTop: '8px' }}>
-              {/* Persona slider */}
+              {/* 1. Persona slider */}
               <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '10px' }}>PERSONA SEÇ</div>
               <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '8px', marginBottom: '12px' }}>
                 {personas.map(p => (
-                  <div key={p.id} onClick={() => setSelectedPersona(p.id)} style={{ flexShrink: 0, width: '60px', textAlign: 'center', cursor: 'pointer', opacity: selectedPersona === p.id ? 1 : 0.6, transition: 'opacity 0.15s' }}>
+                  <div key={p.id} onClick={() => { setSelectedPersona(p.id); if (scriptText) setMsg('') }} style={{ flexShrink: 0, width: '60px', textAlign: 'center', cursor: 'pointer', opacity: selectedPersona === p.id ? 1 : 0.6, transition: 'opacity 0.15s' }}>
                     <div className="dot" style={{ width: '40px', height: '40px', minWidth: '40px', margin: '0 auto 4px', background: '#f5f4f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', border: selectedPersona === p.id ? '2px solid #22c55e' : '1px solid #e5e4db', overflow: 'hidden', transition: 'border-color 0.15s' }}>
                       {p.thumbnail_url ? <img src={p.thumbnail_url} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : p.name[0]}
                     </div>
@@ -319,10 +318,45 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
                   </div>
                 ))}
               </div>
-              <button onClick={handleGenerate} disabled={generating || !selectedPersona || (clientUser?.allocated_credits || 0) < 1} style={{ width: '100%', padding: '12px', background: (clientUser?.allocated_credits || 0) < 1 ? '#ccc' : '#0a0a0a', color: '#fff', border: 'none', fontSize: '13px', fontWeight: '600', cursor: (clientUser?.allocated_credits || 0) < 1 ? 'default' : 'pointer' }}>
+
+              {/* 2. Ayarlar link */}
+              <button onClick={() => setSettingsOpen(true)} style={{ fontSize: '11px', color: '#888', background: 'none', border: 'none', cursor: 'pointer', marginBottom: '12px', textDecoration: 'underline' }}>⚙ Ayarlar</button>
+
+              {/* 3. Script */}
+              <div style={{ marginBottom: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)' }}>KONUŞMA METNİ</div>
+                  <button onClick={async () => {
+                    if (!selectedPersona) return
+                    setScriptLoading(true)
+                    try {
+                      const res = await fetch('/api/ugc/generate-script', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: selectedPersona, use_product: false, settings, previous_feedbacks: feedbacks }) })
+                      const data = await res.json()
+                      if (data.segments) { setScriptText(data.segments.map((s: any) => s.dialogue).join(' ')); setGenerateScriptData(data) }
+                      else { setMsg(data.error || 'Script üretilemedi') }
+                    } catch { setMsg('Bağlantı hatası') }
+                    setScriptLoading(false)
+                  }} disabled={scriptLoading || !selectedPersona} className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '10px' }}>
+                    {scriptLoading ? 'ÜRETİLİYOR...' : scriptText ? 'YENİDEN ÜRET' : 'SCRİPT ÜRET'}
+                  </button>
+                </div>
+                {scriptText ? (
+                  <div>
+                    <textarea value={scriptText} onChange={e => { if (e.target.value.length <= UGC_MAX_CHARS) setScriptText(e.target.value) }} style={{ width: '100%', minHeight: '60px', fontSize: '13px', color: '#0a0a0a', lineHeight: 1.6, border: '1px solid #e5e4db', padding: '10px 12px', resize: 'none', boxSizing: 'border-box' }} />
+                    <div style={{ textAlign: 'right', fontSize: '10px', color: scriptText.length >= 95 ? '#ef4444' : scriptText.length >= 85 ? '#f59e0b' : '#888', marginTop: '4px' }}>{scriptText.length} / {UGC_MAX_CHARS}</div>
+                  </div>
+                ) : (
+                  <div style={{ padding: '12px', textAlign: 'center', fontSize: '11px', color: '#888', border: '1px dashed #e5e4db' }}>
+                    {scriptLoading ? 'Üretiliyor...' : 'Önce SCRİPT ÜRET butonuna basın.'}
+                  </div>
+                )}
+              </div>
+
+              {/* 4. ÜRET */}
+              <button onClick={handleGenerate} disabled={generating || !selectedPersona || !scriptText || (clientUser?.allocated_credits || 0) < 1} style={{ width: '100%', padding: '12px', background: (!selectedPersona || !scriptText || (clientUser?.allocated_credits || 0) < 1) ? '#ccc' : '#0a0a0a', color: '#fff', border: 'none', fontSize: '13px', fontWeight: '600', cursor: (!selectedPersona || !scriptText) ? 'default' : 'pointer' }}>
                 ÜRET (1 KREDİ)
               </button>
-              <button onClick={() => setGenerateOpen(false)} style={{ width: '100%', marginTop: '6px', padding: '8px', background: 'none', border: 'none', fontSize: '11px', color: '#888', cursor: 'pointer' }}>İptal</button>
+              <button onClick={() => { setGenerateOpen(false); setScriptText(''); setGenerateScriptData(null) }} style={{ width: '100%', marginTop: '6px', padding: '8px', background: 'none', border: 'none', fontSize: '11px', color: '#888', cursor: 'pointer' }}>İptal</button>
             </div>
           ) : (
             <div>
