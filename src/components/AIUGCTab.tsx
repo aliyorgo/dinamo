@@ -34,6 +34,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
   const [personas, setPersonas] = useState<any[]>([])
   const [feedbacks, setFeedbacks] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [personaLoading, setPersonaLoading] = useState(true)
   // Feedback editing
   const [feedbackText, setFeedbackText] = useState<Record<string, string>>({})
   const [editingFeedback, setEditingFeedback] = useState<Record<string, boolean>>({})
@@ -82,6 +83,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
 
   async function loadData() {
     setLoading(true)
+    setPersonaLoading(true)
     const [{ data: videos }, { data: p }, { data: freshBrief }] = await Promise.all([
       supabase.from('ugc_videos').select('*, personas(name, slug)').eq('brief_id', briefId).order('created_at', { ascending: true }),
       supabase.from('personas').select('*').order('id'),
@@ -92,11 +94,28 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
     const b = freshBrief || brief
     setFeedbacks(b?.ugc_feedbacks || [])
     if (b?.ugc_settings) setSettings({ ...DEFAULT_SETTINGS, ...b.ugc_settings })
+
+    // Persona recommendation — cache check + API call if miss
+    const briefHash = simpleHash(JSON.stringify({ m: b?.message, p: b?.product_image_url, c: b?.client_id }))
+    const cached = b?.ugc_persona_analysis
+    if (cached && cached.brief_hash === briefHash && cached.recommended_persona_id) {
+      setRecommendedPersona(cached.recommended_persona_id)
+    } else if (p?.length) {
+      try {
+        const res = await fetch('/api/ugc/recommend-persona', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId }) })
+        const data = await res.json()
+        if (data.recommended_persona_id) {
+          setRecommendedPersona(data.recommended_persona_id)
+          await supabase.from('briefs').update({ ugc_persona_analysis: { ...data, brief_hash: briefHash, analyzed_at: new Date().toISOString() } }).eq('id', briefId)
+        }
+      } catch {}
+    }
+    setPersonaLoading(false)
+
     // Set default persona
     const lastVideo = (videos || []).slice(-1)[0]
     const defaultPersona = lastVideo?.persona_id || b?.ugc_selected_persona_id || b?.ugc_persona_analysis?.recommended_persona_id || (p?.[0]?.id)
     setSelectedPersona(defaultPersona)
-    setRecommendedPersona(b?.ugc_persona_analysis?.recommended_persona_id || null)
     setLoading(false)
   }
 
@@ -173,6 +192,48 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
       </div>
 
       {msg && <div style={{ padding: '10px 14px', background: 'rgba(239,68,68,0.08)', border: '1px solid #ef4444', fontSize: '12px', color: '#0a0a0a', marginBottom: '12px' }}>{msg}<button onClick={() => setMsg('')} style={{ float: 'right', background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}>×</button></div>}
+
+      {/* PERSONA SELECTION */}
+      <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '20px 24px', marginBottom: '16px' }}>
+        {/* Recommended persona large card */}
+        <div style={{ minHeight: '100px', marginBottom: '16px' }}>
+          {personaLoading ? (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100px', gap: '10px' }}>
+              <div className="spinner" style={{ width: '20px', height: '20px', borderWidth: '2px', borderStyle: 'solid', borderColor: '#e5e4db #e5e4db #e5e4db #0a0a0a' }} />
+              <span style={{ fontSize: '12px', color: '#888' }}>Brief'e uygun persona belirleniyor...</span>
+            </div>
+          ) : (() => {
+            const p = personas.find(x => x.id === selectedPersona)
+            if (!p) return null
+            const isRecommended = selectedPersona === recommendedPersona
+            return (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div className="dot" style={{ width: '80px', height: '80px', minWidth: '80px', background: '#f5f4f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', overflow: 'hidden' }}>
+                  {p.thumbnail_url ? <img src={p.thumbnail_url} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : p.name[0]}
+                </div>
+                <div style={{ flex: 1 }}>
+                  {isRecommended && <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#22c55e', fontWeight: '500', marginBottom: '4px' }}>ÖNERİLEN PERSONA</div>}
+                  <div style={{ fontSize: '16px', fontWeight: '500', color: '#0a0a0a', marginBottom: '4px' }}>{p.name}</div>
+                  <div style={{ fontSize: '12px', color: '#888', lineHeight: 1.4 }}>{p.description}</div>
+                </div>
+              </div>
+            )
+          })()}
+        </div>
+
+        {/* Alternative personas (thumbnails) */}
+        <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '8px' }}>PERSONA SEÇ</div>
+        <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px' }}>
+          {personas.map(p => (
+            <div key={p.id} onClick={() => { setSelectedPersona(p.id); supabase.from('briefs').update({ ugc_selected_persona_id: p.id }).eq('id', briefId) }} style={{ flexShrink: 0, width: '60px', textAlign: 'center', cursor: 'pointer', opacity: selectedPersona === p.id ? 1 : 0.6, transition: 'opacity 0.15s' }}>
+              <div className="dot" style={{ width: '40px', height: '40px', minWidth: '40px', margin: '0 auto 4px', background: '#f5f4f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', border: selectedPersona === p.id ? '2px solid #22c55e' : '1px solid #e5e4db', overflow: 'hidden', transition: 'border-color 0.15s' }}>
+                {p.thumbnail_url ? <img src={p.thumbnail_url} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : p.name[0]}
+              </div>
+              <div style={{ fontSize: '9px', color: '#0a0a0a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* VERSION LIST (AI Express pattern) */}
       <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '20px 24px', marginBottom: '16px' }}>
@@ -306,20 +367,10 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
             </div>
           ) : generateOpen ? (
             <div style={{ border: '1px solid var(--color-border-tertiary)', padding: '16px', marginTop: '8px' }}>
-              {/* 1. Persona slider */}
-              <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '10px' }}>PERSONA SEÇ</div>
-              <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '8px', marginBottom: '12px' }}>
-                {personas.map(p => (
-                  <div key={p.id} onClick={() => { setSelectedPersona(p.id); if (scriptText) setMsg('') }} style={{ flexShrink: 0, width: '60px', textAlign: 'center', cursor: 'pointer', opacity: selectedPersona === p.id ? 1 : 0.6, transition: 'opacity 0.15s' }}>
-                    <div className="dot" style={{ width: '40px', height: '40px', minWidth: '40px', margin: '0 auto 4px', background: '#f5f4f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', border: selectedPersona === p.id ? '2px solid #22c55e' : '1px solid #e5e4db', overflow: 'hidden', transition: 'border-color 0.15s' }}>
-                      {p.thumbnail_url ? <img src={p.thumbnail_url} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : p.name[0]}
-                    </div>
-                    <div style={{ fontSize: '9px', color: '#0a0a0a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
-                  </div>
-                ))}
-              </div>
+              {/* Persona info (selected above) */}
+              {selectedPersona && <div style={{ fontSize: '11px', color: '#888', marginBottom: '12px' }}>Persona: <strong style={{ color: '#0a0a0a' }}>{personas.find(p => p.id === selectedPersona)?.name}</strong></div>}
 
-              {/* 2. Ayarlar link */}
+              {/* Ayarlar link */}
               <button onClick={() => setSettingsOpen(true)} style={{ fontSize: '11px', color: '#888', background: 'none', border: 'none', cursor: 'pointer', marginBottom: '12px', textDecoration: 'underline' }}>⚙ Ayarlar</button>
 
               {/* 3. Script */}
