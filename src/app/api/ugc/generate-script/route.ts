@@ -47,7 +47,7 @@ ${ctaNote}
 ${productNote}${feedbackBlock}
 
 KURALLAR:
-- Tek string dialogue, toplam 130-145 karakter. 8 saniyeyi TAM DOLDUR.
+- Tek string dialogue, toplam 140-155 karakter. 8 saniyeyi TAM DOLDUR.
 - HOOK + DEĞER + KAPANIŞ tek akışta.
 - VİRGÜLLE BAŞLAMA yasak, tereddüt yasak.
 - Reklamcı klişesi yasak (dene, kazandıran, tam aradığın).
@@ -56,7 +56,7 @@ KURALLAR:
 
 CRITICAL: Output MUST be ONLY raw JSON. First character: '{'. Last character: '}'. No markdown, no backticks, no explanation.
 
-FORMAT: {"dialogue":"130-145 char Türkçe metin"}`
+FORMAT: {"dialogue":"140-155 char Türkçe metin"}`
 
   const messages: any[] = [
     { role: 'user', content: `Brief: ${brief.campaign_name}\nMesaj: ${brief.message || ''}\nHedef Kitle: ${brief.target_audience || ''}\nCTA: ${brief.cta || ''}\n\nDialogue'da emoji yok, sadece Türkçe metin.\n\nJSON:` },
@@ -90,12 +90,12 @@ FORMAT: {"dialogue":"130-145 char Türkçe metin"}`
   if (!script?.dialogue || typeof script.dialogue !== 'string') {
     // RETRY once
     console.warn('[GENERATE-SCRIPT] Invalid format, retrying...')
-    const retryMsgs: any[] = [{ role: 'user', content: `Brief: ${brief.campaign_name}. Persona: ${persona.name}. Write single Turkish UGC dialogue string, 130-145 chars. JSON only:` }]
+    const retryMsgs: any[] = [{ role: 'user', content: `Brief: ${brief.campaign_name}. Persona: ${persona.name}. Write single Turkish UGC dialogue string, 140-155 chars. JSON only:` }]
     if (supportsPrefill) retryMsgs.push({ role: 'assistant', content: '{"dialogue":"' })
     const retryRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model, max_tokens: 300, system: 'CRITICAL: Output ONLY raw JSON. Format: {"dialogue":"130-145 chars Turkish text"}', messages: retryMsgs }),
+      body: JSON.stringify({ model, max_tokens: 300, system: 'CRITICAL: Output ONLY raw JSON. Format: {"dialogue":"140-155 chars Turkish text"}', messages: retryMsgs }),
     })
     if (retryRes.ok) {
       const retryData = await retryRes.json()
@@ -111,7 +111,7 @@ FORMAT: {"dialogue":"130-145 char Türkçe metin"}`
       const retry2Res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model, max_tokens: 300, system: 'CRITICAL: Your response must be ONLY raw JSON. First character must be {. Last character must be }. Format: {"dialogue":"130-145 chars"}', messages: retry2Msgs }),
+        body: JSON.stringify({ model, max_tokens: 300, system: 'CRITICAL: Your response must be ONLY raw JSON. First character must be {. Last character must be }. Format: {"dialogue":"140-155 chars"}', messages: retry2Msgs }),
       })
       if (retry2Res.ok) {
         const retry2Data = await retry2Res.json()

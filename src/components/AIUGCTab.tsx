@@ -59,6 +59,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
   const [infoOpen, setInfoOpen] = useState(() => { if (typeof window === 'undefined') return false; const k = 'dinamo_seen_intro_ugc'; if (!localStorage.getItem(k)) { localStorage.setItem(k, 'true'); return true }; return false })
   const [purchasing, setPurchasing] = useState<string | null>(null)
   const [msg, setMsg] = useState('')
+  const [shortTextWarning, setShortTextWarning] = useState(false)
   const [highlightId, setHighlightId] = useState<string | null>(null)
   const viewedIdsRef = useRef<Set<string>>(new Set())
 
@@ -449,11 +450,11 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
               </div>
               <div>
                 <textarea value={scriptText} onChange={e => { if (e.target.value.length <= UGC_MAX_CHARS) setScriptText(e.target.value) }} onBlur={() => { if (!selectedPersona || scriptText === readScript(ugcScripts, selectedPersona)) return; const updated = { ...ugcScripts, [String(selectedPersona)]: scriptText }; setUgcScripts(updated); supabase.from('briefs').update({ ugc_scripts: updated }).eq('id', briefId) }} placeholder={scriptLoading ? 'Üretiliyor...' : 'Konuşma metnini buraya yazın veya SCRİPT ÜRET butonuna basın.'} style={{ width: '100%', minHeight: '60px', fontSize: '13px', color: '#0a0a0a', lineHeight: 1.6, border: '1px solid #e5e4db', padding: '10px 12px', resize: 'none', boxSizing: 'border-box' }} />
-                <div style={{ textAlign: 'right', fontSize: '10px', color: scriptText.length >= 145 ? '#ef4444' : scriptText.length >= 130 ? '#22c55e' : scriptText.length >= 100 ? '#f59e0b' : '#888', marginTop: '4px' }}>{scriptText.length} / {UGC_MAX_CHARS}</div>
+                <div style={{ textAlign: 'right', fontSize: '10px', color: scriptText.length > 160 ? '#ef4444' : scriptText.length >= 155 ? '#f59e0b' : scriptText.length >= 140 ? '#22c55e' : scriptText.length >= 110 ? '#f59e0b' : '#888', marginTop: '4px' }}>{scriptText.length} / {UGC_MAX_CHARS}</div>
               </div>
             </div>
             {/* ÜRET */}
-            <button onClick={handleGenerate} disabled={generating || !selectedPersona || !scriptText || (clientUser?.allocated_credits || 0) < 1} style={{ width: '100%', padding: '12px', background: (!selectedPersona || !scriptText || (clientUser?.allocated_credits || 0) < 1) ? '#ccc' : '#0a0a0a', color: '#fff', border: 'none', fontSize: '13px', fontWeight: '600', cursor: (!selectedPersona || !scriptText) ? 'default' : 'pointer' }}>
+            <button onClick={() => { if (scriptText.length < 100) { setShortTextWarning(true) } else { handleGenerate() } }} disabled={generating || !selectedPersona || !scriptText || (clientUser?.allocated_credits || 0) < 1} style={{ width: '100%', padding: '12px', background: (!selectedPersona || !scriptText || (clientUser?.allocated_credits || 0) < 1) ? '#ccc' : '#0a0a0a', color: '#fff', border: 'none', fontSize: '13px', fontWeight: '600', cursor: (!selectedPersona || !scriptText) ? 'default' : 'pointer' }}>
               ÜRET (1 KREDİ)
             </button>
           </div>
@@ -470,6 +471,22 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
 
       {/* Settings Modal */}
       <UGCSettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} settings={settings} onChange={handleSettingsChange} brandDefaults={null} />
+
+      {/* Short Text Warning Modal */}
+      {shortTextWarning && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setShortTextWarning(false)}>
+          <div style={{ background: '#fff', padding: '28px', maxWidth: '400px', width: '90%' }} onClick={e => e.stopPropagation()}>
+            <div style={{ fontSize: '14px', fontWeight: '600', color: '#0a0a0a', marginBottom: '12px' }}>Kısa Metin Uyarısı</div>
+            <div style={{ fontSize: '13px', color: '#555', lineHeight: 1.6, marginBottom: '20px' }}>
+              Yazdığınız metin {scriptText.length} karakter. 8 saniyelik video için Veo metni çok hızlı konuşturabilir veya sona sessiz kapanış ekleyebilir. En az 110-120 karakter önerilir.
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button onClick={() => setShortTextWarning(false)} style={{ flex: 1, padding: '10px', background: '#fff', color: '#0a0a0a', border: '1px solid #0a0a0a', fontSize: '12px', fontWeight: '500', cursor: 'pointer' }}>Düzelt</button>
+              <button onClick={() => { setShortTextWarning(false); handleGenerate() }} style={{ flex: 1, padding: '10px', background: '#0a0a0a', color: '#fff', border: '1px solid #0a0a0a', fontSize: '12px', fontWeight: '500', cursor: 'pointer' }}>Yine de Üret</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

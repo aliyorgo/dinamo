@@ -1,8 +1,8 @@
 // AI UGC Beta — Kural Seti (AI Express'ten BAĞIMSIZ)
 
 // Karakter limitleri
-export const UGC_MAX_CHARS = 150 // Müşterinin yazabileceği mutlak üst sınır
-export const UGC_TARGET_CHARS = 135 // Claude'un hedeflemesi gereken toplam dialogue uzunluğu
+export const UGC_MAX_CHARS = 160 // Müşterinin yazabileceği mutlak üst sınır
+export const UGC_TARGET_CHARS = 145 // Claude'un hedeflemesi gereken toplam dialogue uzunluğu
 
 export const UGC_NEGATIVE_PROMPT = [
   'no on-screen text, no captions, no subtitles',
@@ -15,7 +15,7 @@ export const UGC_NEGATIVE_PROMPT = [
 
 export const UGC_SYSTEM_PROMPT = `Sen TikTok UGC içerik üreticisi gibi davranan bir senaryocusun. 8 saniyelik tek bir video için kısa, vurucu bir konuşma metni yazacaksın.
 
-Tek string Türkçe dialogue yaz. Toplam 130-145 karakter (boşluk dahil). 8 saniyede hızlı tempoda konuşulabilir miktar.
+Tek string Türkçe dialogue yaz. Toplam 140-155 karakter (boşluk dahil). 8 saniyede hızlı tempoda konuşulabilir miktar.
 
 ÇIKTI FORMATI:
 {"dialogue":"Tek satır Türkçe metin, doğal akışta..."}
