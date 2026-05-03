@@ -171,6 +171,19 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
     } else { setGenerating(false); setMsg(data.error || 'Üretim başarısız.') }
   }
 
+  async function downloadVideo(url: string, filename: string) {
+    try {
+      const res = await fetch(url)
+      if (!res.ok) throw new Error('fail')
+      const blob = await res.blob()
+      const blobUrl = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = blobUrl; a.download = filename
+      document.body.appendChild(a); a.click(); document.body.removeChild(a)
+      window.URL.revokeObjectURL(blobUrl)
+    } catch { window.open(url, '_blank') }
+  }
+
   async function handlePurchase() {
     if (!ugcVideo) return
     setPurchasing(true)
@@ -179,11 +192,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
       const data = await res.json()
       if (data.download_url) {
         setUgcVideo({ ...ugcVideo, status: 'sold' })
-        // Download video
-        const a = document.createElement('a'); a.href = data.download_url; a.download = `ugc_${ugcVideo.id}.mp4`; a.click()
-        // Generate certificate PDF
-        const personaName = personas.find(p => p.id === selectedPersona)?.name
-        generateUgcCertificatePDF(brief, clientUser?.clients?.company_name || '', personaName)
+        // No auto-download — user clicks İndir/Telif buttons in sold state
       } else { setMsg(data.error || 'Satın alma başarısız') }
     } catch { setMsg('Bağlantı hatası') }
     setPurchasing(false)
@@ -320,16 +329,16 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
                 <div>
                   {isPurchased ? (
                     <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                      <a href={ugcVideo.final_url} download target="_blank" style={{ fontSize: '11px', color: '#0a0a0a', textDecoration: 'none', border: '0.5px solid rgba(0,0,0,0.15)', padding: '5px 12px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <button onClick={() => downloadVideo(ugcVideo.final_url, `ugc_${brief?.campaign_name || 'video'}.mp4`)} style={{ fontSize: '11px', color: '#0a0a0a', textDecoration: 'none', border: '0.5px solid rgba(0,0,0,0.15)', padding: '5px 12px', display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'none', cursor: 'pointer' }}>
                         <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M8 2v9M4 8l4 4 4-4" stroke="#0a0a0a" strokeWidth="1.5" strokeLinecap="round"/><path d="M2 13h12" stroke="#0a0a0a" strokeWidth="1.5" strokeLinecap="round"/></svg>
                         İndir
-                      </a>
+                      </button>
                       <button onClick={() => { const p = personas.find(x => x.id === selectedPersona); generateUgcCertificatePDF(brief, clientUser?.clients?.company_name || '', p?.name) }} style={{ fontSize: '11px', color: '#555', background: 'none', border: '0.5px solid rgba(0,0,0,0.12)', padding: '5px 12px', cursor: 'pointer' }}>Telif Belgesi</button>
                     </div>
                   ) : (
                     <div>
                       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '10px' }}>
-                        <button onClick={handlePurchase} disabled={purchasing || (clientUser?.allocated_credits || 0) < 1} className="btn btn-accent" style={{ padding: '6px 16px' }}>SATIN AL VE İNDİR (1 KREDİ)</button>
+                        <button onClick={handlePurchase} disabled={purchasing || (clientUser?.allocated_credits || 0) < 1} className="btn btn-accent" style={{ padding: '6px 16px' }}>SATIN AL (1 KREDİ)</button>
                         <button onClick={() => setRevisionOpen(!revisionOpen)} className="btn btn-outline" style={{ padding: '6px 12px', fontSize: '11px' }}>YORUM YAZ VE YENİ VERSİYON ÜRET</button>
                       </div>
                       {revisionOpen && (
