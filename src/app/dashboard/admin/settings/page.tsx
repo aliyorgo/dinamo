@@ -25,8 +25,10 @@ export default function SettingsPage() {
   const [addingRole, setAddingRole] = useState<string|null>(null)
   const [rulesModalOpen, setRulesModalOpen] = useState(false)
   const [ugcRulesModalOpen, setUgcRulesModalOpen] = useState(false)
+  const [aiQualityMode, setAiQualityMode] = useState<'fast'|'quality'>('fast')
+  const [qualitySaving, setQualitySaving] = useState(false)
 
-  useEffect(() => { loadSettings(); loadUsers() }, [])
+  useEffect(() => { loadSettings(); loadUsers(); fetch('/api/admin/ai-quality-mode').then(r=>r.json()).then(d=>{ if(d.mode) setAiQualityMode(d.mode) }).catch(()=>{}) }, [])
 
   async function loadSettings() {
     const { data } = await supabase.from('admin_settings').select('*')
@@ -264,6 +266,34 @@ export default function SettingsPage() {
             </div>
           )
         })}
+
+        {/* AI KALİTE MODU */}
+        <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',overflow:'hidden',marginTop:'32px'}}>
+          <div style={{padding:'20px 24px'}}>
+            <div style={{fontSize:'12px',color:'rgba(255,255,255,0.4)',letterSpacing:'1px',fontFamily:'monospace',marginBottom:'12px'}}>AI KALİTE MODU</div>
+            <div style={{display:'flex',gap:'8px',marginBottom:'12px'}}>
+              {(['fast','quality'] as const).map(mode=>(
+                <button key={mode} onClick={async()=>{
+                  setQualitySaving(true)
+                  await fetch('/api/admin/ai-quality-mode',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode})})
+                  setAiQualityMode(mode)
+                  setQualitySaving(false)
+                  setMsg(`AI kalite modu güncellendi: ${mode==='fast'?'Hız':'Kalite'}`)
+                  setTimeout(()=>setMsg(''),3000)
+                }} disabled={qualitySaving}
+                  style={{flex:1,padding:'12px 16px',border:aiQualityMode===mode?'2px solid #0a0a0a':'1px solid #e8e7e3',background:aiQualityMode===mode?'#0a0a0a':'#fff',color:aiQualityMode===mode?'#fff':'#555',fontSize:'13px',fontWeight:'600',cursor:'pointer',borderRadius:'8px',transition:'all 0.15s'}}>
+                  {mode==='fast'?'HIZ':'KALİTE'}
+                </button>
+              ))}
+            </div>
+            <div style={{fontSize:'12px',color:'#888',lineHeight:1.6}}>
+              {aiQualityMode==='fast'
+                ? 'Tüm AI üretimleri Claude Haiku ile yapılır. Hızlı (~2sn) ve düşük maliyet.'
+                : 'UGC script + prompt mühendisliği Sonnet 4.6, Creative Studio fikir/senaryo Opus 4.6 ile yapılır. Daha yavaş (~5-10sn), belirgin kalite artışı.'}
+            </div>
+            <div style={{fontSize:'10px',color:'#f59e0b',marginTop:'8px'}}>Bu ayar tüm müşterilerin tüm AI üretimlerini etkiler. Anında geçerlidir.</div>
+          </div>
+        </div>
 
         {/* AI EXPRESS GLOBAL KURALLAR */}
         <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',overflow:'hidden',marginTop:'32px'}}>
