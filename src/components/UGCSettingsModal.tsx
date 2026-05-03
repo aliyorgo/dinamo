@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 export interface UGCSettings {
   watermark: boolean
   tone: 'samimi' | 'normal' | 'resmi'
-  speed: 'yavas' | 'normal' | 'hizli'
+  speed?: 'yavas' | 'normal' | 'hizli'
   cta: boolean
   music: boolean
 }
@@ -37,7 +37,6 @@ export default function UGCSettingsModal({ open, onClose, settings, onChange, br
   }
 
   const TONE_LABELS = { samimi: 'Samimi', normal: 'Normal', resmi: 'Resmi' }
-  const SPEED_LABELS = { yavas: 'Yavaş', normal: 'Normal', hizli: 'Hızlı' }
 
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -59,16 +58,6 @@ export default function UGCSettingsModal({ open, onClose, settings, onChange, br
             labels={TONE_LABELS}
             value={settings.tone}
             onChange={v => onChange({ ...settings, tone: v })}
-          />
-        </SettingRow>
-
-        {/* Speed */}
-        <SettingRow label="Konuşma Hızı" desc="Persona'nın konuşma temposu">
-          <StepSlider
-            options={['yavas', 'normal', 'hizli'] as const}
-            labels={SPEED_LABELS}
-            value={settings.speed}
-            onChange={v => onChange({ ...settings, speed: v })}
           />
         </SettingRow>
 
