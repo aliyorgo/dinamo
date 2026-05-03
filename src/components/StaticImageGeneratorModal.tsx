@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
+import { downloadFile } from '@/lib/download-helper'
 
 interface Props {
   briefId: string
@@ -164,11 +165,11 @@ export default function StaticImageGeneratorModal({ briefId, videoUrl, existingU
             <div style={{ fontSize: '40px', marginBottom: '12px' }}>&#10003;</div>
             <div style={{ fontSize: '16px', fontWeight: '500', color: '#0a0a0a', marginBottom: '8px' }}>Görsel paketin hazır</div>
             <div style={{ fontSize: '12px', color: '#888', marginBottom: '24px' }}>5 format × {selectedFrames.size || '?'} frame = {(selectedFrames.size || 1) * 5} görsel</div>
-            <a href={downloadUrl} target="_blank" rel="noopener noreferrer" onClick={() => setTimeout(onClose, 300)}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 28px', background: '#22c55e', color: '#fff', borderRadius: '8px', textDecoration: 'none', fontSize: '14px', fontWeight: '600',  }}>
+            <button onClick={() => { downloadFile(downloadUrl, 'statik_gorseller.zip'); setTimeout(onClose, 300) }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 28px', background: '#22c55e', color: '#fff', border: 'none', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2v9M4 8l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><path d="M2 13h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
               ZIP İndir
-            </a>
+            </button>
           </div>
         ) : (
           <>

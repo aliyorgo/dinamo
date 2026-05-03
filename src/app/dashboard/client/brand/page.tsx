@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
+import { downloadFile } from '@/lib/download-helper'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
@@ -146,7 +147,7 @@ export default function BrandPage() {
                       {brief?brief.campaign_name:'Tüm kampanyalar'}
                     </div>
                     <div style={{marginTop:'8px'}}>
-                      <a href={f.file_url} target="_blank" style={{fontSize:'11px',color:'#22c55e',textDecoration:'none'}}>İndir ↓</a>
+                      <button onClick={() => downloadFile(f.file_url, f.file_name || f.file_url.split('/').pop() || 'file')} style={{fontSize:'11px',color:'#22c55e',background:'none',border:'none',cursor:'pointer',padding:0}}>İndir ↓</button>
                     </div>
                   </div>
                 </div>

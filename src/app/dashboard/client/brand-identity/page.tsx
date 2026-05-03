@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
 import { cleanVoiceName } from '@/lib/voice-utils'
+import { downloadFile } from '@/lib/download-helper'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
@@ -285,7 +286,7 @@ export default function BrandIdentityPage() {
                     <div style={{ fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '6px' }}>
                       {brief ? brief.campaign_name : 'TÜM KAMPANYALAR'}
                     </div>
-                    <a href={f.file_url} target="_blank" className="btn btn-outline" style={{ padding: '3px 10px', fontSize: '9px', textDecoration: 'none' }}>İNDİR ↓</a>
+                    <button onClick={() => downloadFile(f.file_url, f.file_name || f.file_url.split('/').pop() || 'file')} className="btn btn-outline" style={{ padding: '3px 10px', fontSize: '9px' }}>İNDİR ↓</button>
                   </div>
                 </div>
               )

@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import ProductionStudio from '@/components/ProductionStudio'
 import { cleanVoiceName } from '@/lib/voice-utils'
+import { downloadFile } from '@/lib/download-helper'
 import { useRouter, useParams } from 'next/navigation'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
@@ -357,7 +358,7 @@ export default function CreatorJobDetail() {
                   {brief.voiceover_file_url ? (
                     <div>
                       <audio controls src={brief.voiceover_file_url} style={{ width: '100%', marginBottom: '6px' }} />
-                      <a href={brief.voiceover_file_url} download target="_blank" className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '10px', textDecoration: 'none' }}>SES İNDİR ↓</a>
+                      <button onClick={() => downloadFile(brief.voiceover_file_url, `${brief.campaign_name || 'voiceover'}_ses.mp3`)} className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '10px' }}>SES İNDİR ↓</button>
                     </div>
                   ) : (
                     <div style={{ fontSize: '12px', color: '#f59e0b' }}>Seslendirme dosyası hazırlanıyor...</div>
@@ -507,7 +508,7 @@ export default function CreatorJobDetail() {
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 0', borderBottom: '1px solid #f0f0ee' }}>
                     <div style={{ width: '28px', height: '28px', background: '#0a0a0a', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px', fontWeight: '600', letterSpacing: '0.5px', flexShrink: 0 }}>{ext}</div>
                     <div style={{ flex: 1, fontSize: '12px', color: '#0a0a0a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{asset.name}</div>
-                    <a href={asset.url} target="_blank" download className="btn btn-outline" style={{ padding: '3px 10px', fontSize: '9px', textDecoration: 'none' }}>İNDİR ↓</a>
+                    <button onClick={() => downloadFile(asset.url, asset.name || asset.url.split('/').pop() || 'file')} className="btn btn-outline" style={{ padding: '3px 10px', fontSize: '9px' }}>İNDİR ↓</button>
                   </div>
                 )
               }) : <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)' }}>Asset eklenmemiş.</div>
@@ -592,7 +593,7 @@ export default function CreatorJobDetail() {
                     {brief.ai_voiceover_generated_at && <span style={{ fontSize: '10px', color: 'var(--color-text-tertiary)' }}>{new Date(brief.ai_voiceover_generated_at).toLocaleDateString('tr-TR')}</span>}
                   </div>
                   <audio controls src={brief.ai_voiceover_url} style={{ width: '100%', marginBottom: '8px' }} />
-                  <a href={brief.ai_voiceover_url} download target="_blank" className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '10px', textDecoration: 'none' }}>SES İNDİR ↓</a>
+                  <button onClick={() => downloadFile(brief.ai_voiceover_url, `${brief.campaign_name || 'voiceover'}_ai_ses.mp3`)} className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '10px' }}>SES İNDİR ↓</button>
                 </div>
               )}
 

@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { downloadCampaignZip } from '@/lib/campaign-zip'
+import { downloadFile } from '@/lib/download-helper'
 
 interface Props {
   brief: any
@@ -35,10 +36,10 @@ export default function SharePageClient({ brief, clientName, deliveryDate, capti
           </div>
         </div>
         <div style={{ fontSize: '12px', color: 'var(--color-text-primary)', fontWeight: '500', marginTop: '6px', marginBottom: '4px' }}>{label}</div>
-        <a href={url} download target="_blank" rel="noopener noreferrer"
-          style={{ display: 'block', textAlign: 'center', padding: '6px 12px', border: '1px solid #0a0a0a', fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: '#0a0a0a', textDecoration: 'none' }}>
+        <button onClick={() => downloadFile(url, `${label.replace(/\s+/g, '_')}.mp4`)}
+          style={{ display: 'block', width: '100%', textAlign: 'center', padding: '6px 12px', border: '1px solid #0a0a0a', fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: '#0a0a0a', background: 'transparent', cursor: 'pointer' }}>
           İNDİR ↓
-        </a>
+        </button>
       </div>
     )
   }

@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import ProductionStudio from '@/components/ProductionStudio'
 import { cleanVoiceName } from '@/lib/voice-utils'
+import { downloadFile } from '@/lib/download-helper'
 import { useParams, useRouter } from 'next/navigation'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
@@ -776,7 +777,7 @@ export default function AdminBriefDetail() {
                     <div>
                       <audio controls src={brief.voiceover_file_url} style={{ width: '100%', marginBottom: '8px' }} />
                       <div style={{ display: 'flex', gap: '8px' }}>
-                        <a href={brief.voiceover_file_url} download target="_blank" className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '10px', textDecoration: 'none' }}>İNDİR ↓</a>
+                        <button onClick={() => downloadFile(brief.voiceover_file_url, `${brief.campaign_name || 'voiceover'}_ses.mp3`)} className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '10px' }}>İNDİR ↓</button>
                         <button onClick={handleVoiceoverDelete} className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '10px', color: '#ef4444', borderColor: '#ef4444' }}>SİL</button>
                       </div>
                     </div>
@@ -960,7 +961,7 @@ export default function AdminBriefDetail() {
                 <div style={{ background: 'rgba(34,197,94,0.04)', border: '1px solid rgba(34,197,94,0.2)', padding: '16px 20px', marginBottom: '24px' }}>
                   <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#22c55e', fontWeight: '500', marginBottom: '10px' }}>MEVCUT SES</div>
                   <audio controls src={brief.ai_voiceover_url} style={{ width: '100%', marginBottom: '8px' }} />
-                  <a href={brief.ai_voiceover_url} download target="_blank" className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '10px', textDecoration: 'none' }}>SES İNDİR ↓</a>
+                  <button onClick={() => downloadFile(brief.ai_voiceover_url, `${brief.campaign_name || 'voiceover'}_ai_ses.mp3`)} className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '10px' }}>SES İNDİR ↓</button>
                 </div>
               )}
               <div style={{ marginBottom: '24px' }}>

@@ -10,21 +10,9 @@ import VideoLoadingBox from '@/components/VideoLoadingBox'
 import { logClientActivity } from '@/lib/log-client'
 import AIUGCTab from '@/components/AIUGCTab'
 import InfoModal, { InfoParagraph } from '@/components/InfoModal'
+import { downloadFile } from '@/lib/download-helper'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
-
-async function downloadFile(url: string, filename: string) {
-  try {
-    const res = await fetch(url)
-    if (!res.ok) throw new Error('fail')
-    const blob = await res.blob()
-    const blobUrl = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = blobUrl; a.download = filename
-    document.body.appendChild(a); a.click(); document.body.removeChild(a)
-    window.URL.revokeObjectURL(blobUrl)
-  } catch { window.open(url, '_blank') }
-}
 
 function slugify(s: string) {
   const m: Record<string,string> = {'ğ':'g','ü':'u','ş':'s','ı':'i','ö':'o','ç':'c','Ğ':'G','Ü':'U','Ş':'S','İ':'I','Ö':'O','Ç':'C'}

@@ -5,6 +5,7 @@ import UGCSettingsModal, { UGCSettings, DEFAULT_SETTINGS } from './UGCSettingsMo
 import InfoModal, { InfoParagraph } from './InfoModal'
 import { UGC_MAX_CHARS } from '@/lib/ai-ugc-rules'
 import { generateUgcCertificatePDF } from '@/lib/generate-certificate'
+import { downloadFile } from '@/lib/download-helper'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
@@ -21,11 +22,6 @@ function simpleHash(str: string): string {
   let hash = 0
   for (let i = 0; i < str.length; i++) { hash = ((hash << 5) - hash) + str.charCodeAt(i); hash |= 0 }
   return hash.toString(36)
-}
-
-async function downloadVideo(url: string, filename: string) {
-  try { const res = await fetch(url); const blob = await res.blob(); const u = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = u; a.download = filename; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(u) }
-  catch { window.open(url, '_blank') }
 }
 
 export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
@@ -283,7 +279,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
                   <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                     {isPurchased ? (
                       <>
-                        <button onClick={() => downloadVideo(video.final_url, `dinamo_${brandSlug}_ugc_${personaSlug}_v${idx + 1}.mp4`)} style={{ fontSize: '11px', color: '#0a0a0a', background: 'none', border: '0.5px solid rgba(0,0,0,0.15)', padding: '5px 12px', display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+                        <button onClick={() => downloadFile(video.final_url, `dinamo_${brandSlug}_ugc_${personaSlug}_v${idx + 1}.mp4`)} style={{ fontSize: '11px', color: '#0a0a0a', background: 'none', border: '0.5px solid rgba(0,0,0,0.15)', padding: '5px 12px', display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
                           <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M8 2v9M4 8l4 4 4-4" stroke="#0a0a0a" strokeWidth="1.5" strokeLinecap="round"/><path d="M2 13h12" stroke="#0a0a0a" strokeWidth="1.5" strokeLinecap="round"/></svg>
                           İndir
                         </button>

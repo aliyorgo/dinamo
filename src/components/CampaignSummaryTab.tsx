@@ -3,24 +3,9 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { generateCertificatePDF } from '@/lib/generate-certificate'
 import { downloadCampaignZip } from '@/lib/campaign-zip'
+import { downloadFile } from '@/lib/download-helper'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
-
-async function downloadFile(url: string, filename: string) {
-  try {
-    const res = await fetch(url)
-    if (!res.ok) throw new Error('Download failed')
-    const blob = await res.blob()
-    const blobUrl = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = blobUrl
-    a.download = filename
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    window.URL.revokeObjectURL(blobUrl)
-  } catch { window.open(url, '_blank') }
-}
 
 interface Props {
   brief: any
