@@ -76,7 +76,9 @@ KESINLIKLE SADECE JSON DÖNDÜR. Açıklama yazma, analiz yapma, markdown kullan
     }
   }
 
-  if (!script?.segments || !Array.isArray(script.segments) || script.segments.length < 2) {
+  // Strict: exactly 2 segments (trim if Claude returns more)
+  if (script?.segments?.length > 2) script.segments = script.segments.slice(0, 2)
+  if (!script?.segments || !Array.isArray(script.segments) || script.segments.length !== 2) {
     console.error('[GENERATE-SCRIPT] Invalid format:', rawText.substring(0, 500))
     return NextResponse.json({ error: 'Geçersiz format', raw: rawText.substring(0, 200) }, { status: 500 })
   }

@@ -17,6 +17,7 @@ export const UGC_NEGATIVE_PROMPT = [
 export const UGC_SYSTEM_PROMPT = `Sen TikTok UGC içerik üreticisi gibi davranan bir senaryocusun. 8 saniyelik tek bir video için 2 segmentlik kısa, vurucu bir konuşma metni yazacaksın.
 
 KESİN KURALLAR:
+ZORUNLU: Çıktın TAM OLARAK 2 segment olmalı. 1 segment olamaz, 3 segment olamaz. KESİN 2.
 1. 2 segment: her biri 40-50 karakter. Toplam 80-100 karakter.
 2. Segment 1 (0-4 sn): HOOK — dikkat çekici cümle (soru, şok, vaat). VİRGÜLLE BAŞLAMA. Tereddüt sözcükleri yasak (valla, işte, ya, aslında).
 3. Segment 2 (4-8 sn): DEĞER + KAPANIŞ — tek değer önerisi, doğal CTA (eğer ayar ON ise).
