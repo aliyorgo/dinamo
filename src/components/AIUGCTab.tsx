@@ -331,7 +331,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
                   <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '10px' }}>
                     {isPurchased ? (
                       <>
-                        <button onClick={() => downloadVideo(ugcVideo.final_url, `ugc_${brief?.campaign_name || 'video'}.mp4`)} style={{ fontSize: '11px', color: '#0a0a0a', border: '0.5px solid rgba(0,0,0,0.15)', padding: '5px 12px', display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'none', cursor: 'pointer' }}>
+                        <button onClick={() => { const brandSlug = (clientUser?.clients?.company_name || 'brand').toLowerCase().replace(/[^a-z0-9]+/g, '-'); const pSlug = personas.find(p => p.id === selectedPersona)?.slug || 'persona'; downloadVideo(ugcVideo.final_url, `dinamo_${brandSlug}_ugc_${pSlug}_v${ugcVideo.revision_count || 1}.mp4`) }} style={{ fontSize: '11px', color: '#0a0a0a', border: '0.5px solid rgba(0,0,0,0.15)', padding: '5px 12px', display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'none', cursor: 'pointer' }}>
                           <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M8 2v9M4 8l4 4 4-4" stroke="#0a0a0a" strokeWidth="1.5" strokeLinecap="round"/><path d="M2 13h12" stroke="#0a0a0a" strokeWidth="1.5" strokeLinecap="round"/></svg>
                           İndir
                         </button>

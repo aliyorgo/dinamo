@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   // Get current video + brief
   const { data: video } = await supabase.from('ugc_videos').select('*, briefs(*, clients(*))').eq('id', ugc_video_id).single()
   if (!video) return NextResponse.json({ error: 'Video bulunamadı' }, { status: 404 })
-  if (video.status !== 'ready') return NextResponse.json({ error: 'Sadece hazır videolar revize edilebilir' }, { status: 400 })
+  if (video.status !== 'ready' && video.status !== 'sold') return NextResponse.json({ error: 'Video henüz hazır değil, üretim tamamlanmasını bekleyin' }, { status: 400 })
 
   const brief = video.briefs
   const clientUserId = brief?.client_user_id

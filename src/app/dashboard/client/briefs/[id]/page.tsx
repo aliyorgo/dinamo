@@ -943,10 +943,10 @@ function ClientBriefDetail() {
                   {/* ACTION PANEL — sticky */}
                   <div style={{width:'280px',flexShrink:0,position:'sticky',top:'24px'}}>
                     {/* Download */}
-                    <a href={currentVideo.video_url} download={buildDownloadName()} target="_blank" style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',padding:'10px',background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'10px',fontSize:'13px',color:'#0a0a0a',textDecoration:'none',marginBottom:'10px',transition:'border-color 0.2s'}}>
+                    <button onClick={()=>downloadFile(currentVideo.video_url, buildDownloadName())} style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',padding:'10px',background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'10px',fontSize:'13px',color:'#0a0a0a',cursor:'pointer',marginBottom:'10px',transition:'border-color 0.2s',width:'100%'}}>
                       <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2v9M4 8l4 4 4-4" stroke="#0a0a0a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M2 13h12" stroke="#0a0a0a" strokeWidth="1.5" strokeLinecap="round"/></svg>
                       Videoyu İndir
-                    </a>
+                    </button>
 
                     {brief.status==='approved' && (
                       <>
@@ -1326,11 +1326,11 @@ function ClientBriefDetail() {
                             <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
                               {isPurchased ? (
                                 <>
-                                  <a href={child.ai_video_url} download target="_blank"
-                                    style={{fontSize:'11px',color:'#0a0a0a',textDecoration:'none',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'6px',padding:'5px 12px',display:'inline-flex',alignItems:'center',gap:'4px',}}>
+                                  <button onClick={()=>downloadFile(child.ai_video_url, `dinamo_${slugify(companyName)}_ai-express_v${idx+1}.mp4`)}
+                                    style={{fontSize:'11px',color:'#0a0a0a',background:'none',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'6px',padding:'5px 12px',display:'inline-flex',alignItems:'center',gap:'4px',cursor:'pointer'}}>
                                     <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M8 2v9M4 8l4 4 4-4" stroke="#0a0a0a" strokeWidth="1.5" strokeLinecap="round"/><path d="M2 13h12" stroke="#0a0a0a" strokeWidth="1.5" strokeLinecap="round"/></svg>
                                     İndir
-                                  </a>
+                                  </button>
                                   <button onClick={()=>generateCertificatePDF(brief, companyName)}
                                     style={{fontSize:'11px',color:'#555',background:'none',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'6px',padding:'5px 12px',cursor:'pointer',}}>
                                     Telif Belgesi
