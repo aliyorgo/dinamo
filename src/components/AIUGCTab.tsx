@@ -8,6 +8,13 @@ import { generateUgcCertificatePDF } from '@/lib/generate-certificate'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
+const UGC_STAGES = [
+  { key: 'script', label: 'Konuşma metni hazırlanıyor', duration: 15 },
+  { key: 'scene', label: 'Sahne kurgulanıyor', duration: 40 },
+  { key: 'video', label: 'Karakter ve ortam oluşturuluyor', duration: 100 },
+  { key: 'merge', label: 'Ses ve görüntü birleştiriliyor', duration: 25 },
+]
+
 interface Props { briefId: string; brief: any; clientUser: any }
 
 function simpleHash(str: string): string {
@@ -30,6 +37,8 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
   // Feedback editing
   const [feedbackText, setFeedbackText] = useState<Record<string, string>>({})
   const [editingFeedback, setEditingFeedback] = useState<Record<string, boolean>>({})
+  // Progress timer (AI Express pattern)
+  const [timerStageMap, setTimerStageMap] = useState<Record<string, number>>({})
   // Generate panel
   const [generateOpen, setGenerateOpen] = useState(false)
   const [selectedPersona, setSelectedPersona] = useState<number | null>(null)
@@ -37,7 +46,8 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
   const [scriptText, setScriptText] = useState('')
   const [scriptLoading, setScriptLoading] = useState(false)
   const [generating, setGenerating] = useState(false)
-  const [useProduct, setUseProduct] = useState(false)
+  // Product toggle disabled: Veo 3.1 Fast image_url = first-frame, not reference. Kalitesiz sonuç verir.
+  const useProduct = false
   // Settings + modals
   const [settings, setSettings] = useState<UGCSettings>(DEFAULT_SETTINGS)
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -46,6 +56,28 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
   const [msg, setMsg] = useState('')
 
   useEffect(() => { loadData() }, [briefId])
+
+  // Timer-based stage progression for processing videos
+  useEffect(() => {
+    const processing = ugcVideos.filter(v => v.status === 'queued' || v.status === 'generating')
+    if (processing.length === 0) return
+    // Initialize stage map
+    setTimerStageMap(prev => {
+      const next = { ...prev }
+      processing.forEach(v => { if (!(v.id in next)) next[v.id] = 0 })
+      return next
+    })
+    const timers: ReturnType<typeof setTimeout>[] = []
+    processing.forEach(v => {
+      let cumulative = 0
+      UGC_STAGES.forEach((s, si) => {
+        if (si === 0) return
+        cumulative += UGC_STAGES[si - 1].duration * 1000
+        timers.push(setTimeout(() => { setTimerStageMap(prev => ({ ...prev, [v.id]: si })) }, cumulative))
+      })
+    })
+    return () => timers.forEach(clearTimeout)
+  }, [ugcVideos.filter(v => v.status === 'queued' || v.status === 'generating').map(v => v.id).join(',')])
 
   async function loadData() {
     setLoading(true)
@@ -171,13 +203,28 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
                     {!isPurchased && <img src="/dinamo_logo.png" alt="" style={{ position: 'absolute', bottom: '30%', left: '50%', transform: 'translateX(-50%)', width: '80px', opacity: 0.35, pointerEvents: 'none' }} />}
                   </>
                 ) : isProcessing ? (
-                  <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '16px' }}>
-                    <div style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#6b6b66', marginBottom: '12px' }}>TAHMİNİ SÜRE: 2-3 dakika</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <div className="spinner" style={{ width: '14px', height: '14px', borderWidth: '2px', borderStyle: 'solid', borderColor: '#4ade80 transparent transparent transparent' }} />
-                      <span style={{ fontSize: '13px', color: '#fff' }}>Üretiliyor</span>
-                    </div>
-                  </div>
+                  (() => {
+                    const curSi = timerStageMap[video.id] || 0
+                    return (
+                      <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '16px', background: '#0a0a0a' }}>
+                        <div style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#6b6b66', marginBottom: '12px' }}>TAHMİNİ SÜRE: 2-3 dakika</div>
+                        {UGC_STAGES.map((s, si) => {
+                          const done = curSi > si
+                          const active = curSi === si
+                          return (
+                            <div key={s.key} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                              <div style={{ width: '14px', height: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                {done ? <span style={{ color: '#4ade80', fontSize: '10px' }}>&#10003;</span>
+                                  : active ? <div className="spinner" style={{ width: '14px', height: '14px', borderWidth: '2px', borderStyle: 'solid', borderColor: '#4ade80 transparent transparent transparent' }} />
+                                  : <div style={{ width: '4px', height: '4px', background: '#555' }} />}
+                              </div>
+                              <span style={{ fontSize: '13px', lineHeight: '1.8', color: done ? '#4ade80' : active ? '#fff' : '#6b6b66', fontWeight: active ? '500' : '400', transition: 'all 0.3s' }}>{s.label}</span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )
+                  })()
                 ) : (
                   <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                     <span style={{ fontSize: '20px', color: '#555' }}>&#9888;</span>
@@ -272,15 +319,6 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
                   </div>
                 ))}
               </div>
-              {/* Product toggle */}
-              {brief?.product_image_url && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-                  <span style={{ fontSize: '12px', color: '#0a0a0a' }}>Ürünü dahil et</span>
-                  <button onClick={() => setUseProduct(!useProduct)} style={{ width: '36px', height: '20px', border: 'none', cursor: 'pointer', background: useProduct ? '#22c55e' : '#ddd', position: 'relative', transition: 'background 0.2s' }}>
-                    <span className="dot" style={{ position: 'absolute', top: '2px', left: useProduct ? '18px' : '2px', width: '16px', height: '16px', background: '#fff', transition: 'left 0.2s' }} />
-                  </button>
-                </div>
-              )}
               <button onClick={handleGenerate} disabled={generating || !selectedPersona || (clientUser?.allocated_credits || 0) < 1} style={{ width: '100%', padding: '12px', background: (clientUser?.allocated_credits || 0) < 1 ? '#ccc' : '#0a0a0a', color: '#fff', border: 'none', fontSize: '13px', fontWeight: '600', cursor: (clientUser?.allocated_credits || 0) < 1 ? 'default' : 'pointer' }}>
                 ÜRET (1 KREDİ)
               </button>
