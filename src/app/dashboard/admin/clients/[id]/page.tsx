@@ -136,9 +136,10 @@ export default function ClientDetailPage() {
     if (!cl) { router.push('/dashboard/admin/clients'); return }
     setClient(cl)
     setClientFastMode(cl.use_fast_mode || false)
-    // Fetch global AI quality mode
-    const { data: sysMode } = await supabase.from('system_settings').select('value').eq('key', 'ai_quality_mode').single()
-    setGlobalAiMode(sysMode?.value === 'quality' ? 'quality' : 'fast')
+    // Fetch global AI quality mode via server-side endpoint (RLS bypass)
+    const modeRes = await fetch('/api/admin/ai-quality-mode')
+    const modeData = await modeRes.json()
+    setGlobalAiMode(modeData.mode === 'quality' ? 'quality' : 'fast')
     setAiNotes(cl.ai_notes || '')
     setBrand({ primary_color: cl.brand_primary_color||'', secondary_color: cl.brand_secondary_color||'', forbidden_colors: cl.brand_forbidden_colors||'', tone: cl.brand_tone||'', avoid: cl.brand_avoid||'', notes: cl.brand_notes||'' })
     setBrandLogoUrl(cl.brand_logo_url || '')
