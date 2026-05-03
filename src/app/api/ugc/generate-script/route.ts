@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { getClaudeModel } from '@/lib/claude-model'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
@@ -28,11 +29,12 @@ export async function POST(req: NextRequest) {
   const ctaNote = includeCta ? 'Segment 2\'de doğal CTA ekle (dene, bak, linkten ulaş gibi kısa).' : 'CTA EKLEME, sadece doğal kapanış.'
   const productNote = use_product ? 'Ürün videoda görünecek, persona ürünü gösteriyor.' : 'Ürün görünmüyor, sadece sözlü anlatım.'
 
+  const model = await getClaudeModel('ugc-script')
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
+      model,
       max_tokens: 400,
       system: `Sen TikTok UGC senaryocususun. 8 saniyelik video için 2 segmentlik konuşma metni yaz.
 
@@ -88,7 +90,7 @@ KESINLIKLE SADECE JSON DÖNDÜR. Açıklama yazma, analiz yapma, markdown kullan
     const retryRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 400, system: 'Return ONLY valid JSON. No markdown. Format: {"segments":[{"timestamp":"00:00-00:04","camera":"medium shot","action":"...","dialogue":"..."},{"timestamp":"00:04-00:08","camera":"close-up shot","action":"...","dialogue":"..."}]}', messages: [{ role: 'user', content: `Brief: ${brief.campaign_name}. Persona: ${persona.name}. Write 2 segments of Turkish UGC dialogue, 60-75 chars each, total 130-145 chars. JSON only:` }, { role: 'assistant', content: '{"segments":[{' }] }),
+      body: JSON.stringify({ model, max_tokens: 400, system: 'Return ONLY valid JSON. No markdown. Format: {"segments":[{"timestamp":"00:00-00:04","camera":"medium shot","action":"...","dialogue":"..."},{"timestamp":"00:04-00:08","camera":"close-up shot","action":"...","dialogue":"..."}]}', messages: [{ role: 'user', content: `Brief: ${brief.campaign_name}. Persona: ${persona.name}. Write 2 segments of Turkish UGC dialogue, 60-75 chars each, total 130-145 chars. JSON only:` }, { role: 'assistant', content: '{"segments":[{' }] }),
     })
     if (retryRes.ok) {
       const retryData = await retryRes.json()

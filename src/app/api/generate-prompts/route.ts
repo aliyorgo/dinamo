@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getActiveBrandRules, buildBrandRulesBlock } from '@/lib/brand-learning'
+import { getClaudeModel } from '@/lib/claude-model'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
@@ -66,11 +67,12 @@ export async function POST(request: Request) {
     const rulesBlock = buildBrandRulesBlock(rules)
 
     console.log('[prompts] Calling Anthropic API...')
+    const claudeModel = await getClaudeModel('generate-prompts')
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
+        model: claudeModel,
         max_tokens: 2000,
         system: 'Sen AI video üretim prompt mühendisisin. Yanıtın SADECE JSON olsun. Markdown code block kullanma.',
         messages: [{ role: 'user', content: `${rulesBlock}Bu video konsepti ve senaryosu için profesyonel, kullanıma hazır video prompt yaz.

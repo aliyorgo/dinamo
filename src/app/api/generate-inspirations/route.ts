@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getActiveBrandRules, buildBrandRulesBlock } from '@/lib/brand-learning'
+import { getClaudeModel } from '@/lib/claude-model'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
@@ -84,11 +85,12 @@ Sadece JSON döndür:
   console.log('[inspirations] Sending to Anthropic API...')
   let res: Response
   try {
+    const model = await getClaudeModel('inspirations')
     res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
+        model,
         max_tokens: 2000,
         system: 'Sen deneyimli bir video prodüksiyon direktörüsün. Kling, Veo, Runway gibi AI video üretim araçları ve Adobe Premiere\'e hakimsin. Yanıtın SADECE geçerli bir JSON objesi olsun. Başka hiçbir şey yazma. Markdown code block kullanma. Açıklama ekleme.',
         messages: [{ role: 'user', content: prompt }]

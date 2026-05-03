@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getActiveBrandRules, buildBrandRulesBlock } from '@/lib/brand-learning'
+import { getClaudeModel } from '@/lib/claude-model'
 
 export async function POST(request: Request) {
   const { campaign_name, brand_name, message, target_audience, video_type, cta, count, clientId } = await request.json()
@@ -35,7 +36,7 @@ SADECE JSON formatinda don, baska metin yazma:
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
+        model: await getClaudeModel('ideas'),
         max_tokens: 2000,
         messages: [{ role: 'user', content: prompt }],
       }),

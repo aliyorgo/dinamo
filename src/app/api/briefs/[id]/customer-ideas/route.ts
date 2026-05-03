@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getActiveBrandRules, buildBrandRulesBlock } from '@/lib/brand-learning'
+import { getClaudeModel } from '@/lib/claude-model'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
@@ -16,11 +17,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const rules = brief.client_id ? await getActiveBrandRules(brief.client_id) : []
     const rulesBlock = buildBrandRulesBlock(rules)
 
+    const model = await getClaudeModel('customer-ideas')
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
+        model,
         max_tokens: 600,
         messages: [{ role: 'user', content: `${rulesBlock}Bu brief için 3 farklı yaratıcı yön öner.
 
