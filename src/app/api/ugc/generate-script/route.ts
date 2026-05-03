@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     ? `\n\nMÜŞTERİ GERİ BİLDİRİMLERİ (önceki versiyonlar hakkında, en son en önemli):\n${previous_feedbacks.map((f: any) => `${f.video_version} (${f.persona_slug || ''}): "${f.feedback}"`).join('\n')}\nBu yorumları dikkate alarak daha iyi bir script üret. En son yorum en önemli.`
     : ''
 
-  const { data: brief } = await supabase.from('briefs').select('campaign_name, message, target_audience, cta, product_image_url').eq('id', brief_id).single()
+  const { data: brief } = await supabase.from('briefs').select('campaign_name, message, target_audience, cta, product_image_url, clients(use_fast_mode)').eq('id', brief_id).single()
   if (!brief) return NextResponse.json({ error: 'Brief bulunamadı' }, { status: 404 })
 
   const { data: persona } = await supabase.from('personas').select('*').eq('id', persona_id).single()
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
   const ctaNote = includeCta ? 'Segment 2\'de doğal CTA ekle (dene, bak, linkten ulaş gibi kısa).' : 'CTA EKLEME, sadece doğal kapanış.'
   const productNote = use_product ? 'Ürün videoda görünecek, persona ürünü gösteriyor.' : 'Ürün görünmüyor, sadece sözlü anlatım.'
 
-  const model = await getClaudeModel('ugc-script')
+  const model = await getClaudeModel('ugc-script', (brief as any).clients?.use_fast_mode || false)
   const supportsPrefill = model.includes('haiku')
 
   // Helper: extract first complete JSON object from text

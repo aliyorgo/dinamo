@@ -98,6 +98,11 @@ export default function ClientDetailPage() {
   const [aiNotesInput, setAiNotesInput] = useState('')
   const [inlineCredit, setInlineCredit] = useState<string|null>(null)
 
+  // AI Mode override
+  const [globalAiMode, setGlobalAiMode] = useState<'fast'|'quality'>('fast')
+  const [clientFastMode, setClientFastMode] = useState(false)
+  const [savingAiMode, setSavingAiMode] = useState(false)
+
   // Brand research
   const [researchModal, setResearchModal] = useState(false)
   const [researchStep, setResearchStep] = useState<'searching'|'sources'|'processing'|'done'>('searching')
@@ -130,6 +135,10 @@ export default function ClientDetailPage() {
 
     if (!cl) { router.push('/dashboard/admin/clients'); return }
     setClient(cl)
+    setClientFastMode(cl.use_fast_mode || false)
+    // Fetch global AI quality mode
+    const { data: sysMode } = await supabase.from('system_settings').select('value').eq('key', 'ai_quality_mode').single()
+    setGlobalAiMode(sysMode?.value === 'quality' ? 'quality' : 'fast')
     setAiNotes(cl.ai_notes || '')
     setBrand({ primary_color: cl.brand_primary_color||'', secondary_color: cl.brand_secondary_color||'', forbidden_colors: cl.brand_forbidden_colors||'', tone: cl.brand_tone||'', avoid: cl.brand_avoid||'', notes: cl.brand_notes||'' })
     setBrandLogoUrl(cl.brand_logo_url || '')
@@ -567,6 +576,35 @@ export default function ClientDetailPage() {
                   {savingNotes ? 'Kaydediliyor...' : 'Kaydet'}
                 </button>
               </div>
+
+              {/* AI SEÇİMİ */}
+              {globalAiMode === 'quality' && (
+                <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '20px' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: '500', marginBottom: '14px' }}>
+                    AI Seçimi
+                  </div>
+                  <div style={{ display: 'flex', gap: '0', marginBottom: '10px' }}>
+                    {([['false', 'KALİTE'], ['true', 'HIZ']] as const).map(([val, label]) => (
+                      <button key={val} onClick={() => setClientFastMode(val === 'true')}
+                        style={{ padding: '8px 20px', fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', cursor: 'pointer', border: '1px solid #0a0a0a', background: (clientFastMode ? 'true' : 'false') === val ? '#0a0a0a' : '#fff', color: (clientFastMode ? 'true' : 'false') === val ? '#fff' : '#0a0a0a', marginRight: val === 'false' ? '-1px' : '0', transition: 'all 0.15s' }}>
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#888', marginBottom: '10px' }}>
+                    {clientFastMode ? 'AI kalitesi düşer, hızlı işler için.' : 'AI kalitesi artar, bekleme süreleri biraz artar.'}
+                  </div>
+                  <button onClick={async () => {
+                    setSavingAiMode(true)
+                    await fetch(`/api/admin/clients/${clientId}/ai-mode`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ use_fast_mode: clientFastMode }) })
+                    setSavingAiMode(false)
+                    showMsg('AI seçimi güncellendi')
+                  }} disabled={savingAiMode}
+                    style={{ padding: '7px 16px', background: '#111113', color: '#fff', border: 'none', fontSize: '11px', fontWeight: '500', cursor: savingAiMode ? 'not-allowed' : 'pointer' }}>
+                    {savingAiMode ? 'Kaydediliyor...' : 'Kaydet'}
+                  </button>
+                </div>
+              )}
 
               {/* BRAND ASSETS */}
               <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '20px' }}>

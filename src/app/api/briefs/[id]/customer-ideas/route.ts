@@ -8,7 +8,7 @@ const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
-    const { data: brief } = await supabase.from('briefs').select('*, clients(company_name)').eq('id', id).single()
+    const { data: brief } = await supabase.from('briefs').select('*, clients(company_name, use_fast_mode)').eq('id', id).single()
     if (!brief) return NextResponse.json({ error: 'Brief bulunamadı' }, { status: 404 })
 
     const apiKey = process.env.ANTHROPIC_API_KEY
@@ -17,7 +17,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const rules = brief.client_id ? await getActiveBrandRules(brief.client_id) : []
     const rulesBlock = buildBrandRulesBlock(rules)
 
-    const model = await getClaudeModel('customer-ideas')
+    const model = await getClaudeModel('customer-ideas', brief.clients?.use_fast_mode || false)
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },

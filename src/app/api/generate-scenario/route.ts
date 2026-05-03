@@ -12,7 +12,7 @@ export async function POST(request: Request) {
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) return NextResponse.json({ error: 'API key yok' }, { status: 500 })
 
-  const { data: insp, error: inspErr } = await supabase.from('brief_inspirations').select('*, briefs(video_type, message, cta, client_id)').eq('id', inspiration_id).single()
+  const { data: insp, error: inspErr } = await supabase.from('brief_inspirations').select('*, briefs(video_type, message, cta, client_id, clients(use_fast_mode))').eq('id', inspiration_id).single()
   if (inspErr) console.error('[scenario] DB error:', inspErr.message)
   if (!insp) return NextResponse.json({ error: 'Fikir bulunamadı' }, { status: 404 })
   console.log('[scenario] Found:', insp.title)
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
   const rules = insp.briefs?.client_id ? await getActiveBrandRules(insp.briefs.client_id) : []
   const rulesBlock = buildBrandRulesBlock(rules)
 
-  const model = await getClaudeModel('scenario')
+  const model = await getClaudeModel('scenario', insp.briefs?.clients?.use_fast_mode || false)
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },

@@ -25,9 +25,21 @@ const MODEL_MAP: Record<string, { fast: string; quality: string }> = {
   'customer-ideas': { fast: 'claude-haiku-4-5-20251001', quality: 'claude-opus-4-6' },
 }
 
-export async function getClaudeModel(endpoint: string): Promise<string> {
-  const mode = await getQualityMode()
-  return MODEL_MAP[endpoint]?.[mode] || 'claude-haiku-4-5-20251001'
+export async function getClaudeModel(endpoint: string, clientUseFastMode?: boolean): Promise<string> {
+  const globalMode = await getQualityMode()
+
+  // Global fast → everyone uses fast
+  if (globalMode === 'fast') {
+    return 'claude-haiku-4-5-20251001'
+  }
+
+  // Global quality but client override → fast
+  if (clientUseFastMode === true) {
+    return 'claude-haiku-4-5-20251001'
+  }
+
+  // Global quality + no override → quality mapping
+  return MODEL_MAP[endpoint]?.quality || 'claude-haiku-4-5-20251001'
 }
 
 export function invalidateQualityModeCache(): void {

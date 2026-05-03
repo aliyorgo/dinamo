@@ -25,7 +25,7 @@ export async function POST(request: Request) {
   }
 
   console.log('[inspirations] Fetching brief...')
-  const { data: brief, error: briefErr } = await supabase.from('briefs').select('*, clients(company_name)').eq('id', brief_id).single()
+  const { data: brief, error: briefErr } = await supabase.from('briefs').select('*, clients(company_name, use_fast_mode)').eq('id', brief_id).single()
   if (briefErr) console.error('[inspirations] Brief fetch error:', briefErr.message)
   if (!brief) return NextResponse.json({ error: 'Brief bulunamadı' }, { status: 404 })
   console.log('[inspirations] Brief found:', brief.campaign_name, brief.video_type)
@@ -85,7 +85,7 @@ Sadece JSON döndür:
   console.log('[inspirations] Sending to Anthropic API...')
   let res: Response
   try {
-    const model = await getClaudeModel('inspirations')
+    const model = await getClaudeModel('inspirations', brief.clients?.use_fast_mode || false)
     res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },

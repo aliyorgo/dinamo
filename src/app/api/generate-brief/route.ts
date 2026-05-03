@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 import { getActiveBrandRules, buildBrandRulesBlock } from '@/lib/brand-learning'
 import { getClaudeModel } from '@/lib/claude-model'
+
+const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
 export async function POST(request: Request) {
   const { user_input, brand_name, clientId } = await request.json()
@@ -8,6 +11,12 @@ export async function POST(request: Request) {
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) {
     return NextResponse.json({ error: 'ANTHROPIC_API_KEY not configured' }, { status: 500 })
+  }
+
+  let useFastMode = false
+  if (clientId) {
+    const { data: cl } = await supabase.from('clients').select('use_fast_mode').eq('id', clientId).maybeSingle()
+    useFastMode = cl?.use_fast_mode || false
   }
 
   const rules = clientId ? await getActiveBrandRules(clientId) : []
@@ -21,7 +30,7 @@ export async function POST(request: Request) {
       'anthropic-version': '2023-06-01',
     },
     body: JSON.stringify({
-      model: await getClaudeModel('generate-brief'),
+      model: await getClaudeModel('generate-brief', useFastMode),
       max_tokens: 1200,
       system: `Sen profesyonel bir reklam ajansı brief yazarısın. Kullanıcının anlatımından yapılandırılmış bir video brief oluştur. Yanıtın SADECE geçerli bir JSON objesi olsun, başka hiçbir şey yazma — açıklama yok, markdown yok, backtick yok.
 
