@@ -39,7 +39,9 @@ export default function BrandIdentityPage() {
 
   useEffect(() => {
     async function loadAiMode() {
-      const res = await fetch('/api/client/ai-mode')
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) return
+      const res = await fetch('/api/client/ai-mode', { headers: { 'Authorization': `Bearer ${session.access_token}` } })
       if (res.ok) {
         const d = await res.json()
         setGlobalAiMode(d.global_mode)
@@ -51,7 +53,9 @@ export default function BrandIdentityPage() {
 
   async function toggleAiMode(fast: boolean) {
     setClientFastMode(fast)
-    await fetch('/api/client/ai-mode', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ use_fast_mode: fast }) })
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.access_token) return
+    await fetch('/api/client/ai-mode', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` }, body: JSON.stringify({ use_fast_mode: fast }) })
   }
 
   useEffect(() => {
