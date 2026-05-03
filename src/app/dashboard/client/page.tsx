@@ -41,6 +41,7 @@ export default function ClientDashboard() {
   const [videoMap, setVideoMap] = useState<Record<string,string>>({})
   const [aiChildrenMap, setAiChildrenMap] = useState<Record<string, any[]>>({})
   const [cpsChildrenMap, setCpsChildrenMap] = useState<Record<string, any[]>>({})
+  const [ugcReadyMap, setUgcReadyMap] = useState<Record<string, any[]>>({})
   const [loading, setLoading] = useState(true)
   // Notifications
   const [notifications, setNotifications] = useState<any[]>([])
@@ -91,6 +92,19 @@ export default function ClientDashboard() {
             if (key) { if (!cpsMap[key]) cpsMap[key] = []; cpsMap[key].push(k) }
           })
           setCpsChildrenMap(cpsMap)
+
+          // UGC videos — unviewed completed
+          const { data: ugcVids } = await supabase.from('ugc_videos')
+            .select('id, brief_id, final_url, viewed_at, created_at, personas(name, slug)')
+            .in('brief_id', briefIds)
+            .eq('status', 'completed')
+            .is('viewed_at', null)
+          const ugcMap: Record<string, any[]> = {}
+          ugcVids?.forEach((v: any) => {
+            if (!ugcMap[v.brief_id]) ugcMap[v.brief_id] = []
+            ugcMap[v.brief_id].push(v)
+          })
+          setUgcReadyMap(ugcMap)
         }
 
         const withVideoIds = (b || []).filter(br => ['delivered','approved'].includes(br.status)).map(br => br.id)
@@ -184,6 +198,23 @@ export default function ClientDashboard() {
         })
         setAiChildrenMap(map)
       }
+      // Refresh UGC ready videos
+      const ugcProcessing = currentBriefs.filter(b => b.ugc_status === 'queued' || b.ugc_status === 'generating')
+      if (ugcProcessing.length > 0) {
+        const { data: ugcVids } = await supabase.from('ugc_videos')
+          .select('id, brief_id, final_url, viewed_at, created_at, personas(name, slug)')
+          .in('brief_id', ugcProcessing.map(b => b.id))
+          .eq('status', 'completed')
+          .is('viewed_at', null)
+        if (ugcVids) {
+          const ugcMap: Record<string, any[]> = {}
+          ugcVids.forEach((v: any) => {
+            if (!ugcMap[v.brief_id]) ugcMap[v.brief_id] = []
+            ugcMap[v.brief_id].push(v)
+          })
+          setUgcReadyMap(prev => ({ ...prev, ...ugcMap }))
+        }
+      }
     }, 10000)
     return () => clearInterval(interval)
   }, [clientId])
@@ -218,7 +249,7 @@ export default function ClientDashboard() {
   }
 
   // Assign each brief to exactly ONE category (most critical wins)
-  function getBriefCategory(b: any): 'question' | 'approval' | 'ai_ready' | 'producing' | 'draft' | 'done' {
+  function getBriefCategory(b: any): 'question' | 'approval' | 'ai_ready' | 'ugc_ready' | 'producing' | 'draft' | 'done' {
     if (b.status === 'draft') return 'draft'
 
     const briefQs = unansweredQuestions.filter(q => q.brief_id === b.id)
@@ -233,6 +264,10 @@ export default function ClientDashboard() {
     const aiKids = aiChildrenMap[b.root_campaign_id] || aiChildrenMap[b.id] || []
     const aiUnviewed = aiKids.filter((k: any) => k.ai_video_url && !k.ai_express_viewed_at && k.ai_video_status !== 'failed' && k.ai_video_status !== 'timeout')
     if (aiUnviewed.length > 0) return 'ai_ready'
+
+    // UGC unviewed
+    const ugcUnviewed = ugcReadyMap[b.id] || []
+    if (ugcUnviewed.length > 0) return 'ugc_ready'
 
     // "Done" = ana video delivered + all CPS delivered
     if (b.status === 'delivered') {
@@ -250,6 +285,7 @@ export default function ClientDashboard() {
   const catQuestion = nonDrafts.filter(b => getBriefCategory(b) === 'question')
   const catApproval = nonDrafts.filter(b => getBriefCategory(b) === 'approval')
   const catAiReady = nonDrafts.filter(b => getBriefCategory(b) === 'ai_ready')
+  const catUgcReady = nonDrafts.filter(b => getBriefCategory(b) === 'ugc_ready')
   const catProducing = nonDrafts.filter(b => getBriefCategory(b) === 'producing')
   const catDone = nonDrafts.filter(b => getBriefCategory(b) === 'done')
 
@@ -266,6 +302,14 @@ export default function ClientDashboard() {
     if (kids.length > 0) aiExpressReady.push({ parent: b, children: kids })
   })
   const aiExpressCount = aiExpressReady.reduce((s, r) => s + r.children.length, 0)
+
+  // UGC Ready unviewed for cards
+  const ugcReadyList: { brief: any; videos: any[] }[] = []
+  catUgcReady.forEach(b => {
+    const vids = ugcReadyMap[b.id] || []
+    if (vids.length > 0) ugcReadyList.push({ brief: b, videos: vids })
+  })
+  const ugcReadyCount = ugcReadyList.reduce((s, r) => s + r.videos.length, 0)
 
   async function handleDeleteDraft(briefId: string) {
     if (!confirm('Bu taslağı silmek istediğinizden emin misiniz?')) return
@@ -540,6 +584,23 @@ export default function ClientDashboard() {
                 </div>
               )}
 
+              {/* 3.5) AI UGC HAZIR */}
+              {catUgcReady.length > 0 && (
+                <div>
+                  <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'#4ade80',marginBottom:'10px'}}>AI UGC HAZIR · {ugcReadyCount}</div>
+                  <div className="ai-grid" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'10px'}}>
+                    {ugcReadyList.map(({ brief: parent, videos }) => videos.map((vid: any, i: number) => (
+                      <div key={vid.id} onClick={() => router.push(`/dashboard/client/briefs/${parent.id}?tab=ugc`)}
+                        style={{padding:'12px 14px',background:'#fff',borderLeft:'3px solid #4ade80',border:'1px solid #e5e4db',cursor:'pointer',position:'relative'}}>
+                        <div style={{position:'absolute',top:'8px',right:'8px',width:'8px',height:'8px',borderRadius:'50%',background:'#4ade80'}} />
+                        <div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>{parent.campaign_name}</div>
+                        <div style={{fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'#888',marginTop:'3px'}}>UGC · {vid.personas?.name || `Video ${i + 1}`}</div>
+                      </div>
+                    )))}
+                  </div>
+                </div>
+              )}
+
               {/* 4) ÜRETİLİYOR */}
               {catProducing.length > 0 && (
                 <div>
@@ -620,8 +681,8 @@ export default function ClientDashboard() {
                     const cpsCount = cpsKids.length
                     const imgCount = (Array.isArray(b.static_image_files) ? b.static_image_files.length : b.static_image_files ? 1 : 0) * 5
                     const cat = getBriefCategory(b)
-                    const catColors: Record<string,string> = { question:'#ef4444', approval:'#f5a623', ai_ready:'#4ade80', producing:'#888', done:'var(--color-text-tertiary)', draft:'#c5c5b8' }
-                    const catLabels: Record<string,string> = { question:'Sorumuz Var', approval:'Onay Bekliyor', ai_ready:'AI Express Hazır', producing:'Üretiliyor', done:'Tamamlandı', draft:'Taslak' }
+                    const catColors: Record<string,string> = { question:'#ef4444', approval:'#f5a623', ai_ready:'#4ade80', ugc_ready:'#4ade80', producing:'#888', done:'var(--color-text-tertiary)', draft:'#c5c5b8' }
+                    const catLabels: Record<string,string> = { question:'Sorumuz Var', approval:'Onay Bekliyor', ai_ready:'AI Express Hazır', ugc_ready:'AI UGC Hazır', producing:'Üretiliyor', done:'Tamamlandı', draft:'Taslak' }
                     return (
                       <div key={b.id} onClick={() => b.status === 'draft' ? router.push(`/dashboard/client/brief/new?draft=${b.id}`) : router.push(`/dashboard/client/briefs/${b.id}`)}
                         style={{padding:'14px 18px',background:'#fff',border:'1px solid #e5e4db',marginBottom:'6px',cursor:'pointer',display:'flex',alignItems:'center',gap:'12px'}}>

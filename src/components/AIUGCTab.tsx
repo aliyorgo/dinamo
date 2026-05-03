@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import UGCSettingsModal, { UGCSettings, DEFAULT_SETTINGS } from './UGCSettingsModal'
 import InfoModal, { InfoParagraph } from './InfoModal'
@@ -57,6 +57,13 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
   const [purchasing, setPurchasing] = useState<string | null>(null)
   const [msg, setMsg] = useState('')
   const [highlightId, setHighlightId] = useState<string | null>(null)
+  const viewedIdsRef = useRef<Set<string>>(new Set())
+
+  async function markUgcVideoViewed(videoId: string) {
+    if (viewedIdsRef.current.has(videoId)) return
+    viewedIdsRef.current.add(videoId)
+    await supabase.from('ugc_videos').update({ viewed_at: new Date().toISOString() }).eq('id', videoId).is('viewed_at', null)
+  }
 
   useEffect(() => { loadData() }, [briefId])
 
@@ -220,7 +227,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
               <div style={{ width: '200px', aspectRatio: '9/16', background: '#0a0a0a', flexShrink: 0, position: 'relative', overflow: 'hidden' }}>
                 {hasVideo ? (
                   <>
-                    <video src={video.final_url} controls preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'contain', backgroundColor: 'black' }} />
+                    <video src={video.final_url} controls preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'contain', backgroundColor: 'black' }} onPlay={() => markUgcVideoViewed(video.id)} />
                     {!isPurchased && <img src="/dinamo_logo.png" alt="" style={{ position: 'absolute', bottom: '30%', left: '50%', transform: 'translateX(-50%)', width: '80px', opacity: 0.35, pointerEvents: 'none' }} />}
                   </>
                 ) : isProcessing ? (
