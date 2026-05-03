@@ -104,6 +104,15 @@ function ClientBriefDetail() {
   const [expressSettingsOpen, setExpressSettingsOpen] = useState(false)
   const [expressSettings, setExpressSettings] = useState<{ logo: boolean; cta: boolean; packshot: boolean }>({ logo: true, cta: false, packshot: false })
   const [clientPackshotUrl, setClientPackshotUrl] = useState('')
+  function toggleExpressSetting(key: 'logo' | 'cta' | 'packshot') {
+    setExpressSettings(prev => {
+      const next = { ...prev, [key]: !prev[key] }
+      if (key === 'packshot' && next.packshot) next.logo = false
+      if (key === 'logo' && next.logo) next.packshot = false
+      supabase.from('briefs').update({ ai_express_settings: next }).eq('id', id)
+      return next
+    })
+  }
   const [ugcVideosForSummary, setUgcVideosForSummary] = useState<any[]>([])
   const [activeTab, setActiveTab] = useState<'hybrid'|'cps'|'express'|'ugc'|'summary'>(searchParams.get('tab') === 'express' ? 'express' : searchParams.get('tab') === 'ugc' ? 'ugc' : searchParams.get('tab') === 'cps' ? 'cps' : searchParams.get('tab') === 'summary' ? 'summary' : 'hybrid')
 
@@ -1276,7 +1285,7 @@ function ClientBriefDetail() {
                   {/* Logo toggle */}
                   <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0',borderBottom:'1px solid #e5e4db'}}>
                     <div><div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>Logo</div><div style={{fontSize:'11px',color:'#888'}}>Video sonunda marka logosu göster</div></div>
-                    <button onClick={()=>{const next={...expressSettings,logo:!expressSettings.logo,packshot:!expressSettings.logo?false:expressSettings.packshot};setExpressSettings(next);supabase.from('briefs').update({ai_express_settings:next}).eq('id',id)}}
+                    <button onClick={()=>toggleExpressSetting('logo')}
                       style={{width:'36px',height:'20px',border:'none',cursor:'pointer',background:expressSettings.logo?'#22c55e':'#ddd',position:'relative',transition:'background 0.2s',flexShrink:0}}>
                       <span className="dot" style={{position:'absolute',top:'2px',left:expressSettings.logo?'18px':'2px',width:'16px',height:'16px',background:'#fff',transition:'left 0.2s'}} />
                     </button>
@@ -1284,7 +1293,7 @@ function ClientBriefDetail() {
                   {/* CTA toggle */}
                   <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0',borderBottom:'1px solid #e5e4db'}}>
                     <div><div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>CTA</div><div style={{fontSize:'11px',color:'#888'}}>Video sonunda CTA yazısı göster</div></div>
-                    <button onClick={()=>{const next={...expressSettings,cta:!expressSettings.cta};setExpressSettings(next);supabase.from('briefs').update({ai_express_settings:next}).eq('id',id)}}
+                    <button onClick={()=>toggleExpressSetting('cta')}
                       style={{width:'36px',height:'20px',border:'none',cursor:'pointer',background:expressSettings.cta?'#22c55e':'#ddd',position:'relative',transition:'background 0.2s',flexShrink:0}}>
                       <span className="dot" style={{position:'absolute',top:'2px',left:expressSettings.cta?'18px':'2px',width:'16px',height:'16px',background:'#fff',transition:'left 0.2s'}} />
                     </button>
@@ -1293,7 +1302,7 @@ function ClientBriefDetail() {
                   {clientPackshotUrl && (
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0'}}>
                       <div><div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>Packshot</div><div style={{fontSize:'11px',color:'#888'}}>Video sonuna packshot ekle</div></div>
-                      <button onClick={()=>{const next={...expressSettings,packshot:!expressSettings.packshot,logo:!expressSettings.packshot?false:expressSettings.logo};setExpressSettings(next);supabase.from('briefs').update({ai_express_settings:next}).eq('id',id)}}
+                      <button onClick={()=>toggleExpressSetting('packshot')}
                         style={{width:'36px',height:'20px',border:'none',cursor:'pointer',background:expressSettings.packshot?'#22c55e':'#ddd',position:'relative',transition:'background 0.2s',flexShrink:0}}>
                         <span className="dot" style={{position:'absolute',top:'2px',left:expressSettings.packshot?'18px':'2px',width:'16px',height:'16px',background:'#fff',transition:'left 0.2s'}} />
                       </button>
