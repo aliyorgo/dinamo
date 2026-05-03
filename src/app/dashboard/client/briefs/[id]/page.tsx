@@ -116,7 +116,7 @@ function ClientBriefDetail() {
   async function persistExpressSettings(settings: any) {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.access_token) return
-    fetch(`/api/briefs/${id}/ai-express-settings`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` }, body: JSON.stringify({ settings }) })
+    fetch('/api/client/ai-express-settings', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` }, body: JSON.stringify({ settings }) })
   }
   const [ugcVideosForSummary, setUgcVideosForSummary] = useState<any[]>([])
   const [activeTab, setActiveTab] = useState<'hybrid'|'cps'|'express'|'ugc'|'summary'>(searchParams.get('tab') === 'express' ? 'express' : searchParams.get('tab') === 'ugc' ? 'ugc' : searchParams.get('tab') === 'cps' ? 'cps' : searchParams.get('tab') === 'summary' ? 'summary' : 'hybrid')
@@ -193,7 +193,7 @@ function ClientBriefDetail() {
     if (!user) return
     const { data: userData } = await supabase.from('users').select('name').eq('id', user.id).single()
     setUserName(userData?.name || '')
-    const { data: cu } = await supabase.from('client_users').select('*, clients(company_name, credit_balance, packshot_url)').eq('user_id', user.id).single()
+    const { data: cu } = await supabase.from('client_users').select('*, clients(company_name, credit_balance, packshot_url, ai_express_settings)').eq('user_id', user.id).single()
     setClientUser(cu)
     setCompanyName((cu as any)?.clients?.company_name || '')
     const pUrl = (cu as any)?.clients?.packshot_url || ''
@@ -201,13 +201,11 @@ function ClientBriefDetail() {
     const { data: b } = await supabase.from('briefs').select('*, clients(ai_video_enabled)').eq('id', id).single()
     setBrief(b)
     if (b?.caption) { setCaptionText(b.caption); setSavedCaption(b.caption) }
-    // AI Express settings — DB is single source of truth, user preference always wins
-    const storedSettings = b?.ai_express_settings
+    // AI Express settings — client-level (brand settings, not per-brief)
+    const storedSettings = (cu as any)?.clients?.ai_express_settings
     if (storedSettings && typeof storedSettings === 'object' && ('logo' in storedSettings || 'cta' in storedSettings || 'packshot' in storedSettings)) {
-      // User has saved preferences — use them directly
       setExpressSettings(storedSettings)
     } else {
-      // First open (null/empty) — compute defaults based on packshot, persist once
       const defaults = { logo: !pUrl, cta: false, packshot: !!pUrl }
       setExpressSettings(defaults)
       persistExpressSettings(defaults)
