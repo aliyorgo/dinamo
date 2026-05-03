@@ -697,7 +697,7 @@ function ClientBriefDetail() {
         {/* TABS */}
         <div style={{display:'flex',gap:0,background:'#fff',paddingLeft:'28px',borderBottom:'1px solid rgba(0,0,0,0.08)'}}>
           {(() => {
-            const hasSummary = aiChildren.length > 0 || cpsChildren.length > 0 || !!brief?.static_images_url
+            const hasSummary = aiChildren.length > 0 || cpsChildren.length > 0 || !!brief?.static_images_url || ugcVideosForSummary.length > 0
             const tabs = [
               {key:'hybrid' as const, label:'Ana Video'},
               {key:'cps' as const, label:'CPS'},
