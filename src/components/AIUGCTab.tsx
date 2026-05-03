@@ -45,7 +45,6 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
   // Progress timer (AI Express pattern)
   const [timerStageMap, setTimerStageMap] = useState<Record<string, number>>({})
   // Generate panel
-  const [generateOpen, setGenerateOpen] = useState(false)
   const [selectedPersona, setSelectedPersona] = useState<number | null>(null)
   const [recommendedPersona, setRecommendedPersona] = useState<number | null>(null)
   const [scriptText, setScriptText] = useState('')
@@ -136,6 +135,30 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
     setLoading(false)
   }
 
+  // Auto-generate script when persona selected and no saved script exists
+  const ugcScriptsRef = useRef(ugcScripts)
+  ugcScriptsRef.current = ugcScripts
+  useEffect(() => {
+    if (!selectedPersona || scriptLoading || loading) return
+    const existing = readScript(ugcScriptsRef.current, selectedPersona)
+    if (existing) return
+    // No saved script for this persona — auto-generate
+    ;(async () => {
+      setScriptLoading(true)
+      try {
+        const res = await fetch('/api/ugc/generate-script', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: selectedPersona, use_product: false, settings, previous_feedbacks: feedbacks }) })
+        const data = await res.json()
+        if (data.dialogue) {
+          setScriptText(data.dialogue)
+          const updated = { ...ugcScriptsRef.current, [String(selectedPersona)]: data.dialogue }
+          setUgcScripts(updated)
+          supabase.from('briefs').update({ ugc_scripts: updated }).eq('id', briefId)
+        }
+      } catch {}
+      setScriptLoading(false)
+    })()
+  }, [selectedPersona, loading])
+
   // Feedback save (AI Express pattern: inline supabase update to brief.ugc_feedbacks)
   async function saveFeedback(videoId: string, videoVersion: string, personaSlug: string) {
     const val = feedbackText[videoId]?.trim()
@@ -181,7 +204,6 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
       const genRes = await fetch('/api/ugc/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: selectedPersona, use_product: false, script: scriptPayload, settings }) })
       const genData = await genRes.json()
       if (genData.ugc_video_id) {
-        setGenerateOpen(false)
         // Poll
         const poll = setInterval(async () => {
           const { data: v } = await supabase.from('ugc_videos').select('*, personas(name, slug)').eq('id', genData.ugc_video_id).single()
@@ -231,8 +253,8 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
 
       {/* VERSION LIST (AI Express pattern) */}
       <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '20px 24px', marginBottom: '16px' }}>
-        {ugcVideos.length === 0 && !generateOpen && (
-          <div style={{ textAlign: 'center', padding: '20px', color: '#888', fontSize: '13px' }}>Henüz UGC video üretilmedi. Aşağıdaki butonla başlayın.</div>
+        {ugcVideos.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '20px', color: '#888', fontSize: '13px' }}>Henüz UGC video üretilmedi. Aşağıdan metin oluşturun ve üretin.</div>
         )}
 
         {ugcVideos.map((video, idx) => {
@@ -401,7 +423,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
             <div className="spinner" style={{ width: '16px', height: '16px', borderWidth: '2px', borderStyle: 'solid', borderColor: '#1DB81D transparent transparent transparent' }} />
             <span style={{ fontSize: '12px', color: '#888' }}>Üretim başlatılıyor...</span>
           </div>
-        ) : generateOpen ? (
+        ) : (
           <div style={{ border: '1px solid var(--color-border-tertiary)', padding: '16px' }}>
             {/* Script */}
             <div style={{ marginBottom: '12px' }}>
@@ -422,7 +444,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
                   } catch { setMsg('Bağlantı hatası') }
                   setScriptLoading(false)
                 }} disabled={scriptLoading || !selectedPersona} className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '10px' }}>
-                  {scriptLoading ? 'ÜRETİLİYOR...' : scriptText ? 'YENİDEN ÜRET' : 'SCRİPT ÜRET'}
+                  {scriptLoading ? 'ÜRETİLİYOR...' : scriptText ? 'YENİ SCRİPT ÜRET' : 'SCRİPT ÜRET'}
                 </button>
               </div>
               <div>
@@ -434,17 +456,6 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
             <button onClick={handleGenerate} disabled={generating || !selectedPersona || !scriptText || (clientUser?.allocated_credits || 0) < 1} style={{ width: '100%', padding: '12px', background: (!selectedPersona || !scriptText || (clientUser?.allocated_credits || 0) < 1) ? '#ccc' : '#0a0a0a', color: '#fff', border: 'none', fontSize: '13px', fontWeight: '600', cursor: (!selectedPersona || !scriptText) ? 'default' : 'pointer' }}>
               ÜRET (1 KREDİ)
             </button>
-            <button onClick={() => { setGenerateOpen(false) }} style={{ width: '100%', marginTop: '6px', padding: '8px', background: 'none', border: 'none', fontSize: '11px', color: '#888', cursor: 'pointer' }}>İptal</button>
-          </div>
-        ) : (
-          <div>
-            <button onClick={() => setGenerateOpen(true)} disabled={(clientUser?.allocated_credits || 0) < 1}
-              style={{ width: '100%', padding: '14px', background: (clientUser?.allocated_credits || 0) < 1 ? '#ccc' : '#0a0a0a', color: '#fff', border: 'none', fontSize: '13px', fontWeight: '600', cursor: (clientUser?.allocated_credits || 0) < 1 ? 'default' : 'pointer', transition: 'background 0.15s' }}
-              onMouseEnter={e => { if ((clientUser?.allocated_credits || 0) >= 1) e.currentTarget.style.background = '#1DB81D' }}
-              onMouseLeave={e => { if ((clientUser?.allocated_credits || 0) >= 1) e.currentTarget.style.background = '#0a0a0a' }}>
-              {ugcVideos.length > 0 ? 'Yeni Versiyon Üret' : 'AI UGC Video Üret'}
-            </button>
-            <div style={{ fontSize: '13px', color: '#999', textAlign: 'center', marginTop: '6px' }}>~3 dakika · 1 kredi</div>
           </div>
         )}
       </div>
