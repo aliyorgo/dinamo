@@ -211,8 +211,9 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
           if (v && (v.status === 'ready' || v.status === 'failed')) { clearInterval(poll); setHighlightId(genData.ugc_video_id); setTimeout(() => setHighlightId(null), 1500); loadData() }
           else if (v && v.status !== 'queued') { setUgcVideos(prev => prev.map(x => x.id === genData.ugc_video_id ? v : x)) }
         }, 10000)
-        // Optimistic add
+        // Optimistic add + scroll to top
         setUgcVideos(prev => [{ id: genData.ugc_video_id, status: 'queued', persona_id: selectedPersona, personas: personas.find(p => p.id === selectedPersona), created_at: new Date().toISOString() }, ...prev])
+        window.scrollTo({ top: 0, behavior: 'smooth' })
       } else { setMsg(genData.error || 'Üretim başarısız') }
     } catch { setMsg('Bağlantı hatası') }
     setGenerating(false)
