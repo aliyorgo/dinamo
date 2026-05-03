@@ -578,11 +578,11 @@ export default function ClientDetailPage() {
                 </button>
               </div>
 
-              {/* AI SEÇİMİ */}
+              {/* DİNAMO AI MODU */}
               {globalAiMode === 'quality' && (
                 <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '20px' }}>
                   <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: '500', marginBottom: '14px' }}>
-                    AI Seçimi
+                    Dinamo AI Modu
                   </div>
                   <div style={{ display: 'flex', gap: '0', marginBottom: '10px' }}>
                     {([['false', 'KALİTE'], ['true', 'HIZ']] as const).map(([val, label]) => (
@@ -593,7 +593,7 @@ export default function ClientDetailPage() {
                     ))}
                   </div>
                   <div style={{ fontSize: '11px', color: '#888', marginBottom: '10px' }}>
-                    {clientFastMode ? 'AI kalitesi düşer, hızlı işler için.' : 'AI kalitesi artar, bekleme süreleri biraz artar.'}
+                    {clientFastMode ? 'Platformdaki AI özelliklerinin hızı artar, kalite biraz düşer. Vaktiniz çok azsa hızlı işler için bu moda geçin.' : 'Platformdaki AI özelliklerinin kalitesi artar, bekleme süreleri biraz artar. Bu modda kullanmanızı öneriyoruz.'}
                   </div>
                   <button onClick={async () => {
                     setSavingAiMode(true)

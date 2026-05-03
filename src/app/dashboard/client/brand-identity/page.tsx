@@ -213,7 +213,7 @@ export default function BrandIdentityPage() {
       {/* AI MODE TOGGLE */}
       {globalAiMode === 'quality' && (
         <div style={{ marginBottom: '24px', padding: '20px', background: '#fff', border: '1px solid var(--color-border-tertiary)' }}>
-          <div style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: '#0a0a0a', marginBottom: '12px' }}>AI MODU</div>
+          <div style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: '#0a0a0a', marginBottom: '12px' }}>DİNAMO AI MODU</div>
           <div style={{ display: 'flex', gap: '0', marginBottom: '8px' }}>
             {([['false', 'KALİTE'], ['true', 'HIZ']] as const).map(([val, label]) => (
               <button key={val} onClick={() => toggleAiMode(val === 'true')}
@@ -223,7 +223,7 @@ export default function BrandIdentityPage() {
             ))}
           </div>
           <div style={{ fontSize: '12px', color: '#888' }}>
-            {clientFastMode ? 'AI kalitesi düşer, hızlı işler için.' : 'AI kalitesi artar, bekleme süreleri biraz artar.'}
+            {clientFastMode ? 'Platformdaki AI özelliklerinin hızı artar, kalite biraz düşer. Vaktiniz çok azsa hızlı işler için bu moda geçin.' : 'Platformdaki AI özelliklerinin kalitesi artar, bekleme süreleri biraz artar. Bu modda kullanmanızı öneriyoruz.'}
           </div>
         </div>
       )}
