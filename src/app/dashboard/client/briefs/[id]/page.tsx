@@ -109,9 +109,14 @@ function ClientBriefDetail() {
       const next = { ...prev, [key]: !prev[key] }
       if (key === 'packshot' && next.packshot) next.logo = false
       if (key === 'logo' && next.logo) next.packshot = false
-      supabase.from('briefs').update({ ai_express_settings: next }).eq('id', id)
+      persistExpressSettings(next)
       return next
     })
+  }
+  async function persistExpressSettings(settings: any) {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.access_token) return
+    fetch(`/api/briefs/${id}/ai-express-settings`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` }, body: JSON.stringify({ settings }) })
   }
   const [ugcVideosForSummary, setUgcVideosForSummary] = useState<any[]>([])
   const [activeTab, setActiveTab] = useState<'hybrid'|'cps'|'express'|'ugc'|'summary'>(searchParams.get('tab') === 'express' ? 'express' : searchParams.get('tab') === 'ugc' ? 'ugc' : searchParams.get('tab') === 'cps' ? 'cps' : searchParams.get('tab') === 'summary' ? 'summary' : 'hybrid')
@@ -205,7 +210,7 @@ function ClientBriefDetail() {
       // First open (null/empty) — compute defaults based on packshot, persist once
       const defaults = { logo: !pUrl, cta: false, packshot: !!pUrl }
       setExpressSettings(defaults)
-      supabase.from('briefs').update({ ai_express_settings: defaults }).eq('id', id)
+      persistExpressSettings(defaults)
     }
     const { data: q } = await supabase.from('brief_questions').select('*').eq('brief_id', id).order('asked_at')
     setQuestions(q || [])
