@@ -13,6 +13,7 @@ interface Props {
   videos: any[]
   aiChildren: any[]
   cpsChildren: any[]
+  ugcVideos?: any[]
   onRefresh?: () => void
   captionText: string
   setCaptionText: (v: string) => void
@@ -31,7 +32,7 @@ function slugify(name: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '')
 }
 
-export default function CampaignSummaryTab({ brief, companyName, videos, aiChildren, cpsChildren, onRefresh, captionText, setCaptionText, savedCaption, captionLoading, captionToast, onGenerateCaption, onCaptionAction, onRegenerateConfirm }: Props) {
+export default function CampaignSummaryTab({ brief, companyName, videos, aiChildren, cpsChildren, ugcVideos = [], onRefresh, captionText, setCaptionText, savedCaption, captionLoading, captionToast, onGenerateCaption, onCaptionAction, onRegenerateConfirm }: Props) {
   const [lightbox, setLightbox] = useState<{ type: 'video' | 'image'; url: string } | null>(null)
   const [menuOpen, setMenuOpen] = useState<string | null>(null)
   const [linkCopied, setLinkCopied] = useState(false)
@@ -50,7 +51,7 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
   const deliveredAi = aiChildren.filter(c => c.status === 'delivered' && c.ai_video_url)
   const deliveredCps = cpsChildren.filter((c: any) => c.video_submissions?.length > 0)
 
-  const totalVideos = approvedVideos.length + deliveredAi.length + deliveredCps.length
+  const totalVideos = approvedVideos.length + deliveredAi.length + deliveredCps.length + ugcVideos.length
   const draftCount = aiChildren.filter(c => c.status !== 'delivered' && c.ai_video_url).length + cpsChildren.filter((c: any) => !c.video_submissions?.length).length
   const hasStaticImages = !!brief.static_images_url || !!brief.static_image_files
   const aiWithImages = aiChildren.filter(c => c.static_image_files && (Array.isArray(c.static_image_files) ? c.static_image_files.length > 0 : Object.keys(c.static_image_files).length > 0))
@@ -211,6 +212,18 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '16px' }}>
                   {deliveredAi.map((c: any, i: number) => (
                     <VideoThumb key={c.id} id={`ai-${c.id}`} url={c.ai_video_url} label={`Versiyon ${i + 1}`} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* AI UGC Videos */}
+            {ugcVideos.length > 0 && (
+              <div style={{ marginBottom: '28px' }}>
+                <div style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '10px' }}>AI UGC · {ugcVideos.length} video</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '16px' }}>
+                  {ugcVideos.map((v: any, i: number) => (
+                    <VideoThumb key={v.id} id={`ugc-${v.id}`} url={v.final_url} label={`V${i + 1} — ${v.personas?.name || 'UGC'}`} />
                   ))}
                 </div>
               </div>

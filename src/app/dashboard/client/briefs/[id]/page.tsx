@@ -102,6 +102,7 @@ function ClientBriefDetail() {
   const [aiGenerating, setAiGenerating] = useState(false)
   const [expressInfoOpen, setExpressInfoOpen] = useState(false)
   const [cpsInfoOpen, setCpsInfoOpen] = useState(false)
+  const [ugcVideosForSummary, setUgcVideosForSummary] = useState<any[]>([])
   const [activeTab, setActiveTab] = useState<'hybrid'|'cps'|'express'|'ugc'|'summary'>(searchParams.get('tab') === 'express' ? 'express' : searchParams.get('tab') === 'ugc' ? 'ugc' : searchParams.get('tab') === 'cps' ? 'cps' : searchParams.get('tab') === 'summary' ? 'summary' : 'hybrid')
 
   // Onboarding: auto-open info modal on first visit per module
@@ -203,6 +204,14 @@ function ClientBriefDetail() {
       .eq('brief_type', 'cps_child')
       .order('mvc_order', { ascending: true })
     setCpsChildren(cpsKids || [])
+    // UGC videos for summary tab
+    const { data: ugcVids } = await supabase.from('ugc_videos')
+      .select('id, final_url, created_at, personas(name, slug)')
+      .eq('brief_id', id)
+      .in('status', ['ready', 'sold'])
+      .not('final_url', 'is', null)
+      .order('created_at', { ascending: true })
+    setUgcVideosForSummary(ugcVids || [])
   }
 
   // AI video polling — runs when brief is ai_processing and video not yet ready
@@ -1618,7 +1627,7 @@ function ClientBriefDetail() {
 
               {/* ═══ SUMMARY TAB ═══ */}
               {activeTab === 'summary' && brief && (
-                <CampaignSummaryTab brief={brief} companyName={companyName} videos={videos} aiChildren={aiChildren} cpsChildren={cpsChildren} onRefresh={loadData}
+                <CampaignSummaryTab brief={brief} companyName={companyName} videos={videos} aiChildren={aiChildren} cpsChildren={cpsChildren} ugcVideos={ugcVideosForSummary} onRefresh={loadData}
                   captionText={captionText} setCaptionText={setCaptionText} savedCaption={savedCaption} captionLoading={captionLoading} captionToast={captionToast}
                   onGenerateCaption={generateCaption} onCaptionAction={handleCaptionAction} onRegenerateConfirm={() => setShowRegenerateConfirm(true)} />
               )}

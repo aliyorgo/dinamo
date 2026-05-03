@@ -42,6 +42,14 @@ export default async function SharePage({ params }: { params: { id: string } }) 
     .eq('brief_type', 'cps_child')
     .order('mvc_order', { ascending: true })
 
+  // UGC videos
+  const { data: ugcVideos } = await supabase.from('ugc_videos')
+    .select('id, final_url, created_at, personas(name, slug)')
+    .eq('brief_id', id)
+    .in('status', ['ready', 'sold'])
+    .not('final_url', 'is', null)
+    .order('created_at', { ascending: true })
+
   const clientName = (brief.clients as any)?.company_name || ''
 
   // Format date server-side with manual Turkish month names — no locale dependency
@@ -67,6 +75,7 @@ export default async function SharePage({ params }: { params: { id: string } }) 
       videos={videos || []}
       aiChildren={(aiChildren || []).filter(c => c.ai_video_url)}
       cpsChildren={(cpsChildren || []).filter((c: any) => c.video_submissions?.length > 0)}
+      ugcVideos={ugcVideos || []}
     />
   )
 }

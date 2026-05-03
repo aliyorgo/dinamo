@@ -11,9 +11,10 @@ interface Props {
   videos: any[]
   aiChildren: any[]
   cpsChildren: any[]
+  ugcVideos?: any[]
 }
 
-export default function SharePageClient({ brief, clientName, deliveryDate, caption, videos, aiChildren, cpsChildren }: Props) {
+export default function SharePageClient({ brief, clientName, deliveryDate, caption, videos, aiChildren, cpsChildren, ugcVideos = [] }: Props) {
   const [lightbox, setLightbox] = useState<{ type: 'video' | 'image'; url: string } | null>(null)
   const [zipping, setZipping] = useState(false)
   const [captionCopied, setCaptionCopied] = useState(false)
@@ -131,6 +132,17 @@ export default function SharePageClient({ brief, clientName, deliveryDate, capti
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '16px' }}>
                   {aiChildren.map((c: any, i: number) => (
                     <VideoThumb key={c.id} url={c.ai_video_url} label={`Versiyon ${i + 1}`} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {ugcVideos.length > 0 && (
+              <div style={{ marginBottom: '28px' }}>
+                <div style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '10px' }}>AI UGC · {ugcVideos.length}</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '16px' }}>
+                  {ugcVideos.map((v: any, i: number) => (
+                    <VideoThumb key={v.id} url={v.final_url} label={`V${i + 1} — ${v.personas?.name || 'UGC'}`} />
                   ))}
                 </div>
               </div>

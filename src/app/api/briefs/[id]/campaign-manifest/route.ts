@@ -56,6 +56,18 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     if (vid?.video_url) files.push({ path: `cps/yon_${i + 1}.mp4`, url: vid.video_url })
   })
 
+  // UGC videos
+  const { data: ugcVideos } = await supabase.from('ugc_videos')
+    .select('id, final_url, personas(name, slug)')
+    .eq('brief_id', id)
+    .in('status', ['ready', 'sold'])
+    .not('final_url', 'is', null)
+    .order('created_at', { ascending: true })
+  ;(ugcVideos || []).forEach((v: any, i: number) => {
+    const personaSlug = v.personas?.slug || 'ugc'
+    files.push({ path: `ugc/${slug}_${personaSlug}_v${i + 1}.mp4`, url: v.final_url })
+  })
+
   // Static images — main
   function addImages(raw: any, prefix: string) {
     const frames: any[] = Array.isArray(raw) ? raw : (raw && typeof raw === 'object' && Object.keys(raw).length > 0) ? [raw] : []
