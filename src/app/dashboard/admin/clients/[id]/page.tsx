@@ -83,6 +83,9 @@ export default function ClientDetailPage() {
   const [savingBrand, setSavingBrand] = useState(false)
   const [brandLogoUrl, setBrandLogoUrl] = useState('')
   const [brandFontUrl, setBrandFontUrl] = useState('')
+  const [packshotUrl, setPackshotUrl] = useState('')
+  const [packshotUploading, setPackshotUploading] = useState(false)
+  const packshotRef = useRef<HTMLInputElement>(null)
   const [brandLogoPosition, setBrandLogoPosition] = useState('bottom')
   const [logoUploading, setLogoUploading] = useState(false)
   const [fontUploading, setFontUploading] = useState(false)
@@ -144,6 +147,7 @@ export default function ClientDetailPage() {
     setBrand({ primary_color: cl.brand_primary_color||'', secondary_color: cl.brand_secondary_color||'', forbidden_colors: cl.brand_forbidden_colors||'', tone: cl.brand_tone||'', avoid: cl.brand_avoid||'', notes: cl.brand_notes||'' })
     setBrandLogoUrl(cl.brand_logo_url || '')
     setBrandFontUrl(cl.brand_font_url || '')
+    setPackshotUrl(cl.packshot_url || '')
     setBrandLogoPosition(cl.brand_logo_position || 'bottom')
     setBriefs(br || [])
     setTransactions(tx || [])
@@ -712,6 +716,38 @@ export default function ClientDetailPage() {
                         showMsg('Font yüklendi.')
                       }} style={{ fontSize: '11px' }} disabled={fontUploading} />
                       {fontUploading && <span style={{ fontSize: '11px', color: '#888', marginLeft: '8px' }}>Yükleniyor...</span>}
+                    </div>
+                  )}
+                </div>
+
+                {/* Packshot */}
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}>Packshot Video (MP4/MOV)</div>
+                  {packshotUrl ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#f5f4f0', padding: '10px 14px' }}>
+                      <video src={packshotUrl} muted playsInline preload="metadata" style={{ width: '60px', height: '36px', objectFit: 'cover', background: '#0a0a0a' }} />
+                      <span style={{ fontSize: '12px', color: '#0a0a0a', flex: 1 }}>Packshot yüklendi</span>
+                      <button onClick={async () => { await supabase.from('clients').update({ packshot_url: null }).eq('id', clientId); setPackshotUrl(''); showMsg('Packshot kaldırıldı.') }}
+                        style={{ fontSize: '11px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer' }}>Kaldır</button>
+                    </div>
+                  ) : (
+                    <div>
+                      <input ref={packshotRef} type="file" accept=".mp4,.mov,.webm" onChange={async () => {
+                        const file = packshotRef.current?.files?.[0]
+                        if (!file) return
+                        if (file.size > 50 * 1024 * 1024) { showMsg('Packshot 50MB\'dan küçük olmalı', true); return }
+                        setPackshotUploading(true)
+                        const ext = file.name.split('.').pop()?.toLowerCase() || 'mp4'
+                        const storagePath = `brand-packshots/${clientId}_${Date.now()}.${ext}`
+                        const { error: upErr } = await supabase.storage.from('brand-assets').upload(storagePath, file, { upsert: true })
+                        if (upErr) { showMsg('Yükleme hatası: ' + upErr.message, true); setPackshotUploading(false); return }
+                        const { data: urlData } = supabase.storage.from('brand-assets').getPublicUrl(storagePath)
+                        await supabase.from('clients').update({ packshot_url: urlData.publicUrl }).eq('id', clientId)
+                        setPackshotUrl(urlData.publicUrl)
+                        setPackshotUploading(false)
+                        showMsg('Packshot yüklendi.')
+                      }} style={{ fontSize: '11px' }} disabled={packshotUploading} />
+                      {packshotUploading && <span style={{ fontSize: '11px', color: '#888', marginLeft: '8px' }}>Yükleniyor...</span>}
                     </div>
                   )}
                 </div>

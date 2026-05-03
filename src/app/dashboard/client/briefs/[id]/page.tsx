@@ -101,6 +101,9 @@ function ClientBriefDetail() {
   const [aiGenerating, setAiGenerating] = useState(false)
   const [expressInfoOpen, setExpressInfoOpen] = useState(false)
   const [cpsInfoOpen, setCpsInfoOpen] = useState(false)
+  const [expressSettingsOpen, setExpressSettingsOpen] = useState(false)
+  const [expressSettings, setExpressSettings] = useState<{ logo: boolean; cta: boolean; packshot: boolean }>({ logo: true, cta: false, packshot: false })
+  const [clientPackshotUrl, setClientPackshotUrl] = useState('')
   const [ugcVideosForSummary, setUgcVideosForSummary] = useState<any[]>([])
   const [activeTab, setActiveTab] = useState<'hybrid'|'cps'|'express'|'ugc'|'summary'>(searchParams.get('tab') === 'express' ? 'express' : searchParams.get('tab') === 'ugc' ? 'ugc' : searchParams.get('tab') === 'cps' ? 'cps' : searchParams.get('tab') === 'summary' ? 'summary' : 'hybrid')
 
@@ -176,12 +179,17 @@ function ClientBriefDetail() {
     if (!user) return
     const { data: userData } = await supabase.from('users').select('name').eq('id', user.id).single()
     setUserName(userData?.name || '')
-    const { data: cu } = await supabase.from('client_users').select('*, clients(company_name, credit_balance)').eq('user_id', user.id).single()
+    const { data: cu } = await supabase.from('client_users').select('*, clients(company_name, credit_balance, packshot_url)').eq('user_id', user.id).single()
     setClientUser(cu)
     setCompanyName((cu as any)?.clients?.company_name || '')
+    const pUrl = (cu as any)?.clients?.packshot_url || ''
+    setClientPackshotUrl(pUrl)
     const { data: b } = await supabase.from('briefs').select('*, clients(ai_video_enabled)').eq('id', id).single()
     setBrief(b)
     if (b?.caption) { setCaptionText(b.caption); setSavedCaption(b.caption) }
+    // AI Express settings
+    const defaultExpSettings = { logo: !pUrl, cta: false, packshot: !!pUrl }
+    setExpressSettings(b?.ai_express_settings || defaultExpSettings)
     const { data: q } = await supabase.from('brief_questions').select('*').eq('brief_id', id).order('asked_at')
     setQuestions(q || [])
     const { data: v } = await supabase.from('video_submissions').select('*').eq('brief_id', id).order('version', { ascending: true })
@@ -1224,6 +1232,13 @@ function ClientBriefDetail() {
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
                   Bilgi
                 </button>
+                <button onClick={()=>setExpressSettingsOpen(!expressSettingsOpen)} title="AI Express Ayarları"
+                  onMouseEnter={e=>{e.currentTarget.style.background='#0a0a0a';e.currentTarget.style.color='#fff'}}
+                  onMouseLeave={e=>{e.currentTarget.style.background='#f5f4f0';e.currentTarget.style.color='#888'}}
+                  style={{display:'inline-flex',alignItems:'center',gap:'4px',padding:'4px 10px',background:'#f5f4f0',border:'none',fontSize:'11px',color:'#888',cursor:'pointer',transition:'all 0.15s',flexShrink:0}}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+                  Ayarlar
+                </button>
                 <div style={{flex:1}} />
                 {(() => { const total = aiChildren.length + aiChildren.filter(c => c.status === 'delivered').length * 2; return <div style={{display:'inline-flex',padding:'6px 14px',border:'1px solid #0a0a0a',fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:total > 0 ? '#0a0a0a' : '#9ca3af',flexShrink:0,whiteSpace:'nowrap'}}>{total} KREDİ</div> })()}
               </div>
@@ -1241,6 +1256,42 @@ function ClientBriefDetail() {
                     <p style={{margin:'0 0 12px'}}>Dinamo sadece marka bilgileri ile AI prompt'larına müdahale eder.</p>
                     <p style={{margin:0}}>Şu anda test edebilmeniz için AI Express videoları 10 saniye ile sınırlıdır.</p>
                   </div>
+                </div>
+              )}
+
+              {/* AI Express Settings Panel */}
+              {expressSettingsOpen && (
+                <div style={{background:'#f9f7f3',border:'1px solid #e5e4db',padding:'20px',marginBottom:'16px'}}>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'14px'}}>
+                    <div style={{fontSize:'14px',fontWeight:'600',color:'#0a0a0a'}}>AI Express Ayarları</div>
+                    <button onClick={()=>setExpressSettingsOpen(false)} style={{width:'24px',height:'24px',border:'none',background:'none',cursor:'pointer',fontSize:'16px',color:'#888',display:'flex',alignItems:'center',justifyContent:'center'}} onMouseEnter={e=>{e.currentTarget.style.color='#0a0a0a'}} onMouseLeave={e=>{e.currentTarget.style.color='#888'}}>×</button>
+                  </div>
+                  {/* Logo toggle */}
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0',borderBottom:'1px solid #e5e4db'}}>
+                    <div><div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>Logo</div><div style={{fontSize:'11px',color:'#888'}}>Video sonunda marka logosu göster</div></div>
+                    <button onClick={()=>{const next={...expressSettings,logo:!expressSettings.logo,packshot:!expressSettings.logo?false:expressSettings.packshot};setExpressSettings(next);supabase.from('briefs').update({ai_express_settings:next}).eq('id',id)}}
+                      style={{width:'36px',height:'20px',border:'none',cursor:'pointer',background:expressSettings.logo?'#22c55e':'#ddd',position:'relative',transition:'background 0.2s',flexShrink:0}}>
+                      <span className="dot" style={{position:'absolute',top:'2px',left:expressSettings.logo?'18px':'2px',width:'16px',height:'16px',background:'#fff',transition:'left 0.2s'}} />
+                    </button>
+                  </div>
+                  {/* CTA toggle */}
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0',borderBottom:'1px solid #e5e4db'}}>
+                    <div><div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>CTA</div><div style={{fontSize:'11px',color:'#888'}}>Video sonunda CTA yazısı göster</div></div>
+                    <button onClick={()=>{const next={...expressSettings,cta:!expressSettings.cta};setExpressSettings(next);supabase.from('briefs').update({ai_express_settings:next}).eq('id',id)}}
+                      style={{width:'36px',height:'20px',border:'none',cursor:'pointer',background:expressSettings.cta?'#22c55e':'#ddd',position:'relative',transition:'background 0.2s',flexShrink:0}}>
+                      <span className="dot" style={{position:'absolute',top:'2px',left:expressSettings.cta?'18px':'2px',width:'16px',height:'16px',background:'#fff',transition:'left 0.2s'}} />
+                    </button>
+                  </div>
+                  {/* Packshot toggle — only if client has packshot uploaded */}
+                  {clientPackshotUrl && (
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0'}}>
+                      <div><div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>Packshot</div><div style={{fontSize:'11px',color:'#888'}}>Video sonuna packshot ekle</div></div>
+                      <button onClick={()=>{const next={...expressSettings,packshot:!expressSettings.packshot,logo:!expressSettings.packshot?false:expressSettings.logo};setExpressSettings(next);supabase.from('briefs').update({ai_express_settings:next}).eq('id',id)}}
+                        style={{width:'36px',height:'20px',border:'none',cursor:'pointer',background:expressSettings.packshot?'#22c55e':'#ddd',position:'relative',transition:'background 0.2s',flexShrink:0}}>
+                        <span className="dot" style={{position:'absolute',top:'2px',left:expressSettings.packshot?'18px':'2px',width:'16px',height:'16px',background:'#fff',transition:'left 0.2s'}} />
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
 
