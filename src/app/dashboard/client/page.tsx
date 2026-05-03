@@ -93,11 +93,11 @@ export default function ClientDashboard() {
           })
           setCpsChildrenMap(cpsMap)
 
-          // UGC videos — unviewed completed
+          // UGC videos — unviewed ready
           const { data: ugcVids } = await supabase.from('ugc_videos')
             .select('id, brief_id, final_url, viewed_at, created_at, personas(name, slug)')
             .in('brief_id', briefIds)
-            .eq('status', 'completed')
+            .eq('status', 'ready')
             .is('viewed_at', null)
           const ugcMap: Record<string, any[]> = {}
           ugcVids?.forEach((v: any) => {
@@ -204,7 +204,7 @@ export default function ClientDashboard() {
         const { data: ugcVids } = await supabase.from('ugc_videos')
           .select('id, brief_id, final_url, viewed_at, created_at, personas(name, slug)')
           .in('brief_id', ugcProcessing.map(b => b.id))
-          .eq('status', 'completed')
+          .eq('status', 'ready')
           .is('viewed_at', null)
         if (ugcVids) {
           const ugcMap: Record<string, any[]> = {}
