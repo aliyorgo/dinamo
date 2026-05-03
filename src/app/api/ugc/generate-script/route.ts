@@ -61,7 +61,7 @@ CRITICAL: Output MUST be ONLY raw JSON. First character: '{'. Last character: '}
 {"segments":[{"timestamp":"00:00-00:04","camera":"medium shot","action":"speaks to camera","dialogue":"60-75 char Türkçe"},{"timestamp":"00:04-00:08","camera":"close-up shot","action":"leans forward","dialogue":"60-75 char Türkçe"}]}`
 
   const messages: any[] = [
-    { role: 'user', content: `Brief: ${brief.campaign_name}\nMesaj: ${brief.message || ''}\nHedef Kitle: ${brief.target_audience || ''}\nCTA: ${brief.cta || ''}\n\nJSON:` },
+    { role: 'user', content: `Brief: ${brief.campaign_name}\nMesaj: ${brief.message || ''}\nHedef Kitle: ${brief.target_audience || ''}\nCTA: ${brief.cta || ''}\n\nDialogue'da emoji yok, sadece Türkçe metin.\n\nJSON:` },
   ]
   if (supportsPrefill) messages.push({ role: 'assistant', content: '{"segments":[{' })
 

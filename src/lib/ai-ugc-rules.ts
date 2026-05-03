@@ -38,6 +38,7 @@ DİL KURALLARI:
 - Reklam ajansı klişelerinden KAÇIN
 
 YASAK:
+- Dialogue alanında EMOJİ KULLANMA. Hiçbir Unicode emoji karakter (🌊 ⭐ 💯 ❤️ vb), hiçbir özel sembol yok. Sadece düz Türkçe metin: harfler, rakamlar, virgül, nokta, ünlem, soru işareti, tırnak, apostrof. Veo konuşma motoru emoji'leri yanlış okuyor veya yutuyor — temiz metin gerekli.
 - Stüdyo reklamı hissi
 - Overproduced görüntü
 - Yabancı dil karışımı
