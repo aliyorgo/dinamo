@@ -9,7 +9,6 @@ import CampaignSummaryTab from '@/components/CampaignSummaryTab'
 import VideoLoadingBox from '@/components/VideoLoadingBox'
 import { logClientActivity } from '@/lib/log-client'
 import AIUGCTab from '@/components/AIUGCTab'
-import InfoModal, { InfoParagraph } from '@/components/InfoModal'
 import { downloadFile } from '@/lib/download-helper'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
@@ -1218,15 +1217,32 @@ function ClientBriefDetail() {
 
               {/* AI EXPRESS HEADER ROW: [info] ... [kredi] */}
               <div style={{display:'flex',flexWrap:'nowrap',alignItems:'center',marginBottom:'12px',gap:'8px'}}>
-                <button onClick={()=>setExpressInfoOpen(true)} title="AI Express Hakkında"
-                  onMouseEnter={e=>{e.currentTarget.style.background='rgba(0,0,0,0.06)'}}
-                  onMouseLeave={e=>{e.currentTarget.style.background='transparent'}}
-                  style={{width:'28px',height:'28px',minWidth:'28px',border:'none',background:'transparent',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',padding:'4px',transition:'background 0.15s',flexShrink:0}}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+                <button onClick={()=>setExpressInfoOpen(!expressInfoOpen)} title="AI Express Hakkında"
+                  onMouseEnter={e=>{e.currentTarget.style.background='#0a0a0a';e.currentTarget.style.color='#fff'}}
+                  onMouseLeave={e=>{e.currentTarget.style.background='#f5f4f0';e.currentTarget.style.color='#888'}}
+                  style={{display:'inline-flex',alignItems:'center',gap:'4px',padding:'4px 10px',background:'#f5f4f0',border:'none',fontSize:'11px',color:'#888',cursor:'pointer',transition:'all 0.15s',flexShrink:0}}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                  Bilgi
                 </button>
                 <div style={{flex:1}} />
                 {(() => { const total = aiChildren.length + aiChildren.filter(c => c.status === 'delivered').length * 2; return <div style={{display:'inline-flex',padding:'6px 14px',border:'1px solid #0a0a0a',fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:total > 0 ? '#0a0a0a' : '#9ca3af',flexShrink:0,whiteSpace:'nowrap'}}>{total} KREDİ</div> })()}
               </div>
+
+              {/* AI Express Info Collapse */}
+              {expressInfoOpen && (
+                <div style={{background:'#f9f7f3',border:'1px solid #e5e4db',padding:'20px',marginBottom:'16px'}}>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}}>
+                    <div style={{fontSize:'14px',fontWeight:'600',color:'#0a0a0a'}}>AI Express Hakkında</div>
+                    <button onClick={()=>setExpressInfoOpen(false)} style={{width:'24px',height:'24px',border:'none',background:'none',cursor:'pointer',fontSize:'16px',color:'#888',display:'flex',alignItems:'center',justifyContent:'center'}} onMouseEnter={e=>{e.currentTarget.style.color='#0a0a0a'}} onMouseLeave={e=>{e.currentTarget.style.color='#888'}}>×</button>
+                  </div>
+                  <div style={{fontSize:'13px',color:'#333',lineHeight:1.6}}>
+                    <p style={{margin:'0 0 12px'}}>AI Express ile briefinize göre AI ile sahnelenen kısa videolar üretin. Deneysel bir özelliktir — sonuçlar garanti edilmez.</p>
+                    <p style={{margin:'0 0 12px'}}>Videolar tamamen brief'inizden yola çıkarak yapay zeka tarafından üretilmektedir. Fikir, görsel, ses ve müzik tamamen AI tarafından oluşturulur. Ekrandaki yazılar sosyal medyada native text olarak eklenmelidir.</p>
+                    <p style={{margin:'0 0 12px'}}>Dinamo sadece marka bilgileri ile AI prompt'larına müdahale eder.</p>
+                    <p style={{margin:0}}>Şu anda test edebilmeniz için AI Express videoları 10 saniye ile sınırlıdır.</p>
+                  </div>
+                </div>
+              )}
 
               {/* AI VIDEO STUDIO */}
               {brief && brief.status !== 'cancelled' && brief.status !== 'draft' && (
@@ -1444,15 +1460,31 @@ function ClientBriefDetail() {
               {activeTab === 'cps' && <>
                 {/* CPS HEADER ROW: [info] ... [kredi] */}
                 <div style={{display:'flex',flexWrap:'nowrap',alignItems:'center',marginBottom:'12px',gap:'8px'}}>
-                  <button onClick={()=>setCpsInfoOpen(true)} title="CPS Hakkında"
-                    onMouseEnter={e=>{e.currentTarget.style.background='rgba(0,0,0,0.06)'}}
-                    onMouseLeave={e=>{e.currentTarget.style.background='transparent'}}
-                    style={{width:'28px',height:'28px',minWidth:'28px',border:'none',background:'transparent',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',padding:'4px',transition:'background 0.15s',flexShrink:0}}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+                  <button onClick={()=>setCpsInfoOpen(!cpsInfoOpen)} title="CPS Hakkında"
+                    onMouseEnter={e=>{e.currentTarget.style.background='#0a0a0a';e.currentTarget.style.color='#fff'}}
+                    onMouseLeave={e=>{e.currentTarget.style.background='#f5f4f0';e.currentTarget.style.color='#888'}}
+                    style={{display:'inline-flex',alignItems:'center',gap:'4px',padding:'4px 10px',background:'#f5f4f0',border:'none',fontSize:'11px',color:'#888',cursor:'pointer',transition:'all 0.15s',flexShrink:0}}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                    Bilgi
                   </button>
                   <div style={{flex:1}} />
                   {(() => { const total = cpsChildren.reduce((s: number, c: any) => s + (c.credit_cost || 0), 0); return <div style={{display:'inline-flex',padding:'6px 14px',border:'1px solid #0a0a0a',fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:total > 0 ? '#0a0a0a' : '#9ca3af',flexShrink:0,whiteSpace:'nowrap'}}>{total} KREDİ</div> })()}
                 </div>
+
+                {/* CPS Info Collapse */}
+                {cpsInfoOpen && (
+                  <div style={{background:'#f9f7f3',border:'1px solid #e5e4db',padding:'20px',marginBottom:'16px'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}}>
+                      <div style={{fontSize:'14px',fontWeight:'600',color:'#0a0a0a'}}>CPS Hakkında</div>
+                      <button onClick={()=>setCpsInfoOpen(false)} style={{width:'24px',height:'24px',border:'none',background:'none',cursor:'pointer',fontSize:'16px',color:'#888',display:'flex',alignItems:'center',justifyContent:'center'}} onMouseEnter={e=>{e.currentTarget.style.color='#0a0a0a'}} onMouseLeave={e=>{e.currentTarget.style.color='#888'}}>×</button>
+                    </div>
+                    <div style={{fontSize:'13px',color:'#333',lineHeight:1.6}}>
+                      <p style={{margin:'0 0 12px'}}>Creative Performance System ile aynı brief'ten farklı yaratıcı yönler üretin.</p>
+                      <p style={{margin:'0 0 12px'}}>Hook'tan ton'a varyasyonları kontrol edin. Test edin, kazanan içeriği bulun. İsterseniz AI otomatik plan oluşturur, ekip üretir.</p>
+                      <p style={{margin:0}}>Yapım süresi ilk varyasyon için 24 saat garantilidir, tamamlanması 48 saat sürebilir.</p>
+                    </div>
+                  </div>
+                )}
 
                 {/* Package selection — show if no CPS children yet */}
                 {cpsChildren.length === 0 && cpsPackage === 0 && (
@@ -1819,19 +1851,8 @@ function ClientBriefDetail() {
         />
       )}
       {/* AI EXPRESS INFO MODAL */}
-      <InfoModal open={expressInfoOpen} onClose={()=>setExpressInfoOpen(false)} title="AI Express hakkında" badge="BETA">
-        <InfoParagraph primary>AI Express ile yayına çıkmadan önce fikir geliştirin ve test edin. Deneysel bir özelliktir — sonuçlar garanti edilmez.</InfoParagraph>
-        <InfoParagraph>Videolar tamamen brief'inizden yola çıkarak yapay zeka tarafından üretilmektedir. Fikir, görsel, ses ve müzik tamamen AI tarafından oluşturulur. Ekrandaki yazılar sosyal medyada native text olarak eklenmelidir.</InfoParagraph>
-        <InfoParagraph>Dinamo sadece marka bilgileri ile AI prompt'larına müdahale eder.</InfoParagraph>
-        <InfoParagraph>Şu anda test edebilmeniz için AI Express videoları 10 saniye ile sınırlıdır.</InfoParagraph>
-      </InfoModal>
 
       {/* CPS INFO MODAL */}
-      <InfoModal open={cpsInfoOpen} onClose={()=>setCpsInfoOpen(false)} title="CPS hakkında">
-        <InfoParagraph primary>Creative Performance System ile aynı brief'ten farklı yaratıcı yönler üretin.</InfoParagraph>
-        <InfoParagraph>Hook'tan ton'a varyasyonları kontrol edin. Test edin, kazanan içeriği bulun. İsterseniz AI otomatik plan oluşturur, ekip üretir.</InfoParagraph>
-        <InfoParagraph>Yapım süresi ilk varyasyon için 24 saat garantilidir, tamamlanması 48 saat sürebilir.</InfoParagraph>
-      </InfoModal>
     </div>
   )
 }
