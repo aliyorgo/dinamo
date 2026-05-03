@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getActiveBrandRules, buildBrandRulesBlock } from '@/lib/brand-learning'
+import { getClaudeModel } from '@/lib/claude-model'
 
 export async function POST(request: Request) {
   const { user_input, brand_name, clientId } = await request.json()
@@ -20,7 +21,7 @@ export async function POST(request: Request) {
       'anthropic-version': '2023-06-01',
     },
     body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
+      model: await getClaudeModel('generate-brief'),
       max_tokens: 1200,
       system: `Sen profesyonel bir reklam ajansı brief yazarısın. Kullanıcının anlatımından yapılandırılmış bir video brief oluştur. Yanıtın SADECE geçerli bir JSON objesi olsun, başka hiçbir şey yazma — açıklama yok, markdown yok, backtick yok.
 

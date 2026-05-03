@@ -99,8 +99,23 @@ KESINLIKLE SADECE JSON DÖNDÜR. Açıklama yazma, analiz yapma, markdown kullan
       if (script?.segments?.length > 2) script.segments = script.segments.slice(0, 2)
     }
     if (!script?.segments || script.segments.length !== 2) {
-      console.error('[GENERATE-SCRIPT] Retry also failed')
-      return NextResponse.json({ error: 'Geçersiz format', raw: rawText.substring(0, 200) }, { status: 500 })
+      // 2nd RETRY — more aggressive
+      console.warn('[GENERATE-SCRIPT] 1st retry failed, 2nd retry...')
+      const retry2Res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model, max_tokens: 400, system: 'CRITICAL: Output ONLY raw JSON. No markdown blocks. No backticks. No code fences. No explanation. No preamble. Your response must start with { and end with }. Any other character before { is forbidden. Format: {"segments":[{"timestamp":"00:00-00:04","camera":"medium shot","action":"...","dialogue":"60-75 chars Turkish"},{"timestamp":"00:04-00:08","camera":"close-up shot","action":"...","dialogue":"60-75 chars Turkish"}]}', messages: [{ role: 'user', content: `Brief: ${brief.campaign_name}. Persona: ${persona.name}. 2 Turkish UGC dialogue segments. JSON:` }, { role: 'assistant', content: '{"segments":[{' }] }),
+      })
+      if (retry2Res.ok) {
+        const retry2Data = await retry2Res.json()
+        const retry2Raw = '{"segments":[{' + (retry2Data.content?.[0]?.text || '')
+        try { script = JSON.parse(retry2Raw.replace(/```json|```/g, '').trim()) } catch {}
+        if (script?.segments?.length > 2) script.segments = script.segments.slice(0, 2)
+      }
+      if (!script?.segments || script.segments.length !== 2) {
+        console.error('[GENERATE-SCRIPT] All retries failed. Raw:', rawText.substring(0, 300))
+        return NextResponse.json({ error: 'Geçersiz format', raw: rawText.substring(0, 200) }, { status: 500 })
+      }
     }
   }
 

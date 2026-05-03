@@ -18,6 +18,7 @@ export async function getQualityMode(): Promise<'fast' | 'quality'> {
 const MODEL_MAP: Record<string, { fast: string; quality: string }> = {
   'ugc-script': { fast: 'claude-haiku-4-5-20251001', quality: 'claude-sonnet-4-6' },
   'generate-prompts': { fast: 'claude-haiku-4-5-20251001', quality: 'claude-sonnet-4-6' },
+  'generate-brief': { fast: 'claude-haiku-4-5-20251001', quality: 'claude-sonnet-4-6' },
   'inspirations': { fast: 'claude-haiku-4-5-20251001', quality: 'claude-opus-4-6' },
   'scenario': { fast: 'claude-haiku-4-5-20251001', quality: 'claude-opus-4-6' },
   'ideas': { fast: 'claude-haiku-4-5-20251001', quality: 'claude-opus-4-6' },
