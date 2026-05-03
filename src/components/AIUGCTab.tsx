@@ -42,7 +42,6 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
   const [recommendedPersona, setRecommendedPersona] = useState<number | null>(null)
   const [scriptText, setScriptText] = useState('')
   const [scriptLoading, setScriptLoading] = useState(false)
-  const [generateScriptData, setGenerateScriptData] = useState<any>(null)
   const [generating, setGenerating] = useState(false)
   // Product toggle disabled: Veo 3.1 Fast image_url = first-frame, not reference. Kalitesiz sonuç verir.
   const useProduct = false
@@ -166,9 +165,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
     if (!selectedPersona || !scriptText) return
     setGenerating(true)
     try {
-      // Use already-generated script data, or build from edited text
-      const scriptPayload = generateScriptData || { segments: [{ timestamp: '00:00-00:04', dialogue: scriptText.substring(0, 50), camera: 'medium shot', action: 'speaks to camera' }, { timestamp: '00:04-00:08', dialogue: scriptText.substring(50), camera: 'close-up shot', action: 'leans forward' }] }
-      // Trigger video generation
+      const scriptPayload = { dialogue: scriptText.trim() }
       const genRes = await fetch('/api/ugc/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: selectedPersona, use_product: false, script: scriptPayload, settings }) })
       const genData = await genRes.json()
       if (genData.ugc_video_id) {
@@ -404,7 +401,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
                   try {
                     const res = await fetch('/api/ugc/generate-script', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: selectedPersona, use_product: false, settings, previous_feedbacks: feedbacks }) })
                     const data = await res.json()
-                    if (data.segments) { setScriptText(data.segments.map((s: any) => s.dialogue).join(' ')); setGenerateScriptData(data) }
+                    if (data.dialogue) { setScriptText(data.dialogue) }
                     else { setMsg(data.error || 'Script üretilemedi') }
                   } catch { setMsg('Bağlantı hatası') }
                   setScriptLoading(false)
@@ -427,7 +424,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
             <button onClick={handleGenerate} disabled={generating || !selectedPersona || !scriptText || (clientUser?.allocated_credits || 0) < 1} style={{ width: '100%', padding: '12px', background: (!selectedPersona || !scriptText || (clientUser?.allocated_credits || 0) < 1) ? '#ccc' : '#0a0a0a', color: '#fff', border: 'none', fontSize: '13px', fontWeight: '600', cursor: (!selectedPersona || !scriptText) ? 'default' : 'pointer' }}>
               ÜRET (1 KREDİ)
             </button>
-            <button onClick={() => { setGenerateOpen(false); setScriptText(''); setGenerateScriptData(null) }} style={{ width: '100%', marginTop: '6px', padding: '8px', background: 'none', border: 'none', fontSize: '11px', color: '#888', cursor: 'pointer' }}>İptal</button>
+            <button onClick={() => { setGenerateOpen(false); setScriptText('') }} style={{ width: '100%', marginTop: '6px', padding: '8px', background: 'none', border: 'none', fontSize: '11px', color: '#888', cursor: 'pointer' }}>İptal</button>
           </div>
         ) : (
           <div>
