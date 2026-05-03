@@ -98,23 +98,25 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
     // Persona recommendation — cache check + API call if miss
     const briefHash = simpleHash(JSON.stringify({ m: b?.message, p: b?.product_image_url, c: b?.client_id }))
     const cached = b?.ugc_persona_analysis
+    let recPersonaId: number | null = null
     if (cached && cached.brief_hash === briefHash && cached.recommended_persona_id) {
-      setRecommendedPersona(cached.recommended_persona_id)
+      recPersonaId = cached.recommended_persona_id
     } else if (p?.length) {
       try {
         const res = await fetch('/api/ugc/recommend-persona', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId }) })
         const data = await res.json()
         if (data.recommended_persona_id) {
-          setRecommendedPersona(data.recommended_persona_id)
+          recPersonaId = data.recommended_persona_id
           await supabase.from('briefs').update({ ugc_persona_analysis: { ...data, brief_hash: briefHash, analyzed_at: new Date().toISOString() } }).eq('id', briefId)
         }
       } catch {}
     }
+    if (recPersonaId) setRecommendedPersona(recPersonaId)
     setPersonaLoading(false)
 
-    // Set default persona
+    // Set default persona (prefer last video > user selection > recommended)
     const lastVideo = (videos || []).slice(-1)[0]
-    const defaultPersona = lastVideo?.persona_id || b?.ugc_selected_persona_id || b?.ugc_persona_analysis?.recommended_persona_id || (p?.[0]?.id)
+    const defaultPersona = lastVideo?.persona_id || b?.ugc_selected_persona_id || recPersonaId || (p?.[0]?.id)
     setSelectedPersona(defaultPersona)
     setLoading(false)
   }
@@ -370,8 +372,6 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
               {/* Persona info (selected above) */}
               {selectedPersona && <div style={{ fontSize: '11px', color: '#888', marginBottom: '12px' }}>Persona: <strong style={{ color: '#0a0a0a' }}>{personas.find(p => p.id === selectedPersona)?.name}</strong></div>}
 
-              {/* Ayarlar link */}
-              <button onClick={() => setSettingsOpen(true)} style={{ fontSize: '11px', color: '#888', background: 'none', border: 'none', cursor: 'pointer', marginBottom: '12px', textDecoration: 'underline' }}>⚙ Ayarlar</button>
 
               {/* 3. Script */}
               <div style={{ marginBottom: '12px' }}>

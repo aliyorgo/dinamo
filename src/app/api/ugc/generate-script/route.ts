@@ -83,8 +83,23 @@ KESINLIKLE SADECE JSON DÖNDÜR. Açıklama yazma, analiz yapma, markdown kullan
   // Strict: exactly 2 segments (trim if Claude returns more)
   if (script?.segments?.length > 2) script.segments = script.segments.slice(0, 2)
   if (!script?.segments || !Array.isArray(script.segments) || script.segments.length !== 2) {
-    console.error('[GENERATE-SCRIPT] Invalid format:', rawText.substring(0, 500))
-    return NextResponse.json({ error: 'Geçersiz format', raw: rawText.substring(0, 200) }, { status: 500 })
+    // RETRY once
+    console.warn('[GENERATE-SCRIPT] Invalid format, retrying...')
+    const retryRes = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 400, system: 'Return ONLY valid JSON. No markdown. Format: {"segments":[{"timestamp":"00:00-00:04","camera":"medium shot","action":"...","dialogue":"..."},{"timestamp":"00:04-00:08","camera":"close-up shot","action":"...","dialogue":"..."}]}', messages: [{ role: 'user', content: `Brief: ${brief.campaign_name}. Persona: ${persona.name}. Write 2 segments of Turkish UGC dialogue, 40-50 chars each. JSON only:` }, { role: 'assistant', content: '{"segments":[{' }] }),
+    })
+    if (retryRes.ok) {
+      const retryData = await retryRes.json()
+      const retryRaw = '{"segments":[{' + (retryData.content?.[0]?.text || '')
+      try { script = JSON.parse(retryRaw.replace(/```json|```/g, '').trim()) } catch {}
+      if (script?.segments?.length > 2) script.segments = script.segments.slice(0, 2)
+    }
+    if (!script?.segments || script.segments.length !== 2) {
+      console.error('[GENERATE-SCRIPT] Retry also failed')
+      return NextResponse.json({ error: 'Geçersiz format', raw: rawText.substring(0, 200) }, { status: 500 })
+    }
   }
 
   return NextResponse.json(script)
