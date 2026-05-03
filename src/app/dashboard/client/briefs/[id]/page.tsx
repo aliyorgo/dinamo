@@ -196,15 +196,16 @@ function ClientBriefDetail() {
     const { data: b } = await supabase.from('briefs').select('*, clients(ai_video_enabled)').eq('id', id).single()
     setBrief(b)
     if (b?.caption) { setCaptionText(b.caption); setSavedCaption(b.caption) }
-    // AI Express settings — DB is single source of truth
-    const stored = b?.ai_express_settings
-    if (!stored) {
-      // First open — compute defaults based on packshot availability, persist immediately
+    // AI Express settings — DB is single source of truth, user preference always wins
+    const storedSettings = b?.ai_express_settings
+    if (storedSettings && typeof storedSettings === 'object' && ('logo' in storedSettings || 'cta' in storedSettings || 'packshot' in storedSettings)) {
+      // User has saved preferences — use them directly
+      setExpressSettings(storedSettings)
+    } else {
+      // First open (null/empty) — compute defaults based on packshot, persist once
       const defaults = { logo: !pUrl, cta: false, packshot: !!pUrl }
       setExpressSettings(defaults)
       supabase.from('briefs').update({ ai_express_settings: defaults }).eq('id', id)
-    } else {
-      setExpressSettings(stored)
     }
     const { data: q } = await supabase.from('brief_questions').select('*').eq('brief_id', id).order('asked_at')
     setQuestions(q || [])
