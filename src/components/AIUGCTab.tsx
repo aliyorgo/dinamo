@@ -24,6 +24,14 @@ function simpleHash(str: string): string {
   return hash.toString(36)
 }
 
+function readScript(scripts: Record<string, any>, personaId: number | string): string {
+  const val = scripts?.[String(personaId)]
+  if (typeof val === 'string') return val
+  if (val?.segments) return val.segments.map((s: any) => s.dialogue).join(' ').trim()
+  if (val?.dialogue) return val.dialogue
+  return ''
+}
+
 export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
   // Data
   const [ugcVideos, setUgcVideos] = useState<any[]>([])
@@ -43,6 +51,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
   const [scriptText, setScriptText] = useState('')
   const [scriptLoading, setScriptLoading] = useState(false)
   const [generating, setGenerating] = useState(false)
+  const [ugcScripts, setUgcScripts] = useState<Record<string, any>>({})
   // Product toggle disabled: Veo 3.1 Fast image_url = first-frame, not reference. Kalitesiz sonuç verir.
   const useProduct = false
   // Settings + modals
@@ -90,13 +99,15 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
     const [{ data: videos }, { data: p }, { data: freshBrief }] = await Promise.all([
       supabase.from('ugc_videos').select('*, personas(name, slug)').eq('brief_id', briefId).order('created_at', { ascending: false }),
       supabase.from('personas').select('*').order('id'),
-      supabase.from('briefs').select('ugc_feedbacks, ugc_settings, ugc_persona_analysis, ugc_selected_persona_id, product_image_url, message, client_id').eq('id', briefId).single(),
+      supabase.from('briefs').select('ugc_feedbacks, ugc_settings, ugc_persona_analysis, ugc_selected_persona_id, ugc_scripts, product_image_url, message, client_id').eq('id', briefId).single(),
     ])
     setUgcVideos(videos || [])
     setPersonas(p || [])
     const b = freshBrief || brief
     setFeedbacks(b?.ugc_feedbacks || [])
     if (b?.ugc_settings) setSettings({ ...DEFAULT_SETTINGS, ...b.ugc_settings })
+    const scripts = b?.ugc_scripts || {}
+    setUgcScripts(scripts)
 
     // Persona recommendation — cache check + API call if miss
     const briefHash = simpleHash(JSON.stringify({ m: b?.message, p: b?.product_image_url, c: b?.client_id }))
@@ -121,6 +132,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
     const lastVideo = (videos || []).slice(-1)[0]
     const defaultPersona = lastVideo?.persona_id || b?.ugc_selected_persona_id || recPersonaId || (p?.[0]?.id)
     setSelectedPersona(defaultPersona)
+    if (defaultPersona) setScriptText(readScript(scripts, defaultPersona))
     setLoading(false)
   }
 
@@ -374,7 +386,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
         <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '8px' }}>PERSONA SEÇ</div>
         <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px', marginBottom: '16px' }}>
           {personas.map(p => (
-            <div key={p.id} onClick={() => { setSelectedPersona(p.id); supabase.from('briefs').update({ ugc_selected_persona_id: p.id }).eq('id', briefId) }} style={{ flexShrink: 0, width: '60px', textAlign: 'center', cursor: 'pointer', opacity: selectedPersona === p.id ? 1 : 0.6, transition: 'opacity 0.15s' }}>
+            <div key={p.id} onClick={() => { setSelectedPersona(p.id); setScriptText(readScript(ugcScripts, p.id)); supabase.from('briefs').update({ ugc_selected_persona_id: p.id }).eq('id', briefId) }} style={{ flexShrink: 0, width: '60px', textAlign: 'center', cursor: 'pointer', opacity: selectedPersona === p.id ? 1 : 0.6, transition: 'opacity 0.15s' }}>
               <div className="dot" style={{ width: '40px', height: '40px', minWidth: '40px', margin: '0 auto 4px', background: '#f5f4f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', border: selectedPersona === p.id ? '2px solid #22c55e' : '1px solid #e5e4db', overflow: 'hidden', transition: 'border-color 0.15s' }}>
                 {p.thumbnail_url ? <img src={p.thumbnail_url} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : p.name[0]}
               </div>
@@ -401,8 +413,12 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
                   try {
                     const res = await fetch('/api/ugc/generate-script', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: selectedPersona, use_product: false, settings, previous_feedbacks: feedbacks }) })
                     const data = await res.json()
-                    if (data.dialogue) { setScriptText(data.dialogue) }
-                    else { setMsg(data.error || 'Script üretilemedi') }
+                    if (data.dialogue) {
+                      setScriptText(data.dialogue)
+                      const updated = { ...ugcScripts, [String(selectedPersona)]: data.dialogue }
+                      setUgcScripts(updated)
+                      supabase.from('briefs').update({ ugc_scripts: updated }).eq('id', briefId)
+                    } else { setMsg(data.error || 'Script üretilemedi') }
                   } catch { setMsg('Bağlantı hatası') }
                   setScriptLoading(false)
                 }} disabled={scriptLoading || !selectedPersona} className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '10px' }}>
@@ -411,7 +427,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
               </div>
               {scriptText ? (
                 <div>
-                  <textarea value={scriptText} onChange={e => { if (e.target.value.length <= UGC_MAX_CHARS) setScriptText(e.target.value) }} style={{ width: '100%', minHeight: '60px', fontSize: '13px', color: '#0a0a0a', lineHeight: 1.6, border: '1px solid #e5e4db', padding: '10px 12px', resize: 'none', boxSizing: 'border-box' }} />
+                  <textarea value={scriptText} onChange={e => { if (e.target.value.length <= UGC_MAX_CHARS) setScriptText(e.target.value) }} onBlur={() => { if (!selectedPersona || scriptText === readScript(ugcScripts, selectedPersona)) return; const updated = { ...ugcScripts, [String(selectedPersona)]: scriptText }; setUgcScripts(updated); supabase.from('briefs').update({ ugc_scripts: updated }).eq('id', briefId) }} style={{ width: '100%', minHeight: '60px', fontSize: '13px', color: '#0a0a0a', lineHeight: 1.6, border: '1px solid #e5e4db', padding: '10px 12px', resize: 'none', boxSizing: 'border-box' }} />
                   <div style={{ textAlign: 'right', fontSize: '10px', color: scriptText.length >= 145 ? '#ef4444' : scriptText.length >= 130 ? '#22c55e' : scriptText.length >= 100 ? '#f59e0b' : '#888', marginTop: '4px' }}>{scriptText.length} / {UGC_MAX_CHARS}</div>
                 </div>
               ) : (
@@ -424,7 +440,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
             <button onClick={handleGenerate} disabled={generating || !selectedPersona || !scriptText || (clientUser?.allocated_credits || 0) < 1} style={{ width: '100%', padding: '12px', background: (!selectedPersona || !scriptText || (clientUser?.allocated_credits || 0) < 1) ? '#ccc' : '#0a0a0a', color: '#fff', border: 'none', fontSize: '13px', fontWeight: '600', cursor: (!selectedPersona || !scriptText) ? 'default' : 'pointer' }}>
               ÜRET (1 KREDİ)
             </button>
-            <button onClick={() => { setGenerateOpen(false); setScriptText('') }} style={{ width: '100%', marginTop: '6px', padding: '8px', background: 'none', border: 'none', fontSize: '11px', color: '#888', cursor: 'pointer' }}>İptal</button>
+            <button onClick={() => { setGenerateOpen(false) }} style={{ width: '100%', marginTop: '6px', padding: '8px', background: 'none', border: 'none', fontSize: '11px', color: '#888', cursor: 'pointer' }}>İptal</button>
           </div>
         ) : (
           <div>
