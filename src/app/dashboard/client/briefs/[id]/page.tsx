@@ -720,7 +720,7 @@ function ClientBriefDetail() {
                   {t.label}
                   {t.key==='express' && <span style={{marginLeft:'4px',fontSize:'9px',padding:'1px 5px',background:'#1DB81D',color:'#fff',fontWeight:'600',verticalAlign:'middle'}}>Beta</span>}
                   {t.key==='ugc' && <span style={{marginLeft:'4px',fontSize:'9px',padding:'1px 5px',background:'#1DB81D',color:'#fff',fontWeight:'600',verticalAlign:'middle'}}>Beta</span>}
-                  {t.key==='ugc' && brief?.ugc_video_id && <span style={{marginLeft:'6px',fontSize:'10px',color:'#1DB81D',fontWeight:'600'}}>1</span>}
+                  {t.key==='ugc' && brief?.ugc_video_id && <span style={{marginLeft:'6px',fontSize:'10px',color:'#1DB81D',fontWeight:'600'}}></span>}
                   {t.key==='express' && aiChildren.length > 0 && <span style={{marginLeft:'6px',fontSize:'10px',color:'#1DB81D',fontWeight:'600'}}>{aiChildren.filter(c=>c.ai_video_url).length}</span>}
                   {t.key==='cps' && cpsChildren.length > 0 && <span style={{marginLeft:'6px',fontSize:'10px',color:'#3b82f6',fontWeight:'600'}}>{cpsChildren.length}</span>}
                 </button>

@@ -5,11 +5,15 @@ const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env
 
 export async function POST(req: NextRequest) {
   try {
-  const { brief_id, persona_id, use_product, settings } = await req.json()
-  console.log('[GENERATE-SCRIPT] request:', { brief_id, persona_id, use_product })
+  const { brief_id, persona_id, use_product, settings, previous_feedbacks } = await req.json()
+  console.log('[GENERATE-SCRIPT] request:', { brief_id, persona_id, use_product, feedbackCount: previous_feedbacks?.length })
   if (!brief_id || !persona_id) return NextResponse.json({ error: 'brief_id ve persona_id gerekli' }, { status: 400 })
   const tone = settings?.tone || 'samimi'
   const includeCta = settings?.cta !== false
+  // Build feedback injection
+  const feedbackBlock = Array.isArray(previous_feedbacks) && previous_feedbacks.length > 0
+    ? `\n\nMÜŞTERİ GERİ BİLDİRİMLERİ (önceki versiyonlar hakkında, en son en önemli):\n${previous_feedbacks.map((f: any) => `${f.video_version} (${f.persona_slug || ''}): "${f.feedback}"`).join('\n')}\nBu yorumları dikkate alarak daha iyi bir script üret. En son yorum en önemli.`
+    : ''
 
   const { data: brief } = await supabase.from('briefs').select('campaign_name, message, target_audience, cta, product_image_url').eq('id', brief_id).single()
   if (!brief) return NextResponse.json({ error: 'Brief bulunamadı' }, { status: 404 })
@@ -35,7 +39,7 @@ export async function POST(req: NextRequest) {
 PERSONA: ${persona.name} — ${persona.tone_description}
 TON: ${toneNote}
 ${ctaNote}
-${productNote}
+${productNote}${feedbackBlock}
 
 KURALLAR:
 - 2 segment: her biri 40-50 karakter, toplam 80-100 karakter.
