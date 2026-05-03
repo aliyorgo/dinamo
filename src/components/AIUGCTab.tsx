@@ -56,6 +56,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
   const [infoOpen, setInfoOpen] = useState(() => { if (typeof window === 'undefined') return false; const k = 'dinamo_seen_intro_ugc'; if (!localStorage.getItem(k)) { localStorage.setItem(k, 'true'); return true }; return false })
   const [purchasing, setPurchasing] = useState<string | null>(null)
   const [msg, setMsg] = useState('')
+  const [highlightId, setHighlightId] = useState<string | null>(null)
 
   useEffect(() => { loadData() }, [briefId])
 
@@ -85,7 +86,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
     setLoading(true)
     setPersonaLoading(true)
     const [{ data: videos }, { data: p }, { data: freshBrief }] = await Promise.all([
-      supabase.from('ugc_videos').select('*, personas(name, slug)').eq('brief_id', briefId).order('created_at', { ascending: true }),
+      supabase.from('ugc_videos').select('*, personas(name, slug)').eq('brief_id', briefId).order('created_at', { ascending: false }),
       supabase.from('personas').select('*').order('id'),
       supabase.from('briefs').select('ugc_feedbacks, ugc_settings, ugc_persona_analysis, ugc_selected_persona_id, product_image_url, message, client_id').eq('id', briefId).single(),
     ])
@@ -151,11 +152,11 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
         // Poll
         const poll = setInterval(async () => {
           const { data: v } = await supabase.from('ugc_videos').select('*, personas(name, slug)').eq('id', genData.ugc_video_id).single()
-          if (v && (v.status === 'ready' || v.status === 'failed')) { clearInterval(poll); loadData() }
+          if (v && (v.status === 'ready' || v.status === 'failed')) { clearInterval(poll); setHighlightId(genData.ugc_video_id); setTimeout(() => setHighlightId(null), 1500); loadData() }
           else if (v && v.status !== 'queued') { setUgcVideos(prev => prev.map(x => x.id === genData.ugc_video_id ? v : x)) }
         }, 10000)
         // Optimistic add
-        setUgcVideos(prev => [...prev, { id: genData.ugc_video_id, status: 'queued', persona_id: selectedPersona, personas: personas.find(p => p.id === selectedPersona), created_at: new Date().toISOString() }])
+        setUgcVideos(prev => [{ id: genData.ugc_video_id, status: 'queued', persona_id: selectedPersona, personas: personas.find(p => p.id === selectedPersona), created_at: new Date().toISOString() }, ...prev])
       } else { setMsg(genData.error || 'Üretim başarısız') }
     } catch { setMsg('Bağlantı hatası') }
     setGenerating(false)
@@ -250,13 +251,13 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
           const isProcessing = video.status === 'queued' || video.status === 'generating'
           const personaName = video.personas?.name || personas.find(p => p.id === video.persona_id)?.name || ''
           const personaSlug = video.personas?.slug || personas.find(p => p.id === video.persona_id)?.slug || ''
-          const versionLabel = `V${idx + 1}`
+          const versionLabel = `V${ugcVideos.length - idx}`
           const lastFb = feedbacks.find(f => f.video_version === versionLabel)
           const isEditingFb = editingFeedback[video.id] || !lastFb
           const currentFbText = feedbackText[video.id] ?? ''
 
           return (
-            <div key={video.id} style={{ display: 'flex', gap: '14px', padding: '14px', marginBottom: '8px', border: '1px solid var(--color-border-tertiary)', background: '#fff', alignItems: 'flex-start', transition: 'background 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-background-secondary)' }} onMouseLeave={e => { e.currentTarget.style.background = '#fff' }}>
+            <div key={video.id} style={{ display: 'flex', gap: '14px', padding: '14px', marginBottom: '8px', border: highlightId === video.id ? '2px solid #22c55e' : '1px solid var(--color-border-tertiary)', background: '#fff', alignItems: 'flex-start', transition: 'all 0.3s' }} onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-background-secondary)' }} onMouseLeave={e => { e.currentTarget.style.background = '#fff' }}>
               {/* Video */}
               <div style={{ width: '200px', aspectRatio: '9/16', background: '#0a0a0a', flexShrink: 0, position: 'relative', overflow: 'hidden' }}>
                 {hasVideo ? (
