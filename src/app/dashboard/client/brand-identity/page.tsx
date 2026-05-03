@@ -279,7 +279,7 @@ export default function BrandIdentityPage() {
         <div style={{ background: '#fff', border: '1px solid #e5e4db', padding: '22px 26px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
             <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', fontWeight: '500' }}>LOGO BOYUTU</div>
-            <button onClick={() => { setLogoSizeTemp(logoSizePercent); setLogoSizeModal(true) }} className="btn btn-outline" style={{ padding: '6px 14px', fontSize: '10px' }}>BOYUT AYARLA →</button>
+            <button onClick={() => { setLogoSizeTemp(logoSizePercent); setLogoSizeModal(true) }} className="btn btn-outline" style={{ padding: '6px 14px', fontSize: '10px' }}>LOGOYU BÜYÜT →</button>
           </div>
           <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', lineHeight: 1.5, marginBottom: '12px' }}>AI Express videolarının sonundaki logo boyutunu ayarla.</div>
           <div style={{ fontSize: '11px', color: '#0a0a0a' }}>Mevcut: %{logoSizePercent}</div>
