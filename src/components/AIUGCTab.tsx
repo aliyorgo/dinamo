@@ -140,6 +140,27 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
     setFeedbackText(prev => ({ ...prev, [videoId]: '' }))
   }
 
+  // Retry failed video with same settings
+  const [retryingId, setRetryingId] = useState<string | null>(null)
+  async function handleRetry(failedVideo: any) {
+    setRetryingId(failedVideo.id)
+    try {
+      const scriptPayload = failedVideo.script || { segments: [] }
+      const genRes = await fetch('/api/ugc/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: failedVideo.persona_id, use_product: false, script: scriptPayload, settings: failedVideo.settings_snapshot || settings }) })
+      const genData = await genRes.json()
+      if (genData.ugc_video_id) {
+        const persona = personas.find(p => p.id === failedVideo.persona_id)
+        setUgcVideos(prev => [{ id: genData.ugc_video_id, status: 'queued', persona_id: failedVideo.persona_id, personas: persona, created_at: new Date().toISOString() }, ...prev])
+        const poll = setInterval(async () => {
+          const { data: v } = await supabase.from('ugc_videos').select('*, personas(name, slug)').eq('id', genData.ugc_video_id).single()
+          if (v && (v.status === 'ready' || v.status === 'failed')) { clearInterval(poll); setHighlightId(genData.ugc_video_id); setTimeout(() => setHighlightId(null), 1500); loadData() }
+          else if (v && v.status !== 'queued') { setUgcVideos(prev => prev.map(x => x.id === genData.ugc_video_id ? v : x)) }
+        }, 10000)
+      } else { setMsg(genData.error || 'Tekrar deneme başarısız') }
+    } catch { setMsg('Bağlantı hatası') }
+    setRetryingId(null)
+  }
+
   // Generate new version
   async function handleGenerate() {
     if (!selectedPersona || !scriptText) return
@@ -270,7 +291,7 @@ export default function AIUGCTab({ briefId, brief, clientUser }: Props) {
                 {/* Failed actions */}
                 {isFailed && (
                   <div style={{ display: 'flex', gap: '6px', marginBottom: '10px' }}>
-                    <button onClick={() => { /* retry would re-generate */ setMsg('Tekrar denemek için "Yeni Versiyon Üret" kullanın.') }} style={{ padding: '5px 12px', background: '#0a0a0a', color: '#fff', border: 'none', fontSize: '11px', fontWeight: '500', cursor: 'pointer' }}>Tekrar Dene</button>
+                    <button onClick={() => handleRetry(video)} disabled={retryingId === video.id} style={{ padding: '5px 12px', background: '#0a0a0a', color: '#fff', border: 'none', fontSize: '11px', fontWeight: '500', cursor: retryingId === video.id ? 'not-allowed' : 'pointer', opacity: retryingId === video.id ? 0.5 : 1 }}>{retryingId === video.id ? 'Üretiliyor...' : 'Tekrar Dene'}</button>
                   </div>
                 )}
 
