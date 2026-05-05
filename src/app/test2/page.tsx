@@ -151,11 +151,10 @@ export default function HomePage() {
           <a href="#hakkimizda" className="nav-link">Hakkımızda</a>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <a href="/login" className="nav-link">Giriş</a>
-          <a href="/demo-request" style={{
+          <a href="/login" style={{
             background: '#1db81d', color: '#fff', padding: '10px 22px', borderRadius: '100px',
-            fontSize: '13px', fontWeight: '500', transition: 'transform 0.2s',
-          }}>Demo</a>
+            fontSize: '13px', fontWeight: '500', transition: 'transform 0.2s', textDecoration: 'none',
+          }}>GİRİŞ</a>
         </div>
       </nav>
 
