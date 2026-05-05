@@ -180,12 +180,12 @@ export default function HomePage() {
             fontSize: 'clamp(40px, 7vw, 80px)', fontWeight: '300',
             lineHeight: 1.05, letterSpacing: '-3px', marginBottom: '20px',
           }}>
-            {c('hero_title', 'Tek platform. Brief\'ten yayına.').split('.').filter(Boolean).map((part, i) => (
+            {'Tek platform. Brief\'ten yayına.'.split('.').filter(Boolean).map((part, i) => (
               <span key={i}>{i > 0 && <br />}<span style={i > 0 ? { fontWeight: '500' } : {}}>{part.trim()}.</span></span>
             ))}
           </h1>
           <p style={{ fontSize: '17px', fontWeight: '300', color: 'rgba(255,255,255,0.55)', lineHeight: 1.7, maxWidth: '580px', margin: '0 auto' }}>
-            {c('hero_desc', "İnsan kalitesinde, AI hızında prodüksiyon. Ekibimiz strateji ve kreatif yönü kurar; AI dakikalar içinde alternatif üretir; siz fikrinizi yayına çıkmadan test edersiniz. Dinamo siz üretirken sürekli öğrenmeye devam eder, markanızı tanır, kendini geliştirir.")}{' '}
+            {"İnsan kalitesinde, AI hızında prodüksiyon. Ekibimiz strateji ve kreatif yönü kurar; AI dakikalar içinde alternatif üretir; siz fikrinizi yayına çıkmadan test edersiniz. Dinamo siz üretirken sürekli öğrenmeye devam eder, markanızı tanır, kendini geliştirir."}{' '}
             <a href="/demo-request" style={{ color: '#1DB81D', textDecoration: 'underline' }}>Demo için iletişime geçin.</a>
           </p>
         </div>
