@@ -185,7 +185,7 @@ export default function HomePage() {
             ))}
           </h1>
           <p style={{ fontSize: '17px', fontWeight: '300', color: 'rgba(255,255,255,0.55)', lineHeight: 1.7, maxWidth: '480px', margin: '0 auto' }}>
-            {c('hero_desc', "Klasik prodüksiyon kalitesinde içerik, AI hızında. Ekibimiz strateji ve kreatif yönü kurar; AI dakikalar içinde alternatif üretir; siz fikrinizi yayına çıkmadan test edersiniz. Sürekli öğrenmeye devam eder, markanızı tanır, kendini geliştirir.")}
+            {c('hero_desc', "İnsan kalitesinde, AI hızında prodüksiyon. Ekibimiz strateji ve kreatif yönü kurar; AI dakikalar içinde alternatif üretir; siz fikrinizi yayına çıkmadan test edersiniz. Sürekli öğrenmeye devam eder, markanızı tanır, kendini geliştirir.")}
           </p>
         </div>
         {/* Demo button — bottom right */}
