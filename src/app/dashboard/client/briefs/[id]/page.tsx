@@ -102,6 +102,11 @@ function ClientBriefDetail() {
   const [expressInfoOpen, setExpressInfoOpen] = useState(false)
   const [cpsInfoOpen, setCpsInfoOpen] = useState(false)
   const [expressSettingsOpen, setExpressSettingsOpen] = useState(false)
+  const [expressPanelLastMove, setExpressPanelLastMove] = useState(0)
+  const expressPanelRef = useRef<HTMLDivElement>(null)
+  const expressPanelBtnsRef = useRef<HTMLDivElement>(null)
+  function toggleExpressInfo() { setExpressInfoOpen(p => !p); setExpressSettingsOpen(false) }
+  function toggleExpressSettings() { setExpressSettingsOpen(p => !p); setExpressInfoOpen(false) }
   const [expressSettings, setExpressSettings] = useState<{ logo: boolean; cta: boolean; packshot: boolean }>({ logo: true, cta: false, packshot: false })
   const [clientPackshotUrl, setClientPackshotUrl] = useState('')
   const [settingsSaved, setSettingsSaved] = useState(false)
@@ -136,6 +141,24 @@ function ClientBriefDetail() {
       localStorage.setItem(key, 'true')
     }
   }, [activeTab])
+
+  // Express panels: outside click + 30s auto-close
+  useEffect(() => {
+    if (!expressInfoOpen && !expressSettingsOpen) return
+    const handler = (e: MouseEvent) => {
+      const t = e.target as Node
+      if (expressPanelRef.current?.contains(t) || expressPanelBtnsRef.current?.contains(t)) return
+      setExpressInfoOpen(false); setExpressSettingsOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [expressInfoOpen, expressSettingsOpen])
+  useEffect(() => {
+    if (!expressInfoOpen && !expressSettingsOpen) return
+    const timer = setTimeout(() => { setExpressInfoOpen(false); setExpressSettingsOpen(false) }, 30000)
+    return () => clearTimeout(timer)
+  }, [expressInfoOpen, expressSettingsOpen, expressPanelLastMove])
+
   const aiChildParam = searchParams.get('ai_child')
   const [briefExpanded, setBriefExpanded] = useState(false)
   const [autoGenerateTriggered, setAutoGenerateTriggered] = useState(false)
@@ -1248,24 +1271,27 @@ function ClientBriefDetail() {
 
               {/* AI EXPRESS HEADER ROW: [info] ... [kredi] */}
               <div style={{display:'flex',flexWrap:'nowrap',alignItems:'center',marginBottom:'12px',gap:'8px'}}>
-                <button onClick={()=>setExpressInfoOpen(!expressInfoOpen)} title="AI Express Hakkında"
+                <div ref={expressPanelBtnsRef} style={{display:'contents'}}>
+                <button onClick={toggleExpressInfo} title="AI Express Hakkında"
                   onMouseEnter={e=>{e.currentTarget.style.background='#0a0a0a';e.currentTarget.style.color='#fff'}}
                   onMouseLeave={e=>{e.currentTarget.style.background='#f5f4f0';e.currentTarget.style.color='#888'}}
                   style={{display:'inline-flex',alignItems:'center',gap:'4px',padding:'4px 10px',background:'#f5f4f0',border:'none',fontSize:'11px',color:'#888',cursor:'pointer',transition:'all 0.15s',flexShrink:0}}>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
                   Bilgi
                 </button>
-                <button onClick={()=>setExpressSettingsOpen(!expressSettingsOpen)} title="AI Express Ayarları"
+                <button onClick={toggleExpressSettings} title="AI Express Ayarları"
                   onMouseEnter={e=>{e.currentTarget.style.background='#0a0a0a';e.currentTarget.style.color='#fff'}}
                   onMouseLeave={e=>{e.currentTarget.style.background='#f5f4f0';e.currentTarget.style.color='#888'}}
                   style={{display:'inline-flex',alignItems:'center',gap:'4px',padding:'4px 10px',background:'#f5f4f0',border:'none',fontSize:'11px',color:'#888',cursor:'pointer',transition:'all 0.15s',flexShrink:0}}>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
                   Ayarlar
                 </button>
+                </div>
                 <div style={{flex:1}} />
                 {(() => { const total = aiChildren.length + aiChildren.filter(c => c.status === 'delivered').length * 2; return <div style={{display:'inline-flex',padding:'6px 14px',border:'1px solid #0a0a0a',fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:total > 0 ? '#0a0a0a' : '#9ca3af',flexShrink:0,whiteSpace:'nowrap'}}>{total} KREDİ</div> })()}
               </div>
 
+              <div ref={expressPanelRef} onMouseMove={()=>setExpressPanelLastMove(Date.now())}>
               {/* AI Express Info Collapse */}
               {expressInfoOpen && (
                 <div style={{background:'#f9f7f3',border:'1px solid #e5e4db',padding:'20px',marginBottom:'16px'}}>
@@ -1317,6 +1343,8 @@ function ClientBriefDetail() {
                   )}
                 </div>
               )}
+
+              </div>
 
               {/* AI VIDEO STUDIO */}
               {brief && brief.status !== 'cancelled' && brief.status !== 'draft' && (

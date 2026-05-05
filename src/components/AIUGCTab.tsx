@@ -57,6 +57,9 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
   const [settings, setSettings] = useState<UGCSettings>(DEFAULT_SETTINGS)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [infoOpen, setInfoOpen] = useState(() => { if (typeof window === 'undefined') return false; const k = 'dinamo_seen_intro_ugc'; if (!localStorage.getItem(k)) { localStorage.setItem(k, 'true'); return true }; return false })
+  const [panelLastMove, setPanelLastMove] = useState(0)
+  const panelRef = useRef<HTMLDivElement>(null)
+  const panelButtonsRef = useRef<HTMLDivElement>(null)
   const [purchasing, setPurchasing] = useState<string | null>(null)
   const [msg, setMsg] = useState('')
   const [shortTextWarning, setShortTextWarning] = useState(false)
@@ -68,6 +71,29 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
     viewedIdsRef.current.add(videoId)
     await supabase.from('ugc_videos').update({ viewed_at: new Date().toISOString() }).eq('id', videoId).is('viewed_at', null)
   }
+
+  // Panel mutual exclusion helpers
+  function toggleInfo() { setInfoOpen(p => !p); setSettingsOpen(false) }
+  function toggleSettings() { setSettingsOpen(p => !p); setInfoOpen(false) }
+
+  // Outside click closes panels
+  useEffect(() => {
+    if (!infoOpen && !settingsOpen) return
+    const handler = (e: MouseEvent) => {
+      const t = e.target as Node
+      if (panelRef.current?.contains(t) || panelButtonsRef.current?.contains(t)) return
+      setInfoOpen(false); setSettingsOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [infoOpen, settingsOpen])
+
+  // 30s auto-close
+  useEffect(() => {
+    if (!infoOpen && !settingsOpen) return
+    const timer = setTimeout(() => { setInfoOpen(false); setSettingsOpen(false) }, 30000)
+    return () => clearTimeout(timer)
+  }, [infoOpen, settingsOpen, panelLastMove])
 
   useEffect(() => { loadData() }, [briefId])
 
@@ -263,24 +289,28 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
     <div>
       {/* HEADER ROW */}
       <div style={{ display: 'flex', flexWrap: 'nowrap', alignItems: 'center', marginBottom: '16px', gap: '8px' }}>
-        <button onClick={() => setInfoOpen(!infoOpen)} title="AI UGC Hakkında"
+        <div ref={panelButtonsRef} style={{ display: 'contents' }}>
+        <button onClick={toggleInfo} title="AI UGC Hakkında"
           onMouseEnter={e => { e.currentTarget.style.background = '#0a0a0a'; e.currentTarget.style.color = '#fff' }}
           onMouseLeave={e => { e.currentTarget.style.background = '#f5f4f0'; e.currentTarget.style.color = '#888' }}
           style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '4px 10px', background: '#f5f4f0', border: 'none', fontSize: '11px', color: '#888', cursor: 'pointer', transition: 'all 0.15s', flexShrink: 0 }}>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
           Bilgi
         </button>
-        <button onClick={() => setSettingsOpen(!settingsOpen)} title="AI UGC Ayarları"
+        <button onClick={toggleSettings} title="AI UGC Ayarları"
           onMouseEnter={e => { e.currentTarget.style.background = '#0a0a0a'; e.currentTarget.style.color = '#fff' }}
           onMouseLeave={e => { e.currentTarget.style.background = '#f5f4f0'; e.currentTarget.style.color = '#888' }}
           style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '4px 10px', background: '#f5f4f0', border: 'none', fontSize: '11px', color: '#888', cursor: 'pointer', transition: 'all 0.15s', flexShrink: 0 }}>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
           Ayarlar
         </button>
+        </div>
         <div style={{ flex: 1 }} />
         <div style={{ display: 'inline-flex', padding: '6px 14px', border: '1px solid #0a0a0a', fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: ugcVideos.length > 0 ? '#0a0a0a' : '#9ca3af', flexShrink: 0, whiteSpace: 'nowrap' }}>{ugcVideos.reduce((s, v) => s + (v.status === 'sold' ? 2 : 1), 0)} KREDİ</div>
       </div>
 
+      {/* Panels container (for outside click ref) */}
+      <div ref={panelRef} onMouseMove={() => setPanelLastMove(Date.now())}>
       {/* Info Collapse Panel */}
       {infoOpen && (
         <div style={{ background: '#f9f7f3', border: '1px solid #e5e4db', padding: '20px', marginBottom: '16px', transition: 'all 0.2s' }}>
@@ -334,6 +364,8 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
           </div>
         </div>
       )}
+
+      </div>
 
       {msg && <div style={{ padding: '10px 14px', background: 'rgba(239,68,68,0.08)', border: '1px solid #ef4444', fontSize: '12px', color: '#0a0a0a', marginBottom: '12px' }}>{msg}<button onClick={() => setMsg('')} style={{ float: 'right', background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}>×</button></div>}
 
