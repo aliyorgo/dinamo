@@ -1475,7 +1475,7 @@ function ClientBriefDetail() {
                           )}
                           {/* Feedback summary */}
                           {child.ai_feedback_summary && (
-                            <div style={{fontSize:'11px',color:'#666',background:'#f9f7f3',padding:'8px 12px',border:'1px solid #e5e4db',marginBottom:'8px',lineHeight:'1.5'}}>
+                            <div style={{fontSize:'11px',color:'#666',background:'#f9f7f3',padding:'8px 12px',border:'1px solid #e5e4db',marginBottom:'8px',marginTop:'8px',lineHeight:'1.5'}}>
                               {child.ai_feedback_summary}
                             </div>
                           )}
