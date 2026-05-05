@@ -213,7 +213,7 @@ export default function HomePage() {
           <div className="grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
             {[
               { n: '01', t: c('step1_title', "Brief'inizi girin"), b: c('step1_desc', 'Kampanya hedefinizi, mesajınızı ve video tipini belirleyin.') },
-              { n: '02', t: c('step2_title', 'Prodüktörümüz inceliyor'), b: c('step2_desc', "Brief'inizi değerlendiriyor, gerekirse onay veya ek bilgi talep ediyoruz.") },
+              { n: '02', t: c('step2_title', 'Ekibimiz inceliyor'), b: c('step2_desc', "Brief'inizi değerlendiriyor, gerekirse onay veya ek bilgi talep ediyoruz.") },
               { n: '03', t: c('step3_title', '24 saat içinde teslim'), b: c('step3_desc', 'Videonuz üretilir, prodüktör onayından geçer ve hesabınıza iletilir.') },
               { n: '04', t: c('step4_title', 'Revizyon hakkınız var'), b: c('step4_desc', 'Her videoya bir revizyon hakkı tanınır, ek ücret alınmaz.') },
             ].map((s) => (
