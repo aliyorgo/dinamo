@@ -417,7 +417,7 @@ export default function HomePage() {
               </div>
             </div>
             <div>
-              <video src="/express_v_tn.mp4" autoPlay muted loop playsInline style={{ width: '40%', height: 'auto', objectFit: 'cover' }} />
+              <video src="/express_v_tn.mp4" autoPlay muted loop playsInline style={{ width: '52%', height: 'auto', objectFit: 'cover' }} />
             </div>
           </div>
         </div>
@@ -449,7 +449,7 @@ export default function HomePage() {
               </div>
             </div>
             <div>
-              <video src="/ugc_v_tn.mp4" autoPlay muted loop playsInline style={{ width: '40%', height: 'auto', objectFit: 'cover' }} />
+              <video src="/ugc_v_tn.mp4" autoPlay muted loop playsInline style={{ width: '52%', height: 'auto', objectFit: 'cover' }} />
             </div>
           </div>
         </div>
