@@ -441,7 +441,7 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
 
                 {/* Feedback summary */}
                 {video.feedback_summary && (
-                  <div style={{ fontSize: '11px', color: '#666', background: '#f9f7f3', padding: '8px 12px', border: '1px solid #e5e4db', marginBottom: '8px', lineHeight: 1.5 }}>
+                  <div style={{ fontSize: '11px', color: '#666', background: '#f9f7f3', padding: '8px 12px', border: '1px solid #e5e4db', marginBottom: '8px', lineHeight: 1.5, fontStyle: 'italic' }}>
                     {video.feedback_summary}
                   </div>
                 )}
