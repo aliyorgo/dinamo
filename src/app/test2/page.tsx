@@ -184,7 +184,7 @@ export default function HomePage() {
               <span key={i}>{i > 0 && <br />}<span style={i > 0 ? { fontWeight: '500' } : {}}>{part.trim()}.</span></span>
             ))}
           </h1>
-          <p style={{ fontSize: '17px', fontWeight: '300', color: 'rgba(255,255,255,0.55)', lineHeight: 1.7, maxWidth: '480px', margin: '0 auto' }}>
+          <p style={{ fontSize: '17px', fontWeight: '300', color: 'rgba(255,255,255,0.55)', lineHeight: 1.7, maxWidth: '580px', margin: '0 auto' }}>
             {c('hero_desc', "İnsan kalitesinde, AI hızında prodüksiyon. Ekibimiz strateji ve kreatif yönü kurar; AI dakikalar içinde alternatif üretir; siz fikrinizi yayına çıkmadan test edersiniz. Dinamo siz üretirken sürekli öğrenmeye devam eder, markanızı tanır, kendini geliştirir.")}
           </p>
         </div>
