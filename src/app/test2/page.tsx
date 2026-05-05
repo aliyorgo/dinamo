@@ -394,24 +394,31 @@ export default function HomePage() {
       {/* ══════ AI EXPRESS ══════ */}
       <section style={{ background: '#0a0a0a' }}>
         <div className="s-pad" style={{ maxWidth: '1200px', margin: '0 auto', padding: '100px 48px' }}>
-          <div style={{ marginBottom: '16px' }}>
-            <div style={{ fontSize: '11px', letterSpacing: '3px', color: '#1db81d', textTransform: 'uppercase', marginBottom: '16px', fontWeight: '400' }}>AI Express</div>
-            <h2 style={{ fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: '300', letterSpacing: '-1.5px', marginBottom: '12px' }}>AI Express — 5 Dakikada Video</h2>
-            <div style={{ display: 'inline-block', padding: '4px 12px', background: 'rgba(29,184,29,0.1)', border: '1px solid rgba(29,184,29,0.2)', fontSize: '11px', color: '#1DB81D', marginBottom: '40px' }}>Beta · Dinamo müşterilerine özel</div>
-          </div>
-          <div style={{ maxWidth: '720px' }}>
-              <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.8, marginBottom: '20px', fontWeight: '300' }}>
-                Brief gönderdiniz. Ekip çalışırken, yapay zeka da çalışıyor.
-              </p>
-              <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.8, marginBottom: '20px', fontWeight: '300' }}>
-                Dinamo AI Express, kampanya briefinizi okur. Marka tonunu, kurumsal renkleri, hedef kitleyi analiz eder ve 5 dakika içinde, 1 kredi ile fikir, görsel, Türkçe seslendirme ve müzik üretir. Her video için yorum bırakırsınız — sistem isteklerinizi anlayıp markanızı tanıdıkça daha iyi üretir.
-              </p>
-              <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.8, marginBottom: '20px', fontWeight: '300' }}>
-                AI Express'le yayına çıkmadan önce fikrinizi test edin. Hangi mesajın işe yaradığını görün, brief'inizi geliştirin, kreatif yön belirleyin.
-              </p>
-              <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.8, fontWeight: '300' }}>
-                Beta sürecindedir. Sonuçlar garanti edilmez. İnsan yapımı üretimin yerini tutmaz — ama fikir aşamasını, içerik testini ve sosyal medya hızını değiştirir.
-              </p>
+          <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '48px', alignItems: 'center' }}>
+            <div>
+              <div style={{ marginBottom: '16px' }}>
+                <div style={{ fontSize: '11px', letterSpacing: '3px', color: '#1db81d', textTransform: 'uppercase', marginBottom: '16px', fontWeight: '400' }}>AI Express</div>
+                <h2 style={{ fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: '300', letterSpacing: '-1.5px', marginBottom: '12px' }}>AI Express — 5 Dakikada Video</h2>
+                <div style={{ display: 'inline-block', padding: '4px 12px', background: 'rgba(29,184,29,0.1)', border: '1px solid rgba(29,184,29,0.2)', fontSize: '11px', color: '#1DB81D', marginBottom: '40px' }}>Beta · Dinamo müşterilerine özel</div>
+              </div>
+              <div>
+                <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.8, marginBottom: '20px', fontWeight: '300' }}>
+                  Brief gönderdiniz. Ekip çalışırken, yapay zeka da çalışıyor.
+                </p>
+                <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.8, marginBottom: '20px', fontWeight: '300' }}>
+                  Dinamo AI Express, kampanya briefinizi okur. Marka tonunu, kurumsal renkleri, hedef kitleyi analiz eder ve 5 dakika içinde, 1 kredi ile fikir, görsel, Türkçe seslendirme ve müzik üretir. Her video için yorum bırakırsınız — sistem isteklerinizi anlayıp markanızı tanıdıkça daha iyi üretir.
+                </p>
+                <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.8, marginBottom: '20px', fontWeight: '300' }}>
+                  AI Express'le yayına çıkmadan önce fikrinizi test edin. Hangi mesajın işe yaradığını görün, brief'inizi geliştirin, kreatif yön belirleyin.
+                </p>
+                <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.8, fontWeight: '300' }}>
+                  Beta sürecindedir. Sonuçlar garanti edilmez. İnsan yapımı üretimin yerini tutmaz — ama fikir aşamasını, içerik testini ve sosyal medya hızını değiştirir.
+                </p>
+              </div>
+            </div>
+            <div>
+              <img src="/express_tn.jpg" alt="AI Express önizleme" style={{ width: '100%', height: 'auto', objectFit: 'cover' }} />
+            </div>
           </div>
         </div>
       </section>
@@ -419,24 +426,31 @@ export default function HomePage() {
       {/* ══════ AI UGC ══════ */}
       <section style={{ background: '#0a0a0a' }}>
         <div className="s-pad" style={{ maxWidth: '1200px', margin: '0 auto', padding: '100px 48px' }}>
-          <div style={{ marginBottom: '16px' }}>
-            <div style={{ fontSize: '11px', letterSpacing: '3px', color: '#1db81d', textTransform: 'uppercase', marginBottom: '16px', fontWeight: '400' }}>AI UGC</div>
-            <h2 style={{ fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: '300', letterSpacing: '-1.5px', marginBottom: '12px' }}>AI UGC — Influencer Tarzı Dikey Video</h2>
-            <div style={{ display: 'inline-block', padding: '4px 12px', background: 'rgba(29,184,29,0.1)', border: '1px solid rgba(29,184,29,0.2)', fontSize: '11px', color: '#1DB81D', marginBottom: '40px' }}>Beta · Dinamo müşterilerine özel</div>
-          </div>
-          <div style={{ maxWidth: '720px' }}>
-              <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.8, marginBottom: '20px', fontWeight: '300' }}>
-                AI influencer videolarıyla mesajınızı çeşitlendirin. 3 dakikada seçtiğiniz persona brief'ten üretilen metni doğal ve karakterine uygun şekilde okusun.
-              </p>
-              <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.8, marginBottom: '20px', fontWeight: '300' }}>
-                Dinamo AI UGC, briefinizi ve seçtiğiniz personayı okur. Karakter, ortam, konuşma metni, ses ve dudak senkronu — tamamı yapay zeka tarafından üretilir. 8 saniyelik dikey video, 1 kredi ile, gerçek bir creator izlenimi yaratır. Ton, müzik ve CTA tercihlerinizi siz belirlersiniz.
-              </p>
-              <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.8, marginBottom: '20px', fontWeight: '300' }}>
-                AI UGC'yle TikTok ve Reels için içerik üretimini hızlandırın. Farklı personaları test edin, hangi tonun marka için doğru olduğunu görün, kampanyanızı dağıtmadan önce hissini deneyin.
-              </p>
-              <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.8, fontWeight: '300' }}>
-                Beta sürecindedir. Sonuçlar garanti edilmez. Türkçe seslendirme ve karakter tutarlılığında iyileştirmeler devam ediyor — ama UGC stilinde içerik üretiminin maliyetini ve hızını değiştirir.
-              </p>
+          <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '48px', alignItems: 'center' }}>
+            <div>
+              <div style={{ marginBottom: '16px' }}>
+                <div style={{ fontSize: '11px', letterSpacing: '3px', color: '#1db81d', textTransform: 'uppercase', marginBottom: '16px', fontWeight: '400' }}>AI UGC</div>
+                <h2 style={{ fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: '300', letterSpacing: '-1.5px', marginBottom: '12px' }}>AI UGC — Influencer Tarzı Dikey Video</h2>
+                <div style={{ display: 'inline-block', padding: '4px 12px', background: 'rgba(29,184,29,0.1)', border: '1px solid rgba(29,184,29,0.2)', fontSize: '11px', color: '#1DB81D', marginBottom: '40px' }}>Beta · Dinamo müşterilerine özel</div>
+              </div>
+              <div>
+                <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.8, marginBottom: '20px', fontWeight: '300' }}>
+                  AI influencer videolarıyla mesajınızı çeşitlendirin. 3 dakikada seçtiğiniz persona brief'ten üretilen metni doğal ve karakterine uygun şekilde okusun.
+                </p>
+                <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.8, marginBottom: '20px', fontWeight: '300' }}>
+                  Dinamo AI UGC, briefinizi ve seçtiğiniz personayı okur. Karakter, ortam, konuşma metni, ses ve dudak senkronu — tamamı yapay zeka tarafından üretilir. 8 saniyelik dikey video, 1 kredi ile, gerçek bir creator izlenimi yaratır. Ton, müzik ve CTA tercihlerinizi siz belirlersiniz.
+                </p>
+                <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.8, marginBottom: '20px', fontWeight: '300' }}>
+                  AI UGC'yle TikTok ve Reels için içerik üretimini hızlandırın. Farklı personaları test edin, hangi tonun marka için doğru olduğunu görün, kampanyanızı dağıtmadan önce hissini deneyin.
+                </p>
+                <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.8, fontWeight: '300' }}>
+                  Beta sürecindedir. Sonuçlar garanti edilmez. Türkçe seslendirme ve karakter tutarlılığında iyileştirmeler devam ediyor — ama UGC stilinde içerik üretiminin maliyetini ve hızını değiştirir.
+                </p>
+              </div>
+            </div>
+            <div>
+              <img src="/ugc_tn.jpg" alt="AI UGC önizleme" style={{ width: '100%', height: 'auto', objectFit: 'cover' }} />
+            </div>
           </div>
         </div>
       </section>
