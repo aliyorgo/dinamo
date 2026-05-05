@@ -212,10 +212,10 @@ export default function HomePage() {
           </div>
           <div className="grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
             {[
-              { n: '01', t: c('step1_title', "Brief'inizi girin"), b: c('step1_desc', 'Kampanya hedefinizi, mesajınızı ve video tipini belirleyin.') },
-              { n: '02', t: c('step2_title', 'Ekibimiz inceliyor'), b: c('step2_desc', "Brief'inizi değerlendiriyor, gerekirse onay veya ek bilgi talep ediyoruz.") },
-              { n: '03', t: c('step3_title', '24 saat içinde teslim'), b: c('step3_desc', 'Videonuz üretilir, prodüktör onayından geçer ve hesabınıza iletilir.') },
-              { n: '04', t: c('step4_title', 'Revizyon hakkınız var'), b: c('step4_desc', 'Her videoya bir revizyon hakkı tanınır, ek ücret alınmaz.') },
+              { n: '01', t: "Brief'inizi girin", b: 'Kampanya hedefinizi, mesajınızı ve video tipini belirleyin.' },
+              { n: '02', t: 'Ekibimiz inceliyor', b: "Brief'inizi değerlendiriyor, gerekirse onay veya ek bilgi talep ediyoruz." },
+              { n: '03', t: '24 saat içinde teslim', b: 'Videonuz üretilir, prodüktör onayından geçer ve hesabınıza iletilir.' },
+              { n: '04', t: 'Revizyon hakkınız var', b: 'Her videoya bir revizyon hakkı tanınır, ek ücret alınmaz.' },
             ].map((s) => (
               <div key={s.n} className="step-card">
                 <div style={{ fontSize: '40px', fontWeight: '600', color: '#1db81d', letterSpacing: '-2px', marginBottom: '20px', lineHeight: 1 }}>{s.n}</div>
@@ -504,13 +504,13 @@ export default function HomePage() {
             fontSize: 'clamp(36px, 6vw, 56px)', fontWeight: '300',
             letterSpacing: '-2px', lineHeight: 1.1, marginBottom: '20px',
           }}>
-            {c('cta_title', 'Hemen başlayın.')}
+            {'Hemen başlayın.'}
           </h2>
           <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.4)', fontWeight: '300', marginBottom: '40px', lineHeight: 1.7 }}>
             Demo hesabınızı talep edin, ilk videonuzu birlikte üretelim.
           </p>
           <a href="/demo-request" className="cta-btn" style={{ background: '#1db81d', color: '#fff' }}>
-            {c('cta_button', 'Demo hesap talep edin →')}
+            {'Demo hesap talep edin →'}
           </a>
         </div>
       </section>
