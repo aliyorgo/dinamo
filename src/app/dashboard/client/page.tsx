@@ -459,8 +459,30 @@ export default function ClientDashboard() {
                     ))}
                   </div>
 
-                  <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: 1.7, marginBottom: '40px' }}>
+                  <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: 1.7, marginBottom: '24px' }}>
                     Her brief gönderdikten sonra AI Express ve Creative Performance System özelliklerine erişirsiniz. AI Express ile briefinizden ~5 dakikada yapay zeka videosu üretin, CPS ile aynı kampanyadan farklı yaratıcı yönler ve varyasyonlar oluşturun.
+                  </div>
+
+                  {/* AI UGC Section */}
+                  <div style={{ marginBottom: '40px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                      <div style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', fontWeight: '500' }}>AI UGC</div>
+                      <span style={{ fontSize: '9px', padding: '2px 6px', background: '#4ade80', color: '#fff', fontWeight: '600' }}>Beta</span>
+                    </div>
+                    <div style={{ fontSize: '15px', fontWeight: '500', color: 'var(--color-text-primary)', marginBottom: '8px' }}>AI UGC — Influencer Tarzı Dikey Video</div>
+                    <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', marginBottom: '12px' }}>Dinamo müşterilerine özel</div>
+                    <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: 1.7, marginBottom: '12px' }}>
+                      AI influencer videolarıyla mesajınızı çeşitlendirin. 3 dakikada seçtiğiniz persona brief'ten üretilen metni doğal ve karakterine uygun şekilde okusun.
+                    </div>
+                    <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: 1.7, marginBottom: '12px' }}>
+                      Dinamo AI UGC, briefinizi ve seçtiğiniz personayı okur. Karakter, ortam, konuşma metni, ses ve dudak senkronu — tamamı yapay zeka tarafından üretilir. 8 saniyelik dikey video, 1 kredi ile, gerçek bir creator izlenimi yaratır. Ton, müzik ve CTA tercihlerinizi siz belirlersiniz.
+                    </div>
+                    <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: 1.7, marginBottom: '12px' }}>
+                      AI UGC'yle TikTok ve Reels için içerik üretimini hızlandırın. Farklı personaları test edin, hangi tonun marka için doğru olduğunu görün, kampanyanızı dağıtmadan önce hissini deneyin.
+                    </div>
+                    <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: 1.7 }}>
+                      Beta sürecindedir. Sonuçlar garanti edilmez. Türkçe seslendirme ve karakter tutarlılığında iyileştirmeler devam ediyor — ama UGC stilinde içerik üretiminin maliyetini ve hızını değiştirir.
+                    </div>
                   </div>
 
                   {/* Video grid */}
