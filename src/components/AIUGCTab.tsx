@@ -324,14 +324,6 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
               <span className="dot" style={{ position: 'absolute', top: '2px', left: settings.cta ? '18px' : '2px', width: '16px', height: '16px', background: '#fff', transition: 'left 0.2s' }} />
             </button>
           </div>
-          {/* Müzik */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #e5e4db' }}>
-            <div><div style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>Müzik</div><div style={{ fontSize: '11px', color: '#888' }}>Arka planda müzik olsun mu</div></div>
-            <button onClick={() => handleSettingsChange({ ...settings, music: !settings.music })}
-              style={{ width: '36px', height: '20px', border: 'none', cursor: 'pointer', background: settings.music ? '#22c55e' : '#ddd', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
-              <span className="dot" style={{ position: 'absolute', top: '2px', left: settings.music ? '18px' : '2px', width: '16px', height: '16px', background: '#fff', transition: 'left 0.2s' }} />
-            </button>
-          </div>
           {/* Watermark */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0' }}>
             <div><div style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>Watermark</div><div style={{ fontSize: '11px', color: '#888' }}>AI ile üretildi işareti</div></div>
