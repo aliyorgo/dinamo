@@ -51,6 +51,7 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
   const [scriptLoading, setScriptLoading] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [ugcScripts, setUgcScripts] = useState<Record<string, any>>({})
+  const [changesSummary, setChangesSummary] = useState('')
   // Product toggle disabled: Veo 3.1 Fast image_url = first-frame, not reference. Kalitesiz sonuç verir.
   const useProduct = false
   // Settings + modals
@@ -180,6 +181,7 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
           const data = await res.json()
           if (data.dialogue) {
             setScriptText(data.dialogue)
+            setChangesSummary(data.changes_summary || '')
             const updated = { ...ugcScriptsRef.current, [String(selectedPersona)]: data.dialogue }
             setUgcScripts(updated)
             supabase.from('briefs').update({ ugc_scripts: updated }).eq('id', briefId)
@@ -244,7 +246,7 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
     setGenerating(true)
     try {
       const scriptPayload = { dialogue: scriptText.trim() }
-      const genRes = await fetch('/api/ugc/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: selectedPersona, use_product: false, script: scriptPayload, settings }) })
+      const genRes = await fetch('/api/ugc/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: selectedPersona, use_product: false, script: scriptPayload, settings, changes_summary: changesSummary }) })
       const genData = await genRes.json()
       if (genData.ugc_video_id) {
         // Poll
@@ -437,6 +439,13 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
                 </div>
                 <div style={{ fontSize: '11px', color: '#888', marginBottom: '10px' }}>{new Date(video.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</div>
 
+                {/* Feedback summary */}
+                {video.feedback_summary && (
+                  <div style={{ fontSize: '11px', color: '#666', background: '#f9f7f3', padding: '8px 12px', border: '1px solid #e5e4db', marginBottom: '8px', lineHeight: 1.5 }}>
+                    {video.feedback_summary}
+                  </div>
+                )}
+
                 {/* Failed actions */}
                 {isFailed && (
                   <div style={{ display: 'flex', gap: '6px', marginBottom: '10px' }}>
@@ -555,6 +564,7 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
                     const data = await res.json()
                     if (data.dialogue) {
                       setScriptText(data.dialogue)
+                      setChangesSummary(data.changes_summary || '')
                       const updated = { ...ugcScripts, [String(selectedPersona)]: data.dialogue }
                       setUgcScripts(updated)
                       supabase.from('briefs').update({ ugc_scripts: updated }).eq('id', briefId)

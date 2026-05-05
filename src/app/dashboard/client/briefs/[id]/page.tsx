@@ -245,7 +245,7 @@ function ClientBriefDetail() {
     // AI clones for this campaign (root_campaign_id based)
     const rootId = b?.root_campaign_id || b?.id
     const { data: aiKids } = await supabase.from('briefs')
-      .select('id, campaign_name, status, ai_video_status, ai_video_url, ai_video_error, product_image_url, created_at, ai_feedbacks, static_images_url, static_image_files, ai_express_viewed_at, ai_express_settings_snapshot')
+      .select('id, campaign_name, status, ai_video_status, ai_video_url, ai_video_error, product_image_url, created_at, ai_feedbacks, static_images_url, static_image_files, ai_express_viewed_at, ai_express_settings_snapshot, ai_feedback_summary')
       .eq('root_campaign_id', rootId)
       .like('campaign_name', '%Full AI%')
       .order('created_at', { ascending: true })
@@ -1471,6 +1471,12 @@ function ClientBriefDetail() {
                                   <span style={{fontSize:'13px',color:'#888'}}>2 kredi</span>
                                 </>
                               )}
+                            </div>
+                          )}
+                          {/* Feedback summary */}
+                          {child.ai_feedback_summary && (
+                            <div style={{fontSize:'11px',color:'#666',background:'#f9f7f3',padding:'8px 12px',border:'1px solid #e5e4db',marginBottom:'8px',lineHeight:'1.5'}}>
+                              {child.ai_feedback_summary}
                             </div>
                           )}
                           {/* Feedback */}

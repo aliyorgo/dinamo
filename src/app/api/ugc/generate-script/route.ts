@@ -56,7 +56,7 @@ KURALLAR:
 
 CRITICAL: Output MUST be ONLY raw JSON. First character: '{'. Last character: '}'. No markdown, no backticks, no explanation.
 
-FORMAT: {"dialogue":"140-155 char Türkçe metin"}`
+FORMAT: {"dialogue":"140-155 char Türkçe metin","changes_summary":"Müşteri yorumlarından uyguladığın değişikliklerin 1-2 cümlelik Türkçe özeti. Yorum yoksa boş string. Max 150 karakter."}`
 
   const messages: any[] = [
     { role: 'user', content: `Brief: ${brief.campaign_name}\nMesaj: ${brief.message || ''}\nHedef Kitle: ${brief.target_audience || ''}\nCTA: ${brief.cta || ''}\n\nDialogue'da emoji yok, sadece Türkçe metin.\n\nJSON:` },
@@ -126,7 +126,7 @@ FORMAT: {"dialogue":"140-155 char Türkçe metin"}`
     }
   }
 
-  return NextResponse.json({ dialogue: script.dialogue })
+  return NextResponse.json({ dialogue: script.dialogue, changes_summary: script.changes_summary || '' })
   } catch (err: any) {
     console.error('[GENERATE-SCRIPT] FATAL:', err.message, err.stack)
     return NextResponse.json({ error: err.message }, { status: 500 })
