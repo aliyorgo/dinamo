@@ -104,6 +104,7 @@ function ClientBriefDetail() {
   const [expressSettingsOpen, setExpressSettingsOpen] = useState(false)
   const [expressSettings, setExpressSettings] = useState<{ logo: boolean; cta: boolean; packshot: boolean }>({ logo: true, cta: false, packshot: false })
   const [clientPackshotUrl, setClientPackshotUrl] = useState('')
+  const [settingsSaved, setSettingsSaved] = useState(false)
   function toggleExpressSetting(key: 'logo' | 'cta' | 'packshot') {
     setExpressSettings(prev => {
       const next = { ...prev, [key]: !prev[key] }
@@ -116,7 +117,9 @@ function ClientBriefDetail() {
   async function persistExpressSettings(settings: any) {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.access_token) return
-    fetch('/api/client/ai-express-settings', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` }, body: JSON.stringify({ settings }) })
+    await fetch('/api/client/ai-express-settings', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` }, body: JSON.stringify({ settings }) })
+    setSettingsSaved(true)
+    setTimeout(() => setSettingsSaved(false), 1500)
   }
   const [ugcVideosForSummary, setUgcVideosForSummary] = useState<any[]>([])
   const [activeTab, setActiveTab] = useState<'hybrid'|'cps'|'express'|'ugc'|'summary'>(searchParams.get('tab') === 'express' ? 'express' : searchParams.get('tab') === 'ugc' ? 'ugc' : searchParams.get('tab') === 'cps' ? 'cps' : searchParams.get('tab') === 'summary' ? 'summary' : 'hybrid')
@@ -219,7 +222,7 @@ function ClientBriefDetail() {
     // AI clones for this campaign (root_campaign_id based)
     const rootId = b?.root_campaign_id || b?.id
     const { data: aiKids } = await supabase.from('briefs')
-      .select('id, campaign_name, status, ai_video_status, ai_video_url, ai_video_error, product_image_url, created_at, ai_feedbacks, static_images_url, static_image_files, ai_express_viewed_at')
+      .select('id, campaign_name, status, ai_video_status, ai_video_url, ai_video_error, product_image_url, created_at, ai_feedbacks, static_images_url, static_image_files, ai_express_viewed_at, ai_express_settings_snapshot')
       .eq('root_campaign_id', rootId)
       .like('campaign_name', '%Full AI%')
       .order('created_at', { ascending: true })
@@ -1283,7 +1286,7 @@ function ClientBriefDetail() {
               {expressSettingsOpen && (
                 <div style={{background:'#f9f7f3',border:'1px solid #e5e4db',padding:'20px',marginBottom:'16px'}}>
                   <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'14px'}}>
-                    <div style={{fontSize:'14px',fontWeight:'600',color:'#0a0a0a'}}>AI Express Ayarları</div>
+                    <div style={{fontSize:'14px',fontWeight:'600',color:'#0a0a0a'}}>AI Express Ayarları{settingsSaved && <span style={{fontSize:'11px',color:'#22c55e',marginLeft:'12px',fontWeight:'500'}}>✓ Kaydedildi</span>}</div>
                     <button onClick={()=>setExpressSettingsOpen(false)} style={{width:'24px',height:'24px',border:'none',background:'none',cursor:'pointer',fontSize:'16px',color:'#888',display:'flex',alignItems:'center',justifyContent:'center'}} onMouseEnter={e=>{e.currentTarget.style.color='#0a0a0a'}} onMouseLeave={e=>{e.currentTarget.style.color='#888'}}>×</button>
                   </div>
                   {/* Logo toggle */}
@@ -1385,6 +1388,7 @@ function ClientBriefDetail() {
                             {isPurchased && <span style={{fontSize:'9px',color:'#1DB81D',fontWeight:'600'}}>&#10003; Satın Alındı</span>}
                             {isProcessing && <span style={{fontSize:'9px',fontWeight:'500',display:'inline-flex',alignItems:'center',gap:'4px'}}><span style={{width:'6px',height:'6px',background:'#4ade80',display:'inline-block',animation:'pulse 1.5s ease infinite'}}></span><span style={{color:'#0a0a0a'}}>Üretiliyor</span> <span style={{color:'#6b6b66'}}>(~5 dakika)</span></span>}
                             {isFailed && <span style={{fontSize:'9px',color:'#ef4444',fontWeight:'500'}}>Başarısız</span>}
+                            {child.ai_express_settings_snapshot && (() => { const s = child.ai_express_settings_snapshot; const badges = []; if (s.logo) badges.push('LOGO'); if (s.cta) badges.push('CTA'); if (s.packshot) badges.push('PACKSHOT'); return badges.length > 0 ? <span style={{display:'inline-flex',gap:'4px',marginLeft:'6px'}}>{badges.map((b: string)=><span key={b} style={{fontSize:'9px',padding:'2px 6px',background:'#f5f4f0',color:'#888',letterSpacing:'0.5px',fontWeight:600}}>{b}</span>)}</span> : null })()}
                           </div>
                           <div style={{fontSize:'11px',color:'#888',marginBottom:'10px'}}>{new Date(child.created_at).toLocaleDateString('tr-TR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
                           {isFailed && (
