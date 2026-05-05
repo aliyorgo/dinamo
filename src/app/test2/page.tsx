@@ -399,7 +399,7 @@ export default function HomePage() {
               <div style={{ marginBottom: '16px' }}>
                 <div style={{ fontSize: '11px', letterSpacing: '3px', color: '#1db81d', textTransform: 'uppercase', marginBottom: '16px', fontWeight: '400' }}>AI Express</div>
                 <h2 style={{ fontSize: 'clamp(18px, 2.6vw, 27px)', fontWeight: '300', letterSpacing: '-1px', marginBottom: '12px' }}>AI Express — 5 Dakikada Video</h2>
-                <div style={{ display: 'inline-block', padding: '4px 12px', background: 'rgba(29,184,29,0.1)', border: '1px solid rgba(29,184,29,0.2)', fontSize: '11px', color: '#1DB81D', marginBottom: '40px' }}>Beta · Dinamo müşterilerine özel</div>
+                <div style={{ display: 'inline-block', padding: '4px 12px', background: 'rgba(29,184,29,0.1)', border: '1px solid rgba(29,184,29,0.2)', fontSize: '11px', color: '#1DB81D', marginBottom: '40px' }}>BETA</div>
               </div>
               <div>
                 <p style={{ fontSize: '18px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.9, marginBottom: '20px', fontWeight: '300' }}>
@@ -431,7 +431,7 @@ export default function HomePage() {
               <div style={{ marginBottom: '16px' }}>
                 <div style={{ fontSize: '11px', letterSpacing: '3px', color: '#1db81d', textTransform: 'uppercase', marginBottom: '16px', fontWeight: '400' }}>AI UGC</div>
                 <h2 style={{ fontSize: 'clamp(18px, 2.6vw, 27px)', fontWeight: '300', letterSpacing: '-1px', marginBottom: '12px' }}>AI UGC — Influencer Tarzı Dikey Video</h2>
-                <div style={{ display: 'inline-block', padding: '4px 12px', background: 'rgba(29,184,29,0.1)', border: '1px solid rgba(29,184,29,0.2)', fontSize: '11px', color: '#1DB81D', marginBottom: '40px' }}>Beta · Dinamo müşterilerine özel</div>
+                <div style={{ display: 'inline-block', padding: '4px 12px', background: 'rgba(29,184,29,0.1)', border: '1px solid rgba(29,184,29,0.2)', fontSize: '11px', color: '#1DB81D', marginBottom: '40px' }}>BETA</div>
               </div>
               <div>
                 <p style={{ fontSize: '18px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.9, marginBottom: '20px', fontWeight: '300' }}>
