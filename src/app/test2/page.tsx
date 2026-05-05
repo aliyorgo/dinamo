@@ -417,7 +417,7 @@ export default function HomePage() {
               </div>
             </div>
             <div>
-              <img src="/express_tn.jpg" alt="AI Express önizleme" style={{ width: '40%', height: 'auto', objectFit: 'cover' }} />
+              <video src="/express_v_tn.mp4" autoPlay muted loop playsInline style={{ width: '40%', height: 'auto', objectFit: 'cover' }} />
             </div>
           </div>
         </div>
@@ -449,7 +449,7 @@ export default function HomePage() {
               </div>
             </div>
             <div>
-              <img src="/ugc_tn.jpg" alt="AI UGC önizleme" style={{ width: '40%', height: 'auto', objectFit: 'cover' }} />
+              <video src="/ugc_v_tn.mp4" autoPlay muted loop playsInline style={{ width: '40%', height: 'auto', objectFit: 'cover' }} />
             </div>
           </div>
         </div>
