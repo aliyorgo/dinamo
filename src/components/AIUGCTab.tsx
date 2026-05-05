@@ -247,7 +247,13 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
     setPurchasing(null)
   }
 
-  function handleSettingsChange(s: UGCSettings) { setSettings(s); supabase.from('briefs').update({ ugc_settings: s }).eq('id', briefId) }
+  const [settingsSaved, setSettingsSaved] = useState(false)
+  function handleSettingsChange(s: UGCSettings) {
+    setSettings(s)
+    supabase.from('briefs').update({ ugc_settings: s }).eq('id', briefId)
+    setSettingsSaved(true)
+    setTimeout(() => setSettingsSaved(false), 1500)
+  }
 
   const brandSlug = (clientUser?.clients?.company_name || 'brand').toLowerCase().replace(/[^a-z0-9]+/g, '-')
 
@@ -295,7 +301,7 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
       {settingsOpen && (
         <div style={{ background: '#f9f7f3', border: '1px solid #e5e4db', padding: '20px', marginBottom: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#0a0a0a' }}>AI UGC Ayarları</div>
+            <div style={{ fontSize: '14px', fontWeight: '600', color: '#0a0a0a' }}>AI UGC Ayarları{settingsSaved && <span style={{ fontSize: '11px', color: '#22c55e', marginLeft: '12px', fontWeight: '500' }}>✓ Kaydedildi</span>}</div>
             <button onClick={() => setSettingsOpen(false)} style={{ width: '24px', height: '24px', border: 'none', background: 'none', cursor: 'pointer', fontSize: '16px', color: '#888', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={e => { e.currentTarget.style.color = '#0a0a0a' }} onMouseLeave={e => { e.currentTarget.style.color = '#888' }}>×</button>
           </div>
           {/* Ton */}
