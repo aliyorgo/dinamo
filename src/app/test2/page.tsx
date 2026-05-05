@@ -417,7 +417,7 @@ export default function HomePage() {
               </div>
             </div>
             <div>
-              <img src="/express_tn.jpg" alt="AI Express önizleme" style={{ width: '100%', height: 'auto', objectFit: 'cover' }} />
+              <img src="/express_tn.jpg" alt="AI Express önizleme" style={{ width: '50%', height: 'auto', objectFit: 'cover' }} />
             </div>
           </div>
         </div>
@@ -449,7 +449,7 @@ export default function HomePage() {
               </div>
             </div>
             <div>
-              <img src="/ugc_tn.jpg" alt="AI UGC önizleme" style={{ width: '100%', height: 'auto', objectFit: 'cover' }} />
+              <img src="/ugc_tn.jpg" alt="AI UGC önizleme" style={{ width: '50%', height: 'auto', objectFit: 'cover' }} />
             </div>
           </div>
         </div>
