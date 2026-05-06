@@ -9,6 +9,7 @@ export default function HomePage() {
   const [packages, setPackages] = useState<any[]>([])
   const [homeVideos, setHomeVideos] = useState<any[]>([])
   const [videoCredits, setVideoCredits] = useState<Record<string,number>>({})
+  const [detailModal, setDetailModal] = useState<string | null>(null)
   const [cms, setCms] = useState<Record<string,string>>({})
 
   function c(key: string, fallback: string) { return cms[key] || fallback }
@@ -382,19 +383,23 @@ export default function HomePage() {
                     ))}
                   </ul>
                 )}
-                {/* Marka Customization info */}
+                {/* Marka Customization badge + detail button */}
                 <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                  {p.name === 'Demo' && <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>Basic Marka Customization dahil</div>}
+                  {p.name === 'Demo' && <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '10px' }}>Basic Marka Customization dahil</div>}
                   {p.name === 'Başlangıç' && <>
                     <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '4px' }}>Basic Marka Customization dahil</div>
-                    <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)' }}>Advanced Customization +150.000 TL</div>
+                    <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)', marginBottom: '10px' }}>Advanced Customization +150.000 TL</div>
                   </>}
                   {p.name === 'Standart' && <>
-                    <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '6px' }}>Basic + Advanced Marka Customization dahil</div>
-                    <div style={{ fontSize: '10px', color: '#1db81d', background: 'rgba(29,184,29,0.1)', padding: '4px 8px', display: 'inline-block' }}>Advanced Customization Hediye (150.000 TL değerinde)</div>
+                    <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '6px' }}>Basic + Advanced dahil</div>
+                    <div style={{ fontSize: '10px', color: '#1db81d', background: 'rgba(29,184,29,0.1)', padding: '4px 8px', display: 'inline-block', marginBottom: '10px' }}>Advanced Hediye (150.000 TL)</div>
                   </>}
-                  {p.name === 'Kurumsal' && <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>Tüm Marka Customization paketleri + Kurumsal Eklentileri</div>}
-                  <a href="/marka-customization" style={{ display: 'block', marginTop: '10px', fontSize: '10px', color: '#1db81d', textDecoration: 'underline' }}>Detaylı incele →</a>
+                  {p.name === 'Kurumsal' && <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '10px' }}>Tüm Customization + Kurumsal Eklentileri</div>}
+                  <button onClick={() => setDetailModal(p.name)} style={{ width: '100%', padding: '8px', background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.5)', fontSize: '11px', letterSpacing: '1px', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.2s' }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = '#1db81d'; e.currentTarget.style.color = '#1db81d' }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = 'rgba(255,255,255,0.5)' }}>
+                    İçeriği Gör →
+                  </button>
                 </div>
               </div>
             ))}
@@ -542,6 +547,101 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+
+      {/* Package Detail Modal */}
+      {detailModal && (() => {
+        const basicContent = (
+          <div style={{ marginBottom: '28px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: '600', margin: 0 }}>Basic Marka Customization</h3>
+              <span style={{ fontSize: '9px', padding: '2px 8px', background: '#e8f5e9', color: '#2e7d32' }}>Dahil</span>
+            </div>
+            <p style={{ fontSize: '12px', color: '#888', marginBottom: '16px' }}>Tüm paketlere ücretsiz dahil</p>
+            {[
+              { label: 'Marka tanıma', items: ['Web research ile marka URL\'inizden otomatik analiz', 'Marka tonu ve hedef kitle temel girişi', 'Marka renk paleti'] },
+              { label: 'Görsel varlıklar', items: ['Logo yüklemesi ve boyutlandırma'] },
+              { label: 'Ses ve müzik', items: ['Geniş ses kütüphanesinden seslendirme tercihi', 'Ücretsiz müzik kütüphanesine erişim'] },
+              { label: 'AI öğrenmesi', items: ['Yorumlarınızdan ve revizyonlarınızdan otomatik öğrenme', 'Her üretimde markanızı biraz daha iyi tanır'] },
+              { label: 'UGC', items: ['Sistem persona havuzundan UGC üretimi (sınırlı seçim)'] },
+            ].map((g, i) => (
+              <div key={i} style={{ marginBottom: '12px' }}>
+                <div style={{ fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', color: '#999', marginBottom: '6px', fontWeight: '600' }}>{g.label}</div>
+                {g.items.map((item, j) => (
+                  <div key={j} style={{ fontSize: '13px', color: '#555', display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '4px', lineHeight: 1.5 }}>
+                    <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#1db81d', flexShrink: 0, marginTop: '7px' }} />
+                    {item}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        )
+
+        const advancedContent = (
+          <div style={{ marginBottom: '28px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: '600', margin: 0 }}>Advanced Marka Customization</h3>
+              {detailModal === 'Standart' || detailModal === 'Kurumsal' ? (
+                <span style={{ fontSize: '9px', padding: '2px 8px', background: '#e8f5e9', color: '#2e7d32' }}>Dahil</span>
+              ) : (
+                <span style={{ fontSize: '9px', padding: '2px 8px', background: '#f5f5f5', color: '#888' }}>+150.000 TL</span>
+              )}
+            </div>
+            <p style={{ fontSize: '12px', color: '#888', marginBottom: '16px' }}>150.000 TL değerinde</p>
+            {[
+              { label: 'Derin marka eğitimi', items: ['Marka rehberinizin sisteme işlenmesi', 'Kurallar ve yasakların kategorize edilmesi', 'Marka tonunun cümle örnekleriyle kalibrasyonu', 'Ekibimizin manuel eğitim katkısı'] },
+              { label: 'Custom marka grafikleri', items: ['Renk, tipografi ve özel boyutlandırmalar', 'Markaya özel CTA tasarımları'] },
+              { label: 'Markaya özel ses', items: ['Markaya özel AI seslendirme sanatçısı*', 'Marka sesinin AI\'a öğretilmesi*'] },
+              { label: 'Markaya özel persona havuzu', items: ['Hedef kitlenize özel persona üretimi', 'Sistem persona havuzunun tamamına erişim'] },
+              { label: 'Hizmet', items: ['Onboarding görüşmesi', 'Marka rehberi PDF', 'İlk üretimlerde tanıtım desteği', 'Öncelikli destek'] },
+            ].map((g, i) => (
+              <div key={i} style={{ marginBottom: '12px' }}>
+                <div style={{ fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', color: '#999', marginBottom: '6px', fontWeight: '600' }}>{g.label}</div>
+                {g.items.map((item, j) => (
+                  <div key={j} style={{ fontSize: '13px', color: '#555', display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '4px', lineHeight: 1.5 }}>
+                    <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#1db81d', flexShrink: 0, marginTop: '7px' }} />
+                    {item}
+                  </div>
+                ))}
+              </div>
+            ))}
+            <p style={{ fontSize: '11px', color: '#aaa', fontStyle: 'italic' }}>* Telif anlaşmaları gerekli durumlarda Dinamo tarafından koordine edilir.</p>
+          </div>
+        )
+
+        const kurumsalContent = (
+          <div style={{ marginBottom: '28px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: '600', margin: 0 }}>Kurumsal Eklentileri</h3>
+              <span style={{ fontSize: '9px', padding: '2px 8px', background: '#e8f5e9', color: '#2e7d32' }}>Dahil</span>
+            </div>
+            <p style={{ fontSize: '12px', color: '#888', marginBottom: '16px' }}>Sadece Kurumsal pakete özel</p>
+            {['Yıllık brand refresh — Advanced kurulumun yıllık tekrarı', 'Üç aylık marka raporu — Tutarlılık, kurallar, performans', 'Özel hesap yöneticisi — Sürekli iletişim noktası', 'Yeni özelliklere öncelikli erişim — Beta sürümlere ilk erişim'].map((item, j) => (
+              <div key={j} style={{ fontSize: '13px', color: '#555', display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '6px', lineHeight: 1.5 }}>
+                <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#1db81d', flexShrink: 0, marginTop: '7px' }} />
+                {item}
+              </div>
+            ))}
+          </div>
+        )
+
+        const titles: Record<string, string> = { Demo: 'Demo · 30 Kredi · Ücretsiz', 'Başlangıç': 'Başlangıç · 100 Kredi · 350.000 TL +KDV', Standart: 'Standart · 500 Kredi · 1.750.000 TL +KDV', Kurumsal: 'Kurumsal · 1.000+ Kredi · İletişime Geçin' }
+        const cumulative: Record<string, string> = { 'Başlangıç': 'Demo paketinin tüm içeriği +', Standart: 'Başlangıç paketinin tüm içeriği +', Kurumsal: 'Standart paketinin tüm içeriği +' }
+
+        return (
+          <div onClick={() => setDetailModal(null)} onKeyDown={e => { if (e.key === 'Escape') setDetailModal(null) }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+            <div onClick={e => e.stopPropagation()} style={{ background: '#fff', maxWidth: '720px', width: '90%', maxHeight: '80vh', overflowY: 'auto', padding: '40px', position: 'relative', color: '#0a0a0a' }}>
+              <button onClick={() => setDetailModal(null)} style={{ position: 'absolute', top: '16px', right: '16px', width: '32px', height: '32px', border: 'none', background: 'none', fontSize: '20px', color: '#888', cursor: 'pointer' }}>×</button>
+              <div style={{ fontSize: '18px', fontWeight: '600', marginBottom: '4px' }}>{titles[detailModal] || detailModal}</div>
+              {cumulative[detailModal] && <div style={{ fontSize: '13px', color: '#1db81d', fontWeight: '500', marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid #e5e4db' }}>{cumulative[detailModal]}</div>}
+              {!cumulative[detailModal] && <div style={{ marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid #e5e4db' }} />}
+              {basicContent}
+              {(detailModal === 'Başlangıç' || detailModal === 'Standart' || detailModal === 'Kurumsal') && advancedContent}
+              {detailModal === 'Kurumsal' && kurumsalContent}
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }
