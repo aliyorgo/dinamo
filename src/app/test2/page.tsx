@@ -384,17 +384,16 @@ export default function HomePage() {
                   </ul>
                 )}
                 {/* Marka Customization badge + detail button */}
-                <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                  {p.name === 'Demo' && <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '10px' }}>Basic Marka Customization dahil</div>}
-                  {p.name === 'Başlangıç' && <>
-                    <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '4px' }}>Basic Marka Customization dahil</div>
-                    <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)', marginBottom: '10px' }}>Advanced Customization +150.000 TL</div>
-                  </>}
-                  {p.name === 'Standart' && <>
-                    <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '6px' }}>Basic + Advanced dahil</div>
-                    <div style={{ fontSize: '10px', color: '#1db81d', background: 'rgba(29,184,29,0.1)', padding: '4px 8px', display: 'inline-block', marginBottom: '10px' }}>Advanced Hediye (150.000 TL)</div>
-                  </>}
-                  {p.name === 'Kurumsal' && <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '10px' }}>Tüm Customization + Kurumsal Eklentileri</div>}
+                <div style={{ marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                  <div style={{ minHeight: '36px', marginBottom: '10px' }}>
+                    {p.name === 'Demo' && <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>Basic Customization dahil</div>}
+                    {p.name === 'Başlangıç' && <>
+                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '4px' }}>Basic Customization dahil</div>
+                      <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)' }}>Advanced Customization + 150.000 TL</div>
+                    </>}
+                    {p.name === 'Standart' && <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>Advanced Customization ücretsiz</div>}
+                    {p.name === 'Kurumsal' && <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>Kurumsal eklentiler</div>}
+                  </div>
                   <button onClick={() => setDetailModal(p.name)} style={{ width: '100%', padding: '8px', background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.5)', fontSize: '11px', letterSpacing: '1px', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.2s' }}
                     onMouseEnter={e => { e.currentTarget.style.borderColor = '#1db81d'; e.currentTarget.style.color = '#1db81d' }}
                     onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = 'rgba(255,255,255,0.5)' }}>
