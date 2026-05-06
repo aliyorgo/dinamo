@@ -382,6 +382,20 @@ export default function HomePage() {
                     ))}
                   </ul>
                 )}
+                {/* Marka Customization info */}
+                <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                  {p.name === 'Demo' && <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>Basic Marka Customization dahil</div>}
+                  {p.name === 'Başlangıç' && <>
+                    <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '4px' }}>Basic Marka Customization dahil</div>
+                    <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)' }}>Advanced Customization +150.000 TL</div>
+                  </>}
+                  {p.name === 'Standart' && <>
+                    <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '6px' }}>Basic + Advanced Marka Customization dahil</div>
+                    <div style={{ fontSize: '10px', color: '#1db81d', background: 'rgba(29,184,29,0.1)', padding: '4px 8px', display: 'inline-block' }}>Advanced Customization Hediye (150.000 TL değerinde)</div>
+                  </>}
+                  {p.name === 'Kurumsal' && <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>Tüm Marka Customization paketleri + Kurumsal Eklentileri</div>}
+                  <a href="/marka-customization" style={{ display: 'block', marginTop: '10px', fontSize: '10px', color: '#1db81d', textDecoration: 'underline' }}>Detaylı incele →</a>
+                </div>
               </div>
             ))}
           </div>
