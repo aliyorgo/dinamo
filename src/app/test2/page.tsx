@@ -553,9 +553,9 @@ export default function HomePage() {
           <div style={{ marginBottom: '28px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
               <h3 style={{ fontSize: '16px', fontWeight: '600', margin: 0 }}>Basic Marka Customization</h3>
-              <span style={{ fontSize: '9px', padding: '2px 8px', background: '#e8f5e9', color: '#2e7d32' }}>Dahil</span>
+              <span style={{ fontSize: '9px', padding: '2px 8px', background: 'rgba(29,184,29,0.15)', color: '#4ade80' }}>Dahil</span>
             </div>
-            <p style={{ fontSize: '12px', color: '#888', marginBottom: '16px' }}>Tüm paketlere ücretsiz dahil</p>
+            <p style={{ fontSize: '12px', color: '#bbb', marginBottom: '16px' }}>Tüm paketlere ücretsiz dahil</p>
             {[
               { label: 'Marka tanıma', items: ['Web research ile marka URL\'inizden otomatik analiz', 'Marka tonu ve hedef kitle temel girişi', 'Marka renk paleti'] },
               { label: 'Görsel varlıklar', items: ['Logo yüklemesi ve boyutlandırma'] },
@@ -564,9 +564,9 @@ export default function HomePage() {
               { label: 'UGC', items: ['Sistem persona havuzundan UGC üretimi (sınırlı seçim)'] },
             ].map((g, i) => (
               <div key={i} style={{ marginBottom: '12px' }}>
-                <div style={{ fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', color: '#999', marginBottom: '6px', fontWeight: '600' }}>{g.label}</div>
+                <div style={{ fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: '6px', fontWeight: '600' }}>{g.label}</div>
                 {g.items.map((item, j) => (
-                  <div key={j} style={{ fontSize: '13px', color: '#555', display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '4px', lineHeight: 1.5 }}>
+                  <div key={j} style={{ fontSize: '13px', color: '#e5e5e5', display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '4px', lineHeight: 1.5 }}>
                     <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#1db81d', flexShrink: 0, marginTop: '7px' }} />
                     {item}
                   </div>
@@ -581,12 +581,12 @@ export default function HomePage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
               <h3 style={{ fontSize: '16px', fontWeight: '600', margin: 0 }}>Advanced Marka Customization</h3>
               {detailModal === 'Standart' || detailModal === 'Kurumsal' ? (
-                <span style={{ fontSize: '9px', padding: '2px 8px', background: '#e8f5e9', color: '#2e7d32' }}>Dahil</span>
+                <span style={{ fontSize: '9px', padding: '2px 8px', background: 'rgba(29,184,29,0.15)', color: '#4ade80' }}>Dahil</span>
               ) : (
-                <span style={{ fontSize: '9px', padding: '2px 8px', background: '#f5f5f5', color: '#888' }}>+150.000 TL</span>
+                <span style={{ fontSize: '9px', padding: '2px 8px', background: 'rgba(255,255,255,0.08)', color: '#aaa' }}>+150.000 TL</span>
               )}
             </div>
-            <p style={{ fontSize: '12px', color: '#888', marginBottom: '16px' }}>150.000 TL değerinde</p>
+            <p style={{ fontSize: '12px', color: '#bbb', marginBottom: '16px' }}>150.000 TL değerinde</p>
             {[
               { label: 'Derin marka eğitimi', items: ['Marka rehberinizin sisteme işlenmesi', 'Kurallar ve yasakların kategorize edilmesi', 'Marka tonunun cümle örnekleriyle kalibrasyonu', 'Ekibimizin manuel eğitim katkısı'] },
               { label: 'Custom marka grafikleri', items: ['Renk, tipografi ve özel boyutlandırmalar', 'Markaya özel CTA tasarımları'] },
@@ -595,16 +595,16 @@ export default function HomePage() {
               { label: 'Hizmet', items: ['Onboarding görüşmesi', 'Marka rehberi PDF', 'İlk üretimlerde tanıtım desteği', 'Öncelikli destek'] },
             ].map((g, i) => (
               <div key={i} style={{ marginBottom: '12px' }}>
-                <div style={{ fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', color: '#999', marginBottom: '6px', fontWeight: '600' }}>{g.label}</div>
+                <div style={{ fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: '6px', fontWeight: '600' }}>{g.label}</div>
                 {g.items.map((item, j) => (
-                  <div key={j} style={{ fontSize: '13px', color: '#555', display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '4px', lineHeight: 1.5 }}>
+                  <div key={j} style={{ fontSize: '13px', color: '#e5e5e5', display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '4px', lineHeight: 1.5 }}>
                     <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#1db81d', flexShrink: 0, marginTop: '7px' }} />
                     {item}
                   </div>
                 ))}
               </div>
             ))}
-            <p style={{ fontSize: '11px', color: '#aaa', fontStyle: 'italic' }}>* Telif anlaşmaları gerekli durumlarda Dinamo tarafından koordine edilir.</p>
+            <p style={{ fontSize: '11px', color: '#888', fontStyle: 'italic' }}>* Telif anlaşmaları gerekli durumlarda Dinamo tarafından koordine edilir.</p>
           </div>
         )
 
@@ -612,11 +612,11 @@ export default function HomePage() {
           <div style={{ marginBottom: '28px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
               <h3 style={{ fontSize: '16px', fontWeight: '600', margin: 0 }}>Kurumsal Eklentileri</h3>
-              <span style={{ fontSize: '9px', padding: '2px 8px', background: '#e8f5e9', color: '#2e7d32' }}>Dahil</span>
+              <span style={{ fontSize: '9px', padding: '2px 8px', background: 'rgba(29,184,29,0.15)', color: '#4ade80' }}>Dahil</span>
             </div>
-            <p style={{ fontSize: '12px', color: '#888', marginBottom: '16px' }}>Sadece Kurumsal pakete özel</p>
+            <p style={{ fontSize: '12px', color: '#bbb', marginBottom: '16px' }}>Sadece Kurumsal pakete özel</p>
             {['Yıllık brand refresh — Advanced kurulumun yıllık tekrarı', 'Üç aylık marka raporu — Tutarlılık, kurallar, performans', 'Özel hesap yöneticisi — Sürekli iletişim noktası', 'Yeni özelliklere öncelikli erişim — Beta sürümlere ilk erişim'].map((item, j) => (
-              <div key={j} style={{ fontSize: '13px', color: '#555', display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '6px', lineHeight: 1.5 }}>
+              <div key={j} style={{ fontSize: '13px', color: '#e5e5e5', display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '6px', lineHeight: 1.5 }}>
                 <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#1db81d', flexShrink: 0, marginTop: '7px' }} />
                 {item}
               </div>
@@ -628,12 +628,12 @@ export default function HomePage() {
         const cumulative: Record<string, string> = { 'Başlangıç': 'Demo paketinin tüm içeriği +', Standart: 'Başlangıç paketinin tüm içeriği +', Kurumsal: 'Standart paketinin tüm içeriği +' }
 
         return (
-          <div onClick={() => setDetailModal(null)} onKeyDown={e => { if (e.key === 'Escape') setDetailModal(null) }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-            <div onClick={e => e.stopPropagation()} style={{ background: '#fff', maxWidth: '720px', width: '90%', maxHeight: '80vh', overflowY: 'auto', padding: '40px', position: 'relative', color: '#0a0a0a' }}>
-              <button onClick={() => setDetailModal(null)} style={{ position: 'absolute', top: '16px', right: '16px', width: '32px', height: '32px', border: 'none', background: 'none', fontSize: '20px', color: '#888', cursor: 'pointer' }}>×</button>
+          <div onClick={() => setDetailModal(null)} onKeyDown={e => { if (e.key === 'Escape') setDetailModal(null) }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+            <div onClick={e => e.stopPropagation()} style={{ background: '#1a1a1a', maxWidth: '720px', width: '90%', maxHeight: '80vh', overflowY: 'auto', padding: '40px', position: 'relative', color: '#fff' }}>
+              <button onClick={() => setDetailModal(null)} style={{ position: 'absolute', top: '16px', right: '16px', width: '32px', height: '32px', border: 'none', background: 'none', fontSize: '20px', color: '#666', cursor: 'pointer' }}>×</button>
               <div style={{ fontSize: '18px', fontWeight: '600', marginBottom: '4px' }}>{titles[detailModal] || detailModal}</div>
-              {cumulative[detailModal] && <div style={{ fontSize: '13px', color: '#1db81d', fontWeight: '500', marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid #e5e4db' }}>{cumulative[detailModal]}</div>}
-              {!cumulative[detailModal] && <div style={{ marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid #e5e4db' }} />}
+              {cumulative[detailModal] && <div style={{ fontSize: '13px', color: '#1db81d', fontWeight: '500', marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>{cumulative[detailModal]}</div>}
+              {!cumulative[detailModal] && <div style={{ marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.1)' }} />}
               {basicContent}
               {(detailModal === 'Başlangıç' || detailModal === 'Standart' || detailModal === 'Kurumsal') && advancedContent}
               {detailModal === 'Kurumsal' && kurumsalContent}
