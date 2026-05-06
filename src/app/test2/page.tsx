@@ -549,94 +549,70 @@ export default function HomePage() {
 
       {/* Package Detail Modal */}
       {detailModal && (() => {
-        const basicContent = (
-          <div style={{ marginBottom: '28px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: '600', margin: 0 }}>Basic Marka Customization</h3>
-              <span style={{ fontSize: '9px', padding: '2px 8px', background: 'rgba(29,184,29,0.15)', color: '#4ade80' }}>Dahil</span>
-            </div>
-            <p style={{ fontSize: '12px', color: '#bbb', marginBottom: '16px' }}>Tüm paketlere ücretsiz dahil</p>
-            {[
-              { label: 'Marka tanıma', items: ['Web research ile marka URL\'inizden otomatik analiz', 'Marka tonu ve hedef kitle temel girişi', 'Marka renk paleti'] },
-              { label: 'Görsel varlıklar', items: ['Logo yüklemesi ve boyutlandırma'] },
-              { label: 'Ses ve müzik', items: ['Geniş ses kütüphanesinden seslendirme tercihi', 'Ücretsiz müzik kütüphanesine erişim'] },
-              { label: 'AI öğrenmesi', items: ['Yorumlarınızdan ve revizyonlarınızdan otomatik öğrenme', 'Her üretimde markanızı biraz daha iyi tanır'] },
-              { label: 'UGC', items: ['Sistem persona havuzundan UGC üretimi (sınırlı seçim)'] },
-            ].map((g, i) => (
-              <div key={i} style={{ marginBottom: '12px' }}>
-                <div style={{ fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: '6px', fontWeight: '600' }}>{g.label}</div>
-                {g.items.map((item, j) => (
-                  <div key={j} style={{ fontSize: '13px', color: '#e5e5e5', display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '4px', lineHeight: 1.5 }}>
-                    <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#1db81d', flexShrink: 0, marginTop: '7px' }} />
-                    {item}
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-        )
+        const titles: Record<string, string> = { Demo: 'Demo Paketi · 30 Kredi · Ücretsiz', 'Başlangıç': 'Başlangıç Paketi · 100 Kredi · 350.000 TL +KDV', Standart: 'Standart Paket · 500 Kredi · 1.750.000 TL +KDV', Kurumsal: 'Kurumsal Paket · 1.000+ Kredi · İletişim' }
+        const refs: Record<string, string> = { Standart: 'Basic Marka Customization\'daki tüm hizmetler ve...', Kurumsal: 'Advanced Marka Customization\'daki tüm hizmetler ve...' }
 
-        const advancedContent = (
-          <div style={{ marginBottom: '28px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: '600', margin: 0 }}>Advanced Marka Customization</h3>
-              {detailModal === 'Standart' || detailModal === 'Kurumsal' ? (
-                <span style={{ fontSize: '9px', padding: '2px 8px', background: 'rgba(29,184,29,0.15)', color: '#4ade80' }}>Dahil</span>
-              ) : (
-                <span style={{ fontSize: '9px', padding: '2px 8px', background: 'rgba(255,255,255,0.08)', color: '#aaa' }}>+150.000 TL</span>
-              )}
-            </div>
-            <p style={{ fontSize: '12px', color: '#bbb', marginBottom: '16px' }}>150.000 TL değerinde</p>
-            {[
-              { label: 'Derin marka eğitimi', items: ['Marka rehberinizin sisteme işlenmesi', 'Kurallar ve yasakların kategorize edilmesi', 'Marka tonunun cümle örnekleriyle kalibrasyonu', 'Ekibimizin manuel eğitim katkısı'] },
-              { label: 'Custom marka grafikleri', items: ['Renk, tipografi ve özel boyutlandırmalar', 'Markaya özel CTA tasarımları'] },
-              { label: 'Markaya özel ses', items: ['Markaya özel AI seslendirme sanatçısı*', 'Marka sesinin AI\'a öğretilmesi*'] },
-              { label: 'Markaya özel persona havuzu', items: ['Hedef kitlenize özel persona üretimi', 'Sistem persona havuzunun tamamına erişim'] },
-              { label: 'Hizmet', items: ['Onboarding görüşmesi', 'Marka rehberi PDF', 'İlk üretimlerde tanıtım desteği', 'Öncelikli destek'] },
-            ].map((g, i) => (
-              <div key={i} style={{ marginBottom: '12px' }}>
-                <div style={{ fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: '6px', fontWeight: '600' }}>{g.label}</div>
-                {g.items.map((item, j) => (
-                  <div key={j} style={{ fontSize: '13px', color: '#e5e5e5', display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '4px', lineHeight: 1.5 }}>
-                    <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#1db81d', flexShrink: 0, marginTop: '7px' }} />
-                    {item}
-                  </div>
-                ))}
-              </div>
-            ))}
-            <p style={{ fontSize: '11px', color: '#888', fontStyle: 'italic' }}>* Telif anlaşmaları gerekli durumlarda Dinamo tarafından koordine edilir.</p>
-          </div>
-        )
+        const basicGroups = [
+          { label: 'Marka tanıma', items: ['Web research ile marka URL\'inizden otomatik analiz', 'Marka tonu ve hedef kitle temel girişi', 'Marka renk paleti'] },
+          { label: 'Görsel varlıklar', items: ['Logo yüklemesi ve boyutlandırma'] },
+          { label: 'Ses ve müzik', items: ['Geniş ses kütüphanesinden seslendirme tercihi', 'Ücretsiz müzik kütüphanesine erişim'] },
+          { label: 'AI öğrenmesi', items: ['Yorumlarınızdan ve revizyonlarınızdan otomatik öğrenme', 'Her üretimde markanızı biraz daha iyi tanır'] },
+          { label: 'UGC', items: ['Sistem persona havuzundan UGC üretimi (sınırlı seçim)'] },
+        ]
+        const advancedGroups = [
+          { label: 'Derin marka eğitimi', items: ['Marka rehberinizin sisteme işlenmesi', 'Kurallar ve yasakların kategorize edilmesi', 'Marka tonunun cümle örnekleriyle kalibrasyonu', 'Ekibimizin manuel eğitim katkısı'] },
+          { label: 'Custom marka grafikleri', items: ['Renk, tipografi ve özel boyutlandırmalar', 'Markaya özel CTA tasarımları'] },
+          { label: 'Markaya özel ses', items: ['Markaya özel AI seslendirme sanatçısı*', 'Marka sesinin AI\'a öğretilmesi*'] },
+          { label: 'Markaya özel persona havuzu', items: ['Hedef kitlenize özel persona üretimi', 'Sistem persona havuzunun tamamına erişim'] },
+          { label: 'Hizmet', items: ['Onboarding görüşmesi', 'Marka rehberi PDF', 'İlk üretimlerde tanıtım desteği', 'Öncelikli destek'] },
+        ]
+        const kurumsalItems = ['Yıllık brand refresh — Advanced kurulumun yıllık tekrarı', 'Üç aylık marka raporu — Tutarlılık, kurallar, performans', 'Özel hesap yöneticisi — Sürekli iletişim noktası', 'Yeni özelliklere öncelikli erişim — Beta sürümlere ilk erişim']
 
-        const kurumsalContent = (
-          <div style={{ marginBottom: '28px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: '600', margin: 0 }}>Kurumsal Eklentileri</h3>
-              <span style={{ fontSize: '9px', padding: '2px 8px', background: 'rgba(29,184,29,0.15)', color: '#4ade80' }}>Dahil</span>
+        function renderGroups(groups: {label:string;items:string[]}[]) {
+          return groups.map((g, i) => (
+            <div key={i} style={{ marginBottom: '12px' }}>
+              <div style={{ fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: '6px', fontWeight: '600' }}>{g.label}</div>
+              {g.items.map((item, j) => (
+                <div key={j} style={{ fontSize: '13px', color: '#e5e5e5', display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '4px', lineHeight: 1.5 }}>
+                  <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#1db81d', flexShrink: 0, marginTop: '7px' }} />
+                  {item}
+                </div>
+              ))}
             </div>
-            <p style={{ fontSize: '12px', color: '#bbb', marginBottom: '16px' }}>Sadece Kurumsal pakete özel</p>
-            {['Yıllık brand refresh — Advanced kurulumun yıllık tekrarı', 'Üç aylık marka raporu — Tutarlılık, kurallar, performans', 'Özel hesap yöneticisi — Sürekli iletişim noktası', 'Yeni özelliklere öncelikli erişim — Beta sürümlere ilk erişim'].map((item, j) => (
-              <div key={j} style={{ fontSize: '13px', color: '#e5e5e5', display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '6px', lineHeight: 1.5 }}>
-                <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#1db81d', flexShrink: 0, marginTop: '7px' }} />
-                {item}
-              </div>
-            ))}
-          </div>
-        )
-
-        const titles: Record<string, string> = { Demo: 'Demo · 30 Kredi · Ücretsiz', 'Başlangıç': 'Başlangıç · 100 Kredi · 350.000 TL +KDV', Standart: 'Standart · 500 Kredi · 1.750.000 TL +KDV', Kurumsal: 'Kurumsal · 1.000+ Kredi · İletişime Geçin' }
-        const cumulative: Record<string, string> = { 'Başlangıç': 'Demo paketinin tüm içeriği +', Standart: 'Başlangıç paketinin tüm içeriği +', Kurumsal: 'Standart paketinin tüm içeriği +' }
+          ))
+        }
 
         return (
           <div onClick={() => setDetailModal(null)} onKeyDown={e => { if (e.key === 'Escape') setDetailModal(null) }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
             <div onClick={e => e.stopPropagation()} style={{ background: '#1a1a1a', maxWidth: '720px', width: '90%', maxHeight: '80vh', overflowY: 'auto', padding: '40px', position: 'relative', color: '#fff' }}>
               <button onClick={() => setDetailModal(null)} style={{ position: 'absolute', top: '16px', right: '16px', width: '32px', height: '32px', border: 'none', background: 'none', fontSize: '20px', color: '#666', cursor: 'pointer' }}>×</button>
-              <div style={{ fontSize: '18px', fontWeight: '600', marginBottom: '4px' }}>{titles[detailModal] || detailModal}</div>
-              {cumulative[detailModal] && <div style={{ fontSize: '13px', color: '#1db81d', fontWeight: '500', marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>{cumulative[detailModal]}</div>}
-              {!cumulative[detailModal] && <div style={{ marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.1)' }} />}
-              {basicContent}
-              {(detailModal === 'Başlangıç' || detailModal === 'Standart' || detailModal === 'Kurumsal') && advancedContent}
-              {detailModal === 'Kurumsal' && kurumsalContent}
+              <div style={{ fontSize: '18px', fontWeight: '600', marginBottom: '16px' }}>{titles[detailModal] || detailModal}</div>
+              {refs[detailModal] && <div style={{ fontSize: '13px', color: '#888', fontStyle: 'italic', marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>{refs[detailModal]}</div>}
+
+              {/* Demo + Başlangıç: show Basic */}
+              {(detailModal === 'Demo' || detailModal === 'Başlangıç') && <>
+                <h3 style={{ fontSize: '15px', fontWeight: '600', margin: '0 0 12px' }}>Basic Marka Customization</h3>
+                {renderGroups(basicGroups)}
+                {detailModal === 'Başlangıç' && <p style={{ fontSize: '12px', color: '#888', marginTop: '16px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>Advanced Marka Customization 150.000 TL karşılığı eklenebilir.</p>}
+              </>}
+
+              {/* Standart: show Advanced */}
+              {detailModal === 'Standart' && <>
+                <h3 style={{ fontSize: '15px', fontWeight: '600', margin: '0 0 12px' }}>Advanced Marka Customization <span style={{ fontSize: '9px', padding: '2px 8px', background: 'rgba(29,184,29,0.15)', color: '#4ade80', marginLeft: '8px', verticalAlign: 'middle' }}>Dahil</span></h3>
+                {renderGroups(advancedGroups)}
+                <p style={{ fontSize: '11px', color: '#666', fontStyle: 'italic', marginTop: '8px' }}>* Telif anlaşmaları gerekli durumlarda Dinamo tarafından koordine edilir.</p>
+              </>}
+
+              {/* Kurumsal: show Kurumsal Eklentileri */}
+              {detailModal === 'Kurumsal' && <>
+                <h3 style={{ fontSize: '15px', fontWeight: '600', margin: '0 0 12px' }}>Kurumsal Eklentileri</h3>
+                {kurumsalItems.map((item, j) => (
+                  <div key={j} style={{ fontSize: '13px', color: '#e5e5e5', display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '6px', lineHeight: 1.5 }}>
+                    <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#1db81d', flexShrink: 0, marginTop: '7px' }} />
+                    {item}
+                  </div>
+                ))}
+              </>}
             </div>
           </div>
         )
