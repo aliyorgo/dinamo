@@ -1,6 +1,8 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
+import { useCredits } from '@/lib/credits'
+import PackageDetailModal from '@/components/PackageDetailModal'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
@@ -10,14 +12,17 @@ export default function HomePage() {
   const [homeVideos, setHomeVideos] = useState<any[]>([])
   const [videoCredits, setVideoCredits] = useState<Record<string,number>>({})
   const [detailModal, setDetailModal] = useState<string | null>(null)
+  const { credits: creditSettings } = useCredits()
   const [cms, setCms] = useState<Record<string,string>>({})
+  const [siteSettings, setSiteSettings] = useState<Record<string,string>>({})
 
   function c(key: string, fallback: string) { return cms[key] || fallback }
 
   useEffect(() => {
+    let cancelled = false
     setMounted(true)
     supabase.from('credit_packages').select('*').order('credits').then(({ data }) => {
-      if (data) setPackages(data)
+      if (data && !cancelled) setPackages(data)
     })
     supabase.from('homepage_videos').select('*').eq('is_active', true).then(({ data }) => {
       if (data) {
@@ -25,17 +30,26 @@ export default function HomePage() {
         setHomeVideos(shuffled.slice(0, 4))
       }
     })
-    supabase.from('admin_settings').select('key, value').in('key', ['credit_bumper','credit_story','credit_feed','credit_longform']).then(({ data }) => {
+    supabase.from('admin_settings').select('key, value').in('key', ['credit_bumper','credit_story','credit_feed','credit_longform','credit_ai_express','credit_ai_ugc','prices_visible','advanced_customization_price']).then(({ data }) => {
       const map: Record<string,number> = {}
       data?.forEach((s: any) => { map[s.key] = Number(s.value) || 0 })
       setVideoCredits(map)
+      // Also set pricing settings
+      const settingsMap: Record<string,string> = {}
+      data?.forEach((s: any) => { settingsMap[s.key] = s.value })
+      setSiteSettings(settingsMap)
     })
     supabase.from('cms_content').select('key, value').then(({ data }) => {
       const map: Record<string,string> = {}
       data?.forEach((s: any) => { map[s.key] = s.value })
       setCms(map)
     })
+    return () => { cancelled = true }
   }, [])
+
+  const pricesVisible = siteSettings['prices_visible'] !== 'false'
+  const advancedPrice = Number(siteSettings['advanced_customization_price'] || 150000)
+  const advancedPriceFormatted = advancedPrice.toLocaleString('tr-TR')
 
   return (
     <div style={{ fontFamily: "'Inter', system-ui, sans-serif", background: '#0a0a0a', color: '#fff', minHeight: '100vh' }}>
@@ -119,6 +133,7 @@ export default function HomePage() {
           .hero-h1 { font-size: clamp(32px, 9vw, 48px) !important; }
           .s-pad { padding-left: 24px !important; padding-right: 24px !important; }
           .grid-4 { grid-template-columns: 1fr 1fr !important; }
+          .grid-6 { grid-template-columns: 1fr 1fr 1fr !important; }
           .grid-3 { grid-template-columns: 1fr !important; }
           .grid-2 { grid-template-columns: 1fr !important; }
           .about-grid { grid-template-columns: 1fr !important; gap: 48px !important; }
@@ -128,6 +143,7 @@ export default function HomePage() {
         }
         @media (max-width: 600px) {
           .grid-4 { grid-template-columns: 1fr !important; }
+          .grid-6 { grid-template-columns: 1fr 1fr !important; }
           .stat-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
@@ -207,7 +223,7 @@ export default function HomePage() {
       <section id="nasil-calisir" style={{ background: '#0f0f0f' }}>
         <div className="s-pad" style={{ maxWidth: '1200px', margin: '0 auto', padding: '120px 48px' }}>
           <div>
-            <div style={{ fontSize: '11px', letterSpacing: '3px', color: '#1db81d', textTransform: 'uppercase', marginBottom: '16px', fontWeight: '400' }}>Süreç</div>
+            <div style={{ fontSize: '11px', letterSpacing: '3px', color: '#1db81d', textTransform: 'uppercase', marginBottom: '16px', fontWeight: '400' }}>Hibrit İnsan - AI Prodüksiyon Süreci</div>
             <h2 style={{ fontSize: 'clamp(32px, 5vw, 48px)', fontWeight: '300', letterSpacing: '-1.5px', marginBottom: '16px' }}>Dört adım, 24 saat.</h2>
             <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.4)', fontWeight: '300', maxWidth: '480px', lineHeight: 1.7, marginBottom: '60px' }}>Yayından 24 saat önce brief'inizi girin.</p>
           </div>
@@ -273,6 +289,200 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ══════ AI EXPRESS ══════ */}
+      <section style={{ background: '#0a0a0a' }}>
+        <div className="s-pad" style={{ maxWidth: '1200px', margin: '0 auto', padding: '100px 48px' }}>
+          <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '72px', alignItems: 'center' }}>
+            <div>
+              <div style={{ marginBottom: '16px' }}>
+                <div style={{ fontSize: '11px', letterSpacing: '3px', color: '#1db81d', textTransform: 'uppercase', marginBottom: '16px', fontWeight: '400' }}>AI Express</div>
+                <h2 style={{ fontSize: 'clamp(18px, 2.6vw, 27px)', fontWeight: '300', letterSpacing: '-1px', marginBottom: '12px' }}>AI Express — 5 Dakikada Video</h2>
+                <div style={{ display: 'inline-block', padding: '4px 12px', background: 'rgba(29,184,29,0.1)', border: '1px solid rgba(29,184,29,0.2)', fontSize: '11px', color: '#1DB81D', marginBottom: '40px' }}>BETA</div>
+              </div>
+              <div>
+                <p style={{ fontSize: '18px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.9, marginBottom: '20px', fontWeight: '300' }}>
+                  Brief gönderdiniz. Ekip çalışırken, yapay zeka da çalışıyor.
+                </p>
+                <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.9, marginBottom: '20px', fontWeight: '300' }}>
+                  Dinamo AI Express, kampanya briefinizi okur. Marka tonunu, kurumsal renkleri, hedef kitleyi analiz eder ve 5 dakika içinde fikir, görsel, Türkçe seslendirme ve müzik üretir. Her video için yorum bırakırsınız — sistem isteklerinizi anlayıp markanızı tanıdıkça daha iyi üretir.
+                </p>
+                <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.9, marginBottom: '20px', fontWeight: '300' }}>
+                  AI Express'le yayına çıkmadan önce fikrinizi test edin. Hangi mesajın işe yaradığını görün, brief'inizi geliştirin, kreatif yön belirleyin.
+                </p>
+                <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.9, fontWeight: '300' }}>
+                  Beta sürecindedir. Sonuçlar garanti edilmez. İnsan yapımı üretimin yerini tutmaz — ama fikir aşamasını, içerik testini ve sosyal medya hızını değiştirir.
+                </p>
+                <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.3)', marginTop: '16px', letterSpacing: '0.5px' }}>
+                  ~5 dakika · İlk deneme ücretsiz · {creditSettings?.credit_ai_express || 1} kredi satın alma
+                </p>
+              </div>
+            </div>
+            <div>
+              <div style={{ position: 'relative', width: '52%', aspectRatio: '9 / 16', display: 'inline-block' }}>
+                <video src="/express_v_tn.mp4" autoPlay muted loop playsInline style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
+                <img src="/overlay2_tiktok.png" alt="" aria-hidden="true" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none', borderRadius: '8px' }} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ══════ AI Persona ══════ */}
+      <section style={{ background: '#0a0a0a' }}>
+        <div className="s-pad" style={{ maxWidth: '1200px', margin: '0 auto', padding: '100px 48px' }}>
+          <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '72px', alignItems: 'center' }}>
+            <div>
+              <div style={{ marginBottom: '16px' }}>
+                <div style={{ fontSize: '11px', letterSpacing: '3px', color: '#1db81d', textTransform: 'uppercase', marginBottom: '16px', fontWeight: '400' }}>AI Persona</div>
+                <h2 style={{ fontSize: 'clamp(18px, 2.6vw, 27px)', fontWeight: '300', letterSpacing: '-1px', marginBottom: '12px' }}>AI Persona — Influencer Tarzı Dikey Video</h2>
+                <div style={{ display: 'inline-block', padding: '4px 12px', background: 'rgba(29,184,29,0.1)', border: '1px solid rgba(29,184,29,0.2)', fontSize: '11px', color: '#1DB81D', marginBottom: '40px' }}>BETA</div>
+              </div>
+              <div>
+                <p style={{ fontSize: '18px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.9, marginBottom: '20px', fontWeight: '300' }}>
+                  AI influencer videolarıyla mesajınızı çeşitlendirin. 3 dakikada seçtiğiniz persona brief'ten üretilen metni doğal ve karakterine uygun şekilde okusun.
+                </p>
+                <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.9, marginBottom: '20px', fontWeight: '300' }}>
+                  Dinamo AI Persona, briefinizi ve seçtiğiniz personayı okur. Karakter, ortam, konuşma metni, ses ve dudak senkronu — tamamı yapay zeka tarafından üretilir. 8 saniyelik dikey video ile gerçek bir creator izlenimi yaratır. Ton, müzik ve CTA tercihlerinizi siz belirlersiniz.
+                </p>
+                <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.9, marginBottom: '20px', fontWeight: '300' }}>
+                  AI Persona'yla TikTok ve Reels için içerik üretimini hızlandırın. Farklı personaları test edin, hangi tonun marka için doğru olduğunu görün, kampanyanızı dağıtmadan önce hissini deneyin.
+                </p>
+                <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.9, fontWeight: '300' }}>
+                  Beta sürecindedir. Sonuçlar garanti edilmez. Türkçe seslendirme ve karakter tutarlılığında iyileştirmeler devam ediyor — ama persona stilinde içerik üretiminin maliyetini ve hızını değiştirir.
+                </p>
+                <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.3)', marginTop: '16px', letterSpacing: '0.5px' }}>
+                  ~3 dakika · İlk deneme ücretsiz · {creditSettings?.credit_ai_ugc || 1} kredi satın alma
+                </p>
+              </div>
+            </div>
+            <div>
+              <div style={{ position: 'relative', width: '52%', aspectRatio: '9 / 16', display: 'inline-block' }}>
+                <video src="/ugc_v_tn.mp4" autoPlay muted loop playsInline style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
+                <img src="/overlay2_tiktok.png" alt="" aria-hidden="true" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none', borderRadius: '8px' }} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ══════ FİYATLANDIRMA ══════ */}
+      <section id="fiyatlandirma" style={{ background: '#0a0a0a' }}>
+        <div className="s-pad" style={{ maxWidth: '1200px', margin: '0 auto', padding: '120px 48px' }}>
+          <div>
+            <div style={{ fontSize: '11px', letterSpacing: '3px', color: '#1db81d', textTransform: 'uppercase', marginBottom: '16px', fontWeight: '400' }}>Fiyatlandırma</div>
+            <h2 style={{ fontSize: 'clamp(32px, 5vw, 48px)', fontWeight: '300', letterSpacing: '-1.5px', marginBottom: '16px' }}>Şeffaf, öngörülebilir.</h2>
+            <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.4)', fontWeight: '300', marginBottom: '48px' }}>Kredi satın alın, harcayın. Sürpriz maliyet yok.</p>
+          </div>
+
+          {/* Packages — from Supabase credit_packages */}
+          <div style={{ fontSize: '12px', letterSpacing: '2px', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', marginBottom: '24px' }}>Paketler</div>
+          {mounted && packages.length > 0 ? (
+          <div className="grid-4" style={{ display: 'grid', gridTemplateColumns: `repeat(${packages.length}, 1fr)`, gap: '20px' }}>
+            {packages.map((p) => (
+              <div key={p.id} className={`price-card ${p.is_popular ? 'featured' : ''}`}>
+                {p.is_popular && (
+                  <div style={{
+                    background: '#1db81d', color: '#fff', fontSize: '10px', fontWeight: '600',
+                    padding: '5px 14px', borderRadius: '100px', alignSelf: 'flex-start',
+                    marginBottom: '20px', letterSpacing: '0.5px',
+                  }}>Popüler</div>
+                )}
+                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: '20px', fontWeight: '400' }}>{p.name}</div>
+                <div style={{ fontSize: '40px', fontWeight: '300', letterSpacing: '-2px', marginBottom: '4px' }}>
+                  {p.name === 'Kurumsal' ? '1.000+' : p.credits?.toLocaleString('tr-TR')} <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.3)', fontWeight: '400' }}>kredi</span>
+                </div>
+                {pricesVisible ? (
+                  <div style={{ fontSize: '15px', color: 'rgba(255,255,255,0.4)', marginBottom: '28px', paddingBottom: '28px', borderBottom: '1px solid rgba(255,255,255,0.06)', fontWeight: '300' }}>
+                    {p.name === 'Demo' ? (
+                      <span style={{ color: '#1db81d', fontWeight: '500' }}>Ücretsiz</span>
+                    ) : p.name === 'Kurumsal' ? (
+                      <a href="/demo-request" style={{ display: 'inline-block', padding: '8px 20px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '100px', color: '#fff', fontSize: '13px', fontWeight: '500', textDecoration: 'none', transition: 'background 0.2s' }}>İletişime Geçin</a>
+                    ) : p.price_tl ? (
+                      <><strong style={{ color: '#fff', fontWeight: '500' }}>{Number(p.price_tl).toLocaleString('tr-TR')} TL</strong><span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', marginLeft: '4px' }}>+KDV</span></>
+                    ) : (
+                      <em style={{ fontStyle: 'normal' }}>{p.price_note || 'İletişime geçin'}</em>
+                    )}
+                  </div>
+                ) : (
+                  <div style={{ marginBottom: '28px', paddingBottom: '28px', borderBottom: '1px solid rgba(255,255,255,0.06)' }} />
+                )}
+                {p.features && (
+                  <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
+                    {(Array.isArray(p.features) ? p.features : []).map((f: string) => (
+                      <li key={f} style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '300' }}>
+                        <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#1db81d', flexShrink: 0 }}></span>
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {/* Marka Customization badge + detail button */}
+                <div style={{ marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                  <div style={{ minHeight: '36px', marginBottom: '10px' }}>
+                    {p.name === 'Demo' && <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>Basic Customization dahil</div>}
+                    {p.name === 'Başlangıç' && <>
+                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '4px' }}>Basic Customization dahil</div>
+                      <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)' }}>{pricesVisible ? `Advanced Customization + ${advancedPriceFormatted} TL` : 'Advanced Customization eklenebilir'}</div>
+                    </>}
+                    {p.name === 'Standart' && <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>Advanced Customization ücretsiz</div>}
+                    {p.name === 'Kurumsal' && <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>Kurumsal eklentiler</div>}
+                  </div>
+                  <button onClick={() => { const keyMap: Record<string,string> = { Demo:'demo', 'Başlangıç':'baslangic', Standart:'standart', Kurumsal:'kurumsal' }; setDetailModal(keyMap[p.name] || p.name) }} style={{ width: '100%', padding: '8px', background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.5)', fontSize: '11px', letterSpacing: '1px', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.2s' }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = '#1db81d'; e.currentTarget.style.color = '#1db81d' }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = 'rgba(255,255,255,0.5)' }}>
+                    İçeriği Gör →
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+          ) : (
+            <div style={{ padding: '40px 0', textAlign: 'center', color: 'rgba(255,255,255,0.2)', fontSize: '13px' }}>Yükleniyor...</div>
+          )}
+          {!pricesVisible && mounted && (
+            <div style={{ textAlign: 'center', marginTop: '32px' }}>
+              <a href="/demo-request" style={{ display: 'inline-block', padding: '12px 28px', background: 'transparent', border: '1px solid #1db81d', color: '#1db81d', fontSize: '13px', fontWeight: '500', textDecoration: 'none', borderRadius: '100px', transition: 'all 0.2s' }}>Fiyatlandırma bilgisi için iletişime geçin →</a>
+            </div>
+          )}
+
+          {/* Video Types — compact */}
+          {mounted && <div style={{ marginTop: '48px' }}>
+            <div style={{ fontSize: '12px', letterSpacing: '2px', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', marginBottom: '16px' }}>Video Tipleri</div>
+            <div className="grid-6" style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '12px' }}>
+              {[
+                { dur: '6–10 sn', name: 'Bumper / Pre-roll', key: 'credit_bumper', fallback: 12, prodLabel: '24 SAAT' },
+                { dur: '15 sn', name: 'Story / Reels', key: 'credit_story', fallback: 18, prodLabel: '24 SAAT' },
+                { dur: '30 sn', name: 'Feed Video', key: 'credit_feed', fallback: 24, prodLabel: '24 SAAT' },
+                { dur: '45–60 sn', name: 'Long Form', key: 'credit_longform', fallback: 36, prodLabel: '24 SAAT' },
+                { dur: 'Beta', name: 'AI Express', key: 'credit_ai_express', fallback: 1, prodLabel: '~5 DAKİKA' },
+                { dur: 'Beta', name: 'AI Persona', key: 'credit_ai_ugc', fallback: 1, prodLabel: '~3 DAKİKA' },
+              ].map((v: any) => {
+                const cr = videoCredits[v.key] || v.fallback
+                const isAi = v.key.includes('ai_')
+                return (
+                  <div key={v.name} style={{
+                    background: isAi ? 'rgba(29, 184, 29, 0.12)' : 'rgba(255,255,255,0.03)',
+                    border: isAi ? '1px solid rgba(29, 184, 29, 0.30)' : '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: '12px', padding: '18px 16px', transition: 'border-color 0.3s',
+                  }}>
+                    <div style={{ marginBottom: '8px', minHeight: '20px', textAlign: isAi ? 'right' : 'left' }}>{isAi ? <span style={{ display: 'inline-block', background: 'rgba(29,184,29,0.15)', color: '#1db81d', padding: '3px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 600, letterSpacing: '1.5px', textTransform: 'uppercase' as const }}>{v.dur}</span> : <span style={{ fontSize: '10px', color: '#1db81d', letterSpacing: '1px', fontWeight: '500' }}>{v.dur}</span>}</div>
+                    <div style={{ fontSize: '13px', fontWeight: '500', marginBottom: '2px' }}>{v.name}</div>
+                    <div style={{ fontSize: '22px', fontWeight: '300', letterSpacing: '-1px', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                      {cr} <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', fontWeight: '400' }}>kredi</span>
+                    </div>
+                    <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', letterSpacing: '1px', marginTop: '6px' }}>{v.prodLabel}</div>
+                  </div>
+                )
+              })}
+            </div>
+            <div style={{ maxWidth: '600px', margin: '24px auto 0', padding: '12px 20px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ opacity: 0.5, fontSize: '14px' }}>ⓘ</span>
+              <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', letterSpacing: '0.3px' }}>CPS videoları, ait olduğu kampanya videosunun 1/3'ü oranında kredi harcar. Toplam kredi varyant sayısına göre değişir.</span>
+            </div>
+          </div>}
+        </div>
+      </section>
+
       {/* ══════ İŞLERİMİZ ══════ */}
       {mounted && homeVideos.length > 0 && (
         <section id="islerimiz" style={{ background: '#0a0a0a' }}>
@@ -305,173 +515,6 @@ export default function HomePage() {
           </div>
         </section>
       )}
-
-      {/* ══════ FİYATLANDIRMA ══════ */}
-      <section id="fiyatlandirma" style={{ background: '#0a0a0a' }}>
-        <div className="s-pad" style={{ maxWidth: '1200px', margin: '0 auto', padding: '120px 48px' }}>
-          <div>
-            <div style={{ fontSize: '11px', letterSpacing: '3px', color: '#1db81d', textTransform: 'uppercase', marginBottom: '16px', fontWeight: '400' }}>Fiyatlandırma</div>
-            <h2 style={{ fontSize: 'clamp(32px, 5vw, 48px)', fontWeight: '300', letterSpacing: '-1.5px', marginBottom: '16px' }}>Şeffaf, öngörülebilir.</h2>
-            <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.4)', fontWeight: '300', marginBottom: '48px' }}>Kredi satın alın, harcayın. Sürpriz maliyet yok.</p>
-          </div>
-
-          {/* Video Types */}
-          <div style={{ marginBottom: '60px' }}>
-            <div style={{ fontSize: '12px', letterSpacing: '2px', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', marginBottom: '24px' }}>Video Tipleri</div>
-            <div className="grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
-              {[
-                { dur: '6–10 sn', name: 'Bumper / Pre-roll', key: 'credit_bumper', fallback: 12 },
-                { dur: '15 sn', name: 'Story / Reels', key: 'credit_story', fallback: 18 },
-                { dur: '30 sn', name: 'Feed Video', key: 'credit_feed', fallback: 24 },
-                { dur: '45–60 sn', name: 'Long Form', key: 'credit_longform', fallback: 36 },
-              ].map((v) => {
-                const cr = videoCredits[v.key] || v.fallback
-                return (
-                  <div key={v.name} style={{
-                    background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
-                    borderRadius: '16px', padding: '28px 24px', transition: 'border-color 0.3s',
-                  }}>
-                    <div style={{ fontSize: '11px', color: '#1db81d', letterSpacing: '1px', marginBottom: '12px', fontWeight: '500' }}>{v.dur}</div>
-                    <div style={{ fontSize: '15px', fontWeight: '500', marginBottom: '4px' }}>{v.name}</div>
-                    <div style={{ fontSize: '28px', fontWeight: '300', letterSpacing: '-1px', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                      {cr} <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.3)', fontWeight: '400' }}>kredi</span>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* Packages — from Supabase credit_packages */}
-          <div style={{ fontSize: '12px', letterSpacing: '2px', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', marginBottom: '24px' }}>Paketler</div>
-          {mounted && packages.length > 0 ? (
-          <div className="grid-4" style={{ display: 'grid', gridTemplateColumns: `repeat(${packages.length}, 1fr)`, gap: '20px' }}>
-            {packages.map((p) => (
-              <div key={p.id} className={`price-card ${p.is_popular ? 'featured' : ''}`}>
-                {p.is_popular && (
-                  <div style={{
-                    background: '#1db81d', color: '#fff', fontSize: '10px', fontWeight: '600',
-                    padding: '5px 14px', borderRadius: '100px', alignSelf: 'flex-start',
-                    marginBottom: '20px', letterSpacing: '0.5px',
-                  }}>Popüler</div>
-                )}
-                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: '20px', fontWeight: '400' }}>{p.name}</div>
-                <div style={{ fontSize: '40px', fontWeight: '300', letterSpacing: '-2px', marginBottom: '4px' }}>
-                  {p.name === 'Kurumsal' ? '1.000+' : p.credits?.toLocaleString('tr-TR')} <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.3)', fontWeight: '400' }}>kredi</span>
-                </div>
-                <div style={{
-                  fontSize: '15px', color: 'rgba(255,255,255,0.4)', marginBottom: '28px',
-                  paddingBottom: '28px', borderBottom: '1px solid rgba(255,255,255,0.06)', fontWeight: '300',
-                }}>
-                  {p.name === 'Demo' ? (
-                    <span style={{ color: '#1db81d', fontWeight: '500' }}>Ücretsiz</span>
-                  ) : p.name === 'Kurumsal' ? (
-                    <a href="/demo-request" style={{ display: 'inline-block', padding: '8px 20px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '100px', color: '#fff', fontSize: '13px', fontWeight: '500', textDecoration: 'none', transition: 'background 0.2s' }}>İletişime Geçin</a>
-                  ) : p.price_tl ? (
-                    <><strong style={{ color: '#fff', fontWeight: '500' }}>{Number(p.price_tl).toLocaleString('tr-TR')} TL</strong><span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', marginLeft: '4px' }}>+KDV</span></>
-                  ) : (
-                    <em style={{ fontStyle: 'normal' }}>{p.price_note || 'İletişime geçin'}</em>
-                  )}
-                </div>
-                {p.features && (
-                  <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
-                    {(Array.isArray(p.features) ? p.features : []).map((f: string) => (
-                      <li key={f} style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '300' }}>
-                        <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#1db81d', flexShrink: 0 }}></span>
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                {/* Marka Customization badge + detail button */}
-                <div style={{ marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                  <div style={{ minHeight: '36px', marginBottom: '10px' }}>
-                    {p.name === 'Demo' && <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>Basic Customization dahil</div>}
-                    {p.name === 'Başlangıç' && <>
-                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '4px' }}>Basic Customization dahil</div>
-                      <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)' }}>Advanced Customization + 150.000 TL</div>
-                    </>}
-                    {p.name === 'Standart' && <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>Advanced Customization ücretsiz</div>}
-                    {p.name === 'Kurumsal' && <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>Kurumsal eklentiler</div>}
-                  </div>
-                  <button onClick={() => setDetailModal(p.name)} style={{ width: '100%', padding: '8px', background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.5)', fontSize: '11px', letterSpacing: '1px', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.2s' }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = '#1db81d'; e.currentTarget.style.color = '#1db81d' }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = 'rgba(255,255,255,0.5)' }}>
-                    İçeriği Gör →
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-          ) : (
-            <div style={{ padding: '40px 0', textAlign: 'center', color: 'rgba(255,255,255,0.2)', fontSize: '13px' }}>Yükleniyor...</div>
-          )}
-        </div>
-      </section>
-
-      {/* ══════ AI EXPRESS ══════ */}
-      <section style={{ background: '#0a0a0a' }}>
-        <div className="s-pad" style={{ maxWidth: '1200px', margin: '0 auto', padding: '100px 48px' }}>
-          <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '72px', alignItems: 'center' }}>
-            <div>
-              <div style={{ marginBottom: '16px' }}>
-                <div style={{ fontSize: '11px', letterSpacing: '3px', color: '#1db81d', textTransform: 'uppercase', marginBottom: '16px', fontWeight: '400' }}>AI Express</div>
-                <h2 style={{ fontSize: 'clamp(18px, 2.6vw, 27px)', fontWeight: '300', letterSpacing: '-1px', marginBottom: '12px' }}>AI Express — 5 Dakikada Video</h2>
-                <div style={{ display: 'inline-block', padding: '4px 12px', background: 'rgba(29,184,29,0.1)', border: '1px solid rgba(29,184,29,0.2)', fontSize: '11px', color: '#1DB81D', marginBottom: '40px' }}>BETA</div>
-              </div>
-              <div>
-                <p style={{ fontSize: '18px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.9, marginBottom: '20px', fontWeight: '300' }}>
-                  Brief gönderdiniz. Ekip çalışırken, yapay zeka da çalışıyor.
-                </p>
-                <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.9, marginBottom: '20px', fontWeight: '300' }}>
-                  Dinamo AI Express, kampanya briefinizi okur. Marka tonunu, kurumsal renkleri, hedef kitleyi analiz eder ve 5 dakika içinde, 1 kredi ile fikir, görsel, Türkçe seslendirme ve müzik üretir. Her video için yorum bırakırsınız — sistem isteklerinizi anlayıp markanızı tanıdıkça daha iyi üretir.
-                </p>
-                <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.9, marginBottom: '20px', fontWeight: '300' }}>
-                  AI Express'le yayına çıkmadan önce fikrinizi test edin. Hangi mesajın işe yaradığını görün, brief'inizi geliştirin, kreatif yön belirleyin.
-                </p>
-                <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.9, fontWeight: '300' }}>
-                  Beta sürecindedir. Sonuçlar garanti edilmez. İnsan yapımı üretimin yerini tutmaz — ama fikir aşamasını, içerik testini ve sosyal medya hızını değiştirir.
-                </p>
-              </div>
-            </div>
-            <div>
-              <video src="/express_v_tn.mp4" autoPlay muted loop playsInline style={{ width: '52%', height: 'auto', objectFit: 'cover' }} />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ══════ AI UGC ══════ */}
-      <section style={{ background: '#0a0a0a' }}>
-        <div className="s-pad" style={{ maxWidth: '1200px', margin: '0 auto', padding: '100px 48px' }}>
-          <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '72px', alignItems: 'center' }}>
-            <div>
-              <div style={{ marginBottom: '16px' }}>
-                <div style={{ fontSize: '11px', letterSpacing: '3px', color: '#1db81d', textTransform: 'uppercase', marginBottom: '16px', fontWeight: '400' }}>AI UGC</div>
-                <h2 style={{ fontSize: 'clamp(18px, 2.6vw, 27px)', fontWeight: '300', letterSpacing: '-1px', marginBottom: '12px' }}>AI UGC — Influencer Tarzı Dikey Video</h2>
-                <div style={{ display: 'inline-block', padding: '4px 12px', background: 'rgba(29,184,29,0.1)', border: '1px solid rgba(29,184,29,0.2)', fontSize: '11px', color: '#1DB81D', marginBottom: '40px' }}>BETA</div>
-              </div>
-              <div>
-                <p style={{ fontSize: '18px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.9, marginBottom: '20px', fontWeight: '300' }}>
-                  AI influencer videolarıyla mesajınızı çeşitlendirin. 3 dakikada seçtiğiniz persona brief'ten üretilen metni doğal ve karakterine uygun şekilde okusun.
-                </p>
-                <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.9, marginBottom: '20px', fontWeight: '300' }}>
-                  Dinamo AI UGC, briefinizi ve seçtiğiniz personayı okur. Karakter, ortam, konuşma metni, ses ve dudak senkronu — tamamı yapay zeka tarafından üretilir. 8 saniyelik dikey video, 1 kredi ile, gerçek bir creator izlenimi yaratır. Ton, müzik ve CTA tercihlerinizi siz belirlersiniz.
-                </p>
-                <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.9, marginBottom: '20px', fontWeight: '300' }}>
-                  AI UGC'yle TikTok ve Reels için içerik üretimini hızlandırın. Farklı personaları test edin, hangi tonun marka için doğru olduğunu görün, kampanyanızı dağıtmadan önce hissini deneyin.
-                </p>
-                <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.9, fontWeight: '300' }}>
-                  Beta sürecindedir. Sonuçlar garanti edilmez. Türkçe seslendirme ve karakter tutarlılığında iyileştirmeler devam ediyor — ama UGC stilinde içerik üretiminin maliyetini ve hızını değiştirir.
-                </p>
-              </div>
-            </div>
-            <div>
-              <video src="/ugc_v_tn.mp4" autoPlay muted loop playsInline style={{ width: '52%', height: 'auto', objectFit: 'cover' }} />
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* ══════ DCC FILM ══════ */}
       <section id="hakkimizda" style={{ background: '#0f0f0f' }}>
@@ -548,75 +591,7 @@ export default function HomePage() {
       </footer>
 
       {/* Package Detail Modal */}
-      {detailModal && (() => {
-        const titles: Record<string, string> = { Demo: 'Demo Paketi · 30 Kredi · Ücretsiz', 'Başlangıç': 'Başlangıç Paketi · 100 Kredi · 350.000 TL +KDV', Standart: 'Standart Paket · 500 Kredi · 1.750.000 TL +KDV', Kurumsal: 'Kurumsal Paket · 1.000+ Kredi · İletişim' }
-        const refs: Record<string, string> = { Standart: 'Basic Marka Customization\'daki tüm hizmetler ve...', Kurumsal: 'Advanced Marka Customization\'daki tüm hizmetler ve...' }
-
-        const basicGroups = [
-          { label: 'Marka tanıma', items: ['Web research ile marka URL\'inizden otomatik analiz', 'Marka tonu ve hedef kitle temel girişi', 'Marka renk paleti'] },
-          { label: 'Görsel varlıklar', items: ['Logo yüklemesi ve boyutlandırma'] },
-          { label: 'Ses ve müzik', items: ['Geniş ses kütüphanesinden seslendirme tercihi', 'Ücretsiz müzik kütüphanesine erişim'] },
-          { label: 'AI öğrenmesi', items: ['Yorumlarınızdan ve revizyonlarınızdan otomatik öğrenme', 'Her üretimde markanızı biraz daha iyi tanır'] },
-          { label: 'UGC', items: ['Sistem persona havuzundan UGC üretimi (sınırlı seçim)'] },
-        ]
-        const advancedGroups = [
-          { label: 'Derin marka eğitimi', items: ['Marka rehberinizin sisteme işlenmesi', 'Kurallar ve yasakların kategorize edilmesi', 'Marka tonunun cümle örnekleriyle kalibrasyonu', 'Ekibimizin manuel eğitim katkısı'] },
-          { label: 'Custom marka grafikleri', items: ['Renk, tipografi ve özel boyutlandırmalar', 'Markaya özel CTA tasarımları'] },
-          { label: 'Markaya özel ses', items: ['Markaya özel AI seslendirme sanatçısı*', 'Marka sesinin AI\'a öğretilmesi*'] },
-          { label: 'Markaya özel persona havuzu', items: ['Hedef kitlenize özel persona üretimi', 'Sistem persona havuzunun tamamına erişim'] },
-          { label: 'Hizmet', items: ['Onboarding görüşmesi', 'Marka rehberi PDF', 'İlk üretimlerde tanıtım desteği', 'Öncelikli destek'] },
-        ]
-        const kurumsalItems = ['Yıllık brand refresh — Advanced kurulumun yıllık tekrarı', 'Üç aylık marka raporu — Tutarlılık, kurallar, performans', 'Özel hesap yöneticisi — Sürekli iletişim noktası', 'Yeni özelliklere öncelikli erişim — Beta sürümlere ilk erişim']
-
-        function renderGroups(groups: {label:string;items:string[]}[]) {
-          return groups.map((g, i) => (
-            <div key={i} style={{ marginBottom: '12px' }}>
-              <div style={{ fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: '6px', fontWeight: '600' }}>{g.label}</div>
-              {g.items.map((item, j) => (
-                <div key={j} style={{ fontSize: '13px', color: '#e5e5e5', display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '4px', lineHeight: 1.5 }}>
-                  <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#1db81d', flexShrink: 0, marginTop: '7px' }} />
-                  {item}
-                </div>
-              ))}
-            </div>
-          ))
-        }
-
-        return (
-          <div onClick={() => setDetailModal(null)} onKeyDown={e => { if (e.key === 'Escape') setDetailModal(null) }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-            <div onClick={e => e.stopPropagation()} style={{ background: '#1a1a1a', maxWidth: '720px', width: '90%', maxHeight: '80vh', overflowY: 'auto', padding: '40px', position: 'relative', color: '#fff' }}>
-              <button onClick={() => setDetailModal(null)} style={{ position: 'absolute', top: '16px', right: '16px', width: '32px', height: '32px', border: 'none', background: 'none', fontSize: '20px', color: '#666', cursor: 'pointer' }}>×</button>
-              <div style={{ fontSize: '18px', fontWeight: '600', marginBottom: '16px' }}>{titles[detailModal] || detailModal}</div>
-              {refs[detailModal] && <div style={{ fontSize: '13px', color: '#888', fontStyle: 'italic', marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>{refs[detailModal]}</div>}
-
-              {/* Demo + Başlangıç: show Basic */}
-              {(detailModal === 'Demo' || detailModal === 'Başlangıç') && <>
-                <h3 style={{ fontSize: '15px', fontWeight: '600', margin: '0 0 12px' }}>Basic Marka Customization</h3>
-                {renderGroups(basicGroups)}
-                {detailModal === 'Başlangıç' && <p style={{ fontSize: '12px', color: '#888', marginTop: '16px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>Advanced Marka Customization 150.000 TL karşılığı eklenebilir.</p>}
-              </>}
-
-              {/* Standart: show Advanced */}
-              {detailModal === 'Standart' && <>
-                <h3 style={{ fontSize: '15px', fontWeight: '600', margin: '0 0 12px' }}>Advanced Marka Customization <span style={{ fontSize: '9px', padding: '2px 8px', background: 'rgba(29,184,29,0.15)', color: '#4ade80', marginLeft: '8px', verticalAlign: 'middle' }}>Dahil</span></h3>
-                {renderGroups(advancedGroups)}
-                <p style={{ fontSize: '11px', color: '#666', fontStyle: 'italic', marginTop: '8px' }}>* Telif anlaşmaları gerekli durumlarda Dinamo tarafından koordine edilir.</p>
-              </>}
-
-              {/* Kurumsal: show Kurumsal Eklentileri */}
-              {detailModal === 'Kurumsal' && <>
-                <h3 style={{ fontSize: '15px', fontWeight: '600', margin: '0 0 12px' }}>Kurumsal Eklentileri</h3>
-                {kurumsalItems.map((item, j) => (
-                  <div key={j} style={{ fontSize: '13px', color: '#e5e5e5', display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '6px', lineHeight: 1.5 }}>
-                    <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#1db81d', flexShrink: 0, marginTop: '7px' }} />
-                    {item}
-                  </div>
-                ))}
-              </>}
-            </div>
-          </div>
-        )
-      })()}
+      <PackageDetailModal isOpen={!!detailModal} onClose={() => setDetailModal(null)} mode="package" initialTab={detailModal || 'demo'} pricesVisible={pricesVisible} advancedCustomizationPrice={advancedPrice} />
     </div>
   )
 }

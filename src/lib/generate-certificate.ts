@@ -1,7 +1,8 @@
 import { jsPDF } from 'jspdf'
 import { ROBOTO_REGULAR } from './roboto-font'
 
-export function generateCertificatePDF(brief: any, companyName: string) {
+export function generateCertificatePDF(brief: any, companyName: string, legalName?: string) {
+  const certCompanyName = legalName || companyName
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
 
   // Register Roboto font for Turkish character support
@@ -35,7 +36,7 @@ export function generateCertificatePDF(brief: any, companyName: string) {
   const deliverDate = new Date(brief.updated_at || brief.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })
   const info: [string, string][] = [
     ['Kampanya:', brief.campaign_name || ''],
-    ['Müşteri:', companyName || ''],
+    ['Müşteri:', certCompanyName || ''],
     ['Teslim Tarihi:', deliverDate],
     ['Referans No:', (brief.id || '').substring(0, 8).toUpperCase()],
   ]
@@ -91,7 +92,8 @@ export function generateCertificatePDF(brief: any, companyName: string) {
   doc.save(`dinamo_telif_${client}_${campaign}.pdf`)
 }
 
-export function generateUgcCertificatePDF(brief: any, companyName: string, personaName?: string) {
+export function generateUgcCertificatePDF(brief: any, companyName: string, personaName?: string, legalName?: string) {
+  const certCompanyName = legalName || companyName
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
 
   doc.addFileToVFS('Roboto-Regular.ttf', ROBOTO_REGULAR)
@@ -106,7 +108,7 @@ export function generateUgcCertificatePDF(brief: any, companyName: string, perso
   doc.setTextColor(0, 0, 0)
   doc.setFont('Roboto', 'bold')
   doc.setFontSize(16)
-  doc.text('AI UGC İÇERİK LİSANS SERTİFİKASI', pw / 2, y, { align: 'center' })
+  doc.text('AI PERSONA İÇERİK LİSANS SERTİFİKASI', pw / 2, y, { align: 'center' })
   y += 8
   doc.setFont('Roboto', 'normal')
   doc.setFontSize(11)
@@ -121,7 +123,7 @@ export function generateUgcCertificatePDF(brief: any, companyName: string, perso
   const deliverDate = new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })
   const info: [string, string][] = [
     ['Kampanya:', brief.campaign_name || ''],
-    ['Müşteri:', companyName || ''],
+    ['Müşteri:', certCompanyName || ''],
     ['AI Persona:', personaName || 'Belirtilmemiş'],
     ['Satın Alma Tarihi:', deliverDate],
     ['Referans No:', (brief.id || '').substring(0, 8).toUpperCase()],
@@ -136,8 +138,8 @@ export function generateUgcCertificatePDF(brief: any, companyName: string, perso
   y += 8
 
   const sections: [string, string][] = [
-    ['1. İçerik Türü', 'Bu video tamamen yapay zeka tarafından üretilmiş bir UGC (User Generated Content) içeriktir. Videodaki karakter, ses, ortam ve görüntüler AI tarafından oluşturulmuştur. Gerçek bir kişi veya influencer tarafından çekilmemiştir.'],
-    ['2. Kullanım Hakkı', 'Müşteri, satın aldığı AI UGC videoyu tüm dijital platformlarda (sosyal medya, web sitesi, dijital reklam, TikTok, Instagram Reels, YouTube Shorts) süresiz olarak kullanabilir.'],
+    ['1. İçerik Türü', 'Bu video tamamen yapay zeka tarafından üretilmiş bir AI Persona içeriktir. Videodaki karakter, ses, ortam ve görüntüler AI tarafından oluşturulmuştur. Gerçek bir kişi veya influencer tarafından çekilmemiştir.'],
+    ['2. Kullanım Hakkı', 'Müşteri, satın aldığı AI Persona videoyu tüm dijital platformlarda (sosyal medya, web sitesi, dijital reklam, TikTok, Instagram Reels, YouTube Shorts) süresiz olarak kullanabilir.'],
     ['3. Yapay Zeka Bildirimi', 'Bu içerik yapay zeka ile üretilmiştir. Bazı sektörlerde, ülkelerde veya platformlarda AI kullanımının belirtilmesi zorunlu olabilir. Kullanıcının yerel mevzuatı ve platform kurallarını kontrol etmesi tavsiye edilir.'],
     ['4. Telif Hakkı', 'AI tarafından üretilen içerikler DCC Film tarafından lisanslanmıştır. Satın alma tarihi itibarıyla kullanım hakları müşteriye aittir. Üçüncü taraf telif talepleri DCC Film tarafından karşılanır.'],
     ['5. Sorumluluk', 'DCC Film, AI üretim altyapısının ticari lisans kapsamında olduğunu ve içeriğin güvenle kullanılabileceğini taahhüt eder.'],

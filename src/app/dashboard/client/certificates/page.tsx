@@ -2,39 +2,37 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
-import { generateCertificatePDF } from '@/lib/generate-certificate'
+import { generateCertificatePDF, generateUgcCertificatePDF } from '@/lib/generate-certificate'
+import { useClientContext } from '../layout'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
 export default function CertificatesPage() {
   const router = useRouter()
-  const [userName, setUserName] = useState('')
-  const [companyName, setCompanyName] = useState('')
-  const [credits, setCredits] = useState(0)
+  const { userName, companyName, credits, customizationTier, clientId } = useClientContext()
   const [briefs, setBriefs] = useState<any[]>([])
+  const [ugcVideos, setUgcVideos] = useState<any[]>([])
+  const [legalName, setLegalName] = useState('')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function load() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { router.push('/login'); return }
-      const { data: userData } = await supabase.from('users').select('name, role').eq('id', user.id).single()
-      if (!userData || userData.role !== 'client') { router.push('/login'); return }
-      setUserName(userData.name)
-      const { data: cu } = await supabase.from('client_users').select('allocated_credits, client_id, clients(company_name)').eq('user_id', user.id).single()
-      if (cu) {
-        setCredits(cu.allocated_credits)
-        setCompanyName((cu as any).clients?.company_name || '')
-        const { data: b } = await supabase.from('briefs').select('*').eq('client_id', cu.client_id).eq('status', 'delivered').order('created_at', { ascending: false })
-        setBriefs(b || [])
-      }
+      if (!clientId) return
+      const [{ data: b }, { data: ugc }, { data: cl }] = await Promise.all([
+        supabase.from('briefs').select('*').eq('client_id', clientId).eq('status', 'delivered').order('created_at', { ascending: false }),
+        supabase.from('ugc_videos').select('*, briefs!inner(campaign_name, client_id), personas(name)').eq('status', 'sold').eq('briefs.client_id', clientId).order('created_at', { ascending: false }),
+        supabase.from('clients').select('legal_name').eq('id', clientId).single(),
+      ])
+      setBriefs(b || [])
+      setUgcVideos(ugc || [])
+      setLegalName(cl?.legal_name || '')
       setLoading(false)
     }
     load()
-  }, [router])
+  }, [clientId])
 
   function handleDownload(brief: any) {
-    generateCertificatePDF(brief, companyName)
+    generateCertificatePDF(brief, companyName, legalName)
   }
 
   async function handleLogout() {
@@ -51,6 +49,7 @@ export default function CertificatesPage() {
           <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} />
         </div>
         <div style={{margin:'12px 12px',padding:'16px 20px',background:'rgba(29,184,29,0.06)',borderLeft:'3px solid #1DB81D'}}>
+          <span style={{display:'inline-block',padding:'2px 8px',background:'rgba(29,184,29,0.15)',color:'#1db81d',fontSize:'9px',fontWeight:600,letterSpacing:'1px',marginBottom:'6px'}}>{customizationTier === 'corporate' ? 'KURUMSAL' : customizationTier === 'advanced' ? 'ADVANCED' : 'BASIC'}</span>
           <div style={{fontSize:'18px',fontWeight:'700',color:'#fff',marginBottom:'2px'}}>{companyName || 'Dinamo'}</div>
           <div style={{fontSize:'13px',fontWeight:'400',color:'#888',marginBottom:'12px'}}>{userName}</div>
           <div style={{fontSize:'10px',color:'#AAA',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:'8px'}}>KREDİ BAKİYESİ</div>
@@ -94,29 +93,53 @@ export default function CertificatesPage() {
             </div>
             <div style={{ fontSize: '12px', color: '#22c55e', fontWeight: '500' }}>Güvenceyi Görüntüle →</div>
           </div>
-          {loading ? <div style={{ color: '#888', fontSize: '14px' }}>Yükleniyor...</div> : briefs.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '60px 0', color: '#888', fontSize: '14px' }}>Henüz teslim edilen proje yok.</div>
-          ) : (
-            <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: '12px', overflow: 'hidden' }}>
-              {briefs.map((b, i) => (
-                <div key={b.id} style={{ padding: '16px 20px', borderBottom: i < briefs.length - 1 ? '0.5px solid rgba(0,0,0,0.06)' : 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {loading ? <div style={{ color: '#888', fontSize: '13px' }}>Yükleniyor...</div> : (briefs.length === 0 && ugcVideos.length === 0) ? (
+            <div style={{ textAlign: 'center', padding: '40px 0', color: '#888', fontSize: '13px' }}>Henüz teslim edilen proje yok.</div>
+          ) : (() => {
+            const combined = [
+              ...briefs.map(b => ({ type: 'express' as const, sortDate: b.updated_at || b.created_at, data: b })),
+              ...ugcVideos.map((v: any) => ({ type: 'ugc' as const, sortDate: v.sold_at || v.created_at, data: v })),
+            ].sort((a, b) => new Date(b.sortDate).getTime() - new Date(a.sortDate).getTime())
+            return (
+            <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.1)', overflow: 'hidden' }}>
+              {combined.map((item) => item.type === 'express' ? (
+                <div key={`e-${item.data.id}`} style={{ padding: '10px 14px', borderBottom: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a' }}>{b.campaign_name}</div>
-                    <div style={{ fontSize: '11px', color: '#888', marginTop: '3px' }}>
-                      {b.video_type} · {new Date(b.updated_at || b.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '11px', fontWeight: '500', color: '#0a0a0a' }}>{(() => { const name = item.data.campaign_name || ''; const match = name.match(/— Full AI #(\d+)$/); return match ? `${name.replace(/\s*— Full AI #\d+$/, '')} — V${match[1]}` : name })()}</span>
+                      <span style={{ fontSize: '8px', padding: '1px 5px', background: '#f5f4f0', color: '#888', letterSpacing: '0.5px' }}>AI EXPRESS</span>
+                    </div>
+                    <div style={{ fontSize: '10px', color: '#888', marginTop: '1px' }}>
+                      {item.data.video_type} · {new Date(item.sortDate).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
                     </div>
                   </div>
-                  <button onClick={() => handleDownload(b)}
-                    style={{ padding: '8px 16px', background: '#fff', border: '0.5px solid rgba(0,0,0,0.12)', borderRadius: '8px', fontSize: '12px', color: '#0a0a0a', cursor: 'pointer',  fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px', transition: 'border-color 0.2s' }}
-                    onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(0,0,0,0.3)')}
-                    onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(0,0,0,0.12)')}>
-                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 1h5l4 4v9a1 1 0 01-1 1H4a1 1 0 01-1-1V2a1 1 0 011-1z" stroke="#0a0a0a" strokeWidth="1.2"/><path d="M9 1v4h4" stroke="#0a0a0a" strokeWidth="1.2"/></svg>
-                    Sertifika Indir
+                  <button onClick={() => handleDownload(item.data)}
+                    style={{ padding: '6px 14px', background: '#fff', border: '0.5px solid rgba(0,0,0,0.12)', fontSize: '11px', color: '#0a0a0a', cursor: 'pointer', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M4 1h5l4 4v9a1 1 0 01-1 1H4a1 1 0 01-1-1V2a1 1 0 011-1z" stroke="#0a0a0a" strokeWidth="1.2"/><path d="M9 1v4h4" stroke="#0a0a0a" strokeWidth="1.2"/></svg>
+                    İndir
+                  </button>
+                </div>
+              ) : (
+                <div key={`u-${item.data.id}`} style={{ padding: '10px 14px', borderBottom: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '11px', fontWeight: '500', color: '#0a0a0a' }}>{item.data.briefs?.campaign_name || 'Persona Video'}{item.data.version ? ` — V${item.data.version}` : ''}</span>
+                      <span style={{ fontSize: '8px', padding: '1px 5px', background: 'rgba(59,130,246,0.08)', color: '#3b82f6', letterSpacing: '0.5px' }}>PERSONA</span>
+                    </div>
+                    <div style={{ fontSize: '10px', color: '#888', marginTop: '1px' }}>
+                      {item.data.personas?.name || 'Persona'} · {new Date(item.sortDate).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                    </div>
+                  </div>
+                  <button onClick={() => generateUgcCertificatePDF({ campaign_name: item.data.briefs?.campaign_name, id: item.data.brief_id }, companyName, item.data.personas?.name, legalName)}
+                    style={{ padding: '6px 14px', background: '#fff', border: '0.5px solid rgba(0,0,0,0.12)', fontSize: '11px', color: '#0a0a0a', cursor: 'pointer', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M4 1h5l4 4v9a1 1 0 01-1 1H4a1 1 0 01-1-1V2a1 1 0 011-1z" stroke="#0a0a0a" strokeWidth="1.2"/><path d="M9 1v4h4" stroke="#0a0a0a" strokeWidth="1.2"/></svg>
+                    İndir
                   </button>
                 </div>
               ))}
             </div>
-          )}
+            )
+          })()}
         </div>
       </div>
     </div>

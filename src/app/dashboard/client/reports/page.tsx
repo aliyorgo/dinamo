@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import { useClientContext } from '../layout'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
@@ -10,10 +11,8 @@ const PIE_COLORS = ['#22c55e','#3b82f6','#f59e0b','#ef4444','#8b5cf6']
 
 export default function ClientReportsPage() {
   const router = useRouter()
+  const { userName, companyName, credits, customizationTier } = useClientContext()
   const reportRef = useRef<HTMLDivElement>(null)
-  const [userName, setUserName] = useState('')
-  const [companyName, setCompanyName] = useState('')
-  const [credits, setCredits] = useState(0)
   const [briefs, setBriefs] = useState<any[]>([])
   const [transactions, setTransactions] = useState<any[]>([])
   const [packages, setPackages] = useState<any[]>([])
@@ -32,18 +31,10 @@ export default function ClientReportsPage() {
       if (!user) { router.push('/login'); return }
       const { data: userData } = await supabase.from('users').select('name, role').eq('id', user.id).single()
       if (!userData || userData.role !== 'client') { router.push('/login'); return }
-      setUserName(userData.name)
-      // Try client_users — use limit(1) instead of single/maybeSingle to avoid multi-row error
-      const { data: cuList, error: cuErr } = await supabase.from('client_users').select('allocated_credits, client_id, clients(company_name)').eq('user_id', user.id).limit(1)
+      // Get clientId for data fetch (sidebar data from context)
+      const { data: cuList, error: cuErr } = await supabase.from('client_users').select('client_id').eq('user_id', user.id).limit(1)
       const cu = cuList?.[0] || null
       let clientId: string | null = cu?.client_id || null
-
-      console.log('[Reports] user:', user.id, '| cu:', cu, '| cuErr:', cuErr?.message, '| clientId:', clientId)
-
-      if (cu) {
-        setCredits(cu.allocated_credits)
-        setCompanyName((cu as any).clients?.company_name || '')
-      }
 
       if (clientId) {
         const { data: b, error: bErr } = await supabase.from('briefs').select('*').eq('client_id', clientId).order('created_at', { ascending: false })
@@ -209,6 +200,7 @@ export default function ClientReportsPage() {
           <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} />
         </div>
         <div style={{margin:'12px 12px',padding:'16px 20px',background:'rgba(29,184,29,0.06)',borderLeft:'3px solid #1DB81D'}}>
+          <span style={{display:'inline-block',padding:'2px 8px',background:'rgba(29,184,29,0.15)',color:'#1db81d',fontSize:'9px',fontWeight:600,letterSpacing:'1px',marginBottom:'6px'}}>{customizationTier === 'corporate' ? 'KURUMSAL' : customizationTier === 'advanced' ? 'ADVANCED' : 'BASIC'}</span>
           <div style={{fontSize:'18px',fontWeight:'700',color:'#fff',marginBottom:'2px'}}>{companyName || 'Dinamo'}</div>
           <div style={{fontSize:'13px',fontWeight:'400',color:'#888',marginBottom:'12px'}}>{userName}</div>
           <div style={{fontSize:'10px',color:'#AAA',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:'8px'}}>KREDİ BAKİYESİ</div>

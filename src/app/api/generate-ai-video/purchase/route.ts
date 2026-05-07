@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { logActivity } from '@/lib/activity-logger'
+import { getCreditCost } from '@/lib/credits-server'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -15,11 +16,12 @@ export async function POST(request: Request) {
     const { data: brief } = await supabase.from('briefs').select('ai_video_url').eq('id', briefId).single()
     if (!brief?.ai_video_url) return NextResponse.json({ error: 'Video bulunamadı' }, { status: 404 })
 
+    const cost = await getCreditCost('credit_ai_express', 1)
     const { data: cu } = await supabase.from('client_users').select('id, allocated_credits').eq('user_id', userId).single()
     if (!cu) return NextResponse.json({ error: 'Kullanıcı bulunamadı' }, { status: 404 })
-    if ((cu.allocated_credits || 0) < 2) return NextResponse.json({ error: 'Yetersiz kredi' }, { status: 400 })
+    if ((cu.allocated_credits || 0) < cost) return NextResponse.json({ error: 'Yetersiz kredi' }, { status: 400 })
 
-    await supabase.from('client_users').update({ allocated_credits: (cu.allocated_credits || 0) - 2 }).eq('id', cu.id)
+    await supabase.from('client_users').update({ allocated_credits: (cu.allocated_credits || 0) - cost }).eq('id', cu.id)
 
     await supabase.from('video_submissions').insert({
       brief_id: briefId,

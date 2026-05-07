@@ -130,6 +130,12 @@ export default function SettingsPage() {
     { key: 'credit_extra_format', label: 'Ekstra format kredi değeri', type: 'number', unit: 'kredi' },
     { key: 'credit_revision', label: 'Müşteri revizyon kredi değeri', type: 'number', unit: 'kredi' },
     { key: 'credit_voiceover_real', label: 'Profesyonel seslendirme kredi değeri', type: 'number', unit: 'kredi' },
+    { key: 'credit_ai_express', label: 'AI Express kredi değeri', type: 'number', unit: 'kredi' },
+    { key: 'credit_ai_ugc', label: 'AI Persona kredi değeri', type: 'number', unit: 'kredi' },
+    { key: 'ai_express_global_enabled', label: 'AI Express global aktif', type: 'toggle' },
+    { key: 'ugc_global_enabled', label: 'Persona global aktif', type: 'toggle' },
+    { key: 'prices_visible', label: 'Anasayfada fiyatları göster', type: 'toggle' },
+    { key: 'advanced_customization_price', label: 'Advanced Customization fiyatı', type: 'number', unit: 'TL' },
   ]
 
   return (
@@ -194,27 +200,6 @@ export default function SettingsPage() {
               </div>
             )
           })}
-          {/* New package form */}
-          <div style={{padding:'16px 24px',borderTop:'1px solid #e8e7e3',background:'#fafaf8',display:'flex',alignItems:'center',gap:'12px'}}>
-            <div>
-              <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',marginBottom:'4px'}}>İsim</div>
-              <input value={newPkg.name} onChange={e=>setNewPkg({...newPkg,name:e.target.value})} placeholder="Paket adı"
-                style={{width:'120px',padding:'7px 10px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a'}} />
-            </div>
-            <div>
-              <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',marginBottom:'4px'}}>Kredi</div>
-              <input type="number" value={newPkg.credits} onChange={e=>setNewPkg({...newPkg,credits:e.target.value})} placeholder="0"
-                style={{width:'80px',padding:'7px 10px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a',textAlign:'right'}} />
-            </div>
-            <div>
-              <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',marginBottom:'4px'}}>Fiyat (TL)</div>
-              <input type="number" value={newPkg.price_tl} onChange={e=>setNewPkg({...newPkg,price_tl:e.target.value})} placeholder="0"
-                style={{width:'120px',padding:'7px 10px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'13px',color:'#0a0a0a',textAlign:'right'}} />
-            </div>
-            <button onClick={addPkg} disabled={!newPkg.name||!newPkg.credits} style={{padding:'7px 18px',background:'#1db81d',color:'#fff',border:'none',borderRadius:'6px',fontSize:'11px',cursor:'pointer',fontWeight:'500',marginTop:'16px',opacity:!newPkg.name||!newPkg.credits?0.4:1}}>
-              Yeni Paket Ekle
-            </button>
-          </div>
         </div>
         {/* ADMIN KULLANICILARI */}
         {(['admin', 'producer'] as const).map(role => {
@@ -307,15 +292,15 @@ export default function SettingsPage() {
         </div>
 
         {/* AI EXPRESS RULES MODAL */}
-        {/* AI UGC GLOBAL KURALLAR (BETA) */}
+        {/* AI Persona GLOBAL KURALLAR (BETA) */}
         <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',overflow:'hidden',marginTop:'16px'}}>
           <div style={{padding:'20px 24px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
             <div>
               <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'6px'}}>
-                <div style={{fontSize:'12px',color:'rgba(255,255,255,0.4)',letterSpacing:'1px',fontFamily:'monospace'}}>AI UGC GLOBAL KURALLAR</div>
+                <div style={{fontSize:'12px',color:'rgba(255,255,255,0.4)',letterSpacing:'1px',fontFamily:'monospace'}}>AI Persona GLOBAL KURALLAR</div>
                 <span style={{fontSize:'9px',letterSpacing:'1px',padding:'2px 6px',background:'rgba(245,158,11,0.1)',border:'1px solid #f59e0b',color:'#92400e'}}>BETA</span>
               </div>
-              <div style={{fontSize:'13px',color:'#888'}}>UGC video üretimi kuralları. Çıktılara göre revize edilecek.</div>
+              <div style={{fontSize:'13px',color:'#888'}}>Persona video üretimi kuralları. Çıktılara göre revize edilecek.</div>
             </div>
             <button onClick={()=>setUgcRulesModalOpen(true)} className="btn btn-outline" style={{padding:'8px 16px',fontSize:'11px',flexShrink:0}}>GÖRÜNTÜLE →</button>
           </div>
@@ -327,7 +312,7 @@ export default function SettingsPage() {
             <div onClick={e=>e.stopPropagation()} style={{background:'#fff',border:'1px solid #0a0a0a',width:'100%',maxWidth:'800px',maxHeight:'90vh',display:'flex',flexDirection:'column'}}>
               <div style={{padding:'16px 24px',borderBottom:'1px solid #e5e4db',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
                 <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
-                  <div style={{fontSize:'14px',fontWeight:'500',letterSpacing:'1.5px',textTransform:'uppercase',color:'#0a0a0a'}}>AI UGC GLOBAL KURALLAR</div>
+                  <div style={{fontSize:'14px',fontWeight:'500',letterSpacing:'1.5px',textTransform:'uppercase',color:'#0a0a0a'}}>AI Persona GLOBAL KURALLAR</div>
                   <span style={{fontSize:'9px',letterSpacing:'1px',padding:'2px 6px',background:'rgba(245,158,11,0.1)',border:'1px solid #f59e0b',color:'#92400e'}}>BETA</span>
                 </div>
                 <button onClick={()=>setUgcRulesModalOpen(false)} style={{width:'28px',height:'28px',border:'1px solid #e5e4db',background:'#fff',color:'#0a0a0a',fontSize:'14px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>×</button>
@@ -342,7 +327,7 @@ export default function SettingsPage() {
                   <pre style={{background:'#f5f4f0',padding:'14px',fontSize:'12px',color:'#0a0a0a',overflow:'auto',whiteSpace:'pre-wrap',wordBreak:'break-word',lineHeight:1.6,margin:0,border:'1px solid #e5e4db'}}>{UGC_NEGATIVE_PROMPT}</pre>
                 </div>
                 <div>
-                  <div style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'4px',fontWeight:'500'}}>UGC SYSTEM PROMPT (CLAUDE)</div>
+                  <div style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'4px',fontWeight:'500'}}>PERSONA SYSTEM PROMPT (CLAUDE)</div>
                   <div style={{fontSize:'11px',color:'#888',marginBottom:'8px'}}>Script ve Veo prompt üretimi için Claude talimatı</div>
                   <pre style={{background:'#f5f4f0',padding:'14px',fontSize:'11px',color:'#0a0a0a',overflow:'auto',whiteSpace:'pre-wrap',wordBreak:'break-word',lineHeight:1.7,margin:0,border:'1px solid #e5e4db',maxHeight:'400px'}}>{UGC_SYSTEM_PROMPT}</pre>
                 </div>

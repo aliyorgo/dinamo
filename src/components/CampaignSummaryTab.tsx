@@ -59,8 +59,9 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
   // TODO: CPS child görsel üretimi sonraki fazda — cpsChildren.filter(c => c.static_image_files) eklenecek
 
   const totalCredits = (brief.credit_cost || 0) +
-    aiChildren.length + deliveredAi.length * 2 +
-    cpsChildren.reduce((s: number, c: any) => s + (c.credit_cost || 0), 0)
+    aiChildren.reduce((s: number, c: any) => s + (c.credit_cost || 0), 0) +
+    cpsChildren.reduce((s: number, c: any) => s + (c.credit_cost || 0), 0) +
+    ugcVideos.reduce((s: number, v: any) => s + (v.credit_cost || 0), 0)
 
   function copyLink() {
     const url = `${window.location.origin}/share/${brief.id}`
@@ -93,7 +94,7 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
             {menuOpen === id && (
               <div style={{ position: 'absolute', top: '100%', right: 0, background: '#fff', border: '1px solid #0a0a0a', padding: '4px', zIndex: 100, minWidth: '180px' }}
                 onMouseLeave={() => setMenuOpen(null)}>
-                <div onClick={() => { generateCertificatePDF(brief, companyName); setMenuOpen(null) }}
+                <div onClick={() => { generateCertificatePDF(brief, companyName, (brief as any)?.clients?.legal_name); setMenuOpen(null) }}
                   style={{ padding: '8px 14px', fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', cursor: 'pointer', transition: 'background 0.1s' }}
                   onMouseEnter={e => { e.currentTarget.style.background = '#fafaf7' }} onMouseLeave={e => { e.currentTarget.style.background = '#fff' }}>
                   TELİF BELGESİ İNDİR
@@ -217,13 +218,13 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
               </div>
             )}
 
-            {/* AI UGC Videos */}
+            {/* AI Persona Videos */}
             {ugcVideos.length > 0 && (
               <div style={{ marginBottom: '28px' }}>
-                <div style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '10px' }}>AI UGC · {ugcVideos.length} video</div>
+                <div style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '10px' }}>AI PERSONA · {ugcVideos.length} video</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '16px' }}>
                   {ugcVideos.map((v: any, i: number) => (
-                    <VideoThumb key={v.id} id={`ugc-${v.id}`} url={v.final_url} label={`V${i + 1} — ${v.personas?.name || 'UGC'}`} />
+                    <VideoThumb key={v.id} id={`ugc-${v.id}`} url={v.final_url} label={`V${i + 1} — ${v.personas?.name || 'Persona'}`} />
                   ))}
                 </div>
               </div>

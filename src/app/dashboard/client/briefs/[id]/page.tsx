@@ -10,8 +10,22 @@ import VideoLoadingBox from '@/components/VideoLoadingBox'
 import { logClientActivity } from '@/lib/log-client'
 import AIUGCTab from '@/components/AIUGCTab'
 import { downloadFile } from '@/lib/download-helper'
+import { useCredits } from '@/lib/credits'
+import { useClientContext } from '../../layout'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+
+function formatDuration(start: string | null, end: string | null): string | null {
+  if (!start || !end) return null
+  const norm = (d: string) => d.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(d) ? d : d + 'Z'
+  const seconds = Math.floor((new Date(norm(end)).getTime() - new Date(norm(start)).getTime()) / 1000)
+  if (seconds <= 0) return null
+  const min = Math.floor(seconds / 60)
+  const sec = seconds % 60
+  if (min === 0) return `${sec} sn'de üretildi`
+  if (sec === 0) return `${min} dk'da üretildi`
+  return `${min} dk ${sec} sn'de üretildi`
+}
 
 function slugify(s: string) {
   const m: Record<string,string> = {'ğ':'g','ü':'u','ş':'s','ı':'i','ö':'o','ç':'c','Ğ':'G','Ü':'U','Ş':'S','İ':'I','Ö':'O','Ç':'C'}
@@ -47,8 +61,7 @@ const PRODUCT_STAGES = [
   { key: 'processing_merge', label: 'Birleştiriliyor', duration: 30 },
   { key: 'uploading', label: 'Yükleniyor', duration: 60 },
 ]
-const REVISION_COST = 4
-const BASE_COSTS: Record<string,number> = {'Bumper / Pre-roll':12,'Story / Reels':18,'Feed Video':24,'Long Form':36}
+const FALLBACK_COSTS: Record<string,number> = {'Bumper / Pre-roll':6,'Story / Reels':12,'Feed Video':20,'Long Form':30}
 const VIDEO_TYPES = ['Bumper / Pre-roll','Story / Reels','Feed Video','Long Form']
 
 export default function ClientBriefDetailWrapper() {
@@ -58,14 +71,19 @@ export default function ClientBriefDetailWrapper() {
 function ClientBriefDetail() {
   const params = useParams()
   const router = useRouter()
+  const { customizationTier } = useClientContext()
   const searchParams = useSearchParams()
   const id = params.id as string
+  const { credits: creditSettings, flags: featureFlags } = useCredits()
+  const baseCosts: Record<string,number> = creditSettings ? { 'Bumper / Pre-roll': creditSettings.credit_bumper, 'Story / Reels': creditSettings.credit_story, 'Feed Video': creditSettings.credit_feed, 'Long Form': creditSettings.credit_longform } : FALLBACK_COSTS
+  const revisionCost = creditSettings?.credit_revision || 4
   const [brief, setBrief] = useState<any>(null)
   const [questions, setQuestions] = useState<any[]>([])
   const [answers, setAnswers] = useState<Record<string,string>>({})
   const [videos, setVideos] = useState<any[]>([])
   const [clientUser, setClientUser] = useState<any>(null)
   const [companyName, setCompanyName] = useState('')
+  const [legalName, setLegalName] = useState('')
   const [userName, setUserName] = useState('')
   const [revisionNote, setRevisionNote] = useState('')
   const [revisionCount, setRevisionCount] = useState(0)
@@ -79,10 +97,6 @@ function ClientBriefDetail() {
   const [currentTime, setCurrentTime] = useState(0)
   const [showApproveModal, setShowApproveModal] = useState(false)
   const [approveSuccess, setApproveSuccess] = useState(false)
-  const [showReorderModal, setShowReorderModal] = useState(false)
-  const [reordering, setReordering] = useState(false)
-  const [reorderType, setReorderType] = useState('')
-  const [reorderSuccess, setReorderSuccess] = useState(false)
   const [captionText, setCaptionText] = useState('')
   const [savedCaption, setSavedCaption] = useState('')
   const [captionLoading, setCaptionLoading] = useState(false)
@@ -219,12 +233,13 @@ function ClientBriefDetail() {
     if (!user) return
     const { data: userData } = await supabase.from('users').select('name').eq('id', user.id).single()
     setUserName(userData?.name || '')
-    const { data: cu } = await supabase.from('client_users').select('*, clients(company_name, credit_balance, packshot_url, ai_express_settings)').eq('user_id', user.id).single()
+    const { data: cu } = await supabase.from('client_users').select('*, clients(company_name, credit_balance, packshot_url, ai_express_settings, legal_name)').eq('user_id', user.id).single()
     setClientUser(cu)
     setCompanyName((cu as any)?.clients?.company_name || '')
+    setLegalName((cu as any)?.clients?.legal_name || '')
     const pUrl = (cu as any)?.clients?.packshot_url || ''
     setClientPackshotUrl(pUrl)
-    const { data: b } = await supabase.from('briefs').select('*, clients(ai_video_enabled)').eq('id', id).single()
+    const { data: b } = await supabase.from('briefs').select('*, clients(ai_video_enabled, ugc_enabled)').eq('id', id).single()
     setBrief(b)
     if (b?.caption) { setCaptionText(b.caption); setSavedCaption(b.caption) }
     // AI Express settings — client-level (brand settings, not per-brief)
@@ -245,7 +260,7 @@ function ClientBriefDetail() {
     // AI clones for this campaign (root_campaign_id based)
     const rootId = b?.root_campaign_id || b?.id
     const { data: aiKids } = await supabase.from('briefs')
-      .select('id, campaign_name, status, ai_video_status, ai_video_url, ai_video_error, product_image_url, created_at, ai_feedbacks, static_images_url, static_image_files, ai_express_viewed_at, ai_express_settings_snapshot, ai_feedback_summary')
+      .select('id, campaign_name, status, ai_video_status, ai_video_url, ai_video_error, product_image_url, created_at, completed_at, ai_feedbacks, static_images_url, static_image_files, ai_express_viewed_at, ai_express_settings_snapshot, ai_feedback_summary')
       .eq('root_campaign_id', rootId)
       .like('campaign_name', '%Full AI%')
       .order('created_at', { ascending: true })
@@ -351,7 +366,7 @@ function ClientBriefDetail() {
 
   async function handleAiPurchase() {
     if (!clientUser || !brief?.ai_video_url) return
-    if ((clientUser.allocated_credits || 0) < 2) { setAiError('Yetersiz kredi'); return }
+    if ((clientUser.allocated_credits || 0) < (creditSettings?.credit_ai_express || 1)) { setAiError('Yetersiz kredi'); return }
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
     const res = await fetch('/api/generate-ai-video/purchase', {
@@ -361,7 +376,7 @@ function ClientBriefDetail() {
     })
     const result = await res.json()
     if (result.error) { setAiError(result.error); return }
-    setClientUser({ ...clientUser, allocated_credits: (clientUser.allocated_credits || 0) - 2 })
+    setClientUser({ ...clientUser, allocated_credits: (clientUser.allocated_credits || 0) - (creditSettings?.credit_ai_express || 1) })
     setBrief((prev: any) => ({ ...prev, status: 'delivered' }))
     loadData()
   }
@@ -373,12 +388,16 @@ function ClientBriefDetail() {
 
   async function handleStudioGenerate(mode: 'character' | 'product' = 'character') {
     if (!clientUser || !brief || aiGenerating) return
-    if ((clientUser.allocated_credits || 0) < 1) { setAiError('Yetersiz kredi'); return }
+    const completedCount = aiChildren.filter(c => c.ai_video_status === 'completed' || c.status === 'delivered').length
+    const generateCost = completedCount === 0 ? 0 : (creditSettings?.credit_ai_express_generate || 1)
+    if (generateCost > 0 && (clientUser.allocated_credits || 0) < generateCost) { setAiError('Yetersiz kredi'); return }
     setAiGenerating(true)
     setShowAiGenerate(false)
-    const newCredits = (clientUser.allocated_credits || 0) - 1
-    await supabase.from('client_users').update({ allocated_credits: newCredits }).eq('id', clientUser.id)
-    setClientUser({ ...clientUser, allocated_credits: newCredits })
+    if (generateCost > 0) {
+      const newCredits = (clientUser.allocated_credits || 0) - generateCost
+      await supabase.from('client_users').update({ allocated_credits: newCredits }).eq('id', clientUser.id)
+      setClientUser({ ...clientUser, allocated_credits: newCredits })
+    }
     const baseName = brief.campaign_name?.replace(/\s*—\s*Full AI #\d+$/, '').replace(/\s*—\s*\d+$/, '') || brief.campaign_name
     const rootId = brief.root_campaign_id || id
     const { count } = await supabase.from('briefs').select('id', { count: 'exact', head: true }).eq('root_campaign_id', rootId).like('campaign_name', '%Full AI%')
@@ -394,7 +413,7 @@ function ClientBriefDetail() {
       product_image_url: mode === 'product' ? (brief.product_image_url || null) : null,
       pipeline_type: mode,
       brief_type: 'express_clone',
-      credit_cost: 1, client_id: brief.client_id, client_user_id: brief.client_user_id,
+      credit_cost: generateCost, client_id: brief.client_id, client_user_id: brief.client_user_id,
       root_campaign_id: brief.root_campaign_id || id,
       status: 'ai_processing', ai_video_status: 'processing_concept',
     }).select('id, campaign_name, status, ai_video_status, ai_video_url, created_at, product_image_url').single()
@@ -409,7 +428,7 @@ function ClientBriefDetail() {
 
   async function handleStudioPurchase(childBrief: any) {
     if (!clientUser || !childBrief?.ai_video_url) return
-    if ((clientUser.allocated_credits || 0) < 2) { setAiError('Yetersiz kredi'); return }
+    if ((clientUser.allocated_credits || 0) < (creditSettings?.credit_ai_express || 1)) { setAiError('Yetersiz kredi'); return }
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
     const res = await fetch('/api/generate-ai-video/purchase', {
@@ -418,7 +437,7 @@ function ClientBriefDetail() {
     })
     const result = await res.json()
     if (result.error) { setAiError(result.error); return }
-    setClientUser({ ...clientUser, allocated_credits: (clientUser.allocated_credits || 0) - 2 })
+    setClientUser({ ...clientUser, allocated_credits: (clientUser.allocated_credits || 0) - (creditSettings?.credit_ai_express || 1) })
     setAiChildren(prev => prev.map(c => c.id === childBrief.id ? { ...c, status: 'delivered' } : c))
     loadData()
   }
@@ -454,34 +473,7 @@ function ClientBriefDetail() {
   }
 
   function handleCertificateDownload() {
-    if (brief) generateCertificatePDF(brief, companyName)
-  }
-
-  async function handleReorder() {
-    if (!brief || !clientUser || !reorderType) return
-    setReordering(true)
-    const fullCost = BASE_COSTS[reorderType] || 12
-    const halfCost = Math.ceil(fullCost / 2)
-    if (clientUser.allocated_credits < halfCost) { setReordering(false); return }
-    const baseName = brief.campaign_name.replace(/\s*—\s*\d+$/, '').replace(/\s*—\s*Full AI #\d+$/, '')
-    const rootId = brief.root_campaign_id || id
-    const { count } = await supabase.from('briefs').select('id', { count: 'exact', head: true }).eq('root_campaign_id', rootId).not('campaign_name', 'like', '%Full AI%')
-    const copyNum = (count || 0) + 1
-    const newName = `${baseName} — ${copyNum}`
-    await supabase.from('client_users').update({ credit_balance: clientUser.allocated_credits - halfCost }).eq('id', clientUser.id)
-    await supabase.from('credit_transactions').insert({ client_id: brief.client_id, client_user_id: clientUser.id, amount: -halfCost, type: 'deduct', description: `${newName} (tekrar sipariş)` })
-    await supabase.from('briefs').insert({
-      client_id: brief.client_id, client_user_id: brief.client_user_id,
-      campaign_name: newName,
-      video_type: reorderType, format: brief.format, message: brief.message,
-      cta: brief.cta, target_audience: brief.target_audience,
-      voiceover_type: brief.voiceover_type, voiceover_gender: brief.voiceover_gender,
-      voiceover_text: brief.voiceover_text, notes: brief.notes,
-      status: 'submitted', credit_cost: halfCost,
-      root_campaign_id: brief.root_campaign_id || id,
-    })
-    setReordering(false)
-    setReorderSuccess(true)
+    if (brief) generateCertificatePDF(brief, companyName, legalName)
   }
 
   async function handleAnswer(qId: string) {
@@ -506,9 +498,9 @@ function ClientBriefDetail() {
     setLoading(true)
     setMsg('')
     if (revisionCount >= 1) {
-      if (clientUser.allocated_credits < REVISION_COST) { setMsg(`Yetersiz kredi. Bu revizyon için ${REVISION_COST} kredi gerekiyor.`); setLoading(false); return }
-      await supabase.from('client_users').update({ credit_balance: clientUser.allocated_credits - REVISION_COST }).eq('id', clientUser.id)
-      await supabase.from('credit_transactions').insert({ client_id: brief.client_id, client_user_id: clientUser.id, brief_id: id, amount: -REVISION_COST, type: 'deduct', description: `${brief.campaign_name} — ${revisionCount+1}. revizyon` })
+      if (clientUser.allocated_credits < revisionCost) { setMsg(`Yetersiz kredi. Bu revizyon için ${revisionCost} kredi gerekiyor.`); setLoading(false); return }
+      await supabase.from('client_users').update({ credit_balance: clientUser.allocated_credits - revisionCost }).eq('id', clientUser.id)
+      await supabase.from('credit_transactions').insert({ client_id: brief.client_id, client_user_id: clientUser.id, brief_id: id, amount: -revisionCost, type: 'deduct', description: `${brief.campaign_name} — ${revisionCount+1}. revizyon` })
     }
     // Delete unpaid earnings for this brief
     const { data: existingEarnings } = await supabase.from('creator_earnings').select('id, paid').eq('brief_id', id)
@@ -524,7 +516,7 @@ function ClientBriefDetail() {
     logClientActivity({ actionType: 'video.revision_requested', userName, clientName: companyName, clientId: brief.client_id, targetType: 'brief', targetId: id, targetLabel: brief.campaign_name, metadata: { feedback: revisionNote.substring(0, 80) } })
     if (revisionNote.length > 20) fetch('/api/brand-learning', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ clientId: brief.client_id, sourceType: 'revision', sourceId: id, text: revisionNote }) }).catch(() => {})
     setRevisionNote('')
-    setMsg(revisionCount === 0 ? 'Revizyon talebiniz gönderildi (ücretsiz).' : `Revizyon talebiniz gönderildi (${REVISION_COST} kredi düşüldü).`)
+    setMsg(revisionCount === 0 ? 'Revizyon talebiniz gönderildi (ücretsiz).' : `Revizyon talebiniz gönderildi (${revisionCost} kredi düşüldü).`)
     loadData()
     setLoading(false)
   }
@@ -662,31 +654,6 @@ function ClientBriefDetail() {
 
   const inputStyle: React.CSSProperties = { width:'100%', boxSizing:'border-box', background:'#fff', border:'0.5px solid rgba(0,0,0,0.12)', borderRadius:'10px', padding:'10px 14px', fontSize:'13px', color:'#0a0a0a',  outline:'none' }
 
-  if (reorderSuccess) {
-    const baseName = brief?.campaign_name?.replace(/\s*—\s*\d+$/, '') || ''
-    return (
-      <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'#0a0a0a',}}>
-        <div style={{textAlign:'center',maxWidth:'520px',padding:'0 24px'}}>
-          <div style={{fontSize:'28px',fontWeight:'500',color:'#fff',letterSpacing:'-0.5px',marginBottom:'32px'}}>
-            <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} />
-          </div>
-          <div style={{fontSize:'36px',fontWeight:'300',color:'#fff',letterSpacing:'-1px',marginBottom:'12px'}}>Brief'iniz alındı.</div>
-          <div style={{fontSize:'18px',fontWeight:'300',color:'#fff',fontStyle:'italic',marginBottom:'24px'}}>"{baseName}"</div>
-          <div style={{fontSize:'15px',color:'rgba(255,255,255,0.45)',lineHeight:1.8,marginBottom:'24px',maxWidth:'480px',margin:'0 auto 24px'}}>
-            Ekibimiz en kısa sürede incelemeye başlayacak. Sorularımız olursa platform üzerinden iletişime geçeceğiz. Videonuz hazır olduğunda bildirim alacaksınız.
-          </div>
-          <div style={{display:'inline-block',padding:'6px 16px',borderRadius:'100px',background:'rgba(34,197,94,0.1)',border:'1px solid rgba(34,197,94,0.2)',fontSize:'13px',color:'#22c55e',fontWeight:'400',marginBottom:'36px'}}>
-            Tahmini teslim süresi: 24 saat
-          </div>
-          <div style={{display:'flex',gap:'12px',justifyContent:'center'}}>
-            <a href="/dashboard/client" style={{padding:'13px 28px',borderRadius:'10px',border:'1px solid rgba(255,255,255,0.15)',background:'transparent',color:'#fff',fontSize:'14px',fontWeight:'400',textDecoration:'none',}}>Tüm Projelerim</a>
-            <a href="/dashboard/client/brief/new" style={{padding:'13px 28px',borderRadius:'10px',background:'#22c55e',color:'#fff',fontSize:'14px',fontWeight:'500',textDecoration:'none',}}>Yeni Brief</a>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div style={{display:'flex',minHeight:'100vh',}}>
       <style>{`
@@ -702,6 +669,7 @@ function ClientBriefDetail() {
           <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} />
         </div>
         <div style={{margin:'12px 12px',padding:'16px 20px',background:'rgba(29,184,29,0.06)',borderLeft:'3px solid #1DB81D'}}>
+          <span style={{display:'inline-block',padding:'2px 8px',background:'rgba(29,184,29,0.15)',color:'#1db81d',fontSize:'9px',fontWeight:600,letterSpacing:'1px',marginBottom:'6px'}}>{customizationTier === 'corporate' ? 'KURUMSAL' : customizationTier === 'advanced' ? 'ADVANCED' : 'BASIC'}</span>
           <div style={{fontSize:'18px',fontWeight:'700',color:'#fff',marginBottom:'2px'}}>{companyName || 'Dinamo'}</div>
           <div style={{fontSize:'13px',fontWeight:'400',color:'#888',marginBottom:'12px'}}>{userName}</div>
           <div style={{fontSize:'10px',color:'#AAA',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:'8px'}}>KREDİ BAKİYESİ</div>
@@ -752,11 +720,13 @@ function ClientBriefDetail() {
         <div style={{display:'flex',gap:0,background:'#fff',paddingLeft:'28px',borderBottom:'1px solid rgba(0,0,0,0.08)'}}>
           {(() => {
             const hasSummary = aiChildren.length > 0 || cpsChildren.length > 0 || !!brief?.static_images_url || ugcVideosForSummary.length > 0
+            const expressVisible = brief?.clients?.ai_video_enabled !== false && featureFlags.aiExpressGlobal
+            const ugcVisible = brief?.clients?.ugc_enabled !== false && featureFlags.ugcGlobal
             const tabs = [
               {key:'hybrid' as const, label:'Ana Video'},
               {key:'cps' as const, label:'CPS'},
-              {key:'express' as const, label:'AI Express'},
-              {key:'ugc' as const, label:'AI UGC'},
+              ...(expressVisible ? [{key:'express' as const, label:'AI Express'}] : []),
+              ...(ugcVisible ? [{key:'ugc' as const, label:'AI Persona'}] : []),
               ...(hasSummary ? [{key:'summary' as const, label:'Kampanya Özeti'}] : []),
             ]
             return tabs.map((t,ti)=>{
@@ -886,10 +856,10 @@ function ClientBriefDetail() {
                         <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a',marginBottom:'6px'}}>AI Video Hazır</div>
                         <div style={{fontSize:'12px',color:'#888',marginBottom:'20px',lineHeight:1.6}}>Videoyu beğendiyseniz satın alabilirsiniz.</div>
                         <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'8px'}}>
-                          <button onClick={handleAiPurchase} disabled={(clientUser?.allocated_credits||0)<2} className="btn btn-accent" style={{padding:'12px 24px'}}>
+                          <button onClick={handleAiPurchase} disabled={(clientUser?.allocated_credits||0)<(creditSettings?.credit_ai_express||1)} className="btn btn-accent" style={{padding:'12px 24px'}}>
                             SATIN AL
                           </button>
-                          <span style={{fontSize:'13px',color:'#888'}}>2 kredi</span>
+                          <span style={{fontSize:'13px',color:'#888'}}>{creditSettings?.credit_ai_express||1} kredi</span>
                         </div>
                         <button onClick={handleAiDiscard}
                           style={{width:'100%',padding:'10px',background:'#fff',color:'#555',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'10px',fontSize:'12px',cursor:'pointer',}}>
@@ -1010,7 +980,7 @@ function ClientBriefDetail() {
                           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'10px'}}>
                             <div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>Revizyon İste</div>
                             <span style={{fontSize:'10px',padding:'3px 10px',borderRadius:'100px',background:revisionCount===0?'rgba(34,197,94,0.1)':'rgba(245,158,11,0.1)',color:revisionCount===0?'#22c55e':'#f59e0b',fontWeight:'500'}}>
-                              {revisionCount===0?'İlk revizyon ücretsiz':`${REVISION_COST} kredi`}
+                              {revisionCount===0?'İlk revizyon ücretsiz':`${revisionCost} kredi`}
                             </span>
                           </div>
                           <form onSubmit={handleRevision}>
@@ -1147,7 +1117,7 @@ function ClientBriefDetail() {
                   <div style={{fontSize:'11px',color:'#888',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'12px'}}>Revizyon Geçmişi</div>
                   {clientRevisions.map((r,i)=>(
                     <div key={r.id} style={{padding:'10px 14px',background:'#f5f4f0',borderRadius:'8px',marginBottom:'6px'}}>
-                      <div style={{fontSize:'11px',color:'#888',fontWeight:'500',marginBottom:'4px'}}>{i+1}. revizyon{i===0?' (ücretsiz)':` (${REVISION_COST} kredi)`}</div>
+                      <div style={{fontSize:'11px',color:'#888',fontWeight:'500',marginBottom:'4px'}}>{i+1}. revizyon{i===0?' (ücretsiz)':` (${revisionCost} kredi)`}</div>
                       <div style={{fontSize:'13px',color:'#0a0a0a'}}>{r.question.replace('REVİZYON: ','')}</div>
                     </div>
                   ))}
@@ -1418,7 +1388,7 @@ function ClientBriefDetail() {
                             {isFailed && <span style={{fontSize:'9px',color:'#ef4444',fontWeight:'500'}}>Başarısız</span>}
                             {child.ai_express_settings_snapshot && (() => { const s = child.ai_express_settings_snapshot; const badges = []; if (s.logo) badges.push('LOGO'); if (s.cta) badges.push('CTA'); if (s.packshot) badges.push('PACKSHOT'); return badges.length > 0 ? <span style={{display:'inline-flex',gap:'4px',marginLeft:'6px'}}>{badges.map((b: string)=><span key={b} style={{fontSize:'9px',padding:'2px 6px',background:'#f5f4f0',color:'#888',letterSpacing:'0.5px',fontWeight:600}}>{b}</span>)}</span> : null })()}
                           </div>
-                          <div style={{fontSize:'11px',color:'#888',marginBottom:'10px'}}>{new Date(child.created_at).toLocaleDateString('tr-TR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
+                          <div style={{fontSize:'11px',color:'#888',marginBottom:'10px'}}>{new Date(child.created_at).toLocaleDateString('tr-TR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}{child.completed_at && <><span style={{margin:'0 8px',color:'#ccc'}}>|</span><span style={{color:'#aaa'}}>{formatDuration(child.created_at, child.completed_at)}</span></>}</div>
                           {isFailed && (
                             <div style={{display:'flex',gap:'6px',marginBottom:'10px'}}>
                               <button onClick={async ()=>{
@@ -1447,7 +1417,7 @@ function ClientBriefDetail() {
                                     <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M8 2v9M4 8l4 4 4-4" stroke="#0a0a0a" strokeWidth="1.5" strokeLinecap="round"/><path d="M2 13h12" stroke="#0a0a0a" strokeWidth="1.5" strokeLinecap="round"/></svg>
                                     İndir
                                   </button>
-                                  <button onClick={()=>generateCertificatePDF(brief, companyName)}
+                                  <button onClick={()=>generateCertificatePDF(brief, companyName, legalName)}
                                     style={{fontSize:'11px',color:'#555',background:'none',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'6px',padding:'5px 12px',cursor:'pointer',}}>
                                     Telif Belgesi
                                   </button>
@@ -1465,10 +1435,10 @@ function ClientBriefDetail() {
                                 </>
                               ) : (
                                 <>
-                                  <button onClick={()=>handleStudioPurchase(child)} disabled={(clientUser?.allocated_credits||0)<2} className="btn btn-accent" style={{padding:'6px 16px'}}>
+                                  <button onClick={()=>handleStudioPurchase(child)} disabled={(clientUser?.allocated_credits||0)<(creditSettings?.credit_ai_express||1)} className="btn btn-accent" style={{padding:'6px 16px'}}>
                                     SATIN AL
                                   </button>
-                                  <span style={{fontSize:'13px',color:'#888'}}>2 kredi</span>
+                                  <span style={{fontSize:'13px',color:'#888'}}>{creditSettings?.credit_ai_express||1} kredi</span>
                                 </>
                               )}
                             </div>
@@ -1554,9 +1524,9 @@ function ClientBriefDetail() {
                           style={{width:'100%',padding:'14px',background:(clientUser?.allocated_credits||0)<1?'#ccc':'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'13px',fontWeight:'600',cursor:(clientUser?.allocated_credits||0)<1?'default':'pointer',transition:'background 0.15s',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}
                           onMouseEnter={e=>{if((clientUser?.allocated_credits||0)>=1)e.currentTarget.style.background='#1DB81D'}}
                           onMouseLeave={e=>{if((clientUser?.allocated_credits||0)>=1)e.currentTarget.style.background='#0a0a0a'}}>
-                          {aiChildren.length > 0 ? 'Yeni Versiyon Üret' : 'Full AI Video Üret'}
+                          {(() => { const cc = aiChildren.filter(c => c.ai_video_status === 'completed' || c.status === 'delivered').length; return cc === 0 ? 'ÜRET (ÜCRETSİZ)' : `Yeni Versiyon Üret (${creditSettings?.credit_ai_express_generate || 1} KREDİ)` })()}
                         </button>
-                        <div style={{fontSize:'13px',color:'#999',textAlign:'center',marginTop:'6px'}}>{aiChildren.length > 0 ? '~5 dakika · 1 kredi' : '~5 dakika · İlk deneme ücretsiz · 2 kredi satın alma'}</div>
+                        <div style={{fontSize:'13px',color:'#999',textAlign:'center',marginTop:'6px'}}>{aiChildren.length > 0 ? `~5 dakika · ${creditSettings?.credit_ai_express_generate || 1} kredi` : `~5 dakika · İlk deneme ücretsiz · ${creditSettings?.credit_ai_express || 1} kredi satın alma`}</div>
                       </div>
                     )}
                   </div>}
@@ -1738,7 +1708,7 @@ function ClientBriefDetail() {
                             {hasVideo && child.status === 'delivered' && (
                               <div style={{display:'flex',gap:'6px',marginTop:'auto'}}>
                                 <button onClick={()=>downloadFile(childVideo.video_url, `${child.campaign_name}.mp4`)} className="btn btn-outline" style={{flex:1,padding:'7px',fontSize:'10px'}}>İNDİR ↓</button>
-                                <button onClick={()=>generateCertificatePDF(brief, companyName)} className="btn btn-outline" style={{padding:'7px 10px',fontSize:'10px'}}>TELİF</button>
+                                <button onClick={()=>generateCertificatePDF(brief, companyName, legalName)} className="btn btn-outline" style={{padding:'7px 10px',fontSize:'10px'}}>TELİF</button>
                               </div>
                             )}
                           </div>
@@ -1855,83 +1825,6 @@ function ClientBriefDetail() {
           </div>
         </div>
       )}
-      {/* REORDER MODAL */}
-      {showReorderModal && brief && (() => {
-        const currentCost = BASE_COSTS[brief.video_type] || 12
-        const selectedCost = BASE_COSTS[reorderType] || 12
-        const halfCost = Math.ceil(selectedCost / 2)
-        const canAfford = clientUser && clientUser.allocated_credits >= halfCost
-        return (
-          <div style={{position:'fixed',inset:0,zIndex:150,display:'flex',alignItems:'center',justifyContent:'center',animation:'fadeIn 0.2s ease'}}
-            onClick={()=>setShowReorderModal(false)}>
-            <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.4)',backdropFilter:'blur(4px)'}} />
-            <div onClick={e=>e.stopPropagation()} style={{position:'relative',background:'#fff',borderRadius:'16px',padding:'32px',width:'100%',maxWidth:'440px',animation:'slideUp 0.3s ease'}}>
-              <div style={{textAlign:'center',marginBottom:'20px'}}>
-                <div style={{fontSize:'18px',fontWeight:'500',color:'#0a0a0a',marginBottom:'6px'}}>Aynı Brief'ten Yeni Video</div>
-                <div style={{fontSize:'13px',color:'#888'}}><strong style={{color:'#0a0a0a'}}>{brief.campaign_name}</strong></div>
-              </div>
-
-              {/* Video Type Selector */}
-              <div style={{marginBottom:'20px'}}>
-                <div style={{fontSize:'10px',color:'#888',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'8px'}}>Video Tipi</div>
-                <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
-                  {VIDEO_TYPES.map(vt => {
-                    const cost = BASE_COSTS[vt]
-                    const isSelected = reorderType === vt
-                    const isDisabled = cost > currentCost
-                    return (
-                      <div key={vt} style={{position:'relative'}}>
-                        <button
-                          onClick={() => !isDisabled && setReorderType(vt)}
-                          disabled={isDisabled}
-                          title={isDisabled ? 'Mevcut planınızda mevcut değil' : ''}
-                          style={{
-                            padding:'8px 14px',borderRadius:'100px',fontSize:'12px',fontWeight:'500',
-                            cursor:isDisabled?'not-allowed':'pointer',
-                            transition:'all 0.15s',
-                            border:isSelected?'1.5px solid #22c55e':isDisabled?'1px solid rgba(0,0,0,0.06)':'1px solid rgba(0,0,0,0.12)',
-                            background:isSelected?'#22c55e':isDisabled?'#f5f4f0':'#fff',
-                            color:isSelected?'#fff':isDisabled?'#ccc':'#555',
-                            opacity:isDisabled?0.5:1,
-                          }}>
-                          {vt} · {cost}kr
-                        </button>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-
-              {/* Cost Breakdown */}
-              <div style={{background:'#f5f4f0',borderRadius:'10px',padding:'14px',marginBottom:'20px'}}>
-                <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px',marginBottom:'6px'}}>
-                  <span style={{color:'#888'}}>Normal fiyat ({reorderType})</span>
-                  <span style={{color:'#0a0a0a'}}>{selectedCost} kredi</span>
-                </div>
-                <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px',marginBottom:'6px'}}>
-                  <span style={{color:'#888'}}>Tekrar sipariş (%50)</span>
-                  <span style={{color:'#22c55e',fontWeight:'500'}}>{halfCost} kredi</span>
-                </div>
-                <div style={{borderTop:'0.5px solid rgba(0,0,0,0.1)',paddingTop:'6px',marginTop:'6px',display:'flex',justifyContent:'space-between',fontSize:'13px'}}>
-                  <span style={{color:'#888'}}>Bakiyeniz</span>
-                  <span style={{color:canAfford?'#0a0a0a':'#ef4444',fontWeight:'500'}}>{clientUser?.credit_balance || 0} kredi</span>
-                </div>
-              </div>
-
-              {!canAfford && <div style={{fontSize:'12px',color:'#ef4444',marginBottom:'12px',textAlign:'center'}}>Yetersiz kredi.</div>}
-
-              <div style={{display:'flex',gap:'10px'}}>
-                <button onClick={()=>setShowReorderModal(false)} style={{flex:1,padding:'12px',background:'#f5f4f0',color:'#555',border:'none',borderRadius:'10px',fontSize:'14px',cursor:'pointer',}}>Vazgeç</button>
-                <button onClick={handleReorder} disabled={reordering || !canAfford}
-                  style={{flex:1,padding:'12px',background:'#111113',color:'#fff',border:'none',borderRadius:'10px',fontSize:'14px',fontWeight:'500',cursor:'pointer',opacity:canAfford?1:0.4}}>
-                  {reordering ? 'Oluşturuluyor...' : 'Onaylıyorum'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )
-      })()}
-
       {/* REGENERATE CONFIRM MODAL */}
       {showRegenerateConfirm && (
         <div onClick={() => setShowRegenerateConfirm(false)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.3)',backdropFilter:'blur(4px)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center'}}>

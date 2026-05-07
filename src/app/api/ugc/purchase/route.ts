@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { getCreditCost } from '@/lib/credits-server'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
@@ -17,18 +18,19 @@ export async function POST(req: NextRequest) {
   if (!clientUserId) return NextResponse.json({ error: 'Müşteri bilgisi bulunamadı' }, { status: 400 })
 
   // Credit check
+  const cost = await getCreditCost('credit_ai_ugc', 1)
   const { data: cu } = await supabase.from('client_users').select('allocated_credits').eq('id', clientUserId).single()
-  if (!cu || cu.allocated_credits < 1) return NextResponse.json({ error: 'Yetersiz kredi' }, { status: 402 })
+  if (!cu || cu.allocated_credits < cost) return NextResponse.json({ error: 'Yetersiz kredi' }, { status: 402 })
 
   // Deduct credit
-  await supabase.from('client_users').update({ allocated_credits: cu.allocated_credits - 1 }).eq('id', clientUserId)
+  await supabase.from('client_users').update({ allocated_credits: cu.allocated_credits - cost }).eq('id', clientUserId)
   await supabase.from('credit_transactions').insert({
     client_id: clientId,
     client_user_id: clientUserId,
     brief_id: video.brief_id,
-    amount: -1,
+    amount: -cost,
     type: 'deduct',
-    description: 'AI UGC satın alma',
+    description: 'AI Persona satın alma',
   })
 
   // Update video status

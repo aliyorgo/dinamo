@@ -6,6 +6,18 @@ import { useClientContext } from './layout'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
+function formatDuration(start: string | null, end: string | null): string | null {
+  if (!start || !end) return null
+  const norm = (d: string) => d.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(d) ? d : d + 'Z'
+  const seconds = Math.floor((new Date(norm(end)).getTime() - new Date(norm(start)).getTime()) / 1000)
+  if (seconds <= 0) return null
+  const min = Math.floor(seconds / 60)
+  const sec = seconds % 60
+  if (min === 0) return `${sec} sn`
+  if (sec === 0) return `${min} dk`
+  return `${min} dk ${sec} sn`
+}
+
 const statusLabel: Record<string,string> = {
   draft:'Taslak', submitted:'İnceleniyor', read:'İncelendi', in_production:'Üretimde',
   revision:'Revizyon', approved:'Onay Bekliyor', delivered:'Teslim Edildi', cancelled:'İptal Edildi',
@@ -36,7 +48,7 @@ function timeAgo(d: string) {
 
 export default function ClientDashboard() {
   const router = useRouter()
-  const { userName, companyName, credits, clientUserId, clientId } = useClientContext()
+  const { userName, companyName, credits, clientUserId, clientId, customizationTier } = useClientContext()
   const [briefs, setBriefs] = useState<any[]>([])
   const [videoMap, setVideoMap] = useState<Record<string,string>>({})
   const [aiChildrenMap, setAiChildrenMap] = useState<Record<string, any[]>>({})
@@ -69,7 +81,7 @@ export default function ClientDashboard() {
         if (allLookupIds.length > 0) {
           // Query by both root_campaign_id and parent_brief_id as fallback
           const { data: aiKids, error: aiErr } = await supabase.from('briefs')
-            .select('id, root_campaign_id, parent_brief_id, status, ai_video_status, ai_video_url, created_at, campaign_name, ai_express_viewed_at')
+            .select('id, root_campaign_id, parent_brief_id, status, ai_video_status, ai_video_url, created_at, completed_at, campaign_name, ai_express_viewed_at')
             .eq('client_id', clientId)
             .ilike('campaign_name', '%Full AI%')
           console.log('[AI-IND] error:', aiErr?.message, '| aiKids count:', aiKids?.length, '| sample:', aiKids?.slice(0,3).map((k:any) => ({ name: k.campaign_name?.slice(0,30), root: k.root_campaign_id?.slice(0,8), parent: k.parent_brief_id?.slice(0,8), url: !!k.ai_video_url, status: k.ai_video_status })))
@@ -95,7 +107,7 @@ export default function ClientDashboard() {
 
           // UGC videos — unviewed ready
           const { data: ugcVids } = await supabase.from('ugc_videos')
-            .select('id, brief_id, final_url, viewed_at, created_at, personas(name, slug)')
+            .select('id, brief_id, final_url, viewed_at, created_at, completed_at, personas(name, slug)')
             .in('brief_id', briefIds)
             .eq('status', 'ready')
             .is('viewed_at', null)
@@ -187,7 +199,7 @@ export default function ClientDashboard() {
       }
       // Refresh AI children
       const { data: aiKids } = await supabase.from('briefs')
-        .select('id, root_campaign_id, parent_brief_id, status, ai_video_status, ai_video_url, created_at, campaign_name, ai_express_viewed_at')
+        .select('id, root_campaign_id, parent_brief_id, status, ai_video_status, ai_video_url, created_at, completed_at, campaign_name, ai_express_viewed_at')
         .eq('client_id', clientId)
         .ilike('campaign_name', '%Full AI%')
       if (aiKids) {
@@ -202,7 +214,7 @@ export default function ClientDashboard() {
       const ugcProcessing = currentBriefs.filter(b => b.ugc_status === 'queued' || b.ugc_status === 'generating')
       if (ugcProcessing.length > 0) {
         const { data: ugcVids } = await supabase.from('ugc_videos')
-          .select('id, brief_id, final_url, viewed_at, created_at, personas(name, slug)')
+          .select('id, brief_id, final_url, viewed_at, created_at, completed_at, personas(name, slug)')
           .in('brief_id', ugcProcessing.map(b => b.id))
           .eq('status', 'ready')
           .is('viewed_at', null)
@@ -242,7 +254,7 @@ export default function ClientDashboard() {
     if (cpsKids.length > 0) indicators.push({ label: `CPS · ${cpsKids.length} YÖN` })
     if (b.ugc_status) {
       const ugcProcessing = b.ugc_status === 'queued' || b.ugc_status === 'generating'
-      indicators.push({ label: 'AI UGC', pulse: ugcProcessing })
+      indicators.push({ label: 'AI PERSONA', pulse: ugcProcessing })
     }
     if (b.static_image_files || b.static_images_url) indicators.push({ label: 'GÖRSEL' })
     return indicators
@@ -311,6 +323,23 @@ export default function ClientDashboard() {
   })
   const ugcReadyCount = ugcReadyList.reduce((s, r) => s + r.videos.length, 0)
 
+  // Merged AI ready items (Express + UGC), sorted by completed_at DESC
+  const allAiReady: { type: 'express' | 'ugc'; parent: any; item: any; versionNum?: string; versionPart?: string }[] = []
+  aiExpressReady.forEach(({ parent, children }) => children.forEach((kid: any, i: number) => {
+    const versionPart = kid.campaign_name?.split('—')[1]?.trim() || ''
+    const versionNum = versionPart.match(/#(\d+)/)?.[1] || String(i + 1)
+    allAiReady.push({ type: 'express', parent, item: kid, versionNum, versionPart })
+  }))
+  ugcReadyList.forEach(({ brief: parent, videos }) => videos.forEach((vid: any) => {
+    allAiReady.push({ type: 'ugc', parent, item: vid })
+  }))
+  allAiReady.sort((a, b) => {
+    const aT = new Date(a.item.completed_at || a.item.created_at).getTime()
+    const bT = new Date(b.item.completed_at || b.item.created_at).getTime()
+    return bT - aT
+  })
+  const allAiReadyCount = allAiReady.length
+
   async function handleDeleteDraft(briefId: string) {
     if (!confirm('Bu taslağı silmek istediğinizden emin misiniz?')) return
     await supabase.from('briefs').delete().eq('id', briefId)
@@ -349,6 +378,7 @@ export default function ClientDashboard() {
           <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} />
         </div>
         <div style={{margin:'12px 12px',padding:'16px 20px',background:'rgba(29,184,29,0.06)',borderLeft:'3px solid #1DB81D'}}>
+          <span style={{display:'inline-block',padding:'2px 8px',background:'rgba(29,184,29,0.15)',color:'#1db81d',fontSize:'9px',fontWeight:600,letterSpacing:'1px',marginBottom:'6px'}}>{customizationTier === 'corporate' ? 'KURUMSAL' : customizationTier === 'advanced' ? 'ADVANCED' : 'BASIC'}</span>
           <div style={{fontSize:'18px',fontWeight:'700',color:'#fff',marginBottom:'2px'}}>{companyName || 'Dinamo'}</div>
           <div style={{fontSize:'13px',fontWeight:'400',color:'#888',marginBottom:'12px'}}>{userName}</div>
           <div style={{fontSize:'10px',color:'#AAA',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:'8px'}}>KREDİ BAKİYESİ</div>
@@ -563,40 +593,22 @@ export default function ClientDashboard() {
                 </div>
               )}
 
-              {/* 3) AI EXPRESS HAZIR */}
-              {catAiReady.length > 0 && (
+              {/* 3) AI HAZIR (Express + UGC birleşik, son biten ilk) */}
+              {allAiReadyCount > 0 && (
                 <div>
-                  <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'#4ade80',marginBottom:'10px'}}>AI EXPRESS HAZIR · {aiExpressCount}</div>
+                  <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',marginBottom:'10px'}}>{(() => { const ec = allAiReady.filter(r => r.type === 'express').length; const uc = allAiReady.filter(r => r.type === 'ugc').length; return <>{ec > 0 && <span style={{color:'#4ade80'}}>AI EXPRESS · {ec}</span>}{ec > 0 && uc > 0 && <span style={{color:'#aaa',margin:'0 8px'}}>+</span>}{uc > 0 && <span style={{color:'#3b82f6'}}>AI PERSONA · {uc}</span>}</> })()}</div>
                   <div className="ai-grid" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'10px'}}>
-                    {aiExpressReady.map(({ parent, children }) => children.map((kid: any, i: number) => {
-                      const versionPart = kid.campaign_name?.split('—')[1]?.trim() || ''
-                      const versionNum = versionPart.match(/#(\d+)/)?.[1] || String(i + 1)
-                      return (
-                        <div key={kid.id} onClick={() => router.push(`/dashboard/client/briefs/${parent.id}?tab=express&ai_child=${kid.id}`)}
-                          style={{padding:'12px 14px',background:'#fff',borderLeft:'3px solid #4ade80',border:'1px solid #e5e4db',cursor:'pointer',position:'relative'}}>
-                          <div style={{position:'absolute',top:'8px',right:'8px',width:'8px',height:'8px',borderRadius:'50%',background:'#4ade80'}} />
-                          <div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>{parent.campaign_name}</div>
-                          <div style={{fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'#888',marginTop:'3px'}}>VERSİYON {versionNum}{versionPart && !versionPart.startsWith('Full AI') ? ` · ${versionPart.replace(/Full AI #\d+/,'').trim()}` : ''}</div>
-                        </div>
-                      )
-                    }))}
-                  </div>
-                </div>
-              )}
-
-              {/* 3.5) AI UGC HAZIR */}
-              {catUgcReady.length > 0 && (
-                <div>
-                  <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'#4ade80',marginBottom:'10px'}}>AI UGC HAZIR · {ugcReadyCount}</div>
-                  <div className="ai-grid" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'10px'}}>
-                    {ugcReadyList.map(({ brief: parent, videos }) => videos.map((vid: any, i: number) => (
-                      <div key={vid.id} onClick={() => router.push(`/dashboard/client/briefs/${parent.id}?tab=ugc&video=${vid.id}`)}
-                        style={{padding:'12px 14px',background:'#fff',borderLeft:'3px solid #4ade80',border:'1px solid #e5e4db',cursor:'pointer',position:'relative'}}>
-                        <div style={{position:'absolute',top:'8px',right:'8px',width:'8px',height:'8px',borderRadius:'50%',background:'#4ade80'}} />
+                    {allAiReady.map(({ type, parent, item, versionNum, versionPart }) => (
+                      <div key={item.id} onClick={() => router.push(type === 'express' ? `/dashboard/client/briefs/${parent.id}?tab=express&ai_child=${item.id}` : `/dashboard/client/briefs/${parent.id}?tab=ugc&video=${item.id}`)}
+                        style={{padding:'12px 14px',background:'#fff',borderLeft:`3px solid ${type === 'ugc' ? '#3b82f6' : '#4ade80'}`,border:'1px solid #e5e4db',cursor:'pointer',position:'relative'}}>
+                        <div style={{position:'absolute',top:'8px',right:'8px',width:'8px',height:'8px',borderRadius:'50%',background:type === 'ugc' ? '#3b82f6' : '#4ade80'}} />
                         <div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>{parent.campaign_name}</div>
-                        <div style={{fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'#888',marginTop:'3px'}}>UGC · {vid.personas?.name || `Video ${i + 1}`}</div>
+                        <div style={{fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'#888',marginTop:'3px'}}>
+                          {type === 'express' ? <>EXPRESS<span style={{margin:'0 8px',color:'#ccc'}}>|</span>VERSİYON {versionNum}</> : <>PERSONA<span style={{margin:'0 8px',color:'#ccc'}}>|</span>{item.personas?.name || 'Video'}</>}
+                          {item.completed_at && <><span style={{margin:'0 8px',color:'#ccc'}}>|</span><span style={{color:'#aaa',textTransform:'none'}}>{formatDuration(item.created_at, item.completed_at)}</span></>}
+                        </div>
                       </div>
-                    )))}
+                    ))}
                   </div>
                 </div>
               )}
@@ -682,7 +694,7 @@ export default function ClientDashboard() {
                     const imgCount = (Array.isArray(b.static_image_files) ? b.static_image_files.length : b.static_image_files ? 1 : 0) * 5
                     const cat = getBriefCategory(b)
                     const catColors: Record<string,string> = { question:'#ef4444', approval:'#f5a623', ai_ready:'#4ade80', ugc_ready:'#4ade80', producing:'#888', done:'var(--color-text-tertiary)', draft:'#c5c5b8' }
-                    const catLabels: Record<string,string> = { question:'Sorumuz Var', approval:'Onay Bekliyor', ai_ready:'AI Express Hazır', ugc_ready:'AI UGC Hazır', producing:'Üretiliyor', done:'Tamamlandı', draft:'Taslak' }
+                    const catLabels: Record<string,string> = { question:'Sorumuz Var', approval:'Onay Bekliyor', ai_ready:'AI Express Hazır', ugc_ready:'AI PERSONA Hazır', producing:'Üretiliyor', done:'Tamamlandı', draft:'Taslak' }
                     return (
                       <div key={b.id} onClick={() => b.status === 'draft' ? router.push(`/dashboard/client/brief/new?draft=${b.id}`) : router.push(`/dashboard/client/briefs/${b.id}`)}
                         style={{padding:'14px 18px',background:'#fff',border:'1px solid #e5e4db',marginBottom:'6px',cursor:'pointer',display:'flex',alignItems:'center',gap:'12px'}}>

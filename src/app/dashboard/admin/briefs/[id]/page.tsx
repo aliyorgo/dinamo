@@ -663,18 +663,18 @@ export default function AdminBriefDetail() {
               </div>
             )}
 
-            {/* 3.5) AI UGC (BETA) — Admin Monitoring Only */}
+            {/* 3.5) AI Persona (BETA) — Admin Monitoring Only */}
             {brief.ugc_video_id && (
               <div style={{ marginBottom: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                  <div className="label-caps">AI UGC</div>
+                  <div className="label-caps">AI Persona</div>
                   <span style={{ fontSize: '9px', letterSpacing: '1px', padding: '2px 6px', background: 'rgba(245,158,11,0.1)', border: '1px solid #f59e0b', color: '#92400e' }}>BETA</span>
                 </div>
                 {ugcVideo ? (
                   <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '14px 18px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: ugcVideo.final_url ? '12px' : '0' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>UGC Video</span>
+                        <span style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>Persona Video</span>
                         <Badge status={ugcVideo.status === 'sold' ? 'ai_sold' : ugcVideo.status === 'ready' ? 'ai_completed' : ugcVideo.status === 'generating' || ugcVideo.status === 'queued' ? 'ai_processing' : 'cancelled'} />
                       </div>
                       {ugcVideo.persona_id && <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>Persona #{ugcVideo.persona_id}</span>}
@@ -689,7 +689,7 @@ export default function AdminBriefDetail() {
             {!brief.ugc_video_id && (
               <div style={{ marginBottom: '16px', padding: '14px 18px', background: '#fff', border: '1px solid var(--color-border-tertiary)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div className="label-caps" style={{ color: 'var(--color-text-tertiary)' }}>AI UGC</div>
+                  <div className="label-caps" style={{ color: 'var(--color-text-tertiary)' }}>AI Persona</div>
                   <span style={{ fontSize: '9px', letterSpacing: '1px', padding: '2px 6px', background: 'rgba(245,158,11,0.1)', border: '1px solid #f59e0b', color: '#92400e' }}>BETA</span>
                   <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', marginLeft: '8px' }}>Henüz UGC üretilmedi</span>
                 </div>

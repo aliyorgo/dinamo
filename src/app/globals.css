@@ -51,6 +51,7 @@ body {
 .spinner, [data-spinner], .rounded-full, .dot, .pie-chart {
   border-radius: 9999px !important;
 }
+.rounded-br { border-radius: 0 0 8px 0 !important; }
 .spinner { animation: spin 1s linear infinite; }
 .pie-chart { border-radius: 50% !important; }
 

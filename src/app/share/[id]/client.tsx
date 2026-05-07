@@ -139,10 +139,10 @@ export default function SharePageClient({ brief, clientName, deliveryDate, capti
 
             {ugcVideos.length > 0 && (
               <div style={{ marginBottom: '28px' }}>
-                <div style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '10px' }}>AI UGC · {ugcVideos.length}</div>
+                <div style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '10px' }}>AI PERSONA · {ugcVideos.length}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '16px' }}>
                   {ugcVideos.map((v: any, i: number) => (
-                    <VideoThumb key={v.id} url={v.final_url} label={`V${i + 1} — ${v.personas?.name || 'UGC'}`} />
+                    <VideoThumb key={v.id} url={v.final_url} label={`V${i + 1} — ${v.personas?.name || 'Persona'}`} />
                   ))}
                 </div>
               </div>

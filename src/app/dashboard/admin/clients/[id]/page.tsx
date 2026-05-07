@@ -35,7 +35,7 @@ export default function ClientDetailPage() {
 
   // Edit modal
   const [editModal, setEditModal] = useState(false)
-  const [editForm, setEditForm] = useState({ company_name: '', contact_email: '', status: '' })
+  const [editForm, setEditForm] = useState({ company_name: '', contact_email: '', status: '', legal_name: '' })
   const [saving, setSaving] = useState(false)
 
   // Delete modal
@@ -209,6 +209,7 @@ export default function ClientDetailPage() {
       company_name: client?.company_name || '',
       contact_email: client?.contact_email || '',
       status: client?.status || 'pending',
+      legal_name: client?.legal_name || '',
     })
     setEditModal(true)
   }
@@ -220,6 +221,7 @@ export default function ClientDetailPage() {
       company_name: editForm.company_name,
       contact_email: editForm.contact_email || null,
       status: editForm.status,
+      legal_name: editForm.legal_name || null,
     }).eq('id', clientId)
     if (error) { showMsg(error.message, true); setSaving(false); return }
     setClient((prev: any) => ({ ...prev, ...editForm }))
@@ -582,6 +584,21 @@ export default function ClientDetailPage() {
                 </button>
               </div>
 
+              {/* CUSTOMIZATION TIER */}
+              <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '20px' }}>
+                <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: '500', marginBottom: '10px' }}>Customization Tier</div>
+                <select value={client?.customization_tier || 'basic'} onChange={async (e) => {
+                  const val = e.target.value
+                  await supabase.from('clients').update({ customization_tier: val }).eq('id', clientId)
+                  setClient((prev: any) => ({ ...prev, customization_tier: val }))
+                  showMsg('Tier güncellendi')
+                }} style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--color-border-tertiary)', fontSize: '13px', color: '#0a0a0a' }}>
+                  <option value="basic">Basic</option>
+                  <option value="advanced">Advanced</option>
+                  <option value="corporate">Kurumsal</option>
+                </select>
+              </div>
+
               {/* DİNAMO AI MODU */}
               {globalAiMode === 'quality' && (
                 <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '20px' }}>
@@ -629,6 +646,21 @@ export default function ClientDetailPage() {
                   }}
                     style={{ width: '44px', height: '24px', borderRadius: '100px', border: 'none', cursor: 'pointer', background: client?.ai_video_enabled ? '#1db81d' : '#ddd', position: 'relative', transition: 'background 0.2s' }}>
                     <span style={{ position: 'absolute', top: '3px', left: client?.ai_video_enabled ? '23px' : '3px', width: '18px', height: '18px', borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }}></span>
+                  </button>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', padding: '10px 12px', background: 'rgba(0,0,0,0.02)', borderRadius: '8px' }}>
+                  <div>
+                    <div style={{ fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>AI Persona</div>
+                    <div style={{ fontSize: '10px', color: '#888', marginTop: '2px' }}>{client?.ugc_enabled ? 'Müşteri UGC üretebilir' : 'Devre dışı'}</div>
+                  </div>
+                  <button onClick={async () => {
+                    const newVal = !client?.ugc_enabled
+                    await supabase.from('clients').update({ ugc_enabled: newVal }).eq('id', clientId)
+                    setClient((prev: any) => ({ ...prev, ugc_enabled: newVal }))
+                    showMsg(newVal ? 'UGC açıldı' : 'UGC kapatıldı')
+                  }}
+                    style={{ width: '44px', height: '24px', borderRadius: '100px', border: 'none', cursor: 'pointer', background: client?.ugc_enabled ? '#1db81d' : '#ddd', position: 'relative', transition: 'background 0.2s' }}>
+                    <span style={{ position: 'absolute', top: '3px', left: client?.ugc_enabled ? '23px' : '3px', width: '18px', height: '18px', borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }}></span>
                   </button>
                 </div>
                 {/* Brand Logo */}
@@ -1155,6 +1187,11 @@ export default function ClientDetailPage() {
               <div style={{ marginBottom: '14px' }}>
                 <label style={labelStyle}>Sirket Adi *</label>
                 <input required value={editForm.company_name} onChange={e => setEditForm({ ...editForm, company_name: e.target.value })} style={inputStyle} />
+              </div>
+              <div style={{ marginBottom: '14px' }}>
+                <label style={labelStyle}>Ticari Ünvan</label>
+                <input value={editForm.legal_name} onChange={e => setEditForm({ ...editForm, legal_name: e.target.value })} style={inputStyle} placeholder="Örn: DCC Film Yapım San. ve Tic. Ltd. Şti." />
+                <div style={{ fontSize: '10px', color: '#888', marginTop: '4px' }}>Telif belgelerinde kullanılır.</div>
               </div>
               <div style={{ marginBottom: '14px' }}>
                 <label style={labelStyle}>Iletisim E-posta</label>

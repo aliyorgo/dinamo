@@ -3,7 +3,9 @@ import { useState, useEffect, useRef, Suspense } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { logClientActivity } from '@/lib/log-client'
+import { useClientContext } from '../../layout'
 import { cleanVoiceName } from '@/lib/voice-utils'
+import { useCredits, CREDIT_DEFAULTS } from '@/lib/credits'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
@@ -12,8 +14,7 @@ const VIDEO_DURATIONS: Record<string,string> = {'Bumper / Pre-roll':'6 saniye','
 const FORMATS: {ratio:string,w:number,h:number}[] = [
   {ratio:'9:16',w:27,h:48},{ratio:'16:9',w:48,h:27},{ratio:'1:1',w:36,h:36},{ratio:'4:5',w:32,h:40},{ratio:'2:3',w:28,h:42}
 ]
-const BASE_COSTS: Record<string,number> = {'Bumper / Pre-roll':12,'Story / Reels':18,'Feed Video':24,'Long Form':36}
-const REVISION_COST = 4
+const FALLBACK_COSTS: Record<string,number> = {'Bumper / Pre-roll':6,'Story / Reels':12,'Feed Video':20,'Long Form':30}
 
 export default function NewBriefPageWrapper() {
   return <Suspense><NewBriefPage /></Suspense>
@@ -22,6 +23,8 @@ export default function NewBriefPageWrapper() {
 function NewBriefPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { credits: creditSettings } = useCredits()
+  const { userName: ctxUserName, companyName: ctxCompanyName, credits: ctxCredits, customizationTier } = useClientContext()
   const [step, setStep] = useState(0)
   const [clientUser, setClientUser] = useState<any>(null)
   const [companyName, setCompanyName] = useState('')
@@ -185,9 +188,15 @@ function NewBriefPage() {
   }
 
   function calcCost() {
-    let cost = BASE_COSTS[form.video_type] || 0
-    if (form.voiceover_type === 'real') cost += parseInt(settings['credit_voiceover_real'] || '6')
-    cost += form.languages.length * 2
+    const costMap: Record<string, number> = creditSettings ? {
+      'Bumper / Pre-roll': creditSettings.credit_bumper,
+      'Story / Reels': creditSettings.credit_story,
+      'Feed Video': creditSettings.credit_feed,
+      'Long Form': creditSettings.credit_longform,
+    } : FALLBACK_COSTS
+    let cost = costMap[form.video_type] || 0
+    if (form.voiceover_type === 'real') cost += creditSettings?.credit_voiceover_real || parseInt(settings['credit_voiceover_real'] || '6')
+    cost += form.languages.length * (creditSettings?.credit_language_addon || 2)
     return cost
   }
 
@@ -379,7 +388,7 @@ function NewBriefPage() {
   }
 
   const cost = calcCost()
-  const balance = clientUser?.allocated_credits || 0
+  const balance = clientUser?.allocated_credits ?? ctxCredits
 
   const steps = ['Kampanya & Format','Hedef & CTA','Brief Metni','Seslendirme','Dosya & Uyarılar','İnceleme & Gönder']
 
@@ -390,8 +399,9 @@ function NewBriefPage() {
           <img src="/dinamo_logo.png" alt="Dinamo" style={{height:'28px'}} />
         </div>
         <div style={{margin:'12px 12px',padding:'16px 20px',background:'#111',borderLeft:'3px solid #1DB81D'}}>
-          <div style={{fontSize:'18px',fontWeight:'700',color:'#fff',marginBottom:'2px'}}>{companyName || 'Dinamo'}</div>
-          <div style={{fontSize:'13px',fontWeight:'400',color:'#888',marginBottom:'12px'}}>{userName}</div>
+          <span style={{display:'inline-block',padding:'2px 8px',background:'rgba(29,184,29,0.15)',color:'#1db81d',fontSize:'9px',fontWeight:600,letterSpacing:'1px',marginBottom:'6px'}}>{customizationTier === 'corporate' ? 'KURUMSAL' : customizationTier === 'advanced' ? 'ADVANCED' : 'BASIC'}</span>
+          <div style={{fontSize:'18px',fontWeight:'700',color:'#fff',marginBottom:'2px'}}>{ctxCompanyName || 'Dinamo'}</div>
+          <div style={{fontSize:'13px',fontWeight:'400',color:'#888',marginBottom:'12px'}}>{ctxUserName}</div>
           <div style={{fontSize:'10px',color:'#AAA',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:'8px'}}>KREDİ BAKİYESİ</div>
           <div style={{fontSize:'28px',fontWeight:'700',color:'#fff',letterSpacing:'-1px',marginBottom:'8px'}}>{balance}</div>
           {cost > 0 && (
@@ -458,15 +468,25 @@ function NewBriefPage() {
   const [ideasOpen, setIdeasOpen] = useState(false)
   const [ideas, setIdeas] = useState<{title:string,description:string}[]>([])
   const [ideasLoading, setIdeasLoading] = useState(false)
+  const [ideasError, setIdeasError] = useState(false)
+  const [ideasRetryCount, setIdeasRetryCount] = useState(0)
   const [ideaConfirm, setIdeaConfirm] = useState<{title:string,description:string}|null>(null)
   const [ideaSaving, setIdeaSaving] = useState(false)
 
   async function loadIdeas() {
-    if (!savedBriefId) return
-    setIdeasLoading(true); setIdeasOpen(true)
-    const res = await fetch(`/api/briefs/${savedBriefId}/customer-ideas`)
-    const data = await res.json()
-    setIdeas(data.ideas || [])
+    if (!savedBriefId || ideasRetryCount >= 3) return
+    setIdeasLoading(true); setIdeasOpen(true); setIdeasError(false)
+    setIdeasRetryCount(prev => prev + 1)
+    try {
+      const res = await fetch(`/api/briefs/${savedBriefId}/customer-ideas`)
+      if (!res.ok) throw new Error('fetch failed')
+      const data = await res.json()
+      if (!data.ideas || data.ideas.length === 0) throw new Error('no ideas')
+      setIdeas(data.ideas)
+      setIdeasRetryCount(0)
+    } catch {
+      setIdeasError(true)
+    }
     setIdeasLoading(false)
   }
 
@@ -539,6 +559,18 @@ function NewBriefPage() {
                 <div style={{textAlign:'center',padding:'32px 0'}}>
                   <div className="spinner" style={{width:'24px',height:'24px',border:'2px solid #ddd',borderTopColor:'#0a0a0a',margin:'0 auto 12px'}} />
                   <div style={{fontSize:'13px',color:'#6b6b66'}}>Fikirler üretiliyor...</div>
+                </div>
+              ) : ideasError ? (
+                <div style={{textAlign:'center',padding:'28px 20px',background:'rgba(239,68,68,0.06)',border:'1px solid rgba(239,68,68,0.15)'}}>
+                  <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a',marginBottom:'8px'}}>Bir şeyler ters gitti.</div>
+                  <div style={{fontSize:'12px',color:'#6b6b66',marginBottom:'16px'}}>Yaratıcı yön üretimi başarısız oldu.</div>
+                  {ideasRetryCount < 3 ? (
+                    <button onClick={loadIdeas} disabled={ideasLoading} className="btn" style={{padding:'10px 24px'}}>
+                      YENİDEN ÜRET
+                    </button>
+                  ) : (
+                    <div style={{fontSize:'12px',color:'#6b6b66',fontStyle:'italic'}}>Lütfen daha sonra tekrar deneyin.</div>
+                  )}
                 </div>
               ) : (
                 <>

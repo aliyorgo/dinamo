@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { getCreditCost } from '@/lib/credits-server'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
@@ -10,12 +11,16 @@ export async function POST(req: NextRequest) {
   const { data: brief } = await supabase.from('briefs').select('id, client_id, client_user_id, product_image_url').eq('id', brief_id).single()
   if (!brief) return NextResponse.json({ error: 'Brief bulunamadı' }, { status: 404 })
 
-  // Deduct 1 credit for generation
-  const { data: cu } = await supabase.from('client_users').select('allocated_credits').eq('id', brief.client_user_id).single()
-  if (!cu || cu.allocated_credits < 1) return NextResponse.json({ error: 'Yetersiz kredi' }, { status: 402 })
+  // Check if first UGC for this brief (free) or subsequent (paid)
+  const { count: existingCount } = await supabase.from('ugc_videos').select('id', { count: 'exact', head: true }).eq('brief_id', brief_id).in('status', ['ready', 'sold', 'completed'])
+  const creditCost = (existingCount || 0) === 0 ? 0 : await getCreditCost('credit_ai_ugc_generate', 1)
 
-  await supabase.from('client_users').update({ allocated_credits: cu.allocated_credits - 1 }).eq('id', brief.client_user_id)
-  await supabase.from('credit_transactions').insert({ client_id: brief.client_id, client_user_id: brief.client_user_id, brief_id, amount: -1, type: 'deduct', description: 'AI UGC üretim' })
+  const { data: cu } = await supabase.from('client_users').select('allocated_credits').eq('id', brief.client_user_id).single()
+  if (creditCost > 0) {
+    if (!cu || cu.allocated_credits < creditCost) return NextResponse.json({ error: 'Yetersiz kredi' }, { status: 402 })
+    await supabase.from('client_users').update({ allocated_credits: cu.allocated_credits - creditCost }).eq('id', brief.client_user_id)
+    await supabase.from('credit_transactions').insert({ client_id: brief.client_id, client_user_id: brief.client_user_id, brief_id, amount: -creditCost, type: 'deduct', description: creditCost === 0 ? 'AI Persona üretim (ücretsiz)' : 'AI Persona üretim' })
+  }
 
   // Create ugc_videos record
   // TODO: Pipeline aşamasında settings.watermark=true ise ffmpeg overlay eklenecek

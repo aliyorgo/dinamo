@@ -4,15 +4,16 @@ import { createClient } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
 import { cleanVoiceName } from '@/lib/voice-utils'
 import { downloadFile } from '@/lib/download-helper'
+import PackageDetailModal from '@/components/PackageDetailModal'
+import { useClientContext } from '../layout'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
 export default function BrandIdentityPage() {
   const router = useRouter()
-  const [userName, setUserName] = useState('')
-  const [companyName, setCompanyName] = useState('')
-  const [credits, setCredits] = useState(0)
+  const { userName, companyName, credits, clientId: ctxClientId, customizationTier } = useClientContext()
   const [clientId, setClientId] = useState('')
+  const [tierModalOpen, setTierModalOpen] = useState(false)
   const [files, setFiles] = useState<any[]>([])
   const [briefs, setBriefs] = useState<any[]>([])
   const [uploading, setUploading] = useState(false)
@@ -68,17 +69,12 @@ export default function BrandIdentityPage() {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
-      const { data: userData } = await supabase.from('users').select('name').eq('id', user.id).single()
-      setUserName(userData?.name || '')
-      const { data: cu } = await supabase.from('client_users').select('allocated_credits, client_id, clients(company_name, brand_voices, logo_size_percent, brand_logo_url)').eq('user_id', user.id).single()
+      const { data: cu } = await supabase.from('client_users').select('client_id, clients(brand_voices, logo_size_percent, brand_logo_url)').eq('user_id', user.id).single()
       if (cu) {
-        setCredits(cu.allocated_credits)
         setClientId(cu.client_id)
-        setCompanyName((cu as any).clients?.company_name || '')
         setBrandVoices((cu as any).clients?.brand_voices || null)
         setLogoSizePercent((cu as any).clients?.logo_size_percent || 100)
         setBrandLogoUrlClient((cu as any).clients?.brand_logo_url || '')
-        // Init selected voices from saved
         const bv = (cu as any).clients?.brand_voices
         if (bv?.male) setSelectedMaleVoice(bv.male)
         if (bv?.female) setSelectedFemaleVoice(bv.female)
@@ -183,6 +179,7 @@ export default function BrandIdentityPage() {
           <img src="/dinamo_logo.png" alt="Dinamo" style={{ height: '28px' }} />
         </div>
         <div style={{ margin: '12px 12px', padding: '16px 20px', background: 'rgba(29,184,29,0.06)', borderLeft: '3px solid #1DB81D' }}>
+          <span style={{display:'inline-block',padding:'2px 8px',background:'rgba(29,184,29,0.15)',color:'#1db81d',fontSize:'9px',fontWeight:600,letterSpacing:'1px',marginBottom:'6px'}}>{customizationTier === 'corporate' ? 'KURUMSAL' : customizationTier === 'advanced' ? 'ADVANCED' : 'BASIC'}</span>
           <div style={{ fontSize: '18px', fontWeight: '700', color: '#fff', marginBottom: '2px' }}>{companyName || 'Dinamo'}</div>
           <div style={{ fontSize: '13px', fontWeight: '400', color: '#888', marginBottom: '12px' }}>{userName}</div>
           <div style={{ fontSize: '10px', color: '#AAA', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>KREDİ BAKİYESİ</div>
@@ -218,29 +215,38 @@ export default function BrandIdentityPage() {
         </div>
 
         <div style={{ flex: 1, padding: '24px 28px', overflowY: 'auto' }}>
-      {/* AI MODE TOGGLE */}
-      {globalAiMode === 'quality' && (
-        <div style={{ marginBottom: '24px', padding: '20px', background: '#fff', border: '1px solid var(--color-border-tertiary)' }}>
-          <div style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: '#0a0a0a', marginBottom: '12px' }}>DİNAMO AI MODU</div>
-          <div style={{ display: 'flex', gap: '0', marginBottom: '8px' }}>
-            {([['false', 'KALİTE'], ['true', 'HIZ']] as const).map(([val, label]) => (
-              <button key={val} onClick={() => toggleAiMode(val === 'true')}
-                style={{ padding: '10px 28px', fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', cursor: 'pointer', border: '1px solid #0a0a0a', background: (clientFastMode ? 'true' : 'false') === val ? '#0a0a0a' : '#fff', color: (clientFastMode ? 'true' : 'false') === val ? '#fff' : '#0a0a0a', marginRight: val === 'false' ? '-1px' : '0', transition: 'all 0.15s' }}>
-                {label}
-              </button>
-            ))}
-          </div>
-          <div style={{ fontSize: '12px', color: '#888' }}>
-            {clientFastMode ? 'Platformdaki AI özelliklerinin hızı artar, kalite biraz düşer. Vaktiniz çok azsa hızlı işler için bu moda geçin.' : 'Platformdaki AI özelliklerinin kalitesi artar, bekleme süreleri biraz artar. Bu modda kullanmanızı öneriyoruz.'}
+      {/* Customization Tier + AI Mode — side by side */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
+        {/* Customization Tier Card */}
+        <div style={{ padding: '20px', background: '#fff', border: '1px solid var(--color-border-tertiary)' }}>
+          <div style={{ fontSize: '11px', letterSpacing: '1.5px', fontWeight: '500', color: '#0a0a0a', marginBottom: '8px' }}>{customizationTier === 'corporate' ? 'KURUMSAL PAKET' : customizationTier === 'advanced' ? 'ADVANCED CUSTOMIZATION' : 'BASIC CUSTOMIZATION'}</div>
+          <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', marginBottom: '12px' }}>{customizationTier === 'corporate' ? 'Tüm Advanced özellikleri ve özel hesap yöneticisi.' : customizationTier === 'advanced' ? 'Derin marka eğitimi, custom grafikler ve markaya özel ses.' : 'Marka tanıma, ses kütüphanesi ve persona havuzu erişimi.'}</div>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button onClick={() => setTierModalOpen(true)} className="btn btn-outline" style={{ padding: '6px 14px', fontSize: '10px' }}>İÇERİĞİ GÖR</button>
+            {customizationTier !== 'corporate' && <a href="/demo-request" className="btn btn-outline" style={{ padding: '6px 14px', fontSize: '10px', textDecoration: 'none' }}>YÜKSELT</a>}
           </div>
         </div>
-      )}
 
-      {/* Page header */}
-      <div style={{ marginBottom: '24px' }}>
-        <div style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: '#0a0a0a', marginBottom: '6px' }}>MARKA AYARLARI</div>
-        <div style={{ fontSize: '13px', color: 'var(--color-text-tertiary)' }}>Marka ayarlarını ve AI tercihlerini buradan yönet.</div>
+        {/* AI MODE TOGGLE */}
+        {globalAiMode === 'quality' ? (
+          <div style={{ padding: '20px', background: '#fff', border: '1px solid var(--color-border-tertiary)' }}>
+            <div style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: '#0a0a0a', marginBottom: '12px' }}>DİNAMO AI MODU</div>
+            <div style={{ display: 'flex', gap: '0', marginBottom: '8px' }}>
+              {([['false', 'KALİTE'], ['true', 'HIZ']] as const).map(([val, label]) => (
+                <button key={val} onClick={() => toggleAiMode(val === 'true')}
+                  style={{ padding: '10px 28px', fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', cursor: 'pointer', border: '1px solid #0a0a0a', background: (clientFastMode ? 'true' : 'false') === val ? '#0a0a0a' : '#fff', color: (clientFastMode ? 'true' : 'false') === val ? '#fff' : '#0a0a0a', marginRight: val === 'false' ? '-1px' : '0', transition: 'all 0.15s' }}>
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div style={{ fontSize: '12px', color: '#888' }}>
+              {clientFastMode ? 'Platformdaki AI özelliklerinin hızı artar, kalite biraz düşer.' : 'AI kalitesi artar, bekleme süreleri biraz artar.'}
+            </div>
+          </div>
+        ) : <div />}
       </div>
+
+      <PackageDetailModal isOpen={tierModalOpen} onClose={() => setTierModalOpen(false)} mode="tier" initialTab={customizationTier} />
 
       {msg && <div style={{ marginBottom: '16px', padding: '10px 14px', background: msg.includes('Hata') || msg.includes('hatası') ? 'rgba(239,68,68,0.08)' : 'rgba(34,197,94,0.08)', border: `1px solid ${msg.includes('Hata') || msg.includes('hatası') ? '#ef4444' : '#22c55e'}`, fontSize: '12px', color: '#0a0a0a' }}>{msg}</div>}
 
@@ -284,6 +290,11 @@ export default function BrandIdentityPage() {
           <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', lineHeight: 1.5, marginBottom: '12px' }}>AI Express videolarının sonundaki logo boyutunu ayarla.</div>
           <div style={{ fontSize: '11px', color: '#0a0a0a' }}>Mevcut: %{logoSizePercent}</div>
         </div>
+      </div>
+
+      {/* Divider + Files Header */}
+      <div style={{ borderTop: '1px solid var(--color-border-tertiary)', paddingTop: '24px', marginTop: '8px', marginBottom: '20px' }}>
+        <div style={{ fontSize: '16px', fontWeight: 600, color: '#0a0a0a' }}>Marka Dosyaları</div>
       </div>
 
       {/* FILES GRID */}

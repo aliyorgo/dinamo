@@ -48,7 +48,7 @@ ${productNote}${feedbackBlock}
 
 KURALLAR:
 - Tek string dialogue, toplam ${includeCta ? '145-165' : '140-155'} karakter. 8 saniyeyi TAM DOLDUR.
-- HOOK + DEĞER + KAPANIŞ tek akışta.
+- HOOK + DEĞER + NET KAPANIŞ CÜMLESİ tek akışta. KAPANIŞ kuralları: Son cümle kesin ve net bitsin (yarım kalmasın). Eylem çağrısı veya net bir önermeyle bitsin (örn 'Hemen dene!', 'Bence bir bak.', 'Kaçırma!', 'Ben harikaydı diyorum.'). Son cümle kısa ve vurgulu olsun (3-5 kelime ideal). Soru cümlesiyle bitirme — net kapanış olsun.
 - VİRGÜLLE BAŞLAMA yasak, tereddüt yasak.
 - Reklamcı klişesi yasak (kazandıran, tam aradığın, bence). CTA gerekiyorsa istisna: 'dene', 'bak', 'al', 'linkten ulaş' gibi doğal CTA cümleleri kullanılabilir.
 - Emoji yasak, sadece düz Türkçe metin.

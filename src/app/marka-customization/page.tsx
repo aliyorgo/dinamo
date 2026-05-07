@@ -9,7 +9,7 @@ export default function MarkaCustomizationPage() {
         { label: 'Görsel varlıklar', items: ['Logo yüklemesi ve boyutlandırma'] },
         { label: 'Ses ve müzik', items: ['Geniş ses kütüphanesinden marka için seslendirme tercihi', 'Ücretsiz müzik kütüphanesine erişim'] },
         { label: 'AI öğrenmesi', items: ['Sistemin marka yorumlarınızdan ve revizyonlarınızdan otomatik öğrenmesi', 'Her üretimde markanızı biraz daha iyi tanır'] },
-        { label: 'UGC', items: ['Sistem persona havuzundan UGC üretimi (sınırlı seçim)'] },
+        { label: 'AI Persona', items: ['Sistem persona havuzundan Persona video üretimi (sınırlı seçim)'] },
       ],
     },
     {

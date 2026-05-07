@@ -23,6 +23,18 @@ function simpleHash(str: string): string {
   return hash.toString(36)
 }
 
+function formatDuration(start: string | null, end: string | null): string | null {
+  if (!start || !end) return null
+  const norm = (d: string) => d.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(d) ? d : d + 'Z'
+  const seconds = Math.floor((new Date(norm(end)).getTime() - new Date(norm(start)).getTime()) / 1000)
+  if (seconds <= 0) return null
+  const min = Math.floor(seconds / 60)
+  const sec = seconds % 60
+  if (min === 0) return `${sec} sn'de üretildi`
+  if (sec === 0) return `${min} dk'da üretildi`
+  return `${min} dk ${sec} sn'de üretildi`
+}
+
 function readScript(scripts: Record<string, any>, personaId: number | string): string {
   const val = scripts?.[String(personaId)]
   if (typeof val === 'string') return val
@@ -47,6 +59,8 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
   // Generate panel
   const [selectedPersona, setSelectedPersona] = useState<number | null>(null)
   const [recommendedPersona, setRecommendedPersona] = useState<number | null>(null)
+  const [personaFading, setPersonaFading] = useState(false)
+  const [hoveredPersona, setHoveredPersona] = useState<string | null>(null)
   const [scriptText, setScriptText] = useState('')
   const [scriptLoading, setScriptLoading] = useState(false)
   const [generating, setGenerating] = useState(false)
@@ -124,7 +138,7 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
     setLoading(true)
     setPersonaLoading(true)
     const [{ data: videos }, { data: p }, { data: freshBrief }] = await Promise.all([
-      supabase.from('ugc_videos').select('*, personas(name, slug)').eq('brief_id', briefId).order('created_at', { ascending: false }),
+      supabase.from('ugc_videos').select('*, personas(name, slug)').eq('brief_id', briefId).order('created_at', { ascending: true }),
       supabase.from('personas').select('*').order('id'),
       supabase.from('briefs').select('ugc_feedbacks, ugc_settings, ugc_persona_analysis, ugc_selected_persona_id, ugc_scripts, product_image_url, message, client_id').eq('id', briefId).single(),
     ])
@@ -159,7 +173,10 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
     const lastVideo = (videos || []).slice(-1)[0]
     const defaultPersona = lastVideo?.persona_id || b?.ugc_selected_persona_id || recPersonaId || (p?.[0]?.id)
     setSelectedPersona(defaultPersona)
-    if (defaultPersona) setScriptText(readScript(scripts, defaultPersona))
+    if (defaultPersona) {
+      const dbScript = readScript(scripts, defaultPersona)
+      if (dbScript) setScriptText(dbScript)
+    }
     setLoading(false)
   }
 
@@ -184,7 +201,7 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
             setChangesSummary(data.changes_summary || '')
             const updated = { ...ugcScriptsRef.current, [String(selectedPersona)]: data.dialogue }
             setUgcScripts(updated)
-            supabase.from('briefs').update({ ugc_scripts: updated }).eq('id', briefId)
+            persistUgcScripts(updated)
           }
         } catch {}
         setScriptLoading(false)
@@ -229,7 +246,7 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
       const genData = await genRes.json()
       if (genData.ugc_video_id) {
         const persona = personas.find(p => p.id === failedVideo.persona_id)
-        setUgcVideos(prev => [{ id: genData.ugc_video_id, status: 'queued', persona_id: failedVideo.persona_id, personas: persona, created_at: new Date().toISOString() }, ...prev])
+        setUgcVideos(prev => [...prev, { id: genData.ugc_video_id, status: 'queued', persona_id: failedVideo.persona_id, personas: persona, created_at: new Date().toISOString() }])
         const poll = setInterval(async () => {
           const { data: v } = await supabase.from('ugc_videos').select('*, personas(name, slug)').eq('id', genData.ugc_video_id).single()
           if (v && (v.status === 'ready' || v.status === 'failed')) { clearInterval(poll); setHighlightId(genData.ugc_video_id); setTimeout(() => setHighlightId(null), 1500); loadData() }
@@ -255,12 +272,18 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
           if (v && (v.status === 'ready' || v.status === 'failed')) { clearInterval(poll); setHighlightId(genData.ugc_video_id); setTimeout(() => setHighlightId(null), 1500); loadData() }
           else if (v && v.status !== 'queued') { setUgcVideos(prev => prev.map(x => x.id === genData.ugc_video_id ? v : x)) }
         }, 10000)
-        // Optimistic add + scroll to top
-        setUgcVideos(prev => [{ id: genData.ugc_video_id, status: 'queued', persona_id: selectedPersona, personas: personas.find(p => p.id === selectedPersona), created_at: new Date().toISOString() }, ...prev])
-        window.scrollTo({ top: 0, behavior: 'smooth' })
+        // Optimistic add to end of list
+        setUgcVideos(prev => [...prev, { id: genData.ugc_video_id, status: 'queued', persona_id: selectedPersona, personas: personas.find(p => p.id === selectedPersona), created_at: new Date().toISOString() }])
       } else { setMsg(genData.error || 'Üretim başarısız') }
     } catch { setMsg('Bağlantı hatası') }
     setGenerating(false)
+  }
+
+  // Persist ugc_scripts via service role endpoint (RLS bypass)
+  async function persistUgcScripts(scripts: Record<string, any>) {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.access_token) return
+    fetch(`/api/briefs/${briefId}/ugc-scripts`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` }, body: JSON.stringify({ ugc_scripts: scripts }) })
   }
 
   // Purchase
@@ -292,14 +315,14 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
       {/* HEADER ROW */}
       <div style={{ display: 'flex', flexWrap: 'nowrap', alignItems: 'center', marginBottom: '16px', gap: '8px' }}>
         <div ref={panelButtonsRef} style={{ display: 'contents' }}>
-        <button onClick={toggleInfo} title="AI UGC Hakkında"
+        <button onClick={toggleInfo} title="AI Persona Hakkında"
           onMouseEnter={e => { e.currentTarget.style.background = '#0a0a0a'; e.currentTarget.style.color = '#fff' }}
           onMouseLeave={e => { e.currentTarget.style.background = '#f5f4f0'; e.currentTarget.style.color = '#888' }}
           style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '4px 10px', background: '#f5f4f0', border: 'none', fontSize: '11px', color: '#888', cursor: 'pointer', transition: 'all 0.15s', flexShrink: 0 }}>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
           Bilgi
         </button>
-        <button onClick={toggleSettings} title="AI UGC Ayarları"
+        <button onClick={toggleSettings} title="AI Persona Ayarları"
           onMouseEnter={e => { e.currentTarget.style.background = '#0a0a0a'; e.currentTarget.style.color = '#fff' }}
           onMouseLeave={e => { e.currentTarget.style.background = '#f5f4f0'; e.currentTarget.style.color = '#888' }}
           style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '4px 10px', background: '#f5f4f0', border: 'none', fontSize: '11px', color: '#888', cursor: 'pointer', transition: 'all 0.15s', flexShrink: 0 }}>
@@ -317,11 +340,11 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
       {infoOpen && (
         <div style={{ background: '#f9f7f3', border: '1px solid #e5e4db', padding: '20px', marginBottom: '16px', transition: 'all 0.2s' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#0a0a0a' }}>AI UGC Hakkında</div>
+            <div style={{ fontSize: '14px', fontWeight: '600', color: '#0a0a0a' }}>AI Persona Hakkında</div>
             <button onClick={() => setInfoOpen(false)} style={{ width: '24px', height: '24px', border: 'none', background: 'none', cursor: 'pointer', fontSize: '16px', color: '#888', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={e => { e.currentTarget.style.color = '#0a0a0a' }} onMouseLeave={e => { e.currentTarget.style.color = '#888' }}>×</button>
           </div>
           <div style={{ fontSize: '13px', color: '#333', lineHeight: 1.6 }}>
-            <p style={{ margin: '0 0 12px' }}>AI UGC ile gerçek bir influencer/creator izlenimi veren dikey video içerikleri üretin. Deneysel bir özelliktir — sonuçlar garanti edilmez. Beta sürümü mevcut modellerde en iyi sonuçları elde edebilmek için 8 saniye ile sınırlıdır.</p>
+            <p style={{ margin: '0 0 12px' }}>AI Persona ile gerçek bir influencer/creator izlenimi veren dikey video içerikleri üretin. Deneysel bir özelliktir — sonuçlar garanti edilmez. Beta sürümü mevcut modellerde en iyi sonuçları elde edebilmek için 8 saniye ile sınırlıdır.</p>
             <p style={{ margin: '0 0 12px' }}>Brief'inize ve seçtiğiniz personaya göre tamamen yapay zeka tarafından oluşturulur. Karakter, ortam, metin, ses ve dudak senkronu AI tarafından üretilir; ton ve CTA tercihleri ayarlardan özelleştirilebilir.</p>
             <p style={{ margin: '0 0 12px' }}>Dinamo sadece marka bilgileri ve seçtiğiniz tercihlerle AI prompt'larına müdahale eder. Beta sürümünde özellikle Türkçe seslendirme ve karakter tutarlılığında iyileştirmeler devam etmektedir.</p>
             <p style={{ margin: 0 }}>AI ile üretilen bu tarzda içeriklere watermark koymak kanun, şirket politikası ya da etik gereklilik olabilir. Ayarlardan bu uyarıyı videonuza ekleyebilirsiniz.</p>
@@ -333,7 +356,7 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
       {settingsOpen && (
         <div style={{ background: '#f9f7f3', border: '1px solid #e5e4db', padding: '20px', marginBottom: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#0a0a0a' }}>AI UGC Ayarları{settingsSaved && <span style={{ fontSize: '11px', color: '#22c55e', marginLeft: '12px', fontWeight: '500' }}>✓ Kaydedildi</span>}</div>
+            <div style={{ fontSize: '14px', fontWeight: '600', color: '#0a0a0a' }}>AI Persona Ayarları{settingsSaved && <span style={{ fontSize: '11px', color: '#22c55e', marginLeft: '12px', fontWeight: '500' }}>✓ Kaydedildi</span>}</div>
             <button onClick={() => setSettingsOpen(false)} style={{ width: '24px', height: '24px', border: 'none', background: 'none', cursor: 'pointer', fontSize: '16px', color: '#888', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={e => { e.currentTarget.style.color = '#0a0a0a' }} onMouseLeave={e => { e.currentTarget.style.color = '#888' }}>×</button>
           </div>
           {/* Ton */}
@@ -374,7 +397,7 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
       {/* VERSION LIST (AI Express pattern) */}
       <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '20px 24px', marginBottom: '16px' }}>
         {ugcVideos.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '20px', color: '#888', fontSize: '13px' }}>Henüz UGC video üretilmedi. Aşağıdan metin oluşturun ve üretin.</div>
+          <div style={{ textAlign: 'center', padding: '20px', color: '#888', fontSize: '13px' }}>Henüz video üretilmedi. Yukarıdan persona seçin, metin oluşturun ve üretin.</div>
         )}
 
         {ugcVideos.map((video, idx) => {
@@ -384,7 +407,7 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
           const isProcessing = video.status === 'queued' || video.status === 'generating'
           const personaName = video.personas?.name || personas.find(p => p.id === video.persona_id)?.name || ''
           const personaSlug = video.personas?.slug || personas.find(p => p.id === video.persona_id)?.slug || ''
-          const versionLabel = `V${ugcVideos.length - idx}`
+          const versionLabel = `V${idx + 1}`
           const lastFb = feedbacks.find(f => f.video_version === versionLabel)
           const isEditingFb = editingFeedback[video.id] || !lastFb
           const currentFbText = feedbackText[video.id] ?? ''
@@ -410,11 +433,11 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
                           return (
                             <div key={s.key} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
                               <div style={{ width: '14px', height: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                {done ? <span style={{ color: '#4ade80', fontSize: '10px' }}>&#10003;</span>
-                                  : active ? <div className="spinner" style={{ width: '14px', height: '14px', borderWidth: '2px', borderStyle: 'solid', borderColor: '#4ade80 transparent transparent transparent' }} />
+                                {done ? <span style={{ color: '#3b82f6', fontSize: '10px' }}>&#10003;</span>
+                                  : active ? <div className="spinner" style={{ width: '14px', height: '14px', borderWidth: '2px', borderStyle: 'solid', borderColor: '#3b82f6 transparent transparent transparent' }} />
                                   : <div style={{ width: '4px', height: '4px', background: '#555' }} />}
                               </div>
-                              <span style={{ fontSize: '13px', lineHeight: '1.8', color: done ? '#4ade80' : active ? '#fff' : '#6b6b66', fontWeight: active ? '500' : '400', transition: 'all 0.3s' }}>{s.label}</span>
+                              <span style={{ fontSize: '13px', lineHeight: '1.8', color: done ? '#3b82f6' : active ? '#fff' : '#6b6b66', fontWeight: active ? '500' : '400', transition: 'all 0.3s' }}>{s.label}</span>
                             </div>
                           )
                         })}
@@ -431,13 +454,18 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
 
               {/* Info */}
               <div style={{ flex: 1, minWidth: 0, paddingTop: '4px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                  <span style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>{versionLabel}{personaName ? ` — ${personaName}` : ''}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>{versionLabel}</span>
+                  {personaName && <span style={{ fontSize: '10px', padding: '2px 8px', background: '#1DB81D', color: '#fff', letterSpacing: '0.5px', fontWeight: 600, textTransform: 'uppercase' }}>{personaName}</span>}
+                  {video.settings_snapshot && (() => { const s = video.settings_snapshot; const badges: string[] = []; if (s.tone) badges.push(s.tone.toUpperCase()); if (s.cta) badges.push('CTA'); if (s.watermark) badges.push('WATERMARK'); return badges.map((b: string) => <span key={b} style={{ fontSize: '9px', padding: '2px 6px', background: '#f5f4f0', color: '#888', letterSpacing: '0.5px', fontWeight: 600 }}>{b}</span>) })()}
                   {isPurchased && <span style={{ fontSize: '9px', color: '#1DB81D', fontWeight: '600' }}>&#10003; Satın Alındı</span>}
-                  {isProcessing && <span style={{ fontSize: '9px', fontWeight: '500', display: 'inline-flex', alignItems: 'center', gap: '4px' }}><span className="dot" style={{ width: '6px', height: '6px', background: '#4ade80', display: 'inline-block', animation: 'pulse 1.5s ease infinite' }} /><span style={{ color: '#0a0a0a' }}>Üretiliyor</span> <span style={{ color: '#6b6b66' }}>(~3 dakika)</span></span>}
+                  {isProcessing && <span style={{ fontSize: '9px', fontWeight: '500', display: 'inline-flex', alignItems: 'center', gap: '4px' }}><span className="dot" style={{ width: '6px', height: '6px', background: '#3b82f6', display: 'inline-block', animation: 'pulse 1.5s ease infinite' }} /><span style={{ color: '#0a0a0a' }}>Üretiliyor</span> <span style={{ color: '#6b6b66' }}>(~3 dakika)</span></span>}
                   {isFailed && <span style={{ fontSize: '9px', color: '#ef4444', fontWeight: '500' }}>Başarısız</span>}
                 </div>
-                <div style={{ fontSize: '11px', color: '#888', marginBottom: '10px' }}>{new Date(video.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</div>
+                <div style={{ fontSize: '11px', color: '#888', marginBottom: '10px' }}>
+                  {new Date(video.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                  {video.completed_at && <><span style={{ margin: '0 8px', color: '#ccc' }}>|</span><span style={{ color: '#aaa' }}>{formatDuration(video.created_at, video.completed_at)}</span></>}
+                </div>
 
                 {/* Feedback summary */}
                 {video.feedback_summary && (
@@ -462,7 +490,7 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
                           <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M8 2v9M4 8l4 4 4-4" stroke="#0a0a0a" strokeWidth="1.5" strokeLinecap="round"/><path d="M2 13h12" stroke="#0a0a0a" strokeWidth="1.5" strokeLinecap="round"/></svg>
                           İndir
                         </button>
-                        <button onClick={() => generateUgcCertificatePDF(brief, clientUser?.clients?.company_name || '', personaName)} style={{ fontSize: '11px', color: '#555', background: 'none', border: '0.5px solid rgba(0,0,0,0.12)', padding: '5px 12px', cursor: 'pointer' }}>Telif Belgesi</button>
+                        <button onClick={() => generateUgcCertificatePDF(brief, clientUser?.clients?.company_name || '', personaName, clientUser?.clients?.legal_name)} style={{ fontSize: '11px', color: '#555', background: 'none', border: '0.5px solid rgba(0,0,0,0.12)', padding: '5px 12px', cursor: 'pointer' }}>Telif Belgesi</button>
                         <button disabled style={{ fontSize: '11px', color: '#888', background: 'none', border: '0.5px solid rgba(0,0,0,0.08)', padding: '5px 12px', cursor: 'default', opacity: 0.4 }} title="Yakında">Görsel Oluştur</button>
                       </>
                     ) : (
@@ -487,7 +515,7 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
                         <textarea
                           value={currentFbText}
                           onChange={e => { if (e.target.value.length <= 200) setFeedbackText(p => ({ ...p, [video.id]: e.target.value })) }}
-                          placeholder="AI UGC videolar şimdilik harika olmayabilir ama gelişebilir. Yorum bırakın — bir sonraki üretimde dikkate alınır."
+                          placeholder="AI Persona videolar şimdilik harika olmayabilir ama gelişebilir. Yorum bırakın — bir sonraki üretimde dikkate alınır."
                           rows={3}
                           style={{ flex: 1, padding: '12px 14px', border: '0.5px solid rgba(0,0,0,0.1)', fontSize: '11px', color: '#0a0a0a', resize: 'vertical', boxSizing: 'border-box' }}
                         />
@@ -516,76 +544,74 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
             const p = personas.find(x => x.id === selectedPersona)
             if (!p) return null
             const isRecommended = selectedPersona === recommendedPersona
+
             return (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <div className="dot" style={{ width: '80px', height: '80px', minWidth: '80px', background: '#f5f4f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', overflow: 'hidden' }}>
-                  {p.thumbnail_url ? <img src={p.thumbnail_url} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : p.name[0]}
+              <>
+                <div style={{ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#a0a09a', fontWeight: '500', marginBottom: '10px', visibility: isRecommended ? 'visible' : 'hidden' }}>ÖNERİLEN PERSONA</div>
+                <div style={{ display: 'flex', gap: '30px', alignItems: 'stretch', flexWrap: 'wrap' }}>
+                  {/* Left: persona image */}
+                  <div style={{ width: '210px', flexShrink: 0, alignSelf: 'stretch' }}>
+                    <div style={{ position: 'relative', width: '210px', height: '100%', minHeight: '210px', background: '#f5f4f0', overflow: 'hidden', opacity: personaFading ? 0 : 1, transition: 'opacity 300ms ease-in-out' }}>
+                      {p.thumbnail_url ? <img src={p.thumbnail_url} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', fontSize: '52px', color: '#ccc' }}>{p.name[0]}</span>}
+                      <span className="rounded-br" style={{ position: 'absolute', top: 0, left: 0, fontSize: '13px', fontWeight: '700', color: '#fff', background: 'rgba(34,197,94,0.7)', padding: '6px 14px' }}>{p.name}</span>
+                      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.5), rgba(0,0,0,0))', padding: '24px 12px 10px' }}>
+                        <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.85)', letterSpacing: '0.01em', lineHeight: 1.4 }}>{p.description}</div>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Right: script + generate */}
+                  {generating ? (
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px', padding: '14px 0' }}>
+                      <div className="spinner" style={{ width: '16px', height: '16px', borderWidth: '2px', borderStyle: 'solid', borderColor: '#3b82f6 transparent transparent transparent' }} />
+                      <span style={{ fontSize: '12px', color: '#888' }}>Üretim başlatılıyor...</span>
+                    </div>
+                  ) : (
+                    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                        <button onClick={async () => {
+                          if (!selectedPersona) return
+                          setScriptLoading(true)
+                          try {
+                            const res = await fetch('/api/ugc/generate-script', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: selectedPersona, use_product: false, settings, previous_feedbacks: feedbacks }) })
+                            const data = await res.json()
+                            if (data.dialogue) {
+                              setScriptText(data.dialogue)
+                              setChangesSummary(data.changes_summary || '')
+                              const updated = { ...ugcScripts, [String(selectedPersona)]: data.dialogue }
+                              setUgcScripts(updated)
+                              persistUgcScripts(updated)
+                            } else { setMsg(data.error || 'Script üretilemedi') }
+                          } catch { setMsg('Bağlantı hatası') }
+                          setScriptLoading(false)
+                        }} disabled={scriptLoading || !selectedPersona} className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '10px' }}>
+                          {scriptLoading ? 'ÜRETİLİYOR...' : scriptText ? 'YENİ KONUŞMA METNİ YAZ' : 'KONUŞMA METNİ YAZ'}
+                        </button>
+                        <span style={{ fontSize: '13px', fontWeight: '500', color: scriptText.length > 160 ? '#ef4444' : scriptText.length >= 155 ? '#f59e0b' : scriptText.length >= 140 ? '#22c55e' : scriptText.length >= 110 ? '#f59e0b' : '#888' }}>{scriptText.length} / {UGC_MAX_CHARS}</span>
+                      </div>
+                      <textarea value={scriptText} onChange={e => { if (e.target.value.length <= UGC_MAX_CHARS) setScriptText(e.target.value) }} onBlur={() => { if (!selectedPersona || scriptText === readScript(ugcScripts, selectedPersona)) return; const updated = { ...ugcScripts, [String(selectedPersona)]: scriptText }; setUgcScripts(updated); persistUgcScripts(updated) }} placeholder={scriptLoading ? 'Üretiliyor...' : 'Bu persona için konuşma metni henüz üretilmedi. KONUŞMA METNİ YAZ butonuna basın veya buraya yazın.'} style={{ width: '100%', flex: 1, minHeight: '80px', fontSize: '13px', color: '#0a0a0a', lineHeight: 1.6, border: '1px solid #e5e4db', padding: '10px 12px', resize: 'none', boxSizing: 'border-box' }} />
+                      <button onClick={() => { if (scriptText.length < 100) { setShortTextWarning(true) } else { handleGenerate() } }} disabled={generating || !selectedPersona || !scriptText || (clientUser?.allocated_credits || 0) < 1} style={{ width: '100%', padding: '12px', marginTop: '10px', background: (generating || !selectedPersona || !scriptText || (clientUser?.allocated_credits || 0) < 1) ? '#ccc' : '#0a0a0a', color: '#fff', border: 'none', fontSize: '13px', fontWeight: '600', cursor: (generating || !selectedPersona || !scriptText) ? 'default' : 'pointer' }}>
+                        {(() => { const completedCount = ugcVideos.filter(v => ['ready','sold','completed'].includes(v.status)).length; return generating ? 'ÜRETİLİYOR...' : completedCount === 0 ? 'ÜRET (ÜCRETSİZ)' : ugcVideos.some(v => v.persona_id === selectedPersona) ? 'YENİDEN ÜRET (1 KREDİ)' : 'ÜRET (1 KREDİ)' })()}
+                      </button>
+                      <div style={{ fontSize: '13px', color: '#999', textAlign: 'center', marginTop: '6px' }}>~3 dakika · {ugcVideos.filter(v => ['ready','sold','completed'].includes(v.status)).length === 0 ? 'ücretsiz' : '1 kredi'}</div>
+                    </div>
+                  )}
                 </div>
-                <div style={{ flex: 1 }}>
-                  {isRecommended && <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#22c55e', fontWeight: '500', marginBottom: '4px' }}>ÖNERİLEN PERSONA</div>}
-                  <div style={{ fontSize: '16px', fontWeight: '500', color: '#0a0a0a', marginBottom: '4px' }}>{p.name}</div>
-                  <div style={{ fontSize: '12px', color: '#888', lineHeight: 1.4 }}>{p.description}</div>
-                </div>
-              </div>
+              </>
             )
           })()}
-        </div>
 
-        {/* Alternative personas (thumbnails) */}
-        <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '8px' }}>PERSONA SEÇ</div>
-        <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px', marginBottom: '16px' }}>
-          {personas.map(p => (
-            <div key={p.id} onClick={() => { setSelectedPersona(p.id); setScriptText(readScript(ugcScripts, p.id)); supabase.from('briefs').update({ ugc_selected_persona_id: p.id }).eq('id', briefId) }} style={{ flexShrink: 0, width: '60px', textAlign: 'center', cursor: 'pointer', opacity: selectedPersona === p.id ? 1 : 0.6, transition: 'opacity 0.15s' }}>
-              <div className="dot" style={{ width: '40px', height: '40px', minWidth: '40px', margin: '0 auto 4px', background: '#f5f4f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', border: selectedPersona === p.id ? '2px solid #22c55e' : '1px solid #e5e4db', overflow: 'hidden', transition: 'border-color 0.15s' }}>
-                {p.thumbnail_url ? <img src={p.thumbnail_url} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : p.name[0]}
+          {/* Persona selection row */}
+          <div style={{ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#a0a09a', marginBottom: '12px', marginTop: '20px', fontWeight: '500', transition: 'opacity 0.2s', minHeight: '15px' }}>{hoveredPersona ? hoveredPersona.toUpperCase() : 'PERSONA SEÇ'}</div>
+          <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', overflowY: 'visible', padding: '10px 0' }}>
+            {personas.map(p => (
+              <div key={p.id} title={p.name} onClick={() => { if (p.id === selectedPersona) return; setPersonaFading(true); setTimeout(() => { setSelectedPersona(p.id); setScriptText(readScript(ugcScripts, p.id)); supabase.from('briefs').update({ ugc_selected_persona_id: p.id }).eq('id', briefId); setPersonaFading(false) }, 150) }} style={{ flexShrink: 0, cursor: 'pointer', opacity: selectedPersona === p.id ? 1 : 0.6, transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.15)'; setHoveredPersona(p.name) }} onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; setHoveredPersona(null) }}>
+                <div className="dot" style={{ width: '52px', height: '52px', background: '#f5f4f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', border: selectedPersona === p.id ? '2px solid #3b82f6' : '1px solid #e5e4db', overflow: 'hidden', transition: 'border-color 0.15s' }}>
+                  {p.thumbnail_url ? <img src={p.thumbnail_url} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} className="dot" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : p.name[0]}
+                </div>
               </div>
-              <div style={{ fontSize: '9px', color: '#0a0a0a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-
-        {/* GENERATE */}
-        {generating ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '14px 0' }}>
-            <div className="spinner" style={{ width: '16px', height: '16px', borderWidth: '2px', borderStyle: 'solid', borderColor: '#1DB81D transparent transparent transparent' }} />
-            <span style={{ fontSize: '12px', color: '#888' }}>Üretim başlatılıyor...</span>
-          </div>
-        ) : (
-          <div style={{ border: '1px solid var(--color-border-tertiary)', padding: '16px' }}>
-            {/* Script */}
-            <div style={{ marginBottom: '12px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)' }}>KONUŞMA METNİ</div>
-                <button onClick={async () => {
-                  if (!selectedPersona) return
-                  setScriptLoading(true)
-                  try {
-                    const res = await fetch('/api/ugc/generate-script', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: selectedPersona, use_product: false, settings, previous_feedbacks: feedbacks }) })
-                    const data = await res.json()
-                    if (data.dialogue) {
-                      setScriptText(data.dialogue)
-                      setChangesSummary(data.changes_summary || '')
-                      const updated = { ...ugcScripts, [String(selectedPersona)]: data.dialogue }
-                      setUgcScripts(updated)
-                      supabase.from('briefs').update({ ugc_scripts: updated }).eq('id', briefId)
-                    } else { setMsg(data.error || 'Script üretilemedi') }
-                  } catch { setMsg('Bağlantı hatası') }
-                  setScriptLoading(false)
-                }} disabled={scriptLoading || !selectedPersona} className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '10px' }}>
-                  {scriptLoading ? 'ÜRETİLİYOR...' : scriptText ? 'YENİ SCRİPT ÜRET' : 'SCRİPT ÜRET'}
-                </button>
-              </div>
-              <div>
-                <textarea value={scriptText} onChange={e => { if (e.target.value.length <= UGC_MAX_CHARS) setScriptText(e.target.value) }} onBlur={() => { if (!selectedPersona || scriptText === readScript(ugcScripts, selectedPersona)) return; const updated = { ...ugcScripts, [String(selectedPersona)]: scriptText }; setUgcScripts(updated); supabase.from('briefs').update({ ugc_scripts: updated }).eq('id', briefId) }} placeholder={scriptLoading ? 'Üretiliyor...' : 'Bu persona için konuşma metni henüz üretilmedi. SCRİPT ÜRET butonuna basın veya buraya yazın.'} style={{ width: '100%', minHeight: '60px', fontSize: '13px', color: '#0a0a0a', lineHeight: 1.6, border: '1px solid #e5e4db', padding: '10px 12px', resize: 'none', boxSizing: 'border-box' }} />
-                <div style={{ textAlign: 'right', fontSize: '10px', color: scriptText.length > 160 ? '#ef4444' : scriptText.length >= 155 ? '#f59e0b' : scriptText.length >= 140 ? '#22c55e' : scriptText.length >= 110 ? '#f59e0b' : '#888', marginTop: '4px' }}>{scriptText.length} / {UGC_MAX_CHARS}</div>
-              </div>
-            </div>
-            {/* ÜRET */}
-            <button onClick={() => { if (scriptText.length < 100) { setShortTextWarning(true) } else { handleGenerate() } }} disabled={generating || !selectedPersona || !scriptText || (clientUser?.allocated_credits || 0) < 1} style={{ width: '100%', padding: '12px', background: (!selectedPersona || !scriptText || (clientUser?.allocated_credits || 0) < 1) ? '#ccc' : '#0a0a0a', color: '#fff', border: 'none', fontSize: '13px', fontWeight: '600', cursor: (!selectedPersona || !scriptText) ? 'default' : 'pointer' }}>
-              ÜRET (1 KREDİ)
-            </button>
-          </div>
-        )}
       </div>
 
 
