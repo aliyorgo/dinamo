@@ -197,11 +197,13 @@ function ClientBriefDetail() {
     setAiChildren(prev => prev.map(c => c.id === childId ? { ...c, ai_express_viewed_at: new Date().toISOString() } : c))
   }
 
-  // Auto-scroll + autoplay for ai_child param
+  // Auto-scroll + autoplay for ai_child param (once only)
+  const aiChildScrolledRef = useRef(false)
   useEffect(() => {
-    if (!aiChildParam || activeTab !== 'express' || aiChildren.length === 0) return
+    if (aiChildScrolledRef.current || !aiChildParam || activeTab !== 'express' || aiChildren.length === 0) return
     const el = document.getElementById(`ai-child-${aiChildParam}`)
     if (el) {
+      aiChildScrolledRef.current = true
       setTimeout(() => {
         el.scrollIntoView({ behavior: 'smooth', block: 'center' })
         const video = el.querySelector('video') as HTMLVideoElement
@@ -318,7 +320,7 @@ function ClientBriefDetail() {
     if (!hasProcessing || aiChildren.length === 0) return
     const allIds = aiChildren.map(c => c.id)
     const poll = setInterval(async () => {
-      const { data } = await supabase.from('briefs').select('id, status, ai_video_status, ai_video_url, ai_video_error').in('id', allIds)
+      const { data } = await supabase.from('briefs').select('id, status, ai_video_status, ai_video_url, ai_video_error, ai_feedback_summary, completed_at').in('id', allIds)
       if (!data) return
       setAiChildren(prev => {
         let changed = false
@@ -514,7 +516,7 @@ function ClientBriefDetail() {
     const tcStr = currentTime > 0 ? `[${formatTimecode(currentTime)}] ` : ''
     await supabase.from('brief_questions').insert({ brief_id: id, question: `REVİZYON: ${tcStr}${revisionNote}` })
     logClientActivity({ actionType: 'video.revision_requested', userName, clientName: companyName, clientId: brief.client_id, targetType: 'brief', targetId: id, targetLabel: brief.campaign_name, metadata: { feedback: revisionNote.substring(0, 80) } })
-    if (revisionNote.length > 20) fetch('/api/brand-learning', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ clientId: brief.client_id, sourceType: 'revision', sourceId: id, text: revisionNote }) }).catch(() => {})
+    if (revisionNote.length > 20) fetch('/api/brand-learning', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ clientId: brief.client_id, sourceType: 'revision', sourceId: id, text: revisionNote }) }).catch(e => console.warn('[brand-learning] extraction failed:', e))
     setRevisionNote('')
     setMsg(revisionCount === 0 ? 'Revizyon talebiniz gönderildi (ücretsiz).' : `Revizyon talebiniz gönderildi (${revisionCost} kredi düşüldü).`)
     loadData()
@@ -891,36 +893,13 @@ function ClientBriefDetail() {
 
                 // PROCESSING
                 return (
-                  <div style={{background:'#0a0a0a',borderRadius:'12px',padding:'24px 28px',marginBottom:'16px'}}>
-                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'20px'}}>
-                      <div style={{fontSize:'15px',fontWeight:'500',color:'#fff'}}>Video oluşturuluyor...</div>
-                      {totalRem > 0 && <div style={{fontSize:'13px',color:'#1DB81D',fontFamily:'monospace',fontWeight:'500'}}>Tahmini: {fmtCd(totalRem)} kaldı</div>}
-                    </div>
-                    {stages.map((s, i) => {
-                      const isDone = curIdx > i
-                      const isCurrent = curIdx === i
-                      return (
-                        <div key={s.key} style={{marginBottom:isCurrent?'16px':'10px'}}>
-                          <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
-                            <div style={{width:'18px',height:'18px',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                              {isDone ? <span style={{color:'#1DB81D',fontSize:'14px'}}>&#10003;</span>
-                                : isCurrent ? <div style={{width:'10px',height:'10px',border:'2px solid #1DB81D',borderTop:'2px solid transparent',animation:'spin 1s linear infinite'}} className="spinner"></div>
-                                : <div style={{width:'6px',height:'6px',background:'#444',borderRadius:'50%'}}></div>}
-                            </div>
-                            <span style={{fontSize:'13px',color:isDone?'#1DB81D':isCurrent?'#fff':'#555',flex:1}}>{s.label}{isDone?' ✓':''}</span>
-                            {isCurrent && curRem > 0 && <span style={{fontSize:'11px',color:'#888'}}>{fmtRem(curRem)}</span>}
-                            {!isDone && !isCurrent && <span style={{fontSize:'10px',color:'#444'}}>~{s.duration >= 60 ? `${Math.floor(s.duration/60)} dk` : `${s.duration} sn`}</span>}
-                          </div>
-                          {isCurrent && (
-                            <div style={{marginTop:'6px',marginLeft:'28px',height:'3px',background:'#222',borderRadius:'2px',overflow:'hidden'}}>
-                              <div style={{height:'100%',background:'#1DB81D',borderRadius:'2px',transition:'width 1s linear',width:`${barPct}%`}}></div>
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })}
-                    <div style={{marginTop:'16px',fontSize:'11px',color:'#555',display:'flex',alignItems:'center',gap:'6px',lineHeight:'1.5'}}>
-                      <span style={{color:'#1DB81D',flexShrink:0}}>&#9889;</span> Sayfayı kapatabilirsiniz, video arka planda oluşturulmaya devam eder.
+                  <div style={{position:'relative',overflow:'hidden',border:'1px solid #d4d2cc',marginBottom:'16px',minHeight:'200px',background:'#ebe9e3'}}>
+                    <video src="/videos/dinamo_static_progress.mp4" autoPlay muted loop playsInline style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',zIndex:0}} />
+                    <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.35)',zIndex:1}} />
+                    <div style={{position:'relative',zIndex:2,padding:'40px 28px',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:'200px'}}>
+                      <img src="/dinamo_logo.png" alt="" style={{width:'154px',objectFit:'contain',display:'block',animation:'pulse 1.8s ease-in-out infinite'}} />
+                      <div style={{fontSize:'13px',fontWeight:'500',letterSpacing:'0.1em',color:'#fff',marginTop:'2px',animation:'pulse 1.5s ease infinite'}}>ÇALIŞIYOR</div>
+                      <div style={{fontSize:'11px',color:'rgba(255,255,255,0.6)',textAlign:'center',lineHeight:1.5,marginTop:'8px'}}>1-2 dakika sürebilir, hazır olunca otomatik görünecek</div>
                     </div>
                   </div>
                 )
@@ -1337,40 +1316,17 @@ function ClientBriefDetail() {
                               <video key={child.ai_video_url} src={child.ai_video_url} controls preload="metadata"
                                 onPlay={() => markAiChildViewed(child.id)}
                                 style={{width:'100%',height:'100%',objectFit:'contain',backgroundColor:'black'}} />
-                              {!isPurchased && <img src="/dinamo_logo.png" alt="" style={{position:'absolute',bottom:'30%',left:'50%',transform:'translateX(-50%)',width:'80px',opacity:0.35,pointerEvents:'none'}} />}
+                              {!isPurchased && <img src="/dinamo_logo.png" alt="" style={{position:'absolute',top:'14px',left:'14px',width:'60px',opacity:0.65,pointerEvents:'none'}} />}
                             </>
                           ) : isProcessing ? (
-                            (() => {
-                              const stg = child.product_image_url ? PRODUCT_STAGES : CHARACTER_STAGES
-                              const sKeys = stg.map(x=>x.key)
-                              const realIdx = sKeys.indexOf(child.ai_video_status || '')
-                              const timerIdx = timerStageMap[child.id] || 0
-                              const curSi = Math.max(realIdx, timerIdx, 0)
-                              const activeStage = stg[curSi] || stg[0]
-                              const dur = activeStage?.duration || 0
-                              const durLabel = dur >= 60 ? `~${Math.ceil(dur/60)} dakika` : `~${dur} saniye`
-                              return (
-                                <div style={{width:'100%',height:'100%',display:'flex',flexDirection:'column',justifyContent:'center',padding:'16px',background:'#0a0a0a'}}>
-                                  {/* Duration label */}
-                                  <div style={{fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:'#6b6b66',marginBottom:'12px'}}>TAHMİNİ SÜRE: {durLabel.replace('~','')}</div>
-                                  {/* Stage list */}
-                                  {stg.map((s,si) => {
-                                    const done = curSi > si
-                                    const active = curSi === si
-                                    return (
-                                      <div key={s.key} style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'6px'}}>
-                                        <div style={{width:'14px',height:'14px',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                                          {done ? <span style={{color:'#4ade80',fontSize:'10px'}}>&#10003;</span>
-                                            : active ? <div style={{width:'14px',height:'14px',border:'2px solid #4ade80',borderTop:'2px solid transparent',animation:'spin 1s linear infinite'}} className="spinner"></div>
-                                            : <div style={{width:'4px',height:'4px',background:'#555'}}></div>}
-                                        </div>
-                                        <span style={{fontSize:'13px',lineHeight:'1.8',color:done?'#4ade80':active?'#fff':'#6b6b66',fontWeight:active?'500':'400',transition:'all 0.3s'}}>{s.label}</span>
-                                      </div>
-                                    )
-                                  })}
-                                </div>
-                              )
-                            })()
+                            <div style={{width:'100%',height:'100%',position:'relative',overflow:'hidden',background:'#ebe9e3'}}>
+                              <video src="/videos/dinamo_static_progress.mp4" autoPlay muted loop playsInline style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',zIndex:0}} />
+                              <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.35)',zIndex:1}} />
+                              <div style={{position:'relative',zIndex:2,width:'100%',height:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center'}}>
+                                <img src="/dinamo_logo.png" alt="" style={{width:'115px',objectFit:'contain',display:'block',animation:'pulse 1.8s ease-in-out infinite'}} />
+                                <div style={{fontSize:'10px',fontWeight:'500',letterSpacing:'0.1em',color:'#fff',marginTop:'2px',animation:'pulse 1.5s ease infinite'}}>ÇALIŞIYOR</div>
+                              </div>
+                            </div>
                           ) : (
                             <div style={{width:'100%',height:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'6px'}}>
                               <span style={{fontSize:'20px',color:'#555'}}>&#9888;</span>
@@ -1445,8 +1401,8 @@ function ClientBriefDetail() {
                           )}
                           {/* Feedback summary */}
                           {child.ai_feedback_summary && (
-                            <div style={{fontSize:'11px',color:'#666',background:'#f9f7f3',padding:'8px 12px',border:'1px solid #e5e4db',marginBottom:'8px',marginTop:'8px',lineHeight:'1.5',fontStyle:'italic'}}>
-                              {child.ai_feedback_summary}
+                            <div style={{fontFamily:"'JetBrains Mono','Menlo','Monaco',monospace",fontSize:'11px',color:'#3a3a3a',borderLeft:'2px solid #d4d2cc',paddingLeft:'18px',paddingTop:'8px',paddingBottom:'8px',marginBottom:'8px',marginTop:'8px',lineHeight:'1.6',letterSpacing:'-0.01em'}}>
+                              {child.ai_feedback_summary}<span style={{display:'inline-block',marginLeft:'2px',color:'#6b6b66',animation:'blink 1s steps(1) infinite'}}>▊</span>
                             </div>
                           )}
                           {/* Feedback */}
@@ -1479,7 +1435,7 @@ function ClientBriefDetail() {
                                       const updated = [...existing, newEntry]
                                       await supabase.from('briefs').update({ai_feedbacks:updated}).eq('id',child.id)
                                       setAiChildren(prev=>prev.map(c=>c.id===child.id?{...c,ai_feedbacks:updated}:c))
-                                      if(val.length>20) fetch('/api/brand-learning',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clientId:brief?.client_id,sourceType:'feedback',sourceId:child.id,text:val})}).catch(()=>{})
+                                      if(val.length>20) fetch('/api/brand-learning',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clientId:brief?.client_id,sourceType:'feedback',sourceId:child.id,text:val})}).catch(e=>console.warn('[brand-learning] extraction failed:',e))
                                       setEditingFeedback(p=>({...p,[child.id]:false}))
                                       setFeedbackText(p=>({...p,[child.id]:''}))
                                     }}

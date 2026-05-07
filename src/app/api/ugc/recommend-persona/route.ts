@@ -7,11 +7,16 @@ export async function POST(req: NextRequest) {
   const { brief_id } = await req.json()
   if (!brief_id) return NextResponse.json({ error: 'brief_id gerekli' }, { status: 400 })
 
-  const { data: brief } = await supabase.from('briefs').select('campaign_name, message, target_audience, cta, video_type, product_image_url').eq('id', brief_id).single()
+  const { data: brief } = await supabase.from('briefs').select('campaign_name, message, target_audience, cta, video_type, product_image_url, client_id').eq('id', brief_id).single()
   if (!brief) return NextResponse.json({ error: 'Brief bulunamadı' }, { status: 404 })
 
-  const { data: personas } = await supabase.from('personas').select('id, name, slug, description, product_compatibility, tone_description')
-  if (!personas?.length) return NextResponse.json({ error: 'Persona verisi yok' }, { status: 500 })
+  // Get client-filtered personas
+  const { data: allPersonas } = await supabase.from('personas').select('id, name, slug, description, product_compatibility, tone_description, is_global, is_active').eq('is_active', true).order('display_order')
+  const { data: relations } = await supabase.from('client_personas').select('persona_id, relationship_type').eq('client_id', brief.client_id)
+  const excludedIds = new Set((relations || []).filter(r => r.relationship_type === 'excluded').map(r => r.persona_id))
+  const exclusiveIds = new Set((relations || []).filter(r => r.relationship_type === 'exclusive').map(r => r.persona_id))
+  const personas = (allPersonas || []).filter(p => (p.is_global && !excludedIds.has(p.id)) || (!p.is_global && exclusiveIds.has(p.id)))
+  if (!personas.length) return NextResponse.json({ error: 'Persona verisi yok' }, { status: 500 })
 
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) return NextResponse.json({ error: 'API key yok' }, { status: 500 })

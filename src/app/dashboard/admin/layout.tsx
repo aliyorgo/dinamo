@@ -17,6 +17,7 @@ const NAV = [
   { href: '/dashboard/admin/credits', label: 'Müşteriler', adminOnly: true },
   { href: '/dashboard/admin/creators', label: "Creator'lar", adminOnly: true },
   { href: '/dashboard/admin/reports', label: 'Raporlar', adminOnly: true },
+  { href: '/dashboard/admin/personas', label: 'Personalar', adminOnly: true },
   { href: '/dashboard/admin/music-library', label: 'Music Library' },
   { href: '/dashboard/admin/activity', label: 'Loglar', adminOnly: true },
   { href: '/dashboard/admin/settings', label: 'Ayarlar', adminOnly: true },

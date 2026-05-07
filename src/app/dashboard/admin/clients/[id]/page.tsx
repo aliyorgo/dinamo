@@ -14,6 +14,230 @@ const STATUS_MAP: Record<string, { label: string; bg: string; color: string }> =
   lost: { label: 'Kaybedildi', bg: 'rgba(239,68,68,0.1)', color: '#ef4444' },
 }
 
+function VoiceAssignment({ clientId }: { clientId: string }) {
+  const [data, setData] = useState<{ voices: any[]; visibleCount: number; maleCount: number; femaleCount: number } | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [filterGender, setFilterGender] = useState('')
+  const [addModal, setAddModal] = useState(false)
+  const [newVoice, setNewVoice] = useState({ voice_id: '', voice_name: '', gender: 'male' })
+  const [playingId, setPlayingId] = useState<string | null>(null)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+
+  async function load() {
+    const res = await fetch(`/api/admin/clients/${clientId}/voices`)
+    setData(await res.json())
+    setLoading(false)
+  }
+  useEffect(() => { load() }, [clientId])
+
+  async function toggleExclude(voiceId: string, excluded: boolean) {
+    if (excluded) {
+      await fetch(`/api/admin/clients/${clientId}/voices`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ voice_id: voiceId, relationship_type: 'excluded' }) })
+    } else {
+      await fetch(`/api/admin/clients/${clientId}/voices`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ voice_id: voiceId, relationship_type: 'excluded' }) })
+    }
+    load()
+  }
+
+  async function removeExclusive(voiceId: string) {
+    await fetch(`/api/admin/clients/${clientId}/voices`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ voice_id: voiceId, relationship_type: 'exclusive' }) })
+    load()
+  }
+
+  async function addExclusive() {
+    if (!newVoice.voice_id) return
+    await fetch(`/api/admin/clients/${clientId}/voices`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...newVoice, relationship_type: 'exclusive' }) })
+    setNewVoice({ voice_id: '', voice_name: '', gender: 'male' })
+    setAddModal(false)
+    load()
+  }
+
+  function playPreview(url: string, id: string) {
+    if (playingId === id) { audioRef.current?.pause(); setPlayingId(null); return }
+    if (audioRef.current) audioRef.current.pause()
+    const a = new Audio(url)
+    audioRef.current = a
+    setPlayingId(id)
+    a.onended = () => setPlayingId(null)
+    a.play()
+  }
+
+  if (loading) return <div style={{ padding: '20px', color: '#888', fontSize: '12px' }}>Ses bilgileri yükleniyor...</div>
+  if (!data) return null
+
+  const myVoices = data.voices.filter(v => v.source === 'my_voices')
+  const exclusiveVoices = data.voices.filter(v => v.relationship === 'exclusive')
+  const filtered = filterGender ? myVoices.filter(v => v.gender === filterGender) : myVoices
+
+  return (
+    <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '20px', marginBottom: '16px' }}>
+      <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: '500', marginBottom: '12px' }}>AI DUBLAJ SANATÇILARI</div>
+      <div style={{ fontSize: '12px', color: '#888', marginBottom: '16px' }}>
+        Toplam erişilebilir: <strong style={{ color: '#0a0a0a' }}>{data.visibleCount}</strong> ses ({data.femaleCount} kadın · {data.maleCount} erkek)
+      </div>
+
+      {/* My Voices */}
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+          <div style={{ fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', color: '#888', fontWeight: '500' }}>MY VOICES (HAVUZ)</div>
+          <select value={filterGender} onChange={e => setFilterGender(e.target.value)} style={{ padding: '3px 8px', fontSize: '11px', border: '1px solid #e5e4db' }}>
+            <option value="">Tümü</option>
+            <option value="female">Kadın</option>
+            <option value="male">Erkek</option>
+          </select>
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+          {filtered.map(v => (
+            <div key={v.voice_id} onClick={() => toggleExclude(v.voice_id, v.relationship === 'excluded')} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '5px 10px', border: '1px solid #e5e4db', cursor: 'pointer', opacity: v.relationship === 'excluded' ? 0.4 : 1, transition: 'opacity 0.15s', fontSize: '12px' }}>
+              <span style={{ fontSize: '9px', padding: '1px 4px', background: v.gender === 'female' ? '#fce7f3' : '#dbeafe', color: v.gender === 'female' ? '#be185d' : '#1d4ed8' }}>{v.gender === 'female' ? 'K' : 'E'}</span>
+              <span style={{ color: '#0a0a0a', textDecoration: v.relationship === 'excluded' ? 'line-through' : 'none', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name}</span>
+              {v.preview_url && <button onClick={e => { e.stopPropagation(); playPreview(v.preview_url, v.voice_id) }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '11px', color: playingId === v.voice_id ? '#ef4444' : '#888' }}>{playingId === v.voice_id ? '■' : '▶'}</button>}
+              <span style={{ fontSize: '9px', color: v.relationship === 'excluded' ? '#ef4444' : '#22c55e' }}>{v.relationship === 'excluded' ? '✗' : '✓'}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Exclusive */}
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{ fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', color: '#888', marginBottom: '8px', fontWeight: '500' }}>MÜŞTERİYE ÖZEL SESLER</div>
+        {exclusiveVoices.length === 0 && <div style={{ fontSize: '12px', color: '#aaa' }}>Henüz özel ses atanmamış</div>}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
+          {exclusiveVoices.map(v => (
+            <div key={v.voice_id} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '5px 10px', border: '1px solid #a855f7', background: 'rgba(168,85,247,0.05)', fontSize: '12px' }}>
+              <span style={{ fontSize: '9px', padding: '1px 4px', background: v.gender === 'female' ? '#fce7f3' : '#dbeafe', color: v.gender === 'female' ? '#be185d' : '#1d4ed8' }}>{v.gender === 'female' ? 'K' : 'E'}</span>
+              <span style={{ color: '#0a0a0a' }}>{v.name}</span>
+              <button onClick={() => removeExclusive(v.voice_id)} style={{ fontSize: '9px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer' }}>✗</button>
+            </div>
+          ))}
+        </div>
+        <button onClick={() => setAddModal(true)} style={{ fontSize: '11px', padding: '4px 10px', border: '1px dashed #ccc', background: '#fff', cursor: 'pointer', color: '#888' }}>+ ÖZEL SES EKLE</button>
+      </div>
+
+      {/* Summary */}
+      <div style={{ fontSize: '11px', color: '#888', borderTop: '1px solid #e5e4db', paddingTop: '10px' }}>
+        {data.visibleCount} ses görüyor: {myVoices.filter(v => v.relationship !== 'excluded').length} My Voices + {exclusiveVoices.length} exclusive{myVoices.filter(v => v.relationship === 'excluded').length > 0 ? ` - ${myVoices.filter(v => v.relationship === 'excluded').length} hariç tutulan` : ''}
+      </div>
+
+      {/* Add Exclusive Modal */}
+      {addModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setAddModal(false)}>
+          <div style={{ background: '#fff', padding: '24px', maxWidth: '500px', width: '90%', border: '1px solid #0a0a0a' }} onClick={e => e.stopPropagation()}>
+            <div style={{ fontSize: '12px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', marginBottom: '16px' }}>ÖZEL SES EKLE</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px' }}>
+              <div><div style={{ fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', color: '#888', marginBottom: '4px' }}>VOICE ID *</div><input value={newVoice.voice_id} onChange={e => setNewVoice(v => ({ ...v, voice_id: e.target.value }))} placeholder="ElevenLabs Voice ID" style={{ width: '100%', padding: '8px 10px', fontSize: '13px', border: '1px solid #e5e4db', boxSizing: 'border-box' }} /></div>
+              <div><div style={{ fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', color: '#888', marginBottom: '4px' }}>SES ADI</div><input value={newVoice.voice_name} onChange={e => setNewVoice(v => ({ ...v, voice_name: e.target.value }))} placeholder="Ses adı" style={{ width: '100%', padding: '8px 10px', fontSize: '13px', border: '1px solid #e5e4db', boxSizing: 'border-box' }} /></div>
+              <div><div style={{ fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', color: '#888', marginBottom: '4px' }}>CİNSİYET</div>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <label style={{ fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}><input type="radio" checked={newVoice.gender === 'male'} onChange={() => setNewVoice(v => ({ ...v, gender: 'male' }))} /> Erkek</label>
+                  <label style={{ fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}><input type="radio" checked={newVoice.gender === 'female'} onChange={() => setNewVoice(v => ({ ...v, gender: 'female' }))} /> Kadın</label>
+                </div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+              <button onClick={() => setAddModal(false)} style={{ padding: '8px 16px', border: '1px solid #e5e4db', background: '#fff', fontSize: '12px', cursor: 'pointer' }}>İPTAL</button>
+              <button onClick={addExclusive} disabled={!newVoice.voice_id} style={{ padding: '8px 16px', background: newVoice.voice_id ? '#0a0a0a' : '#ccc', color: '#fff', border: 'none', fontSize: '12px', cursor: newVoice.voice_id ? 'pointer' : 'default' }}>EKLE</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function PersonaAssignment({ clientId }: { clientId: string }) {
+  const [data, setData] = useState<{ personas: any[]; visibleCount: number } | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  async function load() {
+    const res = await fetch(`/api/admin/clients/${clientId}/personas`)
+    const d = await res.json()
+    setData(d)
+    setLoading(false)
+  }
+  useEffect(() => { load() }, [clientId])
+
+  async function toggleExclude(personaId: number, currentlyExcluded: boolean) {
+    if (currentlyExcluded) {
+      await fetch(`/api/admin/clients/${clientId}/personas`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ persona_id: personaId, relationship_type: 'excluded' }) })
+    } else {
+      await fetch(`/api/admin/clients/${clientId}/personas`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ persona_id: personaId, relationship_type: 'excluded' }) })
+    }
+    load()
+  }
+
+  async function removeExclusive(personaId: number) {
+    await fetch(`/api/admin/clients/${clientId}/personas`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ persona_id: personaId, relationship_type: 'exclusive' }) })
+    load()
+  }
+
+  async function addExclusive(personaId: number) {
+    await fetch(`/api/admin/clients/${clientId}/personas`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ persona_id: personaId, relationship_type: 'exclusive' }) })
+    load()
+  }
+
+  if (loading) return <div style={{ padding: '20px', color: '#888', fontSize: '12px' }}>Persona bilgileri yükleniyor...</div>
+  if (!data) return null
+
+  const globalPersonas = data.personas.filter(p => p.is_global)
+  const exclusivePersonas = data.personas.filter(p => p.relationship === 'exclusive')
+  const availableExclusive = data.personas.filter(p => !p.is_global && p.relationship !== 'exclusive')
+
+  return (
+    <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '20px', marginBottom: '16px' }}>
+      <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: '500', marginBottom: '12px' }}>PERSONALAR</div>
+      <div style={{ fontSize: '12px', color: '#888', marginBottom: '16px' }}>
+        Toplam erişilebilir: <strong style={{ color: '#0a0a0a' }}>{data.visibleCount}</strong> persona
+        {data.visibleCount > 16 && <span style={{ color: '#f59e0b', marginLeft: '8px' }}>16&apos;dan fazla — müşteri panelinde scroll olacak</span>}
+      </div>
+
+      {/* Global */}
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{ fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', color: '#888', marginBottom: '8px', fontWeight: '500' }}>GLOBAL PERSONALAR</div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+          {globalPersonas.map(p => (
+            <div key={p.id} onClick={() => toggleExclude(p.id, p.relationship === 'excluded')} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 10px', border: '1px solid #e5e4db', cursor: 'pointer', opacity: p.relationship === 'excluded' ? 0.4 : 1, transition: 'opacity 0.15s' }}>
+              {p.thumbnail_url && <img src={p.thumbnail_url} className="dot" style={{ width: '24px', height: '24px', objectFit: 'cover' }} />}
+              <span style={{ fontSize: '12px', color: '#0a0a0a', textDecoration: p.relationship === 'excluded' ? 'line-through' : 'none' }}>{p.name}</span>
+              <span style={{ fontSize: '9px', color: p.relationship === 'excluded' ? '#ef4444' : '#22c55e' }}>{p.relationship === 'excluded' ? '✗' : '✓'}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Exclusive */}
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{ fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', color: '#888', marginBottom: '8px', fontWeight: '500' }}>MÜŞTERİYE ÖZEL PERSONALAR</div>
+        {exclusivePersonas.length === 0 && <div style={{ fontSize: '12px', color: '#aaa' }}>Henüz özel persona atanmamış</div>}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
+          {exclusivePersonas.map(p => (
+            <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 10px', border: '1px solid #a855f7', background: 'rgba(168,85,247,0.05)' }}>
+              {p.thumbnail_url && <img src={p.thumbnail_url} className="dot" style={{ width: '24px', height: '24px', objectFit: 'cover' }} />}
+              <span style={{ fontSize: '12px', color: '#0a0a0a' }}>{p.name}</span>
+              <button onClick={() => removeExclusive(p.id)} style={{ fontSize: '9px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer' }}>✗</button>
+            </div>
+          ))}
+        </div>
+        {availableExclusive.length > 0 && (
+          <div>
+            <div style={{ fontSize: '10px', color: '#aaa', marginBottom: '4px' }}>Havuzdan ekle:</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+              {availableExclusive.map(p => (
+                <button key={p.id} onClick={() => addExclusive(p.id)} style={{ fontSize: '11px', padding: '4px 8px', border: '1px dashed #ccc', background: '#fff', cursor: 'pointer', color: '#888' }}>+ {p.name}</button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Summary */}
+      <div style={{ fontSize: '11px', color: '#888', borderTop: '1px solid #e5e4db', paddingTop: '10px' }}>
+        {data.visibleCount} persona görüyor: {globalPersonas.filter(p => p.relationship !== 'excluded').length} global + {exclusivePersonas.length} exclusive{globalPersonas.filter(p => p.relationship === 'excluded').length > 0 ? ` - ${globalPersonas.filter(p => p.relationship === 'excluded').length} hariç tutulan` : ''}
+      </div>
+    </div>
+  )
+}
+
 export default function ClientDetailPage() {
   const router = useRouter()
   const params = useParams()
@@ -464,11 +688,11 @@ export default function ClientDetailPage() {
           ))}
         </div>
 
-        <div style={{ flex: 1, padding: '24px 28px' }}>
+        <div style={{ flex: 1, padding: '16px 20px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: '20px', alignItems: 'start' }}>
 
-            {/* LEFT COLUMN */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {/* LEFT COLUMN — compact info */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
 
               {/* LOGO */}
               <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '20px' }}>
@@ -789,7 +1013,17 @@ export default function ClientDetailPage() {
                   {savingBrand ? 'Kaydediliyor...' : 'Kaydet'}
                 </button>
               </div>
+
             </div>
+
+            {/* RIGHT COLUMN — wide content */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+
+            {/* PERSONA ATAMA */}
+            <PersonaAssignment clientId={clientId} />
+
+            {/* SES ATAMA */}
+            <VoiceAssignment clientId={clientId} />
 
             {/* AI NOTES + RULES SYSTEM */}
             <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '20px' }}>
@@ -801,13 +1035,12 @@ export default function ClientDetailPage() {
                   setSeedImporting(true)
                   const seedText = aiNotesInput.trim()
                   if (seedText.length > 20) {
-                    const resp = await fetch('/api/brand-learning', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ clientId, sourceType: 'admin_notes', sourceId: clientId, text: seedText }) })
+                    const resp = await fetch('/api/brand-learning', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ clientId, clientName: client?.company_name, sourceType: 'admin_notes', sourceId: clientId, text: seedText }) })
+                    if (!resp.ok) { setSeedImporting(false); showMsg('Çıkarım üretilemedi. Tekrar deneyin.', true); return }
                     const respData = await resp.json()
                     console.log('[admin] Seed import response:', respData)
-                    // Refetch immediately — API awaits extraction now
                     const { data, error: refetchErr } = await supabase.from('brand_learning_candidates').select('*').eq('client_id', clientId).eq('status', 'pending').order('created_at', { ascending: false })
                     if (refetchErr) console.error('[admin] Refetch error:', refetchErr.message)
-                    console.log('[admin] Refetched candidates:', data?.length || 0)
                     setLearningCandidates(data || [])
                     setSeedImporting(false)
                     setAiNotesInput('')
@@ -939,133 +1172,97 @@ export default function ClientDetailPage() {
               )}
             </div>
 
-            {/* RIGHT COLUMN */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            </div>
+          </div>
 
-              {/* BRIEFS */}
-              <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', overflow: 'hidden' }}>
-                <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--color-border-tertiary)', fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>
-                  Briefler ({briefs.length})
-                </div>
-                {briefs.length === 0 ? (
-                  <div style={{ padding: '24px', textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontSize: '12px' }}>Bu musteriye ait brief yok.</div>
-                ) : briefs.map(brief => {
-                  const bs = BRIEF_STATUS[brief.status] || { label: brief.status, color: '#888' }
-                  return (
-                    <div key={brief.id} style={{
-                      padding: '12px 20px', borderTop: '0.5px solid rgba(0,0,0,0.06)',
-                      display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer',
-                    }} onClick={() => router.push(`/dashboard/admin/briefs/${brief.id}`)}>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>{brief.campaign_name || 'Isimsiz Brief'}</div>
-                        <div style={{ fontSize: '11px', color: '#888', marginTop: '2px' }}>
-                          {brief.credit_cost || 0} kredi
-                          {brief.created_at && <span style={{ marginLeft: '10px' }}>{new Date(brief.created_at).toLocaleDateString('tr-TR')}</span>}
-                        </div>
-                      </div>
-                      <span style={{
-                        fontSize: '10px', padding: '2px 8px', borderRadius: '100px', fontWeight: '500',
-                        background: `${bs.color}15`, color: bs.color,
-                      }}>
-                        {bs.label}
-                      </span>
-                      <div style={{ fontSize: '12px', color: '#ccc' }}>&#8250;</div>
-                    </div>
-                  )
-                })}
-              </div>
+          {/* BOTTOM — left column continued */}
+          <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: '20px', marginTop: '14px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
 
               {/* CLIENT USERS */}
               <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', overflow: 'hidden' }}>
-                <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--color-border-tertiary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>Kullanicilar ({clientUsers.length})</span>
+                <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border-tertiary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>Kullanıcılar ({clientUsers.length})</span>
                   <span style={{ fontSize: '11px', color: '#888' }}>Havuz: {client?.credit_balance || 0} kr</span>
                 </div>
                 {clientUsers.length === 0 ? (
-                  <div style={{ padding: '24px', textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontSize: '12px' }}>Atanmis kullanici yok. Once Musteriler sayfasindan kullanici atayin.</div>
+                  <div style={{ padding: '16px', textAlign: 'center', color: '#aaa', fontSize: '12px' }}>Atanmış kullanıcı yok.</div>
                 ) : clientUsers.map((cu: any) => (
-                  <div key={cu.id} style={{ padding: '12px 20px', borderTop: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div key={cu.id} style={{ padding: '10px 16px', borderTop: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>{cu.users?.name || '\u2014'}</div>
-                      <div style={{ fontSize: '11px', color: '#888', marginTop: '2px' }}>{cu.users?.email || '\u2014'}</div>
+                      <div style={{ fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>{cu.users?.name || '—'}</div>
+                      <div style={{ fontSize: '10px', color: '#888', marginTop: '1px' }}>{cu.users?.email || '—'}</div>
                     </div>
-                    <div style={{ textAlign: 'right', marginRight: '8px' }}>
-                      <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a' }}>{cu.allocated_credits || 0}</div>
-                      <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.25)' }}>kredi</div>
+                    <div style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>{cu.allocated_credits || 0}</div>
+                    <div style={{ display: 'flex', gap: '3px', flexShrink: 0 }}>
+                      <button onClick={() => openAllocModal(cu, 'give')} style={{ padding: '3px 8px', fontSize: '9px', fontWeight: '500', border: '1px solid #22c55e', background: 'rgba(34,197,94,0.1)', color: '#22c55e', cursor: 'pointer' }}>+</button>
+                      <button onClick={() => openAllocModal(cu, 'take')} disabled={!cu.allocated_credits} style={{ padding: '3px 8px', fontSize: '9px', fontWeight: '500', border: '1px solid rgba(0,0,0,0.15)', background: '#fff', color: cu.allocated_credits ? '#888' : '#ddd', cursor: cu.allocated_credits ? 'pointer' : 'not-allowed' }}>−</button>
                     </div>
-                    <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
-                      <button onClick={() => { openAllocModal(cu, 'give') }}
-                        style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '10px', fontWeight: '500', border: '1px solid #22c55e', background: 'rgba(34,197,94,0.1)', color: '#22c55e', cursor: 'pointer',  }}>
-                        + Ver
-                      </button>
-                      <button onClick={() => { openAllocModal(cu, 'take') }}
-                        disabled={!cu.allocated_credits}
-                        style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '10px', fontWeight: '500', border: '1px solid rgba(0,0,0,0.15)', background: '#fff', color: cu.allocated_credits ? '#888' : '#ddd', cursor: cu.allocated_credits ? 'pointer' : 'not-allowed',  }}>
-                        - Geri Al
-                      </button>
+                  </div>
+                ))}
+              </div>
+
+              {/* BRIEFS LINK */}
+              <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>Briefler ({briefs.length})</span>
+                <a href={`/dashboard/admin/briefs?client_id=${clientId}`} style={{ fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', color: '#888', textDecoration: 'none' }}>GÖR →</a>
+              </div>
+
+            </div>
+
+            {/* RIGHT: Credit history */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+
+              {/* CREDIT SALES */}
+              <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', overflow: 'hidden' }}>
+                <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border-tertiary)', fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>
+                  Kredi Satışları ({sales.length})
+                </div>
+                {sales.length === 0 ? (
+                  <div style={{ padding: '16px', textAlign: 'center', color: '#aaa', fontSize: '12px' }}>Kredi satışı yok.</div>
+                ) : sales.map((sale: any) => (
+                  <div key={sale.id} style={{ padding: '10px 16px', borderTop: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '12px', color: '#0a0a0a', fontWeight: '500' }}>{sale.credits} kredi</div>
+                      <div style={{ fontSize: '10px', color: '#888', marginTop: '1px' }}>
+                        {sale.created_at && new Date(sale.created_at).toLocaleDateString('tr-TR')}
+                        {sale.payment_method && <span style={{ marginLeft: '6px' }}>{sale.payment_method === 'havale' ? 'Havale' : sale.payment_method === 'kredi_karti' ? 'Kart' : sale.payment_method}</span>}
+                      </div>
                     </div>
+                    <div style={{ fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>{Number(sale.total_amount || 0).toLocaleString('tr-TR')} TL</div>
                   </div>
                 ))}
               </div>
 
               {/* CREDIT TRANSACTIONS */}
               <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', overflow: 'hidden' }}>
-                <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--color-border-tertiary)', fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>
-                  Kredi Gecmisi ({transactions.length})
+                <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border-tertiary)', fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>
+                  Kredi Geçmişi ({transactions.length})
                 </div>
                 {transactions.length === 0 ? (
-                  <div style={{ padding: '24px', textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontSize: '12px' }}>Kredi islemi yok.</div>
-                ) : transactions.map(tx => {
+                  <div style={{ padding: '16px', textAlign: 'center', color: '#aaa', fontSize: '12px' }}>Kredi işlemi yok.</div>
+                ) : transactions.slice(0, 20).map(tx => {
                   const isPositive = Number(tx.amount) > 0
                   return (
-                    <div key={tx.id} style={{
-                      padding: '12px 20px', borderTop: '0.5px solid rgba(0,0,0,0.06)',
-                      display: 'flex', alignItems: 'center', gap: '12px',
-                    }}>
+                    <div key={tx.id} style={{ padding: '8px 16px', borderTop: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: '12px', color: '#0a0a0a' }}>{tx.description || tx.type}</div>
-                        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', marginTop: '2px' }}>
-                          {tx.created_at && new Date(tx.created_at).toLocaleString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        <div style={{ fontSize: '11px', color: '#0a0a0a' }}>{tx.description || tx.type}</div>
+                        <div style={{ fontSize: '10px', color: '#aaa', marginTop: '1px' }}>
+                          {tx.created_at && new Date(tx.created_at).toLocaleString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                         </div>
                       </div>
-                      <span style={{
-                        fontSize: '10px', padding: '2px 8px', borderRadius: '100px', fontWeight: '500',
-                        background: tx.type === 'demo' ? 'rgba(59,130,246,0.1)' : tx.type === 'top_up' ? 'rgba(34,197,94,0.1)' : 'rgba(156,163,175,0.1)',
-                        color: tx.type === 'demo' ? '#3b82f6' : tx.type === 'top_up' ? '#22c55e' : '#6b7280',
-                      }}>
-                        {tx.type === 'demo' ? 'Demo' : tx.type === 'top_up' ? 'Yukleme' : tx.type === 'deduct' ? 'Harcama' : tx.type}
+                      <span style={{ fontSize: '9px', padding: '2px 6px', fontWeight: '500', background: tx.type === 'top_up' ? 'rgba(34,197,94,0.1)' : 'rgba(156,163,175,0.1)', color: tx.type === 'top_up' ? '#22c55e' : '#6b7280' }}>
+                        {tx.type === 'demo' ? 'Demo' : tx.type === 'top_up' ? 'Yükleme' : tx.type === 'deduct' ? 'Harcama' : tx.type === 'refund' ? 'İade' : tx.type}
                       </span>
-                      <div style={{ fontSize: '14px', fontWeight: '500', color: isPositive ? '#22c55e' : '#ef4444', minWidth: '60px', textAlign: 'right' }}>
+                      <div style={{ fontSize: '13px', fontWeight: '500', color: isPositive ? '#22c55e' : '#ef4444', minWidth: '40px', textAlign: 'right' }}>
                         {isPositive ? '+' : ''}{tx.amount}
                       </div>
                     </div>
                   )
                 })}
-              {/* CREDIT SALES */}
-              <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', overflow: 'hidden' }}>
-                <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--color-border-tertiary)', fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>
-                  Kredi Satislari ({sales.length})
-                </div>
-                {sales.length === 0 ? (
-                  <div style={{ padding: '24px', textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontSize: '12px' }}>Kredi satisi yok.</div>
-                ) : sales.map((sale: any) => (
-                  <div key={sale.id} style={{ padding: '12px 20px', borderTop: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: '12px', color: '#0a0a0a', fontWeight: '500' }}>{sale.credits} kredi</div>
-                      <div style={{ fontSize: '11px', color: '#888', marginTop: '2px' }}>
-                        {sale.created_at && new Date(sale.created_at).toLocaleDateString('tr-TR')}
-                        {sale.payment_method && <span style={{ marginLeft: '8px' }}>{sale.payment_method === 'havale' ? 'Havale/EFT' : sale.payment_method === 'kredi_karti' ? 'Kredi Karti' : sale.payment_method}</span>}
-                      </div>
-                    </div>
-                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                      <div style={{ fontSize: '12px', fontWeight: '500', color: '#0a0a0a' }}>{Number(sale.total_amount || 0).toLocaleString('tr-TR')} TL</div>
-                      {sale.invoice_number && <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)' }}>{sale.invoice_number}</div>}
-                    </div>
-                  </div>
-                ))}
+                {transactions.length > 20 && <div style={{ padding: '8px 16px', fontSize: '10px', color: '#888', textAlign: 'center' }}>... ve {transactions.length - 20} işlem daha</div>}
               </div>
 
-              </div>
             </div>
           </div>
         </div>

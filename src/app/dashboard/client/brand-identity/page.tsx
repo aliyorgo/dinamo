@@ -116,8 +116,8 @@ export default function BrandIdentityPage() {
     setVoicesLoading(true)
     const q = refresh ? '&refresh=1' : ''
     const [maleRes, femaleRes] = await Promise.all([
-      fetch(`/api/elevenlabs/voices?gender=male${q}`).then(r => r.json()),
-      fetch(`/api/elevenlabs/voices?gender=female${q}`).then(r => r.json()),
+      fetch(`/api/elevenlabs/voices?gender=male${q}${clientId ? `&client_id=${clientId}` : ''}`).then(r => r.json()),
+      fetch(`/api/elevenlabs/voices?gender=female${q}${clientId ? `&client_id=${clientId}` : ''}`).then(r => r.json()),
     ])
     setVoices({ male: maleRes.voices || [], female: femaleRes.voices || [] })
     setVoicesLoading(false)

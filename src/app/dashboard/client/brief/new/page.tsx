@@ -355,7 +355,7 @@ function NewBriefPage() {
       if (brandText.length > 20) {
         fetch('/api/brand-learning', { method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ clientId: clientUser?.client_id, sourceType: 'brief', sourceId: newBrief.id, text: brandText })
-        }).catch(() => {})
+        }).catch(e => console.warn('[brand-learning] extraction failed:', e))
       }
     }
 
@@ -512,7 +512,7 @@ function NewBriefPage() {
             </div>
             <div style={{fontSize:'32px',fontWeight:'500',color:'var(--color-text-primary)',letterSpacing:'-0.02em',marginBottom:'8px'}}>Brief alındı</div>
             <div style={{fontSize:'15px',color:'var(--color-text-secondary)',lineHeight:1.65}}>
-              "{form.campaign_name}" ekibimize iletildi. 24-48 saat içinde teslim edilecek.
+              "{form.campaign_name}" ekibimize iletildi. 24 saat içinde teslim edilecek.
             </div>
           </div>
 

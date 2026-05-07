@@ -108,7 +108,7 @@ Sadece JSON array döndür, başka açıklama yazma.` }],
 // PUT: fetch selected URLs, extract rules
 export async function PUT(req: NextRequest) {
   try {
-    const { clientId, urls } = await req.json()
+    const { clientId, clientName, urls } = await req.json()
     if (!clientId || !urls?.length) return NextResponse.json({ error: 'clientId ve urls gerekli' }, { status: 400 })
 
     // Fetch each URL content
@@ -149,6 +149,7 @@ export async function PUT(req: NextRequest) {
     // Use existing extraction pipeline
     const stats = await extractBrandRuleCandidate({
       clientId,
+      clientName: clientName || undefined,
       sourceType: 'seed_import',
       sourceId: `research_${Date.now()}`,
       text: combinedText.slice(0, 25000),

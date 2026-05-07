@@ -139,7 +139,7 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
     setPersonaLoading(true)
     const [{ data: videos }, { data: p }, { data: freshBrief }] = await Promise.all([
       supabase.from('ugc_videos').select('*, personas(name, slug)').eq('brief_id', briefId).order('created_at', { ascending: true }),
-      supabase.from('personas').select('*').order('id'),
+      fetch(`/api/ugc/personas?client_id=${brief.client_id}`).then(r => r.json()).then(data => ({ data })),
       supabase.from('briefs').select('ugc_feedbacks, ugc_settings, ugc_persona_analysis, ugc_selected_persona_id, ugc_scripts, product_image_url, message, client_id').eq('id', briefId).single(),
     ])
     setUgcVideos(videos || [])
@@ -210,10 +210,12 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
   }, [selectedPersona, loading, recommendedPersona])
 
   // Auto-scroll + autoplay from dashboard notification click
+  const ugcAutoScrolledRef = useRef(false)
   useEffect(() => {
-    if (!autoPlayVideoId || loading || ugcVideos.length === 0) return
+    if (ugcAutoScrolledRef.current || !autoPlayVideoId || loading || ugcVideos.length === 0) return
     const el = videoCardRefs.current[autoPlayVideoId]
     if (!el) return
+    ugcAutoScrolledRef.current = true
     setTimeout(() => {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' })
       const vid = el.querySelector('video') as HTMLVideoElement
@@ -261,9 +263,32 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
   async function handleGenerate() {
     if (!selectedPersona || !scriptText) return
     setGenerating(true)
+
+    let finalScript = scriptText.trim()
+    let finalSummary = changesSummary
+
+    // Auto-regenerate script if there's feedback since last video
+    const lastVersion = `V${ugcVideos.length}`
+    const hasNewFeedback = feedbacks.some(f => f.video_version === lastVersion)
+    if (hasNewFeedback && feedbacks.length > 0) {
+      try {
+        const scriptRes = await fetch('/api/ugc/generate-script', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: selectedPersona, use_product: false, settings, previous_feedbacks: feedbacks }) })
+        const scriptData = await scriptRes.json()
+        if (scriptData.dialogue) {
+          finalScript = scriptData.dialogue
+          finalSummary = scriptData.changes_summary || ''
+          setScriptText(finalScript)
+          setChangesSummary(finalSummary)
+          const updated = { ...ugcScripts, [String(selectedPersona)]: finalScript }
+          setUgcScripts(updated)
+          persistUgcScripts(updated)
+        }
+      } catch (e) { console.warn('[auto-script] regenerate failed:', e) }
+    }
+
     try {
-      const scriptPayload = { dialogue: scriptText.trim() }
-      const genRes = await fetch('/api/ugc/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: selectedPersona, use_product: false, script: scriptPayload, settings, changes_summary: changesSummary }) })
+      const scriptPayload = { dialogue: finalScript }
+      const genRes = await fetch('/api/ugc/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: selectedPersona, use_product: false, script: scriptPayload, settings, changes_summary: finalSummary }) })
       const genData = await genRes.json()
       if (genData.ugc_video_id) {
         // Poll
@@ -419,31 +444,17 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
                 {hasVideo ? (
                   <>
                     <video src={video.final_url} controls preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'contain', backgroundColor: 'black' }} onPlay={() => markUgcVideoViewed(video.id)} />
-                    {!isPurchased && <img src="/dinamo_logo.png" alt="" style={{ position: 'absolute', bottom: '30%', left: '50%', transform: 'translateX(-50%)', width: '80px', opacity: 0.35, pointerEvents: 'none' }} />}
+                    {!isPurchased && <img src="/dinamo_logo.png" alt="" style={{ position: 'absolute', top: '14px', left: '14px', width: '60px', opacity: 0.65, pointerEvents: 'none' }} />}
                   </>
                 ) : isProcessing ? (
-                  (() => {
-                    const curSi = timerStageMap[video.id] || 0
-                    return (
-                      <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '16px', background: '#0a0a0a' }}>
-                        <div style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#6b6b66', marginBottom: '12px' }}>TAHMİNİ SÜRE: 2-3 dakika</div>
-                        {UGC_STAGES.map((s, si) => {
-                          const done = curSi > si
-                          const active = curSi === si
-                          return (
-                            <div key={s.key} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                              <div style={{ width: '14px', height: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                {done ? <span style={{ color: '#3b82f6', fontSize: '10px' }}>&#10003;</span>
-                                  : active ? <div className="spinner" style={{ width: '14px', height: '14px', borderWidth: '2px', borderStyle: 'solid', borderColor: '#3b82f6 transparent transparent transparent' }} />
-                                  : <div style={{ width: '4px', height: '4px', background: '#555' }} />}
-                              </div>
-                              <span style={{ fontSize: '13px', lineHeight: '1.8', color: done ? '#3b82f6' : active ? '#fff' : '#6b6b66', fontWeight: active ? '500' : '400', transition: 'all 0.3s' }}>{s.label}</span>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    )
-                  })()
+                  <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', background: '#ebe9e3' }}>
+                    <video src="/videos/dinamo_static_progress.mp4" autoPlay muted loop playsInline style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0 }} />
+                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1 }} />
+                    <div style={{ position: 'relative', zIndex: 2, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                      <img src="/dinamo_logo.png" alt="" style={{ width: '115px', objectFit: 'contain', display: 'block', animation: 'pulse 1.8s ease-in-out infinite' }} />
+                      <div style={{ fontSize: '10px', fontWeight: '500', letterSpacing: '0.1em', color: '#fff', marginTop: '2px', animation: 'pulse 1.5s ease infinite' }}>ÇALIŞIYOR</div>
+                    </div>
+                  </div>
                 ) : (
                   <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                     <span style={{ fontSize: '20px', color: '#555' }}>&#9888;</span>
@@ -469,8 +480,8 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
 
                 {/* Feedback summary */}
                 {video.feedback_summary && (
-                  <div style={{ fontSize: '11px', color: '#666', background: '#f9f7f3', padding: '8px 12px', border: '1px solid #e5e4db', marginBottom: '8px', lineHeight: 1.5, fontStyle: 'italic' }}>
-                    {video.feedback_summary}
+                  <div style={{ fontFamily: "'JetBrains Mono','Menlo','Monaco',monospace", fontSize: '11px', color: '#3a3a3a', borderLeft: '2px solid #d4d2cc', paddingLeft: '18px', paddingTop: '8px', paddingBottom: '8px', marginBottom: '8px', lineHeight: 1.6, letterSpacing: '-0.01em' }}>
+                    {video.feedback_summary}<span style={{ display: 'inline-block', marginLeft: '2px', color: '#6b6b66', animation: 'blink 1s steps(1) infinite' }}>▊</span>
                   </div>
                 )}
 
@@ -547,13 +558,13 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
 
             return (
               <>
-                <div style={{ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#a0a09a', fontWeight: '500', marginBottom: '10px', visibility: isRecommended ? 'visible' : 'hidden' }}>ÖNERİLEN PERSONA</div>
+                <div style={{ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#22c55e', fontWeight: '500', marginBottom: '10px', visibility: isRecommended ? 'visible' : 'hidden' }}>ÖNERİLEN PERSONA</div>
                 <div style={{ display: 'flex', gap: '30px', alignItems: 'stretch', flexWrap: 'wrap' }}>
                   {/* Left: persona image */}
                   <div style={{ width: '210px', flexShrink: 0, alignSelf: 'stretch' }}>
                     <div style={{ position: 'relative', width: '210px', height: '100%', minHeight: '210px', background: '#f5f4f0', overflow: 'hidden', opacity: personaFading ? 0 : 1, transition: 'opacity 300ms ease-in-out' }}>
                       {p.thumbnail_url ? <img src={p.thumbnail_url} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', fontSize: '52px', color: '#ccc' }}>{p.name[0]}</span>}
-                      <span className="rounded-br" style={{ position: 'absolute', top: 0, left: 0, fontSize: '13px', fontWeight: '700', color: '#fff', background: 'rgba(34,197,94,0.7)', padding: '6px 14px' }}>{p.name}</span>
+                      <span className="rounded-br" style={{ position: 'absolute', top: 0, left: 0, fontSize: '11px', fontWeight: '700', color: '#0a0a0a', background: 'rgba(255,255,255,0.95)', padding: '5px 11px' }}>{p.name}</span>
                       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.5), rgba(0,0,0,0))', padding: '24px 12px 10px' }}>
                         <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.85)', letterSpacing: '0.01em', lineHeight: 1.4 }}>{p.description}</div>
                       </div>

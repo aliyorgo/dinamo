@@ -1,20 +1,25 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { createClient } from '@supabase/supabase-js'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 const statusLabel: Record<string,string> = {submitted:'Yeni',read:'Okundu',in_production:'Üretimde',revision:'Revizyon',approved:'Onaylandı',delivered:'Teslim Edildi',cancelled:'İptal'}
 const statusColor: Record<string,string> = {submitted:'#1db81d',read:'#888',in_production:'#f59e0b',revision:'#e24b4a',approved:'#1db81d',delivered:'#888',cancelled:'#555'}
 
-export default function BriefsPage() {
+export default function BriefsPageWrapper() { return <Suspense><BriefsPage /></Suspense> }
+
+function BriefsPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [briefs, setBriefs] = useState<any[]>([])
   const [creators, setCreators] = useState<any[]>([])
+  const [clients, setClients] = useState<any[]>([])
   const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const [creatorFilter, setCreatorFilter] = useState('')
+  const [clientFilter, setClientFilter] = useState(searchParams.get('client_id') || '')
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [bulkStatus, setBulkStatus] = useState('')
   const [bulkCreator, setBulkCreator] = useState('')
@@ -28,6 +33,8 @@ export default function BriefsPage() {
     setBriefs(data || [])
     const { data: c } = await supabase.from('creators').select('*, users(name)').eq('is_active', true)
     setCreators(c || [])
+    const { data: cl } = await supabase.from('clients').select('id, company_name').order('company_name')
+    setClients(cl || [])
     const { data: pb } = await supabase.from('producer_briefs').select('brief_id, assigned_creator_id')
     setProducerBriefs(pb || [])
   }
@@ -47,6 +54,7 @@ export default function BriefsPage() {
     if (dateFrom && b.created_at < dateFrom) return false
     if (dateTo && b.created_at > dateTo + 'T23:59:59') return false
     if (creatorFilter && getCreatorId(b.id) !== creatorFilter) return false
+    if (clientFilter && b.client_id !== clientFilter) return false
     return true
   })
 
@@ -79,7 +87,7 @@ export default function BriefsPage() {
     loadData()
   }
 
-  function clearFilters() { setFilter('all'); setSearch(''); setDateFrom(''); setDateTo(''); setCreatorFilter('') }
+  function clearFilters() { setFilter('all'); setSearch(''); setDateFrom(''); setDateTo(''); setCreatorFilter(''); setClientFilter('') }
 
   return (
     <div style={{padding:'48px'}}>
@@ -92,11 +100,15 @@ export default function BriefsPage() {
           <input type="date" value={dateFrom} onChange={e=>setDateFrom(e.target.value)} style={{padding:'8px 10px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'12px',color:'#0a0a0a'}} />
           <span style={{fontSize:'11px',color:'rgba(255,255,255,0.4)'}}>—</span>
           <input type="date" value={dateTo} onChange={e=>setDateTo(e.target.value)} style={{padding:'8px 10px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'12px',color:'#0a0a0a'}} />
+          <select value={clientFilter} onChange={e=>setClientFilter(e.target.value)} style={{padding:'8px 10px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'12px',color:'#0a0a0a',background:'#fff'}}>
+            <option value="">Tüm Markalar</option>
+            {clients.map(c=><option key={c.id} value={c.id}>{c.company_name}</option>)}
+          </select>
           <select value={creatorFilter} onChange={e=>setCreatorFilter(e.target.value)} style={{padding:'8px 10px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'12px',color:'#0a0a0a',background:'#fff'}}>
             <option value="">Tüm Creator'lar</option>
             {creators.map(c=><option key={c.id} value={c.id}>{c.users?.name}</option>)}
           </select>
-          {(search||dateFrom||dateTo||creatorFilter||filter!=='all') && (
+          {(search||dateFrom||dateTo||creatorFilter||clientFilter||filter!=='all') && (
             <button onClick={clearFilters} style={{padding:'8px 14px',border:'1px solid #e8e7e3',borderRadius:'8px',fontSize:'11px',color:'rgba(255,255,255,0.4)',background:'#fff',cursor:'pointer'}}>Filtreleri Temizle</button>
           )}
         </div>

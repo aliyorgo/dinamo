@@ -51,7 +51,7 @@ body {
 .spinner, [data-spinner], .rounded-full, .dot, .pie-chart {
   border-radius: 9999px !important;
 }
-.rounded-br { border-radius: 0 0 8px 0 !important; }
+.rounded-br { border-radius: 0 0 6px 0 !important; }
 .spinner { animation: spin 1s linear infinite; }
 .pie-chart { border-radius: 50% !important; }
 
@@ -63,6 +63,10 @@ body {
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.4; }
+}
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
 }
 
 /* Default border color */

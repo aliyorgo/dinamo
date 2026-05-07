@@ -144,10 +144,10 @@ export default function AdminBriefDetail() {
     }
     // AI Express children
     const rootId = b?.root_campaign_id || id
-    const { data: ai } = await supabase.from('briefs').select('id, campaign_name, status, ai_video_url, created_at').eq('parent_brief_id', id).in('brief_type', ['express_clone']).order('created_at', { ascending: true })
+    const { data: ai } = await supabase.from('briefs').select('id, campaign_name, status, ai_video_url, ai_video_status, ai_video_error, created_at').eq('parent_brief_id', id).in('brief_type', ['express_clone']).order('created_at', { ascending: true })
     // Fallback: also check by campaign name for legacy data
     if (!ai?.length) {
-      const { data: ai2 } = await supabase.from('briefs').select('id, campaign_name, status, ai_video_url, created_at').eq('root_campaign_id', rootId).neq('id', id).ilike('campaign_name', '%Full AI%').order('created_at', { ascending: true })
+      const { data: ai2 } = await supabase.from('briefs').select('id, campaign_name, status, ai_video_url, ai_video_status, ai_video_error, created_at').eq('root_campaign_id', rootId).neq('id', id).ilike('campaign_name', '%Full AI%').order('created_at', { ascending: true })
       setAiChildren(ai2 || []); return
     }
     setAiChildren(ai || [])
@@ -653,9 +653,17 @@ export default function AdminBriefDetail() {
                       </div>
                       <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>{aiOpen[child.id] ? 'KAPAT' : 'DETAY'}</span>
                     </div>
-                    {aiOpen[child.id] && child.ai_video_url && (
+                    {aiOpen[child.id] && (
                       <div style={{ marginTop: '12px' }}>
-                        <video controls style={{ width: '100%', maxHeight: '400px', objectFit: 'contain', background: '#000', display: 'block' }}><source src={child.ai_video_url} /></video>
+                        {child.ai_video_url && <video controls style={{ width: '100%', maxHeight: '400px', objectFit: 'contain', background: '#000', display: 'block', marginBottom: '8px' }}><source src={child.ai_video_url} /></video>}
+                        {(child.ai_video_status === 'failed' || child.ai_video_status === 'timeout') && (
+                          <div style={{ padding: '12px', background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.2)', marginBottom: '8px' }}>
+                            <div style={{ fontSize: '12px', fontWeight: '500', color: '#ef4444', marginBottom: '4px' }}>Üretim Başarısız</div>
+                            {child.ai_video_error && <div style={{ fontSize: '11px', color: '#888', marginBottom: '8px', wordBreak: 'break-all' }}>{child.ai_video_error}</div>}
+                            <button onClick={async (e) => { e.stopPropagation(); await supabase.from('briefs').update({ ai_video_status: 'processing_concept', ai_video_error: null, status: 'ai_processing' }).eq('id', child.id); loadData() }} style={{ padding: '4px 12px', background: '#0a0a0a', color: '#fff', border: 'none', fontSize: '11px', fontWeight: '500', cursor: 'pointer', marginRight: '6px' }}>Tekrar Üret</button>
+                            <button onClick={async (e) => { e.stopPropagation(); await supabase.from('briefs').update({ ai_video_status: null, ai_video_error: null, status: 'submitted' }).eq('id', child.id); loadData() }} style={{ padding: '4px 12px', background: 'none', color: '#888', border: '1px solid #e5e4db', fontSize: '11px', cursor: 'pointer' }}>Status Reset</button>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

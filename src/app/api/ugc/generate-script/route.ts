@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
   const tone = settings?.tone || 'samimi'
   const includeCta = settings?.cta !== false
   const feedbackBlock = Array.isArray(previous_feedbacks) && previous_feedbacks.length > 0
-    ? `\n\nMÜŞTERİ GERİ BİLDİRİMLERİ (önceki versiyonlar hakkında, en son en önemli):\n${previous_feedbacks.map((f: any) => `${f.video_version} (${f.persona_slug || ''}): "${f.feedback}"`).join('\n')}\nBu yorumları dikkate alarak daha iyi bir script üret. En son yorum en önemli.`
+    ? `\n\nMÜŞTERİ TALEPLERİ (EN YÜKSEK ÖNCELİK):\n${previous_feedbacks.map((f: any) => `${f.video_version} (${f.persona_slug || ''}): "${f.feedback}"`).join('\n')}\n\nKRİTİK: Bu yorumlar müşteri talebidir, EMİR mahiyetindedir.\n- Müşteri talebine SADIK KAL, kendi yorumunu katma\n- En son yorum en önemli, çelişen yorumlarda en son yazılanı uygula\n- Persona kimliği KORUNUR (yaş, cinsiyet, ton, isim) — bu değişmez\n- Mekan, atmosfer, sahne detayları, konuşma içeriği değişebilir\n\nÖNCELİK: 1.Müşteri feedback 2.Brief 3.Marka kuralları 4.Persona default`
     : ''
 
   const { data: brief } = await supabase.from('briefs').select('campaign_name, message, target_audience, cta, product_image_url, clients(use_fast_mode)').eq('id', brief_id).single()
@@ -56,7 +56,7 @@ KURALLAR:
 
 CRITICAL: Output MUST be ONLY raw JSON. First character: '{'. Last character: '}'. No markdown, no backticks, no explanation.
 
-FORMAT: {"dialogue":"140-155 char Türkçe metin","changes_summary":"Müşteri yorumlarından uyguladığın değişikliklerin 1-2 cümlelik Türkçe özeti. Yorum yoksa boş string. Max 150 karakter."}`
+FORMAT: {"dialogue":"140-155 char Türkçe metin","changes_summary":"Müşteri yorumlarından uygulanan değişikliklerin 1-2 cümlelik Türkçe özeti. Yorum yoksa boş string. Max 150 karakter. GEÇMİŞ ZAMAN kullan (yapıldı, edildi, vurgulandı). Hex kod yazma, renk adı yaz."}`
 
   const messages: any[] = [
     { role: 'user', content: `Brief: ${brief.campaign_name}\nMesaj: ${brief.message || ''}\nHedef Kitle: ${brief.target_audience || ''}\nCTA: ${brief.cta || ''}\n\nDialogue'da emoji yok, sadece Türkçe metin.\n\nJSON:` },

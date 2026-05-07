@@ -7,11 +7,11 @@ const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env
 // POST: trigger extraction (fire-and-forget from client)
 export async function POST(req: NextRequest) {
   try {
-    const { clientId, sourceType, sourceId, text } = await req.json()
+    const { clientId, clientName, sourceType, sourceId, text } = await req.json()
     if (!clientId || !text) return NextResponse.json({ error: 'clientId ve text gerekli' }, { status: 400 })
 
     // Must await — Vercel terminates function after response
-    await extractBrandRuleCandidate({ clientId, sourceType: sourceType || 'manual', sourceId: sourceId || clientId, text })
+    await extractBrandRuleCandidate({ clientId, clientName, sourceType: sourceType || 'manual', sourceId: sourceId || clientId, text })
 
     return NextResponse.json({ ok: true })
   } catch (err: any) {

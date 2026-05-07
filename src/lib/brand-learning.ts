@@ -8,65 +8,62 @@ const supabase = createClient(
 
 interface ExtractionInput {
   clientId: string
+  clientName?: string
   sourceType: string
   sourceId: string
   text: string
 }
 
-const EXTRACTION_PROMPT = (text: string) => `Bu metin bir markaya ait kaynak (brief, admin notu, marka dokümanı, sektör bilgisi, müşteri yazışması). Senin işin: yüzeysel kural çıkarmak değil, MARKAYI ANLAMAK ve üretime fayda sağlayacak yorumlanmış yönlendirmeler çıkarmak.
+const EXTRACTION_PROMPT = (text: string, clientName?: string) => `Sen bir marka analisti yapay zekasın. Marka${clientName ? ` "${clientName}"` : ''} için verilen brief/feedback/araştırma metnini analiz et ve marka geneli için kıymetli, ileri vadede işe yarayacak yaratıcı yönlendirmeler çıkar.
 
-ÖNCE METNİ ANLA (output'a yazma, mental olarak yap):
-- Markanın sektörü ve kategorisi ne (kozmetik, FMCG, bebek ürünleri, hizmet, B2B, lüks, vs.)
-- Hedef kitlesi kim (yaş, demografi, gelir seviyesi, hayat tarzı)
-- Marka pozisyonu nasıl (premium, kitle, yerli, küresel, sürdürülebilir, vs.)
-- Sektörün konvansiyonları ve riskleri ne (örn: bebek ürünlerinde hızlı kesim olmaz, alkol kategorisinde aile vurgusu yapılmaz, sağlık iddialarında abartı yasak)
+ÇIKTI FORMAT — KRİTİK:
+Her çıkarım iki ayrı alan kullanır:
+- rule_text: Kuralın asıl içeriği. NE yapılacak veya yapılmayacak. Koşul içermez, temiz kural metni.
+- rule_condition: Hangi durumda bu kural uygulanır. Marka geneli için her zaman geçerliyse null. Koşula bağlıysa kısa açıklama (örn "Premium müşteri kampanyaları", "Hedef kitle 25 altı", "Yaz/sezonluk kampanyalar").
 
-SONRA 3 TİP ÇIKTI ÜRET:
+PRENSİPLER:
 
-"rule" — pozitif yaratıcı yönlendirme. Spesifik literal kural değil, üst seviye yaklaşım.
-"restriction" — yapılmayacak şey, yasak, sınır.
-"insight" — markanın DNA'sından türeyen yaratıcı görselleştirme ipucu.
+1. SADECE GENELLENEBİLİR ÇIKARIMLAR
+Tek brief'in detayına takılma. Yarın başka kampanya geldiğinde de geçerli olabilecek çıkarımlar üret. Somut, üretilebilir, görsel terimlere çevrilmiş olsun.
 
-YORUMLAMA DERİNLİĞİ:
-Metinde "genç hissi" yazıyorsa "genç hissi ver" diye yazma. Bunu "hızlı kesimler, modern müzik, sokak estetiği, yatay kamera hareketleri" gibi somut yaratıcı yönlendirmeye çevir.
-Metinde "el yapımı zanaat" yazıyorsa "el yapımı vurgula" yerine "dokulu yüzeyler, doğal ışık, el hareketi yakın çekimleri" yaz.
-Metinde "lüks marka" yazıyorsa "lüks görünüm" değil "yavaş tempo, derin gölgeler, minimal hareket, sade kompozisyon" yaz.
-Metinde "anne hedef kitle" yazıyorsa "anneler için" değil "sıcak ışık, yumuşak ev içi sahneler, samimi yakın planlar" yaz.
+YANLIŞ: rule_text="Bacak hatları, etek kumaş hareketi"
+DOĞRU: rule_text="Hareket halinde insan yakın çekimleri", rule_condition="Moda/giyim ürünleri"
 
-Tüm output somut, üretilebilir, görsel terimlere çevrilmiş olsun. Soyut kalmasın.
+2. CONDITIONAL ALANINI DOĞRU KULLAN
+Koşul rule_text'e GÖMÜLMEMELİ, rule_condition'da olmalı.
 
-CONDITION KULLAN:
-Bir kural/insight her brief için geçerli olmayabilir. Koşul varsa belirt:
-- Kategori bazlı: "Eğer ürün kozmetik kategorisinde ise"
-- Zaman bazlı: "Eğer sevgililer günü dönemi ise"
-- Ürün bazlı: "Eğer alkollü içecek ise"
-- Demografi bazlı: "Eğer hedef 50+ kitle ise"
-- Format bazlı: "Eğer dikey video ise"
-Genel geçer kural ise condition null bırak.
+YANLIŞ: rule_text="Eğer premium ürün ise minimalist tasarım kullan", rule_condition=null
+DOĞRU: rule_text="Minimalist tasarım, zarif grafik, yavaş tempo", rule_condition="Premium ürün kampanyaları"
 
-SEKTÖR BİLGİSİNİ KULLAN:
-Markanın sektörünü anladıktan sonra o sektörün bilinen pattern'larını ve risklerini kullan. Bebek ürünleri → yumuşak ışık. Lüks otomotiv → yavaş kamera, derin gölge. Hızlı tüketim → renkli, yüksek tempo. Sağlık ürünü → sade, güvenilir ton, abartı yok. Bu bilgiyi prompt'tan değil, kendi bilgi tabanından getir.
+3. SIKI ELEME
+1-3 gerçekten değerli çıkarım, 5-6 yüzeysel çıkarımdan iyidir. Hiçbir kıymetli içerik yoksa boş array döndür. ZORLA çıkarım üretme.
 
-KISITLAR:
-- type: "rule" | "restriction" | "insight"
-- text: max 150 karakter
-- condition: opsiyonel string veya null
-- Renk kodları (#hex) veya "ana renk X" tarzı kurallar ÜRETME — renkler ayrı yönetiliyor
-- Duplicate üretme
-- Faydasız şişme bilgi üretme
-- Soyut, yorumlanmamış cümle çıkarma — hep somut görsel/davranışsal terimlere çevir
-- Ham metni kopyalama
+4. YORUMLAMA DERİNLİĞİ
+Soyut kavramları somut görsel/davranışsal terimlere çevir:
+"genç hissi" → "hızlı kesimler, modern müzik, sokak estetiği"
+"lüks marka" → "yavaş tempo, derin gölgeler, minimal hareket, sade kompozisyon"
+"anne hedef kitle" → "sıcak ışık, yumuşak ev içi sahneler, samimi yakın planlar"
 
-ÖRNEK ÇIKTILAR:
+5. TİPLER
+- rule: pozitif yaratıcı yönlendirme (rule_type="positive")
+- restriction: yasak/sınır (rule_type="negative")
+- insight: yaratıcı görselleştirme ipucu (rule_type="positive")
 
+6. KAÇIN
+- Brief'in spesifik detaylarını tekrarlamak
+- Belirsiz/yorumlamalı ifadeler ("etkili", "anlamlı")
+- Conditional yapıyı rule_text içine gömmek ("Eğer X ise Y" → YANLIŞ)
+- Renk kodları (#hex) üretmek — renkler ayrı yönetiliyor
+- Ham metni kopyalamak
+
+ÇIKTI JSON FORMAT:
 [
-  { "type": "rule", "text": "Yumuşak doğal ışık, sakin tempo, hızlı kesimsiz akış", "condition": "Eğer hedef kitle anne veya bebek ise" },
-  { "type": "restriction", "text": "Erkek figürü gösterme", "condition": "Eğer ürün iç giyim/mayo ise" },
-  { "type": "insight", "text": "Dokulu yüzeyler, doğal ışık ve el hareketi yakın çekimleri", "condition": null },
-  { "type": "rule", "text": "Yavaş kamera hareketleri, derin gölgeler, minimal kompozisyon", "condition": "Eğer marka lüks segment ise" },
-  { "type": "restriction", "text": "Sağlık iddiası yapma, fayda abartısından kaçın", "condition": null }
+  { "rule_text": "Yumuşak doğal ışık, sakin tempo, hızlı kesimsiz akış", "rule_condition": "Hedef kitle anne/aile odaklı kampanyalar", "rule_type": "positive", "type": "rule" },
+  { "rule_text": "Sağlık iddiası veya garantileme yapma", "rule_condition": null, "rule_type": "negative", "type": "restriction" },
+  { "rule_text": "Dokulu yüzeyler, doğal ışık, el hareketi yakın çekimleri", "rule_condition": null, "rule_type": "positive", "type": "insight" }
 ]
 
+Kıymetli içerik yoksa: []
 Sadece JSON array döndür.
 
 Metin:
@@ -74,12 +71,12 @@ Metin:
 
 JSON array:`
 
-export async function extractBrandRuleCandidate({ clientId, sourceType, sourceId, text }: ExtractionInput): Promise<{ extracted: number; inserted: number; duplicates: number; errors: number }> {
+export async function extractBrandRuleCandidate({ clientId, clientName, sourceType, sourceId, text }: ExtractionInput): Promise<{ extracted: number; inserted: number; duplicates: number; errors: number }> {
   const stats = { extracted: 0, inserted: 0, duplicates: 0, errors: 0 }
   console.log(`[brand-learning] Called: source=${sourceType}, clientId=${clientId?.slice(0,8)}, textLen=${text?.length}`)
   if (!text || text.trim().length < 20) { console.log('[brand-learning] Skipped: text too short'); return stats }
 
-  const prompt = EXTRACTION_PROMPT(text)
+  const prompt = EXTRACTION_PROMPT(text, clientName)
 
   try {
     console.log(`[brand-learning] Calling Claude (interpretive, source=${sourceType})...`)
@@ -90,8 +87,8 @@ export async function extractBrandRuleCandidate({ clientId, sourceType, sourceId
       method: 'POST',
       headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1500,
+        model: 'claude-opus-4-20250514',
+        max_tokens: 2500,
         messages: [{ role: 'user', content: prompt }],
       }),
     })
@@ -122,9 +119,11 @@ export async function extractBrandRuleCandidate({ clientId, sourceType, sourceId
     console.log(`[brand-learning] ${candidates.length} candidates from Claude`)
 
     for (const c of candidates) {
-      if (!c.text) continue
+      const ruleText = c.rule_text || c.text
+      if (!ruleText) continue
       const ruleType = c.type || 'rule'
-      const existing = await findSimilarCandidate(clientId, c.text)
+      const ruleCondition = c.rule_condition || c.condition || null
+      const existing = await findSimilarCandidate(clientId, ruleText)
       if (existing) {
         stats.duplicates++
         const newSourceIds = [...(existing.source_ids || []), sourceId]
@@ -139,14 +138,14 @@ export async function extractBrandRuleCandidate({ clientId, sourceType, sourceId
           source_type: sourceType,
           source_ids: [sourceId],
           source_snippets: [text.slice(0, 200)],
-          rule_text: c.text,
-          rule_condition: c.condition || null,
-          rule_type: ruleType === 'restriction' ? 'negative' : 'positive',
+          rule_text: ruleText,
+          rule_condition: ruleCondition,
+          rule_type: c.rule_type || (ruleType === 'restriction' ? 'negative' : 'positive'),
           type: ruleType,
           temporal: false,
         })
         if (insErr) { console.error('[brand-learning] Insert error:', insErr.message); stats.errors++ }
-        else { stats.inserted++; console.log(`[brand-learning] New ${ruleType}: ${c.text.slice(0, 50)}`) }
+        else { stats.inserted++; console.log(`[brand-learning] New ${ruleType}: ${ruleText.slice(0, 50)}${ruleCondition ? ` [${ruleCondition}]` : ''}`) }
       }
     }
     console.log(`[brand-learning] Done: ${stats.extracted} extracted, ${stats.inserted} inserted, ${stats.duplicates} duplicates, ${stats.errors} errors`)
