@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
   const cc = completedCount || 0
 
   // Credit calculation
-  const creditCost = cc < 3 ? 0 : await getCreditCost('credit_ai_express_generate', 1)
+  const creditCost = cc === 0 ? 0 : await getCreditCost('credit_ai_express_generate', 1)
 
   // Deduct credit if needed
   if (creditCost > 0) {
