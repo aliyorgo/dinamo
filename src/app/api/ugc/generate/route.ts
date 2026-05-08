@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
   if (!brief) return NextResponse.json({ error: 'Brief bulunamadı' }, { status: 404 })
 
   // Check if first UGC for this brief (free) or subsequent (paid)
-  const { count: existingCount } = await supabase.from('ugc_videos').select('id', { count: 'exact', head: true }).eq('brief_id', brief_id).in('status', ['ready', 'sold', 'completed'])
+  const { count: existingCount } = await supabase.from('ugc_videos').select('id', { count: 'exact', head: true }).eq('brief_id', brief_id).neq('status', 'failed')
   const creditCost = (existingCount || 0) === 0 ? 0 : await getCreditCost('credit_ai_ugc_generate', 1)
 
   const { data: cu } = await supabase.from('client_users').select('allocated_credits').eq('id', brief.client_user_id).single()

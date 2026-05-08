@@ -15,8 +15,8 @@ export async function POST(req: NextRequest) {
 
   const rootId = brief.root_campaign_id || brief_id
 
-  // Count completed Express children
-  const { count: completedCount } = await supabase.from('briefs').select('id', { count: 'exact', head: true }).eq('root_campaign_id', rootId).ilike('campaign_name', '%Full AI%').in('ai_video_status', ['completed']).in('status', ['ai_completed', 'delivered'])
+  // Count Express children (failed/timeout hariç tüm videolar — slot kullanılmış sayılır)
+  const { count: completedCount } = await supabase.from('briefs').select('id', { count: 'exact', head: true }).eq('root_campaign_id', rootId).ilike('campaign_name', '%Full AI%').not('ai_video_status', 'in', '("failed","timeout")').not('ai_video_status', 'is', null)
   const cc = completedCount || 0
 
   // Credit calculation
