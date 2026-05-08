@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   if (!brief_id || !client_user_id) return NextResponse.json({ error: 'brief_id ve client_user_id gerekli' }, { status: 400 })
 
   // Get brief + client info
-  const { data: brief } = await supabase.from('briefs').select('id, client_id, root_campaign_id, campaign_name, format, product_image_url, message, voiceover_text, voiceover_gender, cta, target_audience, platforms, selected_ai_idea').eq('id', brief_id).single()
+  const { data: brief } = await supabase.from('briefs').select('id, client_id, root_campaign_id, campaign_name, format, video_type, product_image_url, message, voiceover_text, voiceover_type, voiceover_gender, cta, target_audience, platforms, notes, languages, selected_ai_idea').eq('id', brief_id).single()
   if (!brief) return NextResponse.json({ error: 'Brief bulunamadı' }, { status: 404 })
 
   const rootId = brief.root_campaign_id || brief_id
@@ -51,6 +51,10 @@ export async function POST(req: NextRequest) {
     cta: brief.cta,
     target_audience: brief.target_audience,
     platforms: brief.platforms,
+    video_type: brief.video_type,
+    voiceover_type: brief.voiceover_type,
+    notes: brief.notes,
+    languages: brief.languages,
     product_image_url: brief.product_image_url,
     pipeline_type: brief.product_image_url ? 'product' : 'character',
     status: 'ai_processing',
