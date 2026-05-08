@@ -1377,7 +1377,7 @@ function ClientBriefDetail() {
                               </button>
                             </div>
                           )}
-                          {hasVideo && (
+                          {hasVideo && !isFailed && (
                             <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
                               {isPurchased ? (
                                 <>

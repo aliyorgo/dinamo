@@ -509,7 +509,7 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
                 )}
 
                 {/* Actions for completed video */}
-                {hasVideo && (
+                {hasVideo && !isFailed && (
                   <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                     {isPurchased ? (
                       <>
@@ -530,7 +530,7 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
                 )}
 
                 {/* Feedback (AI Express pattern) */}
-                {hasVideo && (
+                {hasVideo && !isFailed && (
                   <div style={{ marginTop: '10px' }}>
                     {!isEditingFb && lastFb ? (
                       <div style={{ fontSize: '11px', color: '#555', padding: '8px 10px', background: '#f5f4f0', lineHeight: 1.5 }}>
