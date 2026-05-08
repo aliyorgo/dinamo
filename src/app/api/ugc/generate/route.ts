@@ -22,13 +22,15 @@ export async function POST(req: NextRequest) {
     await supabase.from('credit_transactions').insert({ client_id: brief.client_id, client_user_id: brief.client_user_id, brief_id, amount: -creditCost, type: 'deduct', description: creditCost === 0 ? 'AI Persona üretim (ücretsiz)' : 'AI Persona üretim' })
   }
 
+  // Calculate next version for this brief+persona
+  const { count: existingVersions } = await supabase.from('ugc_videos').select('id', { count: 'exact', head: true }).eq('brief_id', brief_id).eq('persona_id', persona_id)
+  const nextVersion = (existingVersions || 0) + 1
+
   // Create ugc_videos record
-  // TODO: Pipeline aşamasında settings.watermark=true ise ffmpeg overlay eklenecek
-  // TODO: settings.music=false ise Veo prompt'a "no music" eklenir
-  // TODO: settings.speed Veo prompt'a "speaks at X pace" olarak eklenir
   const { data: ugcVideo, error: insErr } = await supabase.from('ugc_videos').insert({
     brief_id,
     persona_id,
+    version: nextVersion,
     script,
     product_image_used: use_product && !!brief.product_image_url,
     status: 'queued',
