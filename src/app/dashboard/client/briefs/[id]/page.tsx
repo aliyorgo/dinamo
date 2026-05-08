@@ -398,39 +398,18 @@ function ClientBriefDetail() {
 
   async function handleStudioGenerate(mode: 'character' | 'product' = 'character') {
     if (!clientUser || !brief || aiGenerating) return
-    const completedCount = aiChildren.filter(c => c.ai_video_status === 'completed' || c.status === 'delivered').length
-    const generateCost = completedCount < 3 ? 0 : (creditSettings?.credit_ai_express_generate || 1)
-    if (generateCost > 0 && (clientUser.allocated_credits || 0) < generateCost) { setAiError('Yetersiz kredi'); return }
     setAiGenerating(true)
     setShowAiGenerate(false)
-    if (generateCost > 0) {
-      const newCredits = (clientUser.allocated_credits || 0) - generateCost
-      await supabase.from('client_users').update({ allocated_credits: newCredits }).eq('id', clientUser.id)
-      setClientUser({ ...clientUser, allocated_credits: newCredits })
-    }
-    const baseName = brief.campaign_name?.replace(/\s*—\s*Full AI #\d+$/, '').replace(/\s*—\s*\d+$/, '') || brief.campaign_name
-    const rootId = brief.root_campaign_id || id
-    const { count } = await supabase.from('briefs').select('id', { count: 'exact', head: true }).eq('root_campaign_id', rootId).like('campaign_name', '%Full AI%')
-    const aiNum = (count || 0) + 1
-    const ideaContext = brief.selected_ai_idea ? `MÜŞTERİ SEÇİMİ — YARATICI YÖN:\nBaşlık: ${brief.selected_ai_idea.title}\nAçıklama: ${brief.selected_ai_idea.description}\nVideoyu bu yöne sadık üret.\n\n` : ''
-    const { data: newBrief } = await supabase.from('briefs').insert({
-      campaign_name: `${baseName} — Full AI #${aiNum}`,
-      parent_brief_id: id,
-      video_type: brief.video_type, format: brief.format, platforms: brief.platforms,
-      message: ideaContext + (brief.message || ''), cta: brief.cta, target_audience: brief.target_audience,
-      voiceover_type: brief.voiceover_type, voiceover_gender: brief.voiceover_gender,
-      voiceover_text: brief.voiceover_text, notes: brief.notes, languages: brief.languages,
-      product_image_url: mode === 'product' ? (brief.product_image_url || null) : null,
-      pipeline_type: mode,
-      brief_type: 'express_clone',
-      credit_cost: generateCost, client_id: brief.client_id, client_user_id: brief.client_user_id,
-      root_campaign_id: brief.root_campaign_id || id,
-      status: 'ai_processing', ai_video_status: 'processing_concept',
-    }).select('id, campaign_name, status, format, ai_video_status, ai_video_url, created_at, product_image_url').single()
-    if (newBrief) {
-      setAiChildren(prev => [...prev, newBrief])
-      setSelectedAiIdx(aiChildren.length)
-    }
+    setAiError('')
+    try {
+      const res = await fetch('/api/ai-express/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: id, client_user_id: clientUser.id, mode }) })
+      const data = await res.json()
+      if (!res.ok) { setAiError(data.error || 'Üretim başarısız'); setAiGenerating(false); return }
+      if (data.child_brief) {
+        setAiChildren(prev => [...prev, data.child_brief])
+        setSelectedAiIdx(aiChildren.length)
+        if (data.credit_charged > 0) setClientUser((prev: any) => ({ ...prev, allocated_credits: (prev.allocated_credits || 0) - data.credit_charged }))
+      }
     fetch('/api/generate-ai-video', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ briefId: newBrief?.id }) })
     logClientActivity({ actionType: 'brief.submitted', userName, clientName: companyName, clientId: brief.client_id, targetType: 'brief', targetId: newBrief?.id, targetLabel: newBrief?.campaign_name, metadata: { type: 'ai_express', mode } })
     setAiGenerating(false)
