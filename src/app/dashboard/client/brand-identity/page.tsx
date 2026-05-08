@@ -43,6 +43,7 @@ export default function BrandIdentityPage() {
   const [logoSizeModal, setLogoSizeModal] = useState(false)
   const [logoSizeTemp, setLogoSizeTemp] = useState(100)
   const [brandLogoUrlClient, setBrandLogoUrlClient] = useState('')
+  const [clientPackshots, setClientPackshots] = useState<Record<string, string>>({})
 
   useEffect(() => {
     async function loadAiMode() {
@@ -69,12 +70,13 @@ export default function BrandIdentityPage() {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
-      const { data: cu } = await supabase.from('client_users').select('client_id, clients(brand_voices, logo_size_percent, brand_logo_url)').eq('user_id', user.id).single()
+      const { data: cu } = await supabase.from('client_users').select('client_id, clients(brand_voices, logo_size_percent, brand_logo_url, packshots)').eq('user_id', user.id).single()
       if (cu) {
         setClientId(cu.client_id)
         setBrandVoices((cu as any).clients?.brand_voices || null)
         setLogoSizePercent((cu as any).clients?.logo_size_percent || 100)
         setBrandLogoUrlClient((cu as any).clients?.brand_logo_url || '')
+        setClientPackshots((cu as any).clients?.packshots || {})
         const bv = (cu as any).clients?.brand_voices
         if (bv?.male) setSelectedMaleVoice(bv.male)
         if (bv?.female) setSelectedFemaleVoice(bv.female)
@@ -269,6 +271,20 @@ export default function BrandIdentityPage() {
           ) : (
             <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>Henüz seçim yapılmadı.</div>
           )}
+        </div>
+
+        {/* PACKSHOT'LAR — read-only */}
+        <div style={{ background: '#fff', border: '1px solid #e5e4db', padding: '22px 26px', marginBottom: '16px' }}>
+          <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', fontWeight: '500', marginBottom: '10px' }}>PACKSHOT'LAR</div>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '8px' }}>
+            {['9x16', '16x9', '1x1', '4x5', '2x3'].map(k => (
+              <div key={k} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
+                <span style={{ color: clientPackshots[k] ? '#22c55e' : '#ccc' }}>{clientPackshots[k] ? '✓' : '✗'}</span>
+                <span style={{ color: clientPackshots[k] ? '#0a0a0a' : '#aaa' }}>{k.replace('x', ':')}</span>
+              </div>
+            ))}
+          </div>
+          <div style={{ fontSize: '11px', color: '#aaa' }}>Eksik boyutlar için iletişime geçin.</div>
         </div>
 
         {/* MARKA DOSYALARI */}

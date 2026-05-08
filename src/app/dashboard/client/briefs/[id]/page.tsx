@@ -236,14 +236,17 @@ function ClientBriefDetail() {
     if (!user) return
     const { data: userData } = await supabase.from('users').select('name').eq('id', user.id).single()
     setUserName(userData?.name || '')
-    const { data: cu } = await supabase.from('client_users').select('*, clients(company_name, credit_balance, packshot_url, ai_express_settings, legal_name)').eq('user_id', user.id).single()
+    const { data: cu } = await supabase.from('client_users').select('*, clients(company_name, credit_balance, packshot_url, packshots, ai_express_settings, legal_name)').eq('user_id', user.id).single()
     setClientUser(cu)
     setCompanyName((cu as any)?.clients?.company_name || '')
     setLegalName((cu as any)?.clients?.legal_name || '')
-    const pUrl = (cu as any)?.clients?.packshot_url || ''
-    setClientPackshotUrl(pUrl)
     const { data: b } = await supabase.from('briefs').select('*, clients(ai_video_enabled, ugc_enabled)').eq('id', id).single()
     setBrief(b)
+    // Aspect-aware packshot: ONLY check packshots JSONB for this brief's aspect (no legacy fallback in UI)
+    const clientPackshots = (cu as any)?.clients?.packshots || {}
+    const briefAspect = (b?.format || '9:16').replace(':', 'x')
+    const pUrl = clientPackshots[briefAspect] || ''
+    setClientPackshotUrl(pUrl)
     if (b?.caption) { setCaptionText(b.caption); setSavedCaption(b.caption) }
     // AI Express settings — client-level (brand settings, not per-brief)
     const storedSettings = (cu as any)?.clients?.ai_express_settings
@@ -894,10 +897,10 @@ function ClientBriefDetail() {
 
                 // PROCESSING
                 return (
-                  <div style={{position:'relative',overflow:'hidden',border:'1px solid #d4d2cc',marginBottom:'16px',minHeight:'200px',background:'#ebe9e3'}}>
+                  <div style={{position:'relative',overflow:'hidden',border:'1px solid #d4d2cc',marginBottom:'16px',background:'#ebe9e3',maxWidth:aspect.maxW,margin:briefFormat==='16:9'?'0 0 16px':'0 auto 16px',aspectRatio:briefFormat.replace(':','/')}}>
                     <video src="/videos/dinamo_static_progress.mp4" autoPlay muted loop playsInline style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',zIndex:0}} />
                     <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.35)',zIndex:1}} />
-                    <div style={{position:'relative',zIndex:2,padding:'40px 28px',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:'200px'}}>
+                    <div style={{position:'relative',zIndex:2,width:'100%',height:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center'}}>
                       <img src="/dinamo_logo.png" alt="" style={{width:'154px',objectFit:'contain',display:'block',animation:'pulse 1.8s ease-in-out infinite'}} />
                       <div style={{fontSize:'13px',fontWeight:'500',letterSpacing:'0.1em',color:'#fff',marginTop:'2px',animation:'pulse 1.5s ease infinite'}}>ÇALIŞIYOR</div>
                       <div style={{fontSize:'11px',color:'rgba(255,255,255,0.6)',textAlign:'center',lineHeight:1.5,marginTop:'8px'}}>1-2 dakika sürebilir, hazır olunca otomatik görünecek</div>
@@ -1083,8 +1086,8 @@ function ClientBriefDetail() {
 
               {/* WAITING FOR PRODUCTION */}
               {!approvedVideo && ['in_production','submitted','read'].includes(brief.status) && (
-                <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'32px',marginBottom:'16px',textAlign:'center'}}>
-                  <div className="dot" style={{width:'48px',height:'48px',background:'#f5f4f0',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px'}}>
+                <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',marginBottom:'16px',textAlign:'center',maxWidth:aspect.maxW,margin:briefFormat==='16:9'?'0 0 16px':'0 auto 16px',aspectRatio:briefFormat.replace(':','/'),display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center'}}>
+                  <div className="dot" style={{width:'48px',height:'48px',background:'#f5f4f0',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:'16px'}}>
                     <svg width="20" height="20" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5" stroke="#888" strokeWidth="1.2"/><path d="M8 5v3l2 1" stroke="#888" strokeWidth="1.2" strokeLinecap="round"/></svg>
                   </div>
                   <div style={{fontSize:'15px',fontWeight:'500',color:'#0a0a0a',marginBottom:'6px'}}>Videonuz hazırlanıyor</div>
@@ -1282,14 +1285,18 @@ function ClientBriefDetail() {
                       <span className="dot" style={{position:'absolute',top:'2px',left:expressSettings.cta?'18px':'2px',width:'16px',height:'16px',background:'#fff',transition:'left 0.2s'}} />
                     </button>
                   </div>
-                  {/* Packshot toggle — only if client has packshot uploaded */}
-                  {clientPackshotUrl && (
-                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0'}}>
-                      <div><div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>Packshot</div><div style={{fontSize:'11px',color:'#888'}}>Video sonuna packshot ekle</div></div>
-                      <button onClick={()=>toggleExpressSetting('packshot')}
-                        style={{width:'36px',height:'20px',border:'none',cursor:'pointer',background:expressSettings.packshot?'#22c55e':'#ddd',position:'relative',transition:'background 0.2s',flexShrink:0}}>
-                        <span className="dot" style={{position:'absolute',top:'2px',left:expressSettings.packshot?'18px':'2px',width:'16px',height:'16px',background:'#fff',transition:'left 0.2s'}} />
-                      </button>
+                  {/* Packshot toggle — global setting, untouched */}
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0'}}>
+                    <div><div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>Packshot</div><div style={{fontSize:'11px',color:'#888'}}>Video sonuna packshot ekle</div></div>
+                    <button onClick={()=>toggleExpressSetting('packshot')}
+                      style={{width:'36px',height:'20px',border:'none',cursor:'pointer',background:expressSettings.packshot?'#22c55e':'#ddd',position:'relative',transition:'background 0.2s',flexShrink:0}}>
+                      <span className="dot" style={{position:'absolute',top:'2px',left:expressSettings.packshot?'18px':'2px',width:'16px',height:'16px',background:'#fff',transition:'left 0.2s'}} />
+                    </button>
+                  </div>
+                  {/* Aspect-aware packshot info banner */}
+                  {expressSettings.packshot && !clientPackshotUrl && (
+                    <div style={{fontSize:'11px',color:'#92400e',background:'#fffbeb',border:'1px solid #fde68a',padding:'8px 12px',marginTop:'-4px',marginBottom:'4px',lineHeight:1.5}}>
+                      {brief?.format || '9:16'} boyutu için packshot yüklü değil — bu üretimde packshot kullanılmayacak. Yüklemek için iletişime geçin.
                     </div>
                   )}
                 </div>
