@@ -241,27 +241,22 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
     setFeedbackText(prev => ({ ...prev, [videoId]: '' }))
   }
 
-  // Retry failed video — reset same record, worker re-picks it
+  // Retry failed video — service-role endpoint resets record, worker re-picks it
   const [retryingId, setRetryingId] = useState<string | null>(null)
   async function handleRetry(failedVideo: any) {
+    if (retryingId) return // prevent double-click
     setRetryingId(failedVideo.id)
     try {
-      // Fix script format if old format (shots instead of dialogue)
+      // Fix script format if old format
       let script = failedVideo.script
       if (!script?.dialogue) {
         const dialogue = readScript(ugcScripts, failedVideo.persona_id) || scriptText
         script = { dialogue: dialogue.trim() || 'Merhaba' }
       }
 
-      // Reset the same record — worker polls 'queued' and re-processes
-      const { error } = await supabase.from('ugc_videos').update({
-        status: 'queued',
-        error_message: null,
-        final_url: null,
-        script,
-      }).eq('id', failedVideo.id)
-
-      if (error) { setMsg('Yeniden deneme başarısız'); setRetryingId(null); return }
+      // Service-role endpoint — bypasses RLS
+      const res = await fetch('/api/ugc/retry', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ video_id: failedVideo.id, script }) })
+      if (!res.ok) { const d = await res.json(); setMsg(d.error || 'Yeniden deneme başarısız'); setRetryingId(null); return }
 
       // Optimistic UI update — same card switches to processing
       setUgcVideos(prev => prev.map(v => v.id === failedVideo.id ? { ...v, status: 'queued', error_message: null, final_url: null } : v))
