@@ -557,17 +557,28 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
                 {/* Lock appearance toggle (radio: only one per persona) */}
                 {hasVideo && !isFailed && (() => {
                   const lock = brief?.locked_persona_appearance?.[String(video.persona_id)]
-                  const ua = video.used_appearance
-                  const isThisLocked = !!(lock && ua && lock.hair === ua.hair && lock.skin === ua.skin && (lock.beard || null) === (ua.beard || null))
+                  // used_appearance from DB, or fallback to hash re-computation
+                  let ua = video.used_appearance
+                  if (!ua) {
+                    const p = personas.find(x => x.id === video.persona_id)
+                    const vars = p?.appearance_variations || {}
+                    if (vars.hair) {
+                      const seed = `${briefId}_${video.persona_id}_${video.version || 1}`
+                      let h = 0; for (let i = 0; i < seed.length; i++) { h = ((h << 5) - h) + seed.charCodeAt(i); h |= 0 }; h = Math.abs(h)
+                      ua = { hair: vars.hair?.[(h + 0) % vars.hair.length] || null, skin: vars.skin?.[(h + 1) % vars.skin.length] || null, beard: p?.gender === 'male' ? (vars.beard?.[(h + 3) % vars.beard.length] || null) : null }
+                    }
+                  }
+                  const isThisLocked = !!(lock && ua && lock.hair === ua.hair && lock.skin === ua.skin)
                   return (
                     <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: '#fff', border: '1px solid #e5e4db', maxWidth: '280px' }}>
-                      <span style={{ fontSize: '11px', fontWeight: '500', letterSpacing: '0.08em', textTransform: 'uppercase', color: isThisLocked ? '#0a0a0a' : '#3a3a3a' }}>TİPİ SABİTLE</span>
+                      <span style={{ fontSize: '11px', fontWeight: '500', letterSpacing: '0.08em', textTransform: 'uppercase', color: isThisLocked ? '#0a0a0a' : '#3a3a3a' }}>BU TİPİ FİKSLE</span>
                       <button onClick={async () => {
+                        if (!ua) return
                         const newLocked = !isThisLocked
                         await fetch('/api/ugc/lock-appearance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: video.persona_id, locked: newLocked, appearance: newLocked ? ua : null }) })
                         const { data: fb } = await supabase.from('briefs').select('locked_persona_appearance').eq('id', briefId).single()
                         if (fb) setBrief((prev: any) => ({ ...prev, locked_persona_appearance: fb.locked_persona_appearance }))
-                      }} style={{ width: '44px', height: '24px', borderRadius: '12px', border: 'none', cursor: 'pointer', background: isThisLocked ? '#22c55e' : '#d4d2cc', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
+                      }} style={{ width: '44px', height: '24px', borderRadius: '12px', border: 'none', cursor: ua ? 'pointer' : 'default', background: isThisLocked ? '#22c55e' : '#d4d2cc', position: 'relative', transition: 'background 0.2s', flexShrink: 0, opacity: ua ? 1 : 0.4 }}>
                         <span className="dot" style={{ position: 'absolute', top: '2px', left: isThisLocked ? '22px' : '2px', width: '20px', height: '20px', background: '#fff', boxShadow: '0 2px 4px rgba(0,0,0,0.2)', transition: 'left 0.2s' }} />
                       </button>
                     </div>
