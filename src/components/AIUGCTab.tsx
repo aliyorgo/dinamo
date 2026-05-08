@@ -554,38 +554,25 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
                   </div>
                 )}
 
-                {/* Lock appearance checkbox */}
-                {hasVideo && !isFailed && (
-                  <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: '#fafaf7', border: '1px solid #e5e4db' }}>
-                    <input type="checkbox"
-                      checked={!!(brief?.locked_persona_appearance?.[String(video.persona_id)])}
-                      onChange={async (e) => {
-                        const isLocked = e.target.checked
-                        const appearance = isLocked ? (video.settings_snapshot ? { hair: null, skin: null, beard: null } : {}) : null
-                        // Get current variation from the video's Veo prompt log — we use settings_snapshot as proxy
-                        // For lock, we need the actual appearance that was used. Best effort: read from the last video's variation.
-                        // Since we don't store the exact variation, we re-compute it
-                        const persona = personas.find(p => p.id === video.persona_id)
-                        const vars = persona?.appearance_variations || {}
-                        if (isLocked && vars.hair) {
-                          // Re-compute the variation that was used for this video
-                          const seed = `${briefId}_${video.persona_id}_${video.version || 1}`
-                          let hash = 0; for (let i = 0; i < seed.length; i++) { hash = ((hash << 5) - hash) + seed.charCodeAt(i); hash |= 0 }; hash = Math.abs(hash)
-                          const pick = (arr: string[], off: number) => arr?.[(hash + off) % arr.length] || null
-                          appearance.hair = pick(vars.hair, 0)
-                          appearance.skin = pick(vars.skin, 1)
-                          appearance.beard = persona?.gender === 'male' ? pick(vars.beard, 3) : null
-                        }
-                        await fetch('/api/ugc/lock-appearance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: video.persona_id, locked: isLocked, appearance }) })
-                        // Refresh brief data
-                        const { data: freshBrief } = await supabase.from('briefs').select('locked_persona_appearance').eq('id', briefId).single()
-                        if (freshBrief) setBrief((prev: any) => ({ ...prev, locked_persona_appearance: freshBrief.locked_persona_appearance }))
-                      }}
-                      style={{ width: '16px', height: '16px', accentColor: '#0a0a0a', cursor: 'pointer' }}
-                    />
-                    <span style={{ fontSize: '12px', fontWeight: '500', color: '#3a3a3a', cursor: 'pointer' }}>Tipi fiksle</span>
-                  </div>
-                )}
+                {/* Lock appearance toggle (radio: only one per persona) */}
+                {hasVideo && !isFailed && (() => {
+                  const lock = brief?.locked_persona_appearance?.[String(video.persona_id)]
+                  const ua = video.used_appearance
+                  const isThisLocked = !!(lock && ua && lock.hair === ua.hair && lock.skin === ua.skin && (lock.beard || null) === (ua.beard || null))
+                  return (
+                    <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: '#fff', border: '1px solid #e5e4db', maxWidth: '280px' }}>
+                      <span style={{ fontSize: '11px', fontWeight: '500', letterSpacing: '0.08em', textTransform: 'uppercase', color: isThisLocked ? '#0a0a0a' : '#3a3a3a' }}>TİPİ SABİTLE</span>
+                      <button onClick={async () => {
+                        const newLocked = !isThisLocked
+                        await fetch('/api/ugc/lock-appearance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: video.persona_id, locked: newLocked, appearance: newLocked ? ua : null }) })
+                        const { data: fb } = await supabase.from('briefs').select('locked_persona_appearance').eq('id', briefId).single()
+                        if (fb) setBrief((prev: any) => ({ ...prev, locked_persona_appearance: fb.locked_persona_appearance }))
+                      }} style={{ width: '44px', height: '24px', borderRadius: '12px', border: 'none', cursor: 'pointer', background: isThisLocked ? '#22c55e' : '#d4d2cc', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
+                        <span className="dot" style={{ position: 'absolute', top: '2px', left: isThisLocked ? '22px' : '2px', width: '20px', height: '20px', background: '#fff', boxShadow: '0 2px 4px rgba(0,0,0,0.2)', transition: 'left 0.2s' }} />
+                      </button>
+                    </div>
+                  )
+                })()}
               </div>
             </div>
           )
