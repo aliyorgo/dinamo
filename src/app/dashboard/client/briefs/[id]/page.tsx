@@ -186,6 +186,9 @@ function ClientBriefDetail() {
   const [timerStageMap, setTimerStageMap] = useState<Record<string, number>>({})
   const [editingFeedback, setEditingFeedback] = useState<Record<string, boolean>>({})
   const [staticImageModal, setStaticImageModal] = useState<{ briefId: string; videoUrl: string; existingUrl?: string } | null>(null)
+  const [voiceoverModalOpen, setVoiceoverModalOpen] = useState(false)
+  const [voiceoverText, setVoiceoverText] = useState('')
+  const [voiceoverSaving, setVoiceoverSaving] = useState(false)
   const [feedbackText, setFeedbackText] = useState<Record<string, string>>({})
 
   useEffect(() => { loadData() }, [id])
@@ -1462,12 +1465,20 @@ function ClientBriefDetail() {
                       </div>
                     ) : (
                       <div>
-                        <button onClick={()=>brief.product_image_url?setShowAiGenerate(true):handleStudioGenerate('character')} disabled={(clientUser?.allocated_credits||0)<1}
-                          style={{width:'100%',padding:'14px',background:(clientUser?.allocated_credits||0)<1?'#ccc':'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'13px',fontWeight:'600',cursor:(clientUser?.allocated_credits||0)<1?'default':'pointer',transition:'background 0.15s',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}
-                          onMouseEnter={e=>{if((clientUser?.allocated_credits||0)>=1)e.currentTarget.style.background='#1DB81D'}}
-                          onMouseLeave={e=>{if((clientUser?.allocated_credits||0)>=1)e.currentTarget.style.background='#0a0a0a'}}>
-                          {(() => { const cc = aiChildren.filter(c => c.ai_video_status !== 'failed' && c.ai_video_status !== 'timeout' && c.ai_video_status !== null).length; return cc === 0 ? 'ÜRET (ÜCRETSİZ)' : `Yeni Versiyon Üret (${creditSettings?.credit_ai_express_generate || 1} KREDİ)` })()}
-                        </button>
+                        <div style={{display:'flex',gap:'8px'}}>
+                          <button onClick={()=>brief.product_image_url?setShowAiGenerate(true):handleStudioGenerate('character')} disabled={(clientUser?.allocated_credits||0)<1}
+                            style={{flex:1,padding:'14px',background:(clientUser?.allocated_credits||0)<1?'#ccc':'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'13px',fontWeight:'600',cursor:(clientUser?.allocated_credits||0)<1?'default':'pointer',transition:'background 0.15s',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}
+                            onMouseEnter={e=>{if((clientUser?.allocated_credits||0)>=1)e.currentTarget.style.background='#1DB81D'}}
+                            onMouseLeave={e=>{if((clientUser?.allocated_credits||0)>=1)e.currentTarget.style.background='#0a0a0a'}}>
+                            {(() => { const cc = aiChildren.filter(c => c.ai_video_status !== 'failed' && c.ai_video_status !== 'timeout' && c.ai_video_status !== null).length; return cc === 0 ? 'ÜRET (ÜCRETSİZ)' : `Yeni Versiyon Üret (${creditSettings?.credit_ai_express_generate || 1} KREDİ)` })()}
+                          </button>
+                          <button onClick={()=>{setVoiceoverText(brief?.voiceover_text||'');setVoiceoverModalOpen(true)}}
+                            style={{width:'90px',padding:'14px 0',background:'#fff',color:'#3a3a3a',border:'1px solid #d4d2cc',borderRadius:'2px',fontSize:'12px',fontWeight:'500',cursor:'pointer',transition:'background 0.15s'}}
+                            onMouseEnter={e=>{e.currentTarget.style.background='#fafaf7'}}
+                            onMouseLeave={e=>{e.currentTarget.style.background='#fff'}}>
+                            Dış Ses
+                          </button>
+                        </div>
                         <div style={{fontSize:'13px',color:'#999',textAlign:'center',marginTop:'6px'}}>{aiChildren.filter(c => c.ai_video_status === 'completed' || c.status === 'delivered').length > 0 ? `~5 dakika · ${creditSettings?.credit_ai_express_generate || 1} kredi` : `~5 dakika · İlk deneme ücretsiz · ${creditSettings?.credit_ai_express || 1} kredi satın alma`}</div>
                       </div>
                     )}
@@ -1776,6 +1787,30 @@ function ClientBriefDetail() {
             <div style={{display:'flex',gap:'8px',justifyContent:'flex-end'}}>
               <button onClick={() => setShowRegenerateConfirm(false)} className="btn btn-outline" style={{padding:'8px 16px'}}>VAZGEÇ</button>
               <button onClick={() => { setShowRegenerateConfirm(false); generateCaption() }} className="btn" style={{padding:'8px 16px'}}>YENİDEN ÜRET</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {voiceoverModalOpen && (
+        <div onClick={()=>setVoiceoverModalOpen(false)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.3)',backdropFilter:'blur(4px)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <div onClick={e=>e.stopPropagation()} style={{background:'#fff',border:'1px solid #0a0a0a',padding:'24px',maxWidth:'480px',width:'90%'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px'}}>
+              <div style={{fontSize:'15px',fontWeight:'500',color:'#0a0a0a'}}>Dış Ses Metni</div>
+              {(() => { const wc = voiceoverText.trim().split(/\s+/).filter(Boolean).length; return <span style={{fontSize:'12px',color:wc>15?'#ef4444':wc===15?'#16a34a':wc>=13?'#f59e0b':'#888'}}>{wc} / 15 kelime</span> })()}
+            </div>
+            <textarea value={voiceoverText} onChange={e=>setVoiceoverText(e.target.value)} rows={4} style={{width:'100%',padding:'12px',border:'1px solid #e5e4db',fontSize:'13px',color:'#0a0a0a',resize:'vertical',boxSizing:'border-box',lineHeight:1.6}} />
+            <div style={{fontSize:'11px',color:'#888',fontStyle:'italic',marginTop:'8px',marginBottom:'16px'}}>En fazla 15 kelime. 10 saniyelik videoya sığacak şekilde. Mevcut videolar etkilenmez.</div>
+            <div style={{display:'flex',gap:'8px',justifyContent:'flex-end'}}>
+              <button onClick={()=>setVoiceoverModalOpen(false)} className="btn btn-outline" style={{padding:'8px 16px'}}>İPTAL</button>
+              <button disabled={voiceoverSaving || voiceoverText.trim().length===0 || voiceoverText===brief?.voiceover_text || voiceoverText.trim().split(/\s+/).filter(Boolean).length>15} onClick={async()=>{
+                setVoiceoverSaving(true)
+                try {
+                  const res = await fetch(`/api/briefs/${id}/voiceover-text`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({voiceover_text:voiceoverText})})
+                  if(res.ok){ setBrief((prev:any)=>({...prev,voiceover_text:voiceoverText})); setVoiceoverModalOpen(false) }
+                } catch{}
+                setVoiceoverSaving(false)
+              }} className="btn" style={{padding:'8px 16px'}}>{voiceoverSaving?'KAYDEDİLİYOR...':'KAYDET'}</button>
             </div>
           </div>
         </div>
