@@ -491,7 +491,7 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
                 </div>
                 <div style={{ fontSize: '11px', color: '#888', marginBottom: '10px' }}>
                   {new Date(video.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                  {video.completed_at && <><span style={{ margin: '0 8px', color: '#ccc' }}>|</span><span style={{ color: '#aaa' }}>{formatDuration(video.created_at, video.completed_at)}</span></>}
+                  {!isFailed && video.completed_at && <><span style={{ margin: '0 8px', color: '#ccc' }}>|</span><span style={{ color: '#aaa' }}>{formatDuration(video.created_at, video.completed_at)}</span></>}
                 </div>
 
                 {/* Feedback summary */}
