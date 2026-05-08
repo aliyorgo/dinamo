@@ -25,10 +25,10 @@ export default function SharePageClient({ brief, clientName, deliveryDate, capti
   const aiWithImages = aiChildren.filter((c: any) => c.static_image_files && (Array.isArray(c.static_image_files) ? c.static_image_files.length > 0 : Object.keys(c.static_image_files).length > 0))
   const hasAnyImages = hasStaticImages || aiWithImages.length > 0
 
-  function VideoThumb({ url, label, width = 200 }: { url: string; label: string; width?: number }) {
+  function VideoThumb({ url, label, width = 200, aspect = '9/16' }: { url: string; label: string; width?: number; aspect?: string }) {
     return (
       <div style={{ width: `${width}px` }}>
-        <div onClick={() => setLightbox({ type: 'video', url })} style={{ aspectRatio: '9/16', background: '#0a0a0a', position: 'relative', cursor: 'pointer', border: '1px solid var(--color-border-tertiary)', overflow: 'hidden' }}>
+        <div onClick={() => setLightbox({ type: 'video', url })} style={{ aspectRatio: aspect, background: '#0a0a0a', position: 'relative', cursor: 'pointer', border: '1px solid var(--color-border-tertiary)', overflow: 'hidden' }}>
           <video src={url + '#t=0.5'} muted playsInline preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.15s' }}
             onMouseEnter={e => { e.currentTarget.style.opacity = '1' }} onMouseLeave={e => { e.currentTarget.style.opacity = '0' }}>
@@ -106,7 +106,7 @@ export default function SharePageClient({ brief, clientName, deliveryDate, capti
                 <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
                   <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
                     {videos.map((v: any) => (
-                      <VideoThumb key={v.id} url={v.video_url} label={`V${v.version}`} width={260} />
+                      <VideoThumb key={v.id} url={v.video_url} label={`V${v.version}`} width={260} aspect={(brief.format||'9:16').replace(':','/')} />
                     ))}
                   </div>
                   <CaptionBox />
@@ -121,7 +121,7 @@ export default function SharePageClient({ brief, clientName, deliveryDate, capti
                   {cpsChildren.map((c: any, i: number) => {
                     const vid = c.video_submissions?.[0]
                     if (!vid?.video_url) return null
-                    return <VideoThumb key={c.id} url={vid.video_url} label={c.cps_hook ? `Yön ${i + 1} · ${c.cps_hook}` : `Yön ${i + 1}`} />
+                    return <VideoThumb key={c.id} url={vid.video_url} label={c.cps_hook ? `Yön ${i + 1} · ${c.cps_hook}` : `Yön ${i + 1}`} aspect={(c.format||brief.format||'9:16').replace(':','/')} />
                   })}
                 </div>
               </div>
@@ -132,7 +132,7 @@ export default function SharePageClient({ brief, clientName, deliveryDate, capti
                 <div style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '10px' }}>AI EXPRESS · {aiChildren.length}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '16px' }}>
                   {aiChildren.map((c: any, i: number) => (
-                    <VideoThumb key={c.id} url={c.ai_video_url} label={`Versiyon ${i + 1}`} />
+                    <VideoThumb key={c.id} url={c.ai_video_url} label={`Versiyon ${i + 1}`} aspect={(c.format||brief.format||'9:16').replace(':','/')} />
                   ))}
                 </div>
               </div>

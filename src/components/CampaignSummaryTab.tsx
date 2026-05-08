@@ -162,7 +162,7 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
                 <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
                   <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
                     {approvedVideos.map((v: any, i: number) => (
-                      <VideoThumb key={v.id} id={`main-${v.id}`} url={v.video_url} label={`V${v.version}`} width={280} />
+                      <VideoThumb key={v.id} id={`main-${v.id}`} url={v.video_url} label={`V${v.version}`} width={280} aspect={(brief.format||'9:16').replace(':','/')} />
                     ))}
                   </div>
                   {brief.status === 'delivered' && (
@@ -201,7 +201,7 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
                   {deliveredCps.map((c: any, i: number) => {
                     const vid = c.video_submissions?.[0]
                     if (!vid?.video_url) return null
-                    return <VideoThumb key={c.id} id={`cps-${c.id}`} url={vid.video_url} label={c.cps_hook ? `Yön ${i + 1} · ${c.cps_hook}` : `Yön ${i + 1}`} />
+                    return <VideoThumb key={c.id} id={`cps-${c.id}`} url={vid.video_url} label={c.cps_hook ? `Yön ${i + 1} · ${c.cps_hook}` : `Yön ${i + 1}`} aspect={(c.format||brief.format||'9:16').replace(':','/')} />
                   })}
                 </div>
               </div>
@@ -213,7 +213,7 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
                 <div style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '10px' }}>AI EXPRESS · {deliveredAi.length} video</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '16px' }}>
                   {deliveredAi.map((c: any, i: number) => (
-                    <VideoThumb key={c.id} id={`ai-${c.id}`} url={c.ai_video_url} label={`Versiyon ${i + 1}`} />
+                    <VideoThumb key={c.id} id={`ai-${c.id}`} url={c.ai_video_url} label={`Versiyon ${i + 1}`} aspect={(c.format||brief.format||'9:16').replace(':','/')} />
                   ))}
                 </div>
               </div>
