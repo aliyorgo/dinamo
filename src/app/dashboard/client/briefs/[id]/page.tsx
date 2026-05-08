@@ -266,7 +266,7 @@ function ClientBriefDetail() {
     // AI clones for this campaign (root_campaign_id based)
     const rootId = b?.root_campaign_id || b?.id
     const { data: aiKids } = await supabase.from('briefs')
-      .select('id, campaign_name, status, ai_video_status, ai_video_url, ai_video_error, product_image_url, created_at, completed_at, ai_feedbacks, static_images_url, static_image_files, ai_express_viewed_at, ai_express_settings_snapshot, ai_feedback_summary')
+      .select('id, campaign_name, status, format, ai_video_status, ai_video_url, ai_video_error, product_image_url, created_at, completed_at, ai_feedbacks, static_images_url, static_image_files, ai_express_viewed_at, ai_express_settings_snapshot, ai_feedback_summary')
       .eq('root_campaign_id', rootId)
       .like('campaign_name', '%Full AI%')
       .order('created_at', { ascending: true })
@@ -324,7 +324,7 @@ function ClientBriefDetail() {
     if (!hasProcessing || aiChildren.length === 0) return
     const allIds = aiChildren.map(c => c.id)
     const poll = setInterval(async () => {
-      const { data } = await supabase.from('briefs').select('id, status, ai_video_status, ai_video_url, ai_video_error, ai_feedback_summary, completed_at').in('id', allIds)
+      const { data } = await supabase.from('briefs').select('id, status, format, ai_video_status, ai_video_url, ai_video_error, ai_feedback_summary, completed_at').in('id', allIds)
       if (!data) return
       setAiChildren(prev => {
         let changed = false
@@ -422,7 +422,7 @@ function ClientBriefDetail() {
       credit_cost: generateCost, client_id: brief.client_id, client_user_id: brief.client_user_id,
       root_campaign_id: brief.root_campaign_id || id,
       status: 'ai_processing', ai_video_status: 'processing_concept',
-    }).select('id, campaign_name, status, ai_video_status, ai_video_url, created_at, product_image_url').single()
+    }).select('id, campaign_name, status, format, ai_video_status, ai_video_url, created_at, product_image_url').single()
     if (newBrief) {
       setAiChildren(prev => [...prev, newBrief])
       setSelectedAiIdx(aiChildren.length)
