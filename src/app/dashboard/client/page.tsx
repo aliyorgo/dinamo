@@ -119,7 +119,7 @@ export default function ClientDashboard() {
           })
           setUgcReadyMap(ugcMap)
           // Total UGC count per brief (all statuses)
-          const { data: ugcAll } = await supabase.from('ugc_videos').select('brief_id').in('brief_id', briefIds)
+          const { data: ugcAll } = await supabase.from('ugc_videos').select('brief_id').in('brief_id', briefIds).neq('status', 'failed')
           const countMap: Record<string, number> = {}
           ugcAll?.forEach((v: any) => { countMap[v.brief_id] = (countMap[v.brief_id] || 0) + 1 })
           setUgcCountMap(countMap)
