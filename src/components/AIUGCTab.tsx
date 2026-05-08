@@ -45,8 +45,10 @@ function readScript(scripts: Record<string, any>, personaId: number | string): s
   return ''
 }
 
-export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }: Props) {
-  // Data
+export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPlayVideoId }: Props) {
+  // Data — local brief copy for lock updates
+  const [brief, setBrief] = useState<any>(briefProp)
+  useEffect(() => { setBrief(briefProp) }, [briefProp])
   const [ugcVideos, setUgcVideos] = useState<any[]>([])
   const [personas, setPersonas] = useState<any[]>([])
   const videoCardRefs = useRef<Record<string, HTMLDivElement | null>>({})
@@ -549,6 +551,39 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
                         <button onClick={() => saveFeedback(video.id, versionLabel, personaSlug)} style={{ padding: '8px 14px', background: '#0a0a0a', color: '#fff', border: 'none', fontSize: '11px', fontWeight: '500', cursor: 'pointer', whiteSpace: 'nowrap', height: '36px' }}>Kaydet</button>
                       </div>
                     )}
+                  </div>
+                )}
+
+                {/* Lock appearance checkbox */}
+                {hasVideo && !isFailed && (
+                  <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: '#fafaf7', border: '1px solid #e5e4db' }}>
+                    <input type="checkbox"
+                      checked={!!(brief?.locked_persona_appearance?.[String(video.persona_id)])}
+                      onChange={async (e) => {
+                        const isLocked = e.target.checked
+                        const appearance = isLocked ? (video.settings_snapshot ? { hair: null, skin: null, beard: null } : {}) : null
+                        // Get current variation from the video's Veo prompt log — we use settings_snapshot as proxy
+                        // For lock, we need the actual appearance that was used. Best effort: read from the last video's variation.
+                        // Since we don't store the exact variation, we re-compute it
+                        const persona = personas.find(p => p.id === video.persona_id)
+                        const vars = persona?.appearance_variations || {}
+                        if (isLocked && vars.hair) {
+                          // Re-compute the variation that was used for this video
+                          const seed = `${briefId}_${video.persona_id}_${video.version || 1}`
+                          let hash = 0; for (let i = 0; i < seed.length; i++) { hash = ((hash << 5) - hash) + seed.charCodeAt(i); hash |= 0 }; hash = Math.abs(hash)
+                          const pick = (arr: string[], off: number) => arr?.[(hash + off) % arr.length] || null
+                          appearance.hair = pick(vars.hair, 0)
+                          appearance.skin = pick(vars.skin, 1)
+                          appearance.beard = persona?.gender === 'male' ? pick(vars.beard, 3) : null
+                        }
+                        await fetch('/api/ugc/lock-appearance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: video.persona_id, locked: isLocked, appearance }) })
+                        // Refresh brief data
+                        const { data: freshBrief } = await supabase.from('briefs').select('locked_persona_appearance').eq('id', briefId).single()
+                        if (freshBrief) setBrief((prev: any) => ({ ...prev, locked_persona_appearance: freshBrief.locked_persona_appearance }))
+                      }}
+                      style={{ width: '16px', height: '16px', accentColor: '#0a0a0a', cursor: 'pointer' }}
+                    />
+                    <span style={{ fontSize: '12px', fontWeight: '500', color: '#3a3a3a', cursor: 'pointer' }}>Tipi fiksle</span>
                   </div>
                 )}
               </div>
