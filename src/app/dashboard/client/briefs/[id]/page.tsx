@@ -1316,7 +1316,7 @@ function ClientBriefDetail() {
                   {aiChildren.map((child, idx) => {
                     const hasVideo = !!child.ai_video_url
                     const isPurchased = child.status === 'delivered'
-                    const isFailed = child.ai_video_status === 'failed' || child.ai_video_status === 'timeout'
+                    const isFailed = !isPurchased && (child.ai_video_status === 'failed' || child.ai_video_status === 'timeout')
                     const isProcessing = child.status === 'ai_processing' && !hasVideo && !isFailed
                     return (
                       <div key={child.id} id={`ai-child-${child.id}`} style={{display:'flex',gap:'14px',padding:'14px',marginBottom:'8px',border:'1px solid var(--color-border-tertiary)',background:'#fff',alignItems:'flex-start',transition:'background 0.15s'}}
@@ -1367,13 +1367,6 @@ function ClientBriefDetail() {
                               }}
                                 style={{padding:'5px 12px',background:'#0a0a0a',color:'#fff',border:'none',borderRadius:'4px',fontSize:'11px',fontWeight:'500',cursor:'pointer',}}>
                                 Tekrar Dene
-                              </button>
-                              <button onClick={async ()=>{
-                                await supabase.from('briefs').delete().eq('id',child.id)
-                                setAiChildren(prev=>prev.filter(c=>c.id!==child.id))
-                              }}
-                                style={{padding:'5px 12px',background:'none',color:'#ef4444',border:'0.5px solid #ef4444',borderRadius:'4px',fontSize:'11px',fontWeight:'500',cursor:'pointer',}}>
-                                Sil
                               </button>
                             </div>
                           )}

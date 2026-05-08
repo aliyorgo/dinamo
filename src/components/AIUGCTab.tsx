@@ -439,7 +439,7 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
         {ugcVideos.map((video, idx) => {
           const hasVideo = !!video.final_url
           const isPurchased = video.status === 'sold'
-          const isFailed = video.status === 'failed'
+          const isFailed = video.status === 'failed' && !isPurchased
           const isProcessing = video.status === 'queued' || video.status === 'generating'
           const personaName = video.personas?.name || personas.find(p => p.id === video.persona_id)?.name || ''
           const personaSlug = video.personas?.slug || personas.find(p => p.id === video.persona_id)?.slug || ''
