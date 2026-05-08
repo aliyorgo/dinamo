@@ -5,6 +5,7 @@ import { getCreditCost } from '@/lib/credits-server'
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
 export async function POST(req: NextRequest) {
+  try {
   const { brief_id, client_user_id, mode } = await req.json()
   if (!brief_id || !client_user_id) return NextResponse.json({ error: 'brief_id ve client_user_id gerekli' }, { status: 400 })
 
@@ -60,4 +61,8 @@ export async function POST(req: NextRequest) {
   if (insErr) return NextResponse.json({ error: insErr.message }, { status: 500 })
 
   return NextResponse.json({ success: true, child_brief: newBrief, credit_charged: creditCost, completed_count: cc })
+  } catch (err: any) {
+    console.error('[ai-express/generate] Error:', err.message, err.stack?.slice(0, 300))
+    return NextResponse.json({ error: err.message || 'Bilinmeyen hata' }, { status: 500 })
+  }
 }
