@@ -44,13 +44,15 @@ body {
   font-family: var(--font-sans), 'Inter', system-ui, sans-serif;
 }
 
-/* Border radius 0 globally — except spinners and avatars */
+/* Border radius 0 globally — except spinners, avatars, and explicit rounds */
 *, *::before, *::after {
   border-radius: 0 !important;
 }
-.spinner, [data-spinner], .rounded-full, .dot, .pie-chart {
+.spinner, [data-spinner], .rounded-full, .dot, .pie-chart, .round {
   border-radius: 9999px !important;
 }
+.rounded-8 { border-radius: 8px !important; }
+.rounded-12 { border-radius: 12px !important; }
 .rounded-br { border-radius: 0 0 6px 0 !important; }
 .spinner { animation: spin 1s linear infinite; }
 .pie-chart { border-radius: 50% !important; }

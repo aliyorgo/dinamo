@@ -14,6 +14,78 @@ const STATUS_MAP: Record<string, { label: string; bg: string; color: string }> =
   lost: { label: 'Kaybedildi', bg: 'rgba(239,68,68,0.1)', color: '#ef4444' },
 }
 
+const PACKSHOT_ASPECTS = ['9x16', '16x9', '1x1', '4x5', '2x3'] as const
+
+function PackshotManager({ clientId }: { clientId: string }) {
+  const [packshots, setPackshots] = useState<Record<string, string>>({})
+  const [loading, setLoading] = useState(true)
+  const [uploading, setUploading] = useState<string | null>(null)
+  const fileRefs = useRef<Record<string, HTMLInputElement | null>>({})
+
+  async function load() {
+    const { data } = await supabase.from('clients').select('packshots').eq('id', clientId).single()
+    setPackshots(data?.packshots || {})
+    setLoading(false)
+  }
+  useEffect(() => { load() }, [clientId])
+
+  async function handleUpload(aspect: string) {
+    const file = fileRefs.current[aspect]?.files?.[0]
+    if (!file) return
+    setUploading(aspect)
+    const fd = new FormData()
+    fd.append('file', file)
+    fd.append('aspect_ratio', aspect)
+    const res = await fetch(`/api/admin/clients/${clientId}/packshots`, { method: 'POST', body: fd })
+    const data = await res.json()
+    if (data.url) setPackshots(prev => ({ ...prev, [aspect]: data.url }))
+    setUploading(null)
+  }
+
+  async function handleDelete(aspect: string) {
+    await fetch(`/api/admin/clients/${clientId}/packshots`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ aspect_ratio: aspect }) })
+    setPackshots(prev => { const n = { ...prev }; delete n[aspect]; return n })
+  }
+
+  if (loading) return <div style={{ padding: '20px', color: '#888', fontSize: '12px' }}>Packshot bilgileri yükleniyor...</div>
+
+  return (
+    <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '20px', marginBottom: '16px' }}>
+      <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: '500', marginBottom: '6px' }}>PACKSHOT'LAR (AI EXPRESS)</div>
+      <div style={{ fontSize: '11px', color: '#aaa', marginBottom: '14px' }}>Brief aspect ratio'suna göre uygun packshot kullanılır.</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px' }}>
+        {PACKSHOT_ASPECTS.map(aspect => {
+          const url = packshots[aspect]
+          const label = aspect.replace('x', ':')
+          return (
+            <div key={aspect} style={{ border: '1px solid #e5e4db', padding: '10px', textAlign: 'center' }}>
+              <div style={{ fontSize: '12px', fontWeight: '600', color: '#0a0a0a', marginBottom: '8px' }}>{label}</div>
+              {url ? (
+                <>
+                  <div style={{ width: '100%', aspectRatio: label.replace(':', '/'), background: '#f5f4f0', overflow: 'hidden', marginBottom: '6px' }}>
+                    <img src={url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </div>
+                  <div style={{ fontSize: '10px', color: '#22c55e', marginBottom: '4px' }}>Yüklü</div>
+                  <button onClick={() => handleDelete(aspect)} style={{ fontSize: '10px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>Sil</button>
+                </>
+              ) : (
+                <>
+                  <div style={{ width: '100%', aspectRatio: label.replace(':', '/'), background: '#f5f4f0', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '6px', cursor: 'pointer', border: '1px dashed #ccc' }} onClick={() => fileRefs.current[aspect]?.click()}>
+                    <span style={{ fontSize: '20px', color: '#ccc' }}>+</span>
+                  </div>
+                  <div style={{ fontSize: '10px', color: '#aaa' }}>Eksik</div>
+                </>
+              )}
+              <input ref={el => { fileRefs.current[aspect] = el }} type="file" accept="image/*,.mp4,.mov,.webm" style={{ display: 'none' }} onChange={() => handleUpload(aspect)} />
+              {uploading === aspect && <div style={{ fontSize: '9px', color: '#888', marginTop: '4px' }}>Yükleniyor...</div>}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 function VoiceAssignment({ clientId }: { clientId: string }) {
   const [data, setData] = useState<{ voices: any[]; visibleCount: number; maleCount: number; femaleCount: number } | null>(null)
   const [loading, setLoading] = useState(true)
@@ -1024,6 +1096,9 @@ export default function ClientDetailPage() {
 
             {/* SES ATAMA */}
             <VoiceAssignment clientId={clientId} />
+
+            {/* PACKSHOT'LAR */}
+            <PackshotManager clientId={clientId} />
 
             {/* AI NOTES + RULES SYSTEM */}
             <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '20px' }}>

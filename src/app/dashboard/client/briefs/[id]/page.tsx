@@ -8,6 +8,7 @@ import StaticImageGeneratorModal from '@/components/StaticImageGeneratorModal'
 import CampaignSummaryTab from '@/components/CampaignSummaryTab'
 import VideoLoadingBox from '@/components/VideoLoadingBox'
 import { logClientActivity } from '@/lib/log-client'
+import { pauseOtherVideos } from '@/lib/video-playback'
 import AIUGCTab from '@/components/AIUGCTab'
 import { downloadFile } from '@/lib/download-helper'
 import { useCredits } from '@/lib/credits'
@@ -278,7 +279,7 @@ function ClientBriefDetail() {
     const { data: ugcVids } = await supabase.from('ugc_videos')
       .select('id, final_url, created_at, personas(name, slug)')
       .eq('brief_id', id)
-      .in('status', ['ready', 'sold'])
+      .eq('status', 'sold')
       .not('final_url', 'is', null)
       .order('created_at', { ascending: true })
     setUgcVideosForSummary(ugcVids || [])
@@ -757,7 +758,7 @@ function ClientBriefDetail() {
               {/* SUCCESS TOAST */}
               {approveSuccess && (
                 <div style={{position:'fixed',top:'24px',left:'50%',transform:'translateX(-50%)',zIndex:200,background:'#22c55e',color:'#fff',padding:'14px 28px',borderRadius:'12px',fontSize:'14px',fontWeight:'500',boxShadow:'0 8px 32px rgba(34,197,94,0.3)',animation:'slideUp 0.4s ease',display:'flex',alignItems:'center',gap:'10px'}}>
-                  <div style={{width:'24px',height:'24px',borderRadius:'50%',background:'rgba(255,255,255,0.2)',display:'flex',alignItems:'center',justifyContent:'center',animation:'successPulse 0.5s ease'}}>✓</div>
+                  <div className="dot" style={{width:'24px',height:'24px',background:'rgba(255,255,255,0.2)',display:'flex',alignItems:'center',justifyContent:'center',animation:'successPulse 0.5s ease'}}>✓</div>
                   Onaylandı! Teşekkürler.
                 </div>
               )}
@@ -805,7 +806,7 @@ function ClientBriefDetail() {
               {unansweredQ.length > 0 && (
                 <div style={{background:'#fff',border:'2px solid #22c55e',borderRadius:'12px',padding:'20px 24px',marginBottom:'16px'}}>
                   <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'14px'}}>
-                    <div style={{width:'8px',height:'8px',borderRadius:'50%',background:'#22c55e'}}></div>
+                    <div className="dot" style={{width:'8px',height:'8px',background:'#22c55e'}}></div>
                     <div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>Cevabınızı Bekliyoruz</div>
                     <div style={{fontSize:'11px',color:'#888'}}>{unansweredQ.length} soru</div>
                     {brief.question_sent_at && (() => {
@@ -848,7 +849,7 @@ function ClientBriefDetail() {
                       <div style={{flex:1,minWidth:0}}>
                         <div style={{borderRadius:'12px',overflow:'hidden',position:'relative',maxWidth:aspect.maxW,margin:briefFormat==='16:9'?'0':'0 auto'}}>
                           <div style={{paddingTop:aspect.padding,position:'relative'}}>
-                            <video controls autoPlay style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',borderRadius:'12px'}}>
+                            <video controls autoPlay onPlay={e=>pauseOtherVideos(e.currentTarget)} style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',borderRadius:'12px'}}>
                               <source src={brief.ai_video_url} />
                             </video>
                           </div>
@@ -912,6 +913,7 @@ function ClientBriefDetail() {
                   <div style={{flex:1,minWidth:0}}>
                       <div style={{borderRadius:'12px',overflow:'hidden',position:'relative',maxWidth:aspect.maxW,margin:briefFormat==='16:9'?'0':'0 auto'}}>
                         <video ref={videoRef} key={currentVideo.id} controls
+                          onPlay={e=>pauseOtherVideos(e.currentTarget)}
                           onTimeUpdate={()=>{if(videoRef.current) setCurrentTime(videoRef.current.currentTime)}}
                           style={{width:'100%',height:'auto',display:'block',borderRadius:'12px'}}>
                           <source src={currentVideo.video_url} />
@@ -1082,7 +1084,7 @@ function ClientBriefDetail() {
               {/* WAITING FOR PRODUCTION */}
               {!approvedVideo && ['in_production','submitted','read'].includes(brief.status) && (
                 <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'32px',marginBottom:'16px',textAlign:'center'}}>
-                  <div style={{width:'48px',height:'48px',borderRadius:'50%',background:'#f5f4f0',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px'}}>
+                  <div className="dot" style={{width:'48px',height:'48px',background:'#f5f4f0',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px'}}>
                     <svg width="20" height="20" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5" stroke="#888" strokeWidth="1.2"/><path d="M8 5v3l2 1" stroke="#888" strokeWidth="1.2" strokeLinecap="round"/></svg>
                   </div>
                   <div style={{fontSize:'15px',fontWeight:'500',color:'#0a0a0a',marginBottom:'6px'}}>Videonuz hazırlanıyor</div>
@@ -1117,7 +1119,7 @@ function ClientBriefDetail() {
                   return steps.map((s,i)=>(
                     <div key={i} style={{display:'flex',gap:'12px',marginBottom:i<steps.length-1?'0':'0'}}>
                       <div style={{display:'flex',flexDirection:'column',alignItems:'center',width:'12px'}}>
-                        <div style={{width:'10px',height:'10px',borderRadius:'50%',background:s.done?'#22c55e':'rgba(0,0,0,0.08)',border:s.done?'none':'1.5px solid rgba(0,0,0,0.12)',flexShrink:0}}></div>
+                        <div className="dot" style={{width:'10px',height:'10px',background:s.done?'#22c55e':'rgba(0,0,0,0.08)',border:s.done?'none':'1.5px solid rgba(0,0,0,0.12)',flexShrink:0}}></div>
                         {i<steps.length-1&&<div style={{width:'1.5px',flex:1,minHeight:'20px',background:s.done?'#22c55e':'rgba(0,0,0,0.06)'}}></div>}
                       </div>
                       <div style={{paddingBottom:i<steps.length-1?'12px':'0'}}>
@@ -1303,7 +1305,7 @@ function ClientBriefDetail() {
                   {aiChildren.map((child, idx) => {
                     const hasVideo = !!child.ai_video_url
                     const isPurchased = child.status === 'delivered'
-                    const isFailed = !hasVideo && (child.ai_video_status === 'failed' || child.ai_video_status === 'timeout')
+                    const isFailed = child.ai_video_status === 'failed' || child.ai_video_status === 'timeout'
                     const isProcessing = child.status === 'ai_processing' && !hasVideo && !isFailed
                     return (
                       <div key={child.id} id={`ai-child-${child.id}`} style={{display:'flex',gap:'14px',padding:'14px',marginBottom:'8px',border:'1px solid var(--color-border-tertiary)',background:'#fff',alignItems:'flex-start',transition:'background 0.15s'}}
@@ -1314,7 +1316,7 @@ function ClientBriefDetail() {
                           {hasVideo ? (
                             <>
                               <video key={child.ai_video_url} src={child.ai_video_url} controls preload="metadata"
-                                onPlay={() => markAiChildViewed(child.id)}
+                                onPlay={e => { pauseOtherVideos(e.currentTarget); markAiChildViewed(child.id) }}
                                 style={{width:'100%',height:'100%',objectFit:'contain',backgroundColor:'black'}} />
                               {!isPurchased && <img src="/dinamo_logo.png" alt="" style={{position:'absolute',top:'14px',left:'14px',width:'60px',opacity:0.65,pointerEvents:'none'}} />}
                             </>
@@ -1340,7 +1342,7 @@ function ClientBriefDetail() {
                           <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'4px'}}>
                             <span style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>V{idx+1}</span>
                             {isPurchased && <span style={{fontSize:'9px',color:'#1DB81D',fontWeight:'600'}}>&#10003; Satın Alındı</span>}
-                            {isProcessing && <span style={{fontSize:'9px',fontWeight:'500',display:'inline-flex',alignItems:'center',gap:'4px'}}><span style={{width:'6px',height:'6px',background:'#4ade80',display:'inline-block',animation:'pulse 1.5s ease infinite'}}></span><span style={{color:'#0a0a0a'}}>Üretiliyor</span> <span style={{color:'#6b6b66'}}>(~5 dakika)</span></span>}
+                            {isProcessing && <span style={{fontSize:'9px',fontWeight:'500',display:'inline-flex',alignItems:'center',gap:'4px'}}><span className="dot" style={{width:'6px',height:'6px',background:'#4ade80',display:'inline-block',animation:'pulse 1.5s ease infinite'}}></span><span style={{color:'#0a0a0a'}}>Üretiliyor</span> <span style={{color:'#6b6b66'}}>(~5 dakika)</span></span>}
                             {isFailed && <span style={{fontSize:'9px',color:'#ef4444',fontWeight:'500'}}>Başarısız</span>}
                             {child.ai_express_settings_snapshot && (() => { const s = child.ai_express_settings_snapshot; const badges = []; if (s.logo) badges.push('LOGO'); if (s.cta) badges.push('CTA'); if (s.packshot) badges.push('PACKSHOT'); return badges.length > 0 ? <span style={{display:'inline-flex',gap:'4px',marginLeft:'6px'}}>{badges.map((b: string)=><span key={b} style={{fontSize:'9px',padding:'2px 6px',background:'#f5f4f0',color:'#888',letterSpacing:'0.5px',fontWeight:600}}>{b}</span>)}</span> : null })()}
                           </div>
@@ -1633,7 +1635,7 @@ function ClientBriefDetail() {
                             <div style={{marginBottom:'12px'}}>
                               {hasVideo ? (
                                 <div style={{aspectRatio:(child.format||briefFormat).replace(':','/'),overflow:'hidden',background:'#0a0a0a'}}>
-                                  <video src={childVideo.video_url} controls playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'contain',background:'black'}} />
+                                  <video src={childVideo.video_url} controls playsInline preload="metadata" onPlay={e=>pauseOtherVideos(e.currentTarget)} style={{width:'100%',height:'100%',objectFit:'contain',background:'black'}} />
                                 </div>
                               ) : (
                                 <VideoLoadingBox aspect={child.format||briefFormat} size="small" label={statusLabel[child.status]||child.status} sublabel="" />
@@ -1680,7 +1682,7 @@ function ClientBriefDetail() {
                   <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'16px',marginBottom:'16px'}}>
                     <div style={{fontSize:'11px',color:'#888',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'10px'}}>Referans — Ana Video</div>
                     <div style={{maxWidth:'200px'}}>
-                      <video src={currentVideo.video_url} controls playsInline preload="metadata" style={{width:'100%',borderRadius:'8px',objectFit:'contain',background:'black'}} />
+                      <video src={currentVideo.video_url} controls playsInline preload="metadata" onPlay={e=>pauseOtherVideos(e.currentTarget)} style={{width:'100%',borderRadius:'8px',objectFit:'contain',background:'black'}} />
                     </div>
                   </div>
                 )}
@@ -1765,7 +1767,7 @@ function ClientBriefDetail() {
           onClick={()=>setShowApproveModal(false)}>
           <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.4)',backdropFilter:'blur(4px)'}} />
           <div onClick={e=>e.stopPropagation()} style={{position:'relative',background:'#fff',borderRadius:'16px',padding:'32px',width:'100%',maxWidth:'400px',animation:'slideUp 0.3s ease',textAlign:'center'}}>
-            <div style={{width:'48px',height:'48px',borderRadius:'50%',background:'rgba(34,197,94,0.1)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px'}}>
+            <div className="dot" style={{width:'48px',height:'48px',background:'rgba(34,197,94,0.1)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px'}}>
               <svg width="22" height="22" viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4 6-7" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </div>
             <div style={{fontSize:'18px',fontWeight:'500',color:'#0a0a0a',marginBottom:'8px'}}>Videoyu Onayla</div>

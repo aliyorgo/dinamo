@@ -5,6 +5,8 @@ import { UGCSettings, DEFAULT_SETTINGS } from './UGCSettingsModal'
 import { UGC_MAX_CHARS } from '@/lib/ai-ugc-rules'
 import { generateUgcCertificatePDF } from '@/lib/generate-certificate'
 import { downloadFile } from '@/lib/download-helper'
+import { pauseOtherVideos } from '@/lib/video-playback'
+import StaticImageGeneratorModal from '@/components/StaticImageGeneratorModal'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
@@ -61,6 +63,7 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
   const [recommendedPersona, setRecommendedPersona] = useState<number | null>(null)
   const [personaFading, setPersonaFading] = useState(false)
   const [hoveredPersona, setHoveredPersona] = useState<string | null>(null)
+  const [staticImageModal, setStaticImageModal] = useState<{ briefId: string; videoUrl: string } | null>(null)
   const [scriptText, setScriptText] = useState('')
   const [scriptLoading, setScriptLoading] = useState(false)
   const [generating, setGenerating] = useState(false)
@@ -238,25 +241,38 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
     setFeedbackText(prev => ({ ...prev, [videoId]: '' }))
   }
 
-  // Retry failed video with same settings
+  // Retry failed video — reset same record, worker re-picks it
   const [retryingId, setRetryingId] = useState<string | null>(null)
   async function handleRetry(failedVideo: any) {
     setRetryingId(failedVideo.id)
     try {
-      const scriptPayload = failedVideo.script || { segments: [] }
-      const genRes = await fetch('/api/ugc/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: failedVideo.persona_id, use_product: false, script: scriptPayload, settings: failedVideo.settings_snapshot || settings }) })
-      const genData = await genRes.json()
-      if (genData.ugc_video_id) {
-        const persona = personas.find(p => p.id === failedVideo.persona_id)
-        setUgcVideos(prev => [...prev, { id: genData.ugc_video_id, status: 'queued', persona_id: failedVideo.persona_id, personas: persona, created_at: new Date().toISOString() }])
-        const poll = setInterval(async () => {
-          const { data: v } = await supabase.from('ugc_videos').select('*, personas(name, slug)').eq('id', genData.ugc_video_id).single()
-          if (v && (v.status === 'ready' || v.status === 'failed')) { clearInterval(poll); setHighlightId(genData.ugc_video_id); setTimeout(() => setHighlightId(null), 1500); loadData() }
-          else if (v && v.status !== 'queued') { setUgcVideos(prev => prev.map(x => x.id === genData.ugc_video_id ? v : x)) }
-        }, 10000)
-      } else { setMsg(genData.error || 'Tekrar deneme başarısız') }
-    } catch { setMsg('Bağlantı hatası') }
-    setRetryingId(null)
+      // Fix script format if old format (shots instead of dialogue)
+      let script = failedVideo.script
+      if (!script?.dialogue) {
+        const dialogue = readScript(ugcScripts, failedVideo.persona_id) || scriptText
+        script = { dialogue: dialogue.trim() || 'Merhaba' }
+      }
+
+      // Reset the same record — worker polls 'queued' and re-processes
+      const { error } = await supabase.from('ugc_videos').update({
+        status: 'queued',
+        error_message: null,
+        final_url: null,
+        script,
+      }).eq('id', failedVideo.id)
+
+      if (error) { setMsg('Yeniden deneme başarısız'); setRetryingId(null); return }
+
+      // Optimistic UI update — same card switches to processing
+      setUgcVideos(prev => prev.map(v => v.id === failedVideo.id ? { ...v, status: 'queued', error_message: null, final_url: null } : v))
+
+      // Poll same video id
+      const poll = setInterval(async () => {
+        const { data: v } = await supabase.from('ugc_videos').select('*, personas(name, slug)').eq('id', failedVideo.id).single()
+        if (v && (v.status === 'ready' || v.status === 'failed')) { clearInterval(poll); setRetryingId(null); loadData() }
+        else if (v && v.status !== 'queued') { setUgcVideos(prev => prev.map(x => x.id === failedVideo.id ? v : x)) }
+      }, 10000)
+    } catch { setMsg('Bağlantı hatası'); setRetryingId(null) }
   }
 
   // Generate new version
@@ -441,9 +457,14 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
             <div key={video.id} ref={el => { videoCardRefs.current[video.id] = el }} style={{ display: 'flex', gap: '14px', padding: '14px', marginBottom: '8px', border: highlightId === video.id ? '2px solid #22c55e' : '1px solid var(--color-border-tertiary)', background: '#fff', alignItems: 'flex-start', transition: 'all 0.3s' }} onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-background-secondary)' }} onMouseLeave={e => { e.currentTarget.style.background = '#fff' }}>
               {/* Video */}
               <div style={{ width: '200px', aspectRatio: '9/16', background: '#0a0a0a', flexShrink: 0, position: 'relative', overflow: 'hidden' }}>
-                {hasVideo ? (
+                {isFailed ? (
+                  <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px', background: '#1a1a1a' }}>
+                    <span style={{ fontSize: '20px', color: '#555' }}>&#9888;</span>
+                    <span style={{ fontSize: '10px', color: '#999' }}>Üretilemedi</span>
+                  </div>
+                ) : hasVideo ? (
                   <>
-                    <video src={video.final_url} controls preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'contain', backgroundColor: 'black' }} onPlay={() => markUgcVideoViewed(video.id)} />
+                    <video src={video.final_url} controls preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'contain', backgroundColor: 'black' }} onPlay={e => { pauseOtherVideos(e.currentTarget); markUgcVideoViewed(video.id) }} />
                     {!isPurchased && <img src="/dinamo_logo.png" alt="" style={{ position: 'absolute', top: '14px', left: '14px', width: '60px', opacity: 0.65, pointerEvents: 'none' }} />}
                   </>
                 ) : isProcessing ? (
@@ -502,7 +523,7 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
                           İndir
                         </button>
                         <button onClick={() => generateUgcCertificatePDF(brief, clientUser?.clients?.company_name || '', personaName, clientUser?.clients?.legal_name)} style={{ fontSize: '11px', color: '#555', background: 'none', border: '0.5px solid rgba(0,0,0,0.12)', padding: '5px 12px', cursor: 'pointer' }}>Telif Belgesi</button>
-                        <button disabled style={{ fontSize: '11px', color: '#888', background: 'none', border: '0.5px solid rgba(0,0,0,0.08)', padding: '5px 12px', cursor: 'default', opacity: 0.4 }} title="Yakında">Görsel Oluştur</button>
+                        <button onClick={() => setStaticImageModal({ briefId, videoUrl: video.final_url })} style={{ fontSize: '11px', color: '#0a0a0a', background: 'none', border: '0.5px solid rgba(0,0,0,0.15)', padding: '5px 12px', cursor: 'pointer' }}>Görsel Oluştur</button>
                       </>
                     ) : (
                       <>
@@ -641,6 +662,14 @@ export default function AIUGCTab({ briefId, brief, clientUser, autoPlayVideoId }
             </div>
           </div>
         </div>
+      )}
+      {staticImageModal && (
+        <StaticImageGeneratorModal
+          briefId={staticImageModal.briefId}
+          videoUrl={staticImageModal.videoUrl}
+          onClose={() => setStaticImageModal(null)}
+          onGenerated={(url: string) => { setStaticImageModal(null); loadData() }}
+        />
       )}
     </div>
   )

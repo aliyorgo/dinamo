@@ -63,7 +63,7 @@ export default function CreatorJobDetail() {
     if (!user) return
     const { data: ud } = await supabase.from('users').select('name').eq('id', user.id).single()
     setUserName(ud?.name || '')
-    const { data: b } = await supabase.from('briefs').select('*, clients(company_name, logo_url, font_url, brand_voices)').eq('id', briefId).single()
+    const { data: b } = await supabase.from('briefs').select('*, clients(company_name, logo_url, font_url, brand_voices, packshots)').eq('id', briefId).single()
     setBrief(b)
     const { data: pb } = await supabase.from('producer_briefs').select('*').eq('brief_id', briefId).maybeSingle()
     setProducerBrief(pb)
@@ -496,7 +496,10 @@ export default function CreatorJobDetail() {
           <div style={{ background: '#fff', border: '1px solid #e5e4db', padding: '18px 22px' }}>
             <div className="label-caps" style={{ marginBottom: '12px' }}>ASSET'LER</div>
             {(() => {
+              const ps = brief.clients?.packshots || {}
+              const packshotAssets = ['9x16','16x9','1x1','4x5','2x3'].filter(k => ps[k]).map(k => ({ name: `Packshot ${k.replace('x',':')}`, url: ps[k], type: 'image' }))
               const allAssets = [
+                ...packshotAssets,
                 ...(brief.clients?.logo_url ? [{ name: 'Logo', url: brief.clients.logo_url, type: 'image' }] : []),
                 ...(brief.clients?.font_url ? [{ name: 'Font', url: brief.clients.font_url, type: 'font' }] : []),
                 ...brandFiles.map((f: any) => ({ name: f.file_name, url: f.file_url, type: f.file_type || '' })),

@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { downloadCampaignZip } from '@/lib/campaign-zip'
 import { downloadFile } from '@/lib/download-helper'
+import { pauseOtherVideos } from '@/lib/video-playback'
 
 interface Props {
   brief: any
@@ -216,7 +217,7 @@ export default function SharePageClient({ brief, clientName, deliveryDate, capti
             style={{ position: 'absolute', top: '20px', right: '20px', width: '36px', height: '36px', border: '1px solid rgba(255,255,255,0.3)', background: 'transparent', color: '#fff', fontSize: '18px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1001 }}>&#215;</button>
           <div onClick={e => e.stopPropagation()}>
             {lightbox.type === 'video'
-              ? <video src={lightbox.url} controls autoPlay style={{ maxWidth: '90vw', maxHeight: '90vh', display: 'block' }} />
+              ? <video src={lightbox.url} controls autoPlay onPlay={e=>pauseOtherVideos(e.currentTarget)} style={{ maxWidth: '90vw', maxHeight: '90vh', display: 'block' }} />
               : <img src={lightbox.url} alt="" style={{ maxWidth: '90vw', maxHeight: '90vh', objectFit: 'contain', display: 'block' }} />}
           </div>
         </div>

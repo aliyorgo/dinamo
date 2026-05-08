@@ -248,7 +248,8 @@ export default function ClientDashboard() {
     const cpsKids = cpsChildrenMap[b.root_campaign_id] || cpsChildrenMap[b.id] || []
     const indicators: { label: string; pulse?: boolean; error?: boolean }[] = []
     if (aiKids.length > 0) {
-      const hasFailed = aiKids.some((k: any) => k.ai_video_status === 'failed' || k.ai_video_status === 'timeout')
+      const latestKid = aiKids[aiKids.length - 1]
+      const hasFailed = latestKid && (latestKid.ai_video_status === 'failed' || latestKid.ai_video_status === 'timeout')
       const processing = aiKids.some((k: any) => k.status === 'ai_processing' && !k.ai_video_url && k.ai_video_status !== 'failed' && k.ai_video_status !== 'timeout')
       indicators.push({ label: `AI EXPRESS · ${aiKids.length}`, pulse: processing, error: hasFailed })
     }
@@ -422,7 +423,7 @@ export default function ClientDashboard() {
           <div style={{position:'relative'}}>
             <button onClick={()=>setShowNotifs(!showNotifs)} style={{background:'none',border:'none',cursor:'pointer',padding:'6px',position:'relative'}}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="1.5"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
-              {unreadCount > 0 && <div style={{position:'absolute',top:'2px',right:'2px',width:'8px',height:'8px',borderRadius:'50%',background:'#ef4444'}}></div>}
+              {unreadCount > 0 && <div className="dot" style={{position:'absolute',top:'2px',right:'2px',width:'8px',height:'8px',background:'#ef4444'}}></div>}
             </button>
             {showNotifs && (
               <div style={{position:'absolute',top:'40px',right:0,width:'320px',background:'#fff',borderRadius:'12px',boxShadow:'0 8px 32px rgba(0,0,0,0.12)',border:'0.5px solid rgba(0,0,0,0.08)',zIndex:50,maxHeight:'360px',overflowY:'auto'}}>
@@ -603,7 +604,7 @@ export default function ClientDashboard() {
                     {allAiReady.map(({ type, parent, item, versionNum, versionPart }) => (
                       <div key={item.id} onClick={() => router.push(type === 'express' ? `/dashboard/client/briefs/${parent.id}?tab=express&ai_child=${item.id}` : `/dashboard/client/briefs/${parent.id}?tab=ugc&video=${item.id}`)}
                         style={{padding:'12px 14px',background:'#fff',borderLeft:`3px solid ${type === 'ugc' ? '#3b82f6' : '#4ade80'}`,border:'1px solid #e5e4db',cursor:'pointer',position:'relative'}}>
-                        <div style={{position:'absolute',top:'8px',right:'8px',width:'8px',height:'8px',borderRadius:'50%',background:type === 'ugc' ? '#3b82f6' : '#4ade80'}} />
+                        <div className="dot" style={{position:'absolute',top:'8px',right:'8px',width:'8px',height:'8px',background:type === 'ugc' ? '#3b82f6' : '#4ade80'}} />
                         <div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>{parent.campaign_name}</div>
                         <div style={{fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'#888',marginTop:'3px'}}>
                           {type === 'express' ? <>EXPRESS<span style={{margin:'0 8px',color:'#ccc'}}>|</span>VERSİYON {versionNum}</> : <>PERSONA<span style={{margin:'0 8px',color:'#ccc'}}>|</span>{item.personas?.name || 'Video'}</>}
@@ -628,7 +629,7 @@ export default function ClientDashboard() {
                         <div>
                           <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name}</div>
                           <div style={{fontSize:'10px',color:'#888',marginTop:'2px'}}>{b.video_type} · {statusLabel[b.status]}</div>
-                          {inds.length > 0 && <div style={{display:'flex',gap:'6px',marginTop:'4px'}}>{inds.map((ind,i) => <span key={i} style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'2px 7px',border:'1px solid #e5e4db',background:'#fafaf7',color:'#0a0a0a',whiteSpace:'nowrap',display:'inline-flex',alignItems:'center',gap:'5px'}}>{ind.error ? <span style={{width:'6px',height:'6px',minWidth:'6px',minHeight:'6px',background:'#ef4444',display:'inline-block',flexShrink:0}} /> : ind.pulse ? <span className="dot" style={{width:'6px',height:'6px',minWidth:'6px',minHeight:'6px',background:'#4ade80',display:'inline-block',animation:'ai-pulse 1.2s ease-in-out infinite',flexShrink:0}} /> : null}{ind.label}</span>)}</div>}
+                          {inds.length > 0 && <div style={{display:'flex',gap:'6px',marginTop:'4px'}}>{inds.map((ind,i) => <span key={i} style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'2px 7px',border:'1px solid #e5e4db',background:'#fafaf7',color:'#0a0a0a',whiteSpace:'nowrap',display:'inline-flex',alignItems:'center',gap:'5px'}}>{ind.error ? <span className="dot" style={{width:'6px',height:'6px',minWidth:'6px',minHeight:'6px',background:'#ef4444',display:'inline-block',flexShrink:0}} /> : ind.pulse ? <span className="dot" style={{width:'6px',height:'6px',minWidth:'6px',minHeight:'6px',background:'#4ade80',display:'inline-block',animation:'ai-pulse 1.2s ease-in-out infinite',flexShrink:0}} /> : null}{ind.label}</span>)}</div>}
                         </div>
                         <span style={{fontSize:'10px',padding:'3px 8px',background:`${statusColor[b.status]}12`,color:statusColor[b.status],fontWeight:'500'}}>{statusLabel[b.status]}</span>
                       </div>
@@ -674,7 +675,7 @@ export default function ClientDashboard() {
                           <div style={{padding:'8px 10px'}}>
                             <div style={{fontSize:'11px',fontWeight:'500',color:'#0a0a0a',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.campaign_name}</div>
                             <div style={{fontSize:'9px',color:'#888',marginTop:'2px'}}>{new Date(b.updated_at || b.created_at).toLocaleDateString('tr-TR')}</div>
-                            {inds.length > 0 && <div style={{display:'flex',gap:'4px',marginTop:'4px',flexWrap:'wrap'}}>{inds.map((ind,i) => <span key={i} style={{fontSize:'8px',letterSpacing:'1px',textTransform:'uppercase',padding:'1px 5px',border:'1px solid #e5e4db',color:'#888',whiteSpace:'nowrap',display:'inline-flex',alignItems:'center',gap:'4px'}}>{ind.error ? <span style={{width:'5px',height:'5px',minWidth:'5px',minHeight:'5px',background:'#ef4444',display:'inline-block',flexShrink:0}} /> : ind.pulse ? <span className="dot" style={{width:'5px',height:'5px',minWidth:'5px',minHeight:'5px',background:'#4ade80',display:'inline-block',animation:'ai-pulse 1.2s ease-in-out infinite',flexShrink:0}} /> : null}{ind.label}</span>)}</div>}
+                            {inds.length > 0 && <div style={{display:'flex',gap:'4px',marginTop:'4px',flexWrap:'wrap'}}>{inds.map((ind,i) => <span key={i} style={{fontSize:'8px',letterSpacing:'1px',textTransform:'uppercase',padding:'1px 5px',border:'1px solid #e5e4db',color:'#888',whiteSpace:'nowrap',display:'inline-flex',alignItems:'center',gap:'4px'}}>{ind.error ? <span className="dot" style={{width:'5px',height:'5px',minWidth:'5px',minHeight:'5px',background:'#ef4444',display:'inline-block',flexShrink:0}} /> : ind.pulse ? <span className="dot" style={{width:'5px',height:'5px',minWidth:'5px',minHeight:'5px',background:'#4ade80',display:'inline-block',animation:'ai-pulse 1.2s ease-in-out infinite',flexShrink:0}} /> : null}{ind.label}</span>)}</div>}
                           </div>
                         </div>
                       )

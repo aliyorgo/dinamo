@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { generateCertificatePDF } from '@/lib/generate-certificate'
 import { downloadCampaignZip } from '@/lib/campaign-zip'
+import { pauseOtherVideos } from '@/lib/video-playback'
 import { downloadFile } from '@/lib/download-helper'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
@@ -326,7 +327,7 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
             style={{ position: 'absolute', top: '20px', right: '20px', width: '36px', height: '36px', border: '1px solid rgba(255,255,255,0.3)', background: 'transparent', color: '#fff', fontSize: '18px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1001 }}>&#215;</button>
           <div onClick={e => e.stopPropagation()} style={{ maxWidth: '90vw', maxHeight: '90vh' }}>
             {lightbox.type === 'video' ? (
-              <video src={lightbox.url} controls autoPlay style={{ maxWidth: '90vw', maxHeight: '90vh', display: 'block' }} />
+              <video src={lightbox.url} controls autoPlay onPlay={e=>pauseOtherVideos(e.currentTarget)} style={{ maxWidth: '90vw', maxHeight: '90vh', display: 'block' }} />
             ) : (
               <img src={lightbox.url} alt="" style={{ maxWidth: '90vw', maxHeight: '90vh', objectFit: 'contain', display: 'block' }} />
             )}

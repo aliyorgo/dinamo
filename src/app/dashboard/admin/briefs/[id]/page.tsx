@@ -110,7 +110,7 @@ export default function AdminBriefDetail() {
   async function loadData() {
     const { data: { user } } = await supabase.auth.getUser()
     if (user) { const { data: ud } = await supabase.from('users').select('name').eq('id', user.id).single(); setUserName(ud?.name||'') }
-    const { data: b } = await supabase.from('briefs').select('*, clients(company_name, logo_url, font_url, brand_voices), client_users(*, users(email, name))').eq('id', id).single()
+    const { data: b } = await supabase.from('briefs').select('*, clients(company_name, logo_url, font_url, brand_voices, packshots), client_users(*, users(email, name))').eq('id', id).single()
     setBrief(b); setEditForm(b||{})
     if (b?.client_users?.users?.email) setClientEmail(b.client_users.users.email)
     const { data: s } = await supabase.from('video_submissions').select('*').eq('brief_id', id).neq('status', 'draft').order('submitted_at', { ascending: false })
@@ -379,6 +379,27 @@ export default function AdminBriefDetail() {
                 <div style={{ fontSize: '13px', color: '#0a0a0a', lineHeight: '1.5' }}>{b.notes}</div>
               </div>
             )}
+            {/* PACKSHOT'LAR */}
+            {(() => {
+              const ps = b.clients?.packshots || {}
+              const filled = ['9x16','16x9','1x1','4x5','2x3'].filter(k => ps[k])
+              if (!filled.length) return null
+              return (
+                <div style={{ marginBottom: '12px' }}>
+                  <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#888', marginBottom: '6px', fontWeight: '500' }}>PACKSHOT'LAR</div>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    {filled.map(k => (
+                      <a key={k} href={ps[k]} target="_blank" download={`packshot_${k}.png`} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 10px', border: '1px solid #e5e4db', fontSize: '11px', color: '#0a0a0a', textDecoration: 'none', cursor: 'pointer' }}
+                        onMouseEnter={e => { e.currentTarget.style.background = '#f5f4f0' }} onMouseLeave={e => { e.currentTarget.style.background = '#fff' }}>
+                        <img src={ps[k]} style={{ width: '28px', height: '28px', objectFit: 'cover' }} />
+                        <span>{k.replace('x', ':')}</span>
+                        <span style={{ fontSize: '9px', color: '#888' }}>↓</span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )
+            })()}
             {(b.clients?.logo_url || b.clients?.font_url) && (
               <div style={{ display: 'flex', gap: '10px' }}>
                 {b.clients?.logo_url && <a href={b.clients.logo_url} target="_blank" className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '10px' }}>LOGO ↓</a>}
