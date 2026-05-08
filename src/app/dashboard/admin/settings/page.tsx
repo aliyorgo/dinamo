@@ -28,7 +28,13 @@ export default function SettingsPage() {
   const [aiQualityMode, setAiQualityMode] = useState<'fast'|'quality'>('fast')
   const [qualitySaving, setQualitySaving] = useState(false)
 
-  useEffect(() => { loadSettings(); loadUsers(); fetch('/api/admin/ai-quality-mode').then(r=>r.json()).then(d=>{ if(d.mode) setAiQualityMode(d.mode) }).catch(()=>{}) }, [])
+  // Brand pronunciations
+  const [pronunciations, setPronunciations] = useState<any[]>([])
+  const [pronModalOpen, setPronModalOpen] = useState(false)
+  const [pronEditId, setPronEditId] = useState<string|null>(null)
+  const [pronForm, setPronForm] = useState({ written: '', pronounced: '' })
+
+  useEffect(() => { loadSettings(); loadUsers(); loadPronunciations(); fetch('/api/admin/ai-quality-mode').then(r=>r.json()).then(d=>{ if(d.mode) setAiQualityMode(d.mode) }).catch(()=>{}) }, [])
 
   async function loadSettings() {
     const { data } = await supabase.from('admin_settings').select('*')
@@ -120,6 +126,41 @@ export default function SettingsPage() {
     loadSettings()
   }
 
+  async function loadPronunciations() {
+    const res = await fetch('/api/admin/pronunciations')
+    const data = await res.json()
+    if (Array.isArray(data)) setPronunciations(data)
+  }
+
+  async function savePronunciation() {
+    if (!pronForm.written || !pronForm.pronounced) return
+    if (pronEditId) {
+      await fetch('/api/admin/pronunciations', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: pronEditId, ...pronForm }) })
+      setMsg('Telaffuz güncellendi.')
+    } else {
+      await fetch('/api/admin/pronunciations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(pronForm) })
+      setMsg('Telaffuz eklendi.')
+    }
+    setPronModalOpen(false)
+    setPronEditId(null)
+    setPronForm({ written: '', pronounced: '' })
+    loadPronunciations()
+    setTimeout(() => setMsg(''), 2000)
+  }
+
+  async function togglePronunciation(id: string, currentActive: boolean) {
+    await fetch('/api/admin/pronunciations', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, is_active: !currentActive }) })
+    loadPronunciations()
+  }
+
+  async function deletePronunciation(id: string, written: string) {
+    if (!confirm(`"${written}" telaffuzunu silmek istediğinizden emin misiniz?`)) return
+    await fetch('/api/admin/pronunciations', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
+    setMsg('Telaffuz silindi.')
+    loadPronunciations()
+    setTimeout(() => setMsg(''), 2000)
+  }
+
   const fields = [
     { key: 'approval_delegated_to_producer', label: 'Onay yetkisi prodüktöre devredildi', type: 'toggle' },
     { key: 'creator_credit_rate', label: '1 kredinın TL karşılığı (Creator ödemesi)', type: 'number', unit: '₺' },
@@ -201,6 +242,77 @@ export default function SettingsPage() {
             )
           })}
         </div>
+        {/* MARKA TELAFFUZLARI */}
+        <div style={{background:'#fff',border:'1px solid #e8e7e3',borderRadius:'12px',overflow:'hidden',marginTop:'32px'}}>
+          <div style={{padding:'16px 24px',borderBottom:'1px solid #e8e7e3',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+            <div>
+              <div style={{fontSize:'12px',color:'rgba(255,255,255,0.4)',letterSpacing:'1px',fontFamily:'monospace'}}>MARKA TELAFFUZLARI</div>
+              <div style={{fontSize:'11px',color:'#888',marginTop:'4px'}}>TTS seslendirmede marka isimlerinin Türkçe okunuşunu belirler</div>
+            </div>
+            <button onClick={()=>{setPronEditId(null);setPronForm({written:'',pronounced:''});setPronModalOpen(true)}} className="btn" style={{padding:'7px 16px',fontSize:'11px',flexShrink:0}}>+ YENİ EKLE</button>
+          </div>
+          {pronunciations.length === 0 ? (
+            <div style={{padding:'24px',textAlign:'center',fontSize:'13px',color:'#888'}}>Henüz telaffuz kuralı eklenmemiş</div>
+          ) : (
+            <table style={{width:'100%',borderCollapse:'collapse'}}>
+              <thead>
+                <tr style={{borderBottom:'1px solid #e8e7e3'}}>
+                  <th style={{padding:'10px 24px',textAlign:'left',fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:'#888',fontWeight:'500'}}>YAZILIŞ</th>
+                  <th style={{padding:'10px 16px',textAlign:'left',fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:'#888',fontWeight:'500'}}>OKUNUŞ</th>
+                  <th style={{padding:'10px 16px',textAlign:'center',fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:'#888',fontWeight:'500'}}>AKTİF</th>
+                  <th style={{padding:'10px 24px',textAlign:'right',fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:'#888',fontWeight:'500'}}>AKSİYON</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pronunciations.map((p, i) => (
+                  <tr key={p.id} style={{borderBottom:i<pronunciations.length-1?'1px solid #f0f0ee':'none'}}>
+                    <td style={{padding:'12px 24px',fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{p.written}</td>
+                    <td style={{padding:'12px 16px',fontSize:'13px',color:'#0a0a0a',fontFamily:'monospace'}}>{p.pronounced}</td>
+                    <td style={{padding:'12px 16px',textAlign:'center'}}>
+                      <button onClick={()=>togglePronunciation(p.id, p.is_active)}
+                        style={{width:'44px',height:'24px',borderRadius:'100px',border:'none',cursor:'pointer',background:p.is_active?'#1db81d':'#ddd',position:'relative',transition:'background 0.2s'}}>
+                        <span style={{position:'absolute',top:'3px',left:p.is_active?'23px':'3px',width:'18px',height:'18px',borderRadius:'50%',background:'#fff',transition:'left 0.2s'}}></span>
+                      </button>
+                    </td>
+                    <td style={{padding:'12px 24px',textAlign:'right'}}>
+                      <div style={{display:'flex',gap:'6px',justifyContent:'flex-end'}}>
+                        <button onClick={()=>{setPronEditId(p.id);setPronForm({written:p.written,pronounced:p.pronounced});setPronModalOpen(true)}} style={{padding:'4px 10px',background:'#fff',color:'#555',border:'1px solid #e8e7e3',borderRadius:'6px',fontSize:'10px',cursor:'pointer'}}>Düzenle</button>
+                        <button onClick={()=>deletePronunciation(p.id, p.written)} style={{padding:'4px 10px',background:'#fff',color:'#ef4444',border:'1px solid rgba(239,68,68,0.3)',borderRadius:'6px',fontSize:'10px',cursor:'pointer'}}>Sil</button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        {/* Pronunciation Modal */}
+        {pronModalOpen && (
+          <div onClick={()=>setPronModalOpen(false)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',backdropFilter:'blur(4px)',zIndex:100,display:'flex',alignItems:'center',justifyContent:'center'}}>
+            <div onClick={e=>e.stopPropagation()} style={{background:'#fff',border:'1px solid #0a0a0a',width:'100%',maxWidth:'400px'}}>
+              <div style={{padding:'16px 24px',borderBottom:'1px solid #e5e4db',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                <div style={{fontSize:'14px',fontWeight:'500',letterSpacing:'1.5px',textTransform:'uppercase',color:'#0a0a0a'}}>{pronEditId ? 'TELAFFUZ DÜZENLE' : 'YENİ TELAFFUZ'}</div>
+                <button onClick={()=>setPronModalOpen(false)} style={{width:'28px',height:'28px',border:'1px solid #e5e4db',background:'#fff',color:'#0a0a0a',fontSize:'14px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>×</button>
+              </div>
+              <div style={{padding:'24px'}}>
+                <div style={{marginBottom:'16px'}}>
+                  <div style={{fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:'#888',marginBottom:'4px',fontWeight:'500'}}>YAZILIŞ</div>
+                  <input value={pronForm.written} onChange={e=>setPronForm({...pronForm,written:e.target.value})} placeholder="Örn: Turkcell" style={{width:'100%',padding:'8px 10px',fontSize:'13px',border:'1px solid #e5e4db',boxSizing:'border-box'}} />
+                </div>
+                <div style={{marginBottom:'24px'}}>
+                  <div style={{fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:'#888',marginBottom:'4px',fontWeight:'500'}}>OKUNUŞ (TTS)</div>
+                  <input value={pronForm.pronounced} onChange={e=>setPronForm({...pronForm,pronounced:e.target.value})} placeholder="Örn: Türksel" style={{width:'100%',padding:'8px 10px',fontSize:'13px',border:'1px solid #e5e4db',boxSizing:'border-box'}} />
+                </div>
+                <div style={{display:'flex',gap:'8px',justifyContent:'flex-end'}}>
+                  <button onClick={()=>setPronModalOpen(false)} className="btn btn-outline" style={{padding:'8px 16px',fontSize:'11px'}}>İPTAL</button>
+                  <button onClick={savePronunciation} disabled={!pronForm.written||!pronForm.pronounced} className="btn" style={{padding:'8px 16px',fontSize:'11px'}}>{pronEditId ? 'GÜNCELLE' : 'KAYDET'}</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* ADMIN KULLANICILARI */}
         {(['admin', 'producer'] as const).map(role => {
           const list = role === 'admin' ? admins : producers
