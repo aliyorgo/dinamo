@@ -42,10 +42,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true })
   } else {
     // Unlock — clear anchor + remove persona appearance
-    const { data: brief } = await supabase.from('briefs').select('locked_anchor_video_id, locked_anchor_persona_id, locked_persona_appearance').eq('id', brief_id).single()
-    if (brief?.locked_anchor_video_id === video_id) {
-      const lpa = brief.locked_persona_appearance || {}
-      if (brief.locked_anchor_persona_id) delete lpa[String(brief.locked_anchor_persona_id)]
+    const { data: briefData } = await supabase.from('briefs').select('locked_anchor_video_id, locked_anchor_persona_id, locked_persona_appearance').eq('id', brief_id).single()
+    if (briefData && briefData.locked_anchor_video_id === video_id) {
+      const lpa = briefData.locked_persona_appearance || {}
+      if (briefData.locked_anchor_persona_id) delete lpa[String(briefData.locked_anchor_persona_id)]
       await supabase.from('briefs').update({
         locked_anchor_video_id: null,
         locked_anchor_persona_id: null,

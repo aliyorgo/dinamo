@@ -409,9 +409,10 @@ function ClientBriefDetail() {
         setAiChildren(prev => [...prev, data.child_brief])
         setSelectedAiIdx(aiChildren.length)
         if (data.credit_charged > 0) setClientUser((prev: any) => ({ ...prev, allocated_credits: (prev.allocated_credits || 0) - data.credit_charged }))
+        fetch('/api/generate-ai-video', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ briefId: data.child_brief.id }) })
+        logClientActivity({ actionType: 'brief.submitted', userName, clientName: companyName, clientId: brief.client_id, targetType: 'brief', targetId: data.child_brief.id, targetLabel: data.child_brief.campaign_name, metadata: { type: 'ai_express', mode } })
       }
-    fetch('/api/generate-ai-video', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ briefId: newBrief?.id }) })
-    logClientActivity({ actionType: 'brief.submitted', userName, clientName: companyName, clientId: brief.client_id, targetType: 'brief', targetId: newBrief?.id, targetLabel: newBrief?.campaign_name, metadata: { type: 'ai_express', mode } })
+    } catch (err) { setAiError('Bağlantı hatası') }
     setAiGenerating(false)
   }
 
