@@ -142,6 +142,7 @@ function ClientBriefDetail() {
     setTimeout(() => setSettingsSaved(false), 1500)
   }
   const [ugcVideosForSummary, setUgcVideosForSummary] = useState<any[]>([])
+  const [ugcVideoCount, setUgcVideoCount] = useState(0)
   const [activeTab, setActiveTab] = useState<'hybrid'|'cps'|'express'|'ugc'|'summary'>(searchParams.get('tab') === 'express' ? 'express' : searchParams.get('tab') === 'ugc' ? 'ugc' : searchParams.get('tab') === 'cps' ? 'cps' : searchParams.get('tab') === 'summary' ? 'summary' : 'hybrid')
 
   // Onboarding: auto-open info modal on first visit per module
@@ -286,6 +287,9 @@ function ClientBriefDetail() {
       .not('final_url', 'is', null)
       .order('created_at', { ascending: true })
     setUgcVideosForSummary(ugcVids || [])
+    // Total UGC count for tab label
+    const { count: ugcTotal } = await supabase.from('ugc_videos').select('id', { count: 'exact', head: true }).eq('brief_id', id)
+    setUgcVideoCount(ugcTotal || 0)
   }
 
   // AI video polling — runs when brief is ai_processing and video not yet ready
@@ -731,8 +735,8 @@ function ClientBriefDetail() {
             const tabs = [
               {key:'hybrid' as const, label:'Ana Video'},
               {key:'cps' as const, label:'CPS'},
-              ...(expressVisible ? [{key:'express' as const, label:'AI Express'}] : []),
-              ...(ugcVisible ? [{key:'ugc' as const, label:'AI Persona'}] : []),
+              ...(expressVisible ? [{key:'express' as const, label:`AI Express${aiChildren.length > 0 ? ` ${aiChildren.length}` : ''}`}] : []),
+              ...(ugcVisible ? [{key:'ugc' as const, label:`AI Persona${ugcVideoCount > 0 ? ` ${ugcVideoCount}` : ''}`}] : []),
               ...(hasSummary ? [{key:'summary' as const, label:'Kampanya Özeti'}] : []),
             ]
             return tabs.map((t,ti)=>{

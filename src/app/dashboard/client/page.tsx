@@ -54,6 +54,7 @@ export default function ClientDashboard() {
   const [aiChildrenMap, setAiChildrenMap] = useState<Record<string, any[]>>({})
   const [cpsChildrenMap, setCpsChildrenMap] = useState<Record<string, any[]>>({})
   const [ugcReadyMap, setUgcReadyMap] = useState<Record<string, any[]>>({})
+  const [ugcCountMap, setUgcCountMap] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
   // Notifications
   const [notifications, setNotifications] = useState<any[]>([])
@@ -117,6 +118,11 @@ export default function ClientDashboard() {
             ugcMap[v.brief_id].push(v)
           })
           setUgcReadyMap(ugcMap)
+          // Total UGC count per brief (all statuses)
+          const { data: ugcAll } = await supabase.from('ugc_videos').select('brief_id').in('brief_id', briefIds)
+          const countMap: Record<string, number> = {}
+          ugcAll?.forEach((v: any) => { countMap[v.brief_id] = (countMap[v.brief_id] || 0) + 1 })
+          setUgcCountMap(countMap)
         }
 
         const withVideoIds = (b || []).filter(br => ['delivered','approved'].includes(br.status)).map(br => br.id)
@@ -254,10 +260,11 @@ export default function ClientDashboard() {
       indicators.push({ label: `AI EXPRESS · ${aiKids.length}`, pulse: processing, error: hasFailed })
     }
     if (cpsKids.length > 0) indicators.push({ label: `CPS · ${cpsKids.length} YÖN` })
-    if (b.ugc_status) {
+    const ugcCount = ugcCountMap[b.id] || 0
+    if (b.ugc_status || ugcCount > 0) {
       const ugcProcessing = b.ugc_status === 'queued' || b.ugc_status === 'generating'
       const ugcFailed = b.ugc_status === 'failed'
-      indicators.push({ label: 'AI PERSONA', pulse: ugcProcessing, error: ugcFailed })
+      indicators.push({ label: `AI PERSONA${ugcCount > 0 ? ` · ${ugcCount}` : ''}`, pulse: ugcProcessing, error: ugcFailed })
     }
     if (b.static_image_files || b.static_images_url) indicators.push({ label: 'GÖRSEL' })
     return indicators
