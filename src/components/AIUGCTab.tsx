@@ -682,7 +682,7 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
           briefId={staticImageModal.briefId}
           videoUrl={staticImageModal.videoUrl}
           onClose={() => setStaticImageModal(null)}
-          onGenerated={(url: string) => { setStaticImageModal(null); loadData() }}
+          onGenerated={(url: string) => { loadData() }}
         />
       )}
     </div>
