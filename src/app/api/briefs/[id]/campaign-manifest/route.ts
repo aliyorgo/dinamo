@@ -68,12 +68,19 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     files.push({ path: `ugc/${slug}_${personaSlug}_v${i + 1}.mp4`, url: v.final_url })
   })
 
-  // Static images — main
+  // Static images — main (supports both old multi-format and new single PNG)
   function addImages(raw: any, prefix: string) {
+    // New format: { url: '...png', copy: '...' }
+    if (raw?.url && typeof raw.url === 'string') {
+      files.push({ path: `${prefix}/gorsel.png`, url: raw.url })
+      return
+    }
+    // Old format: array of frame objects or single frame object
     const frames: any[] = Array.isArray(raw) ? raw : (raw && typeof raw === 'object' && Object.keys(raw).length > 0) ? [raw] : []
     frames.forEach((ff: any, fi: number) => {
       const framePrefix = frames.length > 1 ? `${prefix}/frame_${fi + 1}` : prefix
       for (const [fmtKey, versions] of Object.entries(ff)) {
+        if (fmtKey === 'url' || fmtKey === 'copy' || fmtKey === 'frame_index') continue
         const v = versions as any
         if (v?.with_text) files.push({ path: `${framePrefix}/yazili/${fmtKey}.jpg`, url: v.with_text })
         if (v?.no_text) files.push({ path: `${framePrefix}/yazisiz/${fmtKey}.jpg`, url: v.no_text })

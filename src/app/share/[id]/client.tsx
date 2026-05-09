@@ -153,49 +153,47 @@ export default function SharePageClient({ brief, clientName, deliveryDate, capti
 
         {/* IMAGES — grouped by source */}
         {hasAnyImages && (() => {
-          const formats = [
-            { key: '9x16', label: '9:16 Reel', aspect: '9/16' },
-            { key: '4x5', label: '4:5 IG', aspect: '4/5' },
-            { key: '1x1', label: '1:1 Kare', aspect: '1/1' },
-            { key: '16x9', label: '16:9 Yatay', aspect: '16/9' },
-            { key: '1200x628', label: '1200x628', aspect: '1.91/1' },
-          ]
-          function parseFrames(raw: any): any[] {
-            return Array.isArray(raw) ? raw : (raw && typeof raw === 'object' && Object.keys(raw).length > 0) ? [raw] : []
+          function getImageUrl(raw: any): string | null {
+            if (!raw) return null
+            // New format: { url: '...' }
+            if (raw.url && typeof raw.url === 'string') return raw.url
+            // Old format: array of frame objects [{4x5: {with_text: url}}]
+            if (Array.isArray(raw) && raw[0]) {
+              const first = raw[0]
+              return first?.['4x5']?.with_text || first?.['9x16']?.with_text || null
+            }
+            // Old format: single frame object {4x5: {with_text: url}}
+            if (raw?.['4x5']?.with_text) return raw['4x5'].with_text
+            if (raw?.['9x16']?.with_text) return raw['9x16'].with_text
+            return null
           }
-          const sources: { label: string; frames: any[] }[] = []
-          const mainFrames = parseFrames(brief.static_image_files)
-          if (mainFrames.length > 0) sources.push({ label: 'ANA VIDEODAN', frames: mainFrames })
+          const images: { label: string; url: string }[] = []
+          const mainUrl = getImageUrl(brief.static_image_files) || brief.static_images_url
+          if (mainUrl) images.push({ label: 'ANA VİDEO', url: mainUrl })
           aiWithImages.forEach((child: any) => {
             const idx = aiChildren.indexOf(child)
-            const frames = parseFrames(child.static_image_files)
-            if (frames.length > 0) sources.push({ label: `AI EXPRESS V${idx + 1}'DEN`, frames })
+            const childUrl = getImageUrl(child.static_image_files) || child.static_images_url
+            if (childUrl) images.push({ label: `AI EXPRESS V${idx + 1}`, url: childUrl })
           })
+          if (images.length === 0) return null
           return (
             <div style={{ borderTop: '1px solid var(--color-border-tertiary)', paddingTop: '28px' }}>
-              <div style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: '600', color: 'var(--color-text-primary)', marginBottom: '20px' }}>GÖRSELLER · TOPLAM {sources.reduce((s, src) => s + src.frames.length, 0)}</div>
-              {sources.map((src, si) => (
-                <div key={si} style={{ marginBottom: '24px' }}>
-                  <div style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#9b9b95', fontWeight: '500', marginBottom: '10px' }}>{src.label} · 5 FORMAT</div>
-                  {src.frames.map((ff: any, fi: number) => (
-                    <div key={fi} style={{ marginBottom: fi < src.frames.length - 1 ? '16px' : '0' }}>
-                      {src.frames.length > 1 && <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '6px' }}>FRAME {fi + 1}</div>}
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px' }}>
-                        {formats.map(f => {
-                          const url = ff[f.key]?.with_text
-                          return (
-                            <div key={f.key} onClick={() => url && setLightbox({ type: 'image', url })}
-                              style={{ border: '1px solid var(--color-border-tertiary)', background: '#f5f4f0', aspectRatio: f.aspect, overflow: 'hidden', cursor: url ? 'pointer' : 'default' }}>
-                              {url ? <img src={url} alt={f.label} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                                : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: '9px', color: 'var(--color-text-tertiary)' }}>{f.label}</span></div>}
-                            </div>
-                          )
-                        })}
-                      </div>
+              <div style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: '600', color: 'var(--color-text-primary)', marginBottom: '20px' }}>GÖRSELLER · {images.length}</div>
+              <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(images.length, 3)}, 1fr)`, gap: '16px' }}>
+                {images.map((img, i) => (
+                  <div key={i}>
+                    <div onClick={() => setLightbox({ type: 'image', url: img.url })}
+                      style={{ border: '1px solid var(--color-border-tertiary)', background: '#f5f4f0', aspectRatio: '4/5', overflow: 'hidden', cursor: 'pointer' }}>
+                      <img src={img.url} alt={img.label} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                     </div>
-                  ))}
-                </div>
-              ))}
+                    <div style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#9b9b95', fontWeight: '500', marginTop: '6px' }}>{img.label}</div>
+                    <button onClick={() => downloadFile(img.url, `${img.label.replace(/\s+/g, '_').toLowerCase()}_gorsel.png`)}
+                      style={{ display: 'block', width: '100%', textAlign: 'center', padding: '6px 12px', border: '1px solid #0a0a0a', fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: '#0a0a0a', background: 'transparent', cursor: 'pointer', marginTop: '6px' }}>
+                      İNDİR ↓
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           )
         })()}

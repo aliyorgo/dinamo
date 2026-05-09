@@ -701,7 +701,7 @@ export default function ClientDashboard() {
                     const cpsKids = cpsChildrenMap[b.root_campaign_id] || cpsChildrenMap[b.id] || []
                     const aiCount = aiKids.length
                     const cpsCount = cpsKids.length
-                    const imgCount = (Array.isArray(b.static_image_files) ? b.static_image_files.length : b.static_image_files ? 1 : 0) * 5
+                    const hasImg = !!b.static_image_files || !!b.static_images_url
                     const cat = getBriefCategory(b)
                     const catColors: Record<string,string> = { question:'#ef4444', approval:'#f5a623', ai_ready:'#4ade80', ugc_ready:'#4ade80', producing:'#888', done:'var(--color-text-tertiary)', draft:'#c5c5b8' }
                     const catLabels: Record<string,string> = { question:'Sorumuz Var', approval:'Onay Bekliyor', ai_ready:'AI Express Hazır', ugc_ready:'AI PERSONA Hazır', producing:'Üretiliyor', done:'Tamamlandı', draft:'Taslak' }
@@ -715,7 +715,7 @@ export default function ClientDashboard() {
                             <span style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'2px 7px',border:`1px solid ${catColors[cat]}`,color:catColors[cat],fontWeight:'500'}}>{catLabels[cat]}</span>
                             <span style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'2px 7px',border:'1px solid #e5e4db',color:aiCount > 0 ? '#0a0a0a' : '#c5c5b8',background:aiCount > 0 ? '#fafaf7' : 'transparent'}}>AI EXPRESS · {aiCount}</span>
                             <span style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'2px 7px',border:'1px solid #e5e4db',color:cpsCount > 0 ? '#0a0a0a' : '#c5c5b8',background:cpsCount > 0 ? '#fafaf7' : 'transparent'}}>CPS · {cpsCount} YÖN</span>
-                            <span style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'2px 7px',border:'1px solid #e5e4db',color:imgCount > 0 ? '#0a0a0a' : '#c5c5b8',background:imgCount > 0 ? '#fafaf7' : 'transparent'}}>GÖRSEL · {imgCount}</span>
+                            {hasImg && <span style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'2px 7px',border:'1px solid #e5e4db',color:'#0a0a0a',background:'#fafaf7'}}>GÖRSEL</span>}
                           </div>
                         </div>
                         <div style={{fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'#aaa',flexShrink:0}}>{new Date(b.updated_at || b.created_at).toLocaleDateString('tr-TR',{day:'numeric',month:'short'})}</div>

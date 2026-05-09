@@ -1021,7 +1021,7 @@ function ClientBriefDetail() {
                           <span style={{position:'absolute',top:'10px',left:'12px',fontSize:'8px',fontWeight:'600',color:'#888',background:'rgba(0,0,0,0.05)',padding:'2px 7px',borderRadius:'3px',letterSpacing:'0.5px'}}>BETA</span>
                           <div style={{display:'flex',gap:'6px',flexWrap:'wrap',marginTop:'20px'}}>
                             {brief.static_images_url ? (
-                              <button onClick={()=>downloadFile(brief.static_images_url, `${slugify(brief.campaign_name)}_gorseller.zip`)}
+                              <button onClick={()=>downloadFile(brief.static_images_url, `${slugify(brief.campaign_name)}_gorsel.png`)}
                                 style={{padding:'8px 16px',border:'1px solid #0a0a0a',background:'transparent',fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'#0a0a0a',cursor:'pointer'}}>
                                 GÖRSEL İNDİR ↓
                               </button>
@@ -1367,7 +1367,7 @@ function ClientBriefDetail() {
                                     Telif Belgesi
                                   </button>
                                   {child.static_images_url ? (
-                                    <button onClick={()=>downloadFile(child.static_images_url, `gorseller_v${idx+1}.zip`)}
+                                    <button onClick={()=>downloadFile(child.static_images_url, `gorsel_v${idx+1}.png`)}
                                       style={{fontSize:'11px',color:'#0a0a0a',background:'none',border:'1px solid #0a0a0a',padding:'5px 12px',cursor:'pointer',letterSpacing:'1px',textTransform:'uppercase'}}>
                                       GÖRSEL İNDİR ↓
                                     </button>
