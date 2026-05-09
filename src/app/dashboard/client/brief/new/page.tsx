@@ -1066,17 +1066,17 @@ function NewBriefPage() {
                   </div>
                 </div>
 
-                {/* BRIEF SCORE — compact single line */}
-                <div style={{background:'#fff',border:'1px solid #e5e4db',padding:'14px 18px',marginBottom:'22px',display:'flex',alignItems:'center',gap:'12px'}}>
+                {/* BRIEF SCORE */}
+                <div style={{background:'#fff',border:'1px solid #ededed',padding:'10px 14px',marginBottom:'14px',minHeight:'36px',display:'flex',alignItems:'center',gap:'10px',flexWrap:'wrap'}}>
                   {scoreLoading ? (
-                    <div style={{display:'flex',alignItems:'center',gap:'8px'}}><div className="spinner" style={{width:'12px',height:'12px',border:'2px solid #ddd',borderTopColor:'#0a0a0a'}} /><span style={{fontSize:'12px',color:'var(--color-text-tertiary)'}}>hesaplanıyor...</span></div>
+                    <div style={{display:'flex',alignItems:'center',gap:'6px'}}><div className="spinner" style={{width:'10px',height:'10px',border:'2px solid #ddd',borderTopColor:'#0a0a0a'}} /><span style={{fontSize:'11px',color:'var(--color-text-tertiary)'}}>hesaplanıyor...</span></div>
                   ) : briefScore ? (
                     <>
-                      <div style={{fontSize:'24px',fontWeight:'500',color:briefScore.score>=80?'#22c55e':briefScore.score>=60?'#f59e0b':'#ef4444',letterSpacing:'-1px',flexShrink:0}}>{briefScore.score}</div>
-                      <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:briefScore.score>=80?'#22c55e':briefScore.score>=60?'#f59e0b':'#ef4444',flexShrink:0}}>{briefScore.label}</div>
-                      {briefScore.suggestion && <div style={{fontSize:'12px',color:'#6b6b66',fontStyle:'italic',borderLeft:'1px solid #e5e4db',paddingLeft:'12px'}}>· {briefScore.suggestion}</div>}
+                      <div style={{fontSize:'14px',fontWeight:'500',color:briefScore.score>=80?'#22c55e':briefScore.score>=60?'#f59e0b':'#ef4444',opacity:0.85,flexShrink:0}}>{briefScore.score}</div>
+                      <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:briefScore.score>=80?'#22c55e':briefScore.score>=60?'#f59e0b':'#ef4444',opacity:0.85,flexShrink:0}}>{briefScore.label}</div>
+                      {briefScore.suggestion && <div style={{fontSize:'11px',color:'#6b6b66',fontStyle:'italic',borderLeft:'1px solid #ededed',paddingLeft:'10px'}}>· {briefScore.suggestion}</div>}
                     </>
-                  ) : (<span style={{fontSize:'12px',color:'#aaa'}}>Skor hesaplanamadı.</span>)}
+                  ) : (<span style={{fontSize:'11px',color:'#aaa'}}>Skor hesaplanamadı.</span>)}
                 </div>
 
                 {balance < cost && (
