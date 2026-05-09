@@ -284,9 +284,9 @@ function ClientBriefDetail() {
     setCpsChildren(cpsKids || [])
     // UGC videos for summary tab
     const { data: ugcVids } = await supabase.from('ugc_videos')
-      .select('id, final_url, created_at, personas(name, slug)')
+      .select('id, final_url, created_at, static_images_url, static_image_files, version, status, personas(name, slug)')
       .eq('brief_id', id)
-      .eq('status', 'sold')
+      .in('status', ['sold', 'ready'])
       .not('final_url', 'is', null)
       .order('created_at', { ascending: true })
     setUgcVideosForSummary(ugcVids || [])
