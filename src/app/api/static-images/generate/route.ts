@@ -5,12 +5,12 @@ const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env
 
 export async function POST(req: NextRequest) {
   try {
-    const { briefId, selectedFrames, copy } = await req.json()
+    const { briefId, selectedFrames, copy, ugcVideoId } = await req.json()
     if (!briefId || !selectedFrames?.length) return NextResponse.json({ error: 'briefId ve frame seçimi gerekli' }, { status: 400 })
 
     await supabase.from('briefs').update({
       static_images_job_status: 'pending',
-      static_images_job_payload: { action: 'generate', selectedFrames, copy },
+      static_images_job_payload: { action: 'generate', selectedFrames, copy, ugcVideoId: ugcVideoId || null },
       static_images_error: null,
     }).eq('id', briefId)
 

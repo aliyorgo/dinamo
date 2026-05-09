@@ -7,11 +7,12 @@ interface Props {
   videoUrl: string
   existingUrl?: string | null
   fileName?: string
+  ugcVideoId?: string | null
   onClose: () => void
   onGenerated?: (url: string) => void
 }
 
-export default function StaticImageGeneratorModal({ briefId, videoUrl, existingUrl, fileName, onClose, onGenerated }: Props) {
+export default function StaticImageGeneratorModal({ briefId, videoUrl, existingUrl, fileName, ugcVideoId, onClose, onGenerated }: Props) {
   const [loading, setLoading] = useState(true)
   const [loadingMessage, setLoadingMessage] = useState('Kareler hazırlanıyor...')
   const [frames, setFrames] = useState<string[]>([])
@@ -118,7 +119,7 @@ export default function StaticImageGeneratorModal({ briefId, videoUrl, existingU
       await fetch('/api/static-images/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ briefId, selectedFrames: [frames[selectedFrame]], copy }),
+        body: JSON.stringify({ briefId, selectedFrames: [frames[selectedFrame]], copy, ugcVideoId: ugcVideoId || undefined }),
       })
       pollStatus((result) => {
         setDownloadUrl(result.url)

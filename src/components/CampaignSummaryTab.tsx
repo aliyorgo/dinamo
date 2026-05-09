@@ -233,84 +233,48 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
           </>
         )}
 
-        {/* IMAGES SECTION — grouped by source */}
+        {/* IMAGES SECTION */}
         {hasAnyImages && (() => {
-          const formats = [
-            { key: '9x16', label: '9:16 Reel', aspect: '9/16' },
-            { key: '4x5', label: '4:5 IG', aspect: '4/5' },
-            { key: '1x1', label: '1:1 Kare', aspect: '1/1' },
-            { key: '16x9', label: '16:9 Yatay', aspect: '16/9' },
-            { key: '1200x628', label: '1200x628', aspect: '1.91/1' },
-          ]
-          function parseFrames(raw: any): any[] {
-            return Array.isArray(raw) ? raw : (raw && typeof raw === 'object' && Object.keys(raw).length > 0) ? [raw] : []
+          function getImageUrl(raw: any, fallbackUrl?: string): string | null {
+            if (fallbackUrl) return fallbackUrl
+            if (!raw) return null
+            if (raw.url && typeof raw.url === 'string') return raw.url
+            if (Array.isArray(raw) && raw[0]) {
+              const first = raw[0]
+              return first?.['4x5']?.with_text || first?.['9x16']?.with_text || null
+            }
+            if (raw?.['4x5']?.with_text) return raw['4x5'].with_text
+            return null
           }
-          // Build grouped sources
-          const sources: { label: string; frames: any[]; zipUrl?: string }[] = []
-          const mainFrames = parseFrames(brief.static_image_files)
-          if (mainFrames.length > 0) sources.push({ label: 'ANA VIDEODAN', frames: mainFrames, zipUrl: brief.static_images_url })
-          aiWithImages.forEach((child: any, ci: number) => {
+          const images: { label: string; url: string }[] = []
+          const mainUrl = getImageUrl(brief.static_image_files, brief.static_images_url)
+          if (mainUrl) images.push({ label: 'ANA VİDEO', url: mainUrl })
+          aiWithImages.forEach((child: any) => {
             const idx = aiChildren.indexOf(child)
-            const frames = parseFrames(child.static_image_files)
-            if (frames.length > 0) sources.push({ label: `AI EXPRESS V${idx + 1}'DEN`, frames, zipUrl: child.static_images_url })
+            const childUrl = getImageUrl(child.static_image_files, child.static_images_url)
+            if (childUrl) images.push({ label: `AI EXPRESS V${idx + 1}`, url: childUrl })
           })
-          const totalImageSets = sources.reduce((s, src) => s + src.frames.length, 0)
-
+          if (images.length === 0) return null
           return (
             <>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderTop: '1px solid var(--color-border-tertiary)', paddingTop: '28px' }}>
-                <div style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: '600', color: 'var(--color-text-primary)' }}>GÖRSELLER · TOPLAM {totalImageSets}</div>
+                <div style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: '600', color: 'var(--color-text-primary)' }}>GÖRSELLER · {images.length}</div>
               </div>
-
-              {sources.map((src, si) => (
-                <div key={si} style={{ marginBottom: '28px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                    <div style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', fontWeight: '500' }}>
-                      {src.label} · {src.frames.length > 1 ? `${src.frames.length} GÖRSEL ·` : ''} 5 FORMAT
+              <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(images.length, 3)}, 1fr)`, gap: '16px', marginBottom: '28px' }}>
+                {images.map((img, i) => (
+                  <div key={i}>
+                    <div onClick={() => setLightbox({ type: 'image', url: img.url })}
+                      style={{ border: '1px solid var(--color-border-tertiary)', background: '#f5f4f0', aspectRatio: '4/5', overflow: 'hidden', cursor: 'pointer' }}>
+                      <img src={img.url} alt={img.label} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                     </div>
-                    {src.zipUrl && (
-                      <button onClick={() => downloadFile(src.zipUrl!, `gorseller_${slugify(src.label)}.zip`)}
-                        style={{ fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--color-text-secondary)', background: 'none', border: 'none', textDecoration: 'underline', cursor: 'pointer' }}>
-                        ZIP İNDİR
-                      </button>
-                    )}
+                    <div style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', fontWeight: '500', marginTop: '6px' }}>{img.label}</div>
+                    <button onClick={() => downloadFile(img.url, `${slugify(img.label)}_gorsel.png`)}
+                      style={{ display: 'block', width: '100%', textAlign: 'center', padding: '6px 12px', border: '1px solid #0a0a0a', fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: '#0a0a0a', background: 'transparent', cursor: 'pointer', marginTop: '6px' }}>
+                      İNDİR ↓
+                    </button>
                   </div>
-
-                  {src.frames.map((frameFiles: any, fi: number) => (
-                    <div key={fi} style={{ marginBottom: fi < src.frames.length - 1 ? '20px' : '0' }}>
-                      {src.frames.length > 1 && (
-                        <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '6px' }}>FRAME {fi + 1}</div>
-                      )}
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px' }}>
-                        {formats.map(f => {
-                          const url = frameFiles[f.key]?.with_text
-                          const noTextUrl = frameFiles[f.key]?.no_text
-                          return (
-                            <div key={f.key}>
-                              <div onClick={() => url && setLightbox({ type: 'image', url })}
-                                style={{ border: '1px solid var(--color-border-tertiary)', background: '#f5f4f0', aspectRatio: f.aspect, overflow: 'hidden', cursor: url ? 'pointer' : 'default' }}>
-                                {url ? <img src={url} alt={f.label} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                                  : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: '9px', color: 'var(--color-text-tertiary)' }}>{f.label}</span></div>}
-                              </div>
-                              <div style={{ fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: '500', color: 'var(--color-text-tertiary)', marginTop: '4px', marginBottom: '4px' }}>{f.label}</div>
-                              {url && (
-                                <div style={{ display: 'flex', gap: '4px' }}>
-                                  <button onClick={() => downloadFile(url, `yazili_${f.key}.jpg`)} style={{ flex: 1, textAlign: 'center', padding: '4px 6px', border: '1px solid #0a0a0a', fontSize: '8px', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: '500', color: '#0a0a0a', background: 'transparent', cursor: 'pointer' }}>YAZILI</button>
-                                  {noTextUrl && <button onClick={() => downloadFile(noTextUrl, `yazisiz_${f.key}.jpg`)} style={{ flex: 1, textAlign: 'center', padding: '4px 6px', border: '1px solid var(--color-border-tertiary)', fontSize: '8px', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: '500', color: 'var(--color-text-secondary)', background: 'transparent', cursor: 'pointer' }}>YAZISIZ</button>}
-                                </div>
-                              )}
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ))}
-
-              {sources.length === 0 && (
-                <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--color-text-tertiary)', fontSize: '12px' }}>Görsel dosyaları eski formatta — ZIP olarak indirin</div>
-              )}
+                ))}
+              </div>
             </>
           )
         })()}

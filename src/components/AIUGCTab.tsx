@@ -65,7 +65,7 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
   const [recommendedPersona, setRecommendedPersona] = useState<number | null>(null)
   const [personaFading, setPersonaFading] = useState(false)
   const [hoveredPersona, setHoveredPersona] = useState<string | null>(null)
-  const [staticImageModal, setStaticImageModal] = useState<{ briefId: string; videoUrl: string } | null>(null)
+  const [staticImageModal, setStaticImageModal] = useState<{ briefId: string; videoUrl: string; ugcVideoId?: string } | null>(null)
   const [scriptText, setScriptText] = useState('')
   const [scriptLoading, setScriptLoading] = useState(false)
   const [generating, setGenerating] = useState(false)
@@ -521,10 +521,10 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
                           İndir
                         </button>
                         <button onClick={() => generateUgcCertificatePDF(brief, clientUser?.clients?.company_name || '', personaName, clientUser?.clients?.legal_name)} style={{ fontSize: '11px', color: '#555', background: 'none', border: '0.5px solid rgba(0,0,0,0.12)', padding: '5px 12px', cursor: 'pointer' }}>Telif Belgesi</button>
-                        {brief?.static_images_url ? (
-                          <button onClick={() => downloadFile(brief.static_images_url, `${(brief?.campaign_name || 'brief').replace(/\s+/g, '_').toLowerCase()}_persona_v${idx + 1}.png`)} style={{ fontSize: '11px', color: '#0a0a0a', background: 'none', border: '1px solid #0a0a0a', padding: '5px 12px', cursor: 'pointer', letterSpacing: '1px', textTransform: 'uppercase' }}>GÖRSEL İNDİR ↓</button>
+                        {video.static_images_url ? (
+                          <button onClick={() => downloadFile(video.static_images_url, `${(brief?.campaign_name || 'brief').replace(/\s+/g, '_').toLowerCase()}_persona_v${idx + 1}.png`)} style={{ fontSize: '11px', color: '#0a0a0a', background: 'none', border: '1px solid #0a0a0a', padding: '5px 12px', cursor: 'pointer', letterSpacing: '1px', textTransform: 'uppercase' }}>GÖRSEL İNDİR ↓</button>
                         ) : (
-                          <button onClick={() => setStaticImageModal({ briefId, videoUrl: video.final_url })} style={{ fontSize: '11px', color: '#0a0a0a', background: 'none', border: '0.5px solid rgba(0,0,0,0.15)', padding: '5px 12px', cursor: 'pointer' }}>Görsel Oluştur</button>
+                          <button onClick={() => setStaticImageModal({ briefId, videoUrl: video.final_url, ugcVideoId: video.id })} style={{ fontSize: '11px', color: '#0a0a0a', background: 'none', border: '0.5px solid rgba(0,0,0,0.15)', padding: '5px 12px', cursor: 'pointer' }}>Görsel Oluştur</button>
                         )}
                       </>
                     ) : (
@@ -686,7 +686,7 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
         <StaticImageGeneratorModal
           briefId={staticImageModal.briefId}
           videoUrl={staticImageModal.videoUrl}
-          existingUrl={brief?.static_images_url || null}
+          ugcVideoId={staticImageModal.ugcVideoId}
           fileName={`${(brief?.campaign_name || 'brief').replace(/\s+/g, '_').toLowerCase()}_persona_gorsel.png`}
           onClose={() => setStaticImageModal(null)}
           onGenerated={(url: string) => { loadData() }}
