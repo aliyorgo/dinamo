@@ -56,7 +56,8 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
   const draftCount = aiChildren.filter(c => c.status !== 'delivered' && c.ai_video_url).length + cpsChildren.filter((c: any) => !c.video_submissions?.length).length
   const hasStaticImages = !!brief.static_images_url || !!brief.static_image_files
   const aiWithImages = aiChildren.filter(c => c.static_image_files && (Array.isArray(c.static_image_files) ? c.static_image_files.length > 0 : Object.keys(c.static_image_files).length > 0))
-  const hasAnyImages = hasStaticImages || aiWithImages.length > 0
+  const ugcWithImages = ugcVideos.filter(v => v.static_images_url || v.static_image_files)
+  const hasAnyImages = hasStaticImages || aiWithImages.length > 0 || ugcWithImages.length > 0
   // TODO: CPS child görsel üretimi sonraki fazda — cpsChildren.filter(c => c.static_image_files) eklenecek
 
   const totalCredits = (brief.credit_cost || 0) +
@@ -254,13 +255,17 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
             const childUrl = getImageUrl(child.static_image_files, child.static_images_url)
             if (childUrl) images.push({ label: `AI EXPRESS V${idx + 1}`, url: childUrl })
           })
+          ugcWithImages.forEach((video: any, i: number) => {
+            const url = getImageUrl(video.static_image_files, video.static_images_url)
+            if (url) images.push({ label: `AI PERSONA V${i + 1}`, url })
+          })
           if (images.length === 0) return null
           return (
             <>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderTop: '1px solid var(--color-border-tertiary)', paddingTop: '28px' }}>
                 <div style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: '600', color: 'var(--color-text-primary)' }}>GÖRSELLER · {images.length}</div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(images.length, 3)}, 1fr)`, gap: '16px', marginBottom: '28px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: images.length === 1 ? 'min(320px, 100%)' : `repeat(${Math.min(images.length, 3)}, 1fr)`, gap: '16px', marginBottom: '28px' }}>
                 {images.map((img, i) => (
                   <div key={i}>
                     <div onClick={() => setLightbox({ type: 'image', url: img.url })}
