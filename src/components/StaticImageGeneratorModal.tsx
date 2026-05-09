@@ -6,11 +6,12 @@ interface Props {
   briefId: string
   videoUrl: string
   existingUrl?: string | null
+  fileName?: string
   onClose: () => void
   onGenerated?: (url: string) => void
 }
 
-export default function StaticImageGeneratorModal({ briefId, videoUrl, existingUrl, onClose, onGenerated }: Props) {
+export default function StaticImageGeneratorModal({ briefId, videoUrl, existingUrl, fileName, onClose, onGenerated }: Props) {
   const [loading, setLoading] = useState(true)
   const [loadingMessage, setLoadingMessage] = useState('Kareler hazırlanıyor...')
   const [frames, setFrames] = useState<string[]>([])
@@ -151,7 +152,7 @@ export default function StaticImageGeneratorModal({ briefId, videoUrl, existingU
             <div style={{ fontSize: '40px', marginBottom: '12px' }}>&#10003;</div>
             <div style={{ fontSize: '16px', fontWeight: '500', color: '#0a0a0a', marginBottom: '8px' }}>Görselin hazır</div>
             <div style={{ fontSize: '12px', color: '#888', marginBottom: '24px' }}>4:5 Instagram formatı · PNG</div>
-            <button onClick={() => { downloadFile(downloadUrl, 'gorsel.png'); setTimeout(onClose, 300) }}
+            <button onClick={() => { downloadFile(downloadUrl, fileName || 'gorsel.png'); setTimeout(onClose, 300) }}
               style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 28px', background: '#22c55e', color: '#fff', border: 'none', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2v9M4 8l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><path d="M2 13h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
               PNG İndir

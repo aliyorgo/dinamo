@@ -1821,6 +1821,7 @@ function ClientBriefDetail() {
           briefId={staticImageModal.briefId}
           videoUrl={staticImageModal.videoUrl}
           existingUrl={staticImageModal.existingUrl}
+          fileName={`${(brief?.campaign_name || 'brief').replace(/\s+/g, '_').toLowerCase()}_gorsel.png`}
           onClose={() => setStaticImageModal(null)}
           onGenerated={(url) => {
             setAiChildren(prev => prev.map(c => c.id === staticImageModal.briefId ? { ...c, static_images_url: url } : c))
