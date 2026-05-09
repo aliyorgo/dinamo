@@ -267,7 +267,7 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
       // Poll same video id
       const poll = setInterval(async () => {
         const { data: v } = await supabase.from('ugc_videos').select('*, personas(name, slug)').eq('id', failedVideo.id).single()
-        if (v && (v.status === 'ready' || v.status === 'failed')) { clearInterval(poll); setRetryingId(null); loadData() }
+        if (v && (v.status === 'ready' || v.status === 'failed')) { clearInterval(poll); setRetryingId(null); setUgcVideos(prev => prev.map(x => x.id === failedVideo.id ? v : x)) }
         else if (v && v.status !== 'queued') { setUgcVideos(prev => prev.map(x => x.id === failedVideo.id ? v : x)) }
       }, 10000)
     } catch { setMsg('Bağlantı hatası'); setRetryingId(null) }
@@ -308,7 +308,7 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
         // Poll
         const poll = setInterval(async () => {
           const { data: v } = await supabase.from('ugc_videos').select('*, personas(name, slug)').eq('id', genData.ugc_video_id).single()
-          if (v && (v.status === 'ready' || v.status === 'failed')) { clearInterval(poll); setHighlightId(genData.ugc_video_id); setTimeout(() => setHighlightId(null), 1500); loadData() }
+          if (v && (v.status === 'ready' || v.status === 'failed')) { clearInterval(poll); setHighlightId(genData.ugc_video_id); setTimeout(() => setHighlightId(null), 1500); setUgcVideos(prev => prev.map(x => x.id === genData.ugc_video_id ? v : x)); setGenerating(false) }
           else if (v && v.status !== 'queued') { setUgcVideos(prev => prev.map(x => x.id === genData.ugc_video_id ? v : x)) }
         }, 10000)
         // Optimistic add to end of list
@@ -690,7 +690,11 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
           existingUrl={ugcVideos.find(v => v.id === staticImageModal.ugcVideoId)?.static_images_url || null}
           fileName={`${(brief?.campaign_name || 'brief').replace(/\s+/g, '_').toLowerCase()}_persona_gorsel.png`}
           onClose={() => setStaticImageModal(null)}
-          onGenerated={(url: string) => { loadData() }}
+          onGenerated={(url: string) => {
+            if (staticImageModal?.ugcVideoId) {
+              setUgcVideos(prev => prev.map(v => v.id === staticImageModal.ugcVideoId ? { ...v, static_images_url: url } : v))
+            }
+          }}
         />
       )}
     </div>
