@@ -145,11 +145,12 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
     const [{ data: videos }, { data: p }, { data: freshBrief }] = await Promise.all([
       supabase.from('ugc_videos').select('*, personas(name, slug)').eq('brief_id', briefId).order('created_at', { ascending: true }),
       fetch(`/api/ugc/personas?client_id=${brief.client_id}`).then(r => r.json()).then(data => ({ data })),
-      supabase.from('briefs').select('ugc_feedbacks, ugc_settings, ugc_persona_analysis, ugc_selected_persona_id, ugc_scripts, product_image_url, message, client_id').eq('id', briefId).single(),
+      supabase.from('briefs').select('ugc_feedbacks, ugc_settings, ugc_persona_analysis, ugc_selected_persona_id, ugc_scripts, product_image_url, message, client_id, static_images_url').eq('id', briefId).single(),
     ])
     setUgcVideos(videos || [])
     setPersonas(p || [])
     const b = freshBrief || brief
+    if (freshBrief) setBrief((prev: any) => ({ ...prev, ...freshBrief }))
     setFeedbacks(b?.ugc_feedbacks || [])
     if (b?.ugc_settings) setSettings({ ...DEFAULT_SETTINGS, ...b.ugc_settings })
     const scripts = b?.ugc_scripts || {}
@@ -681,6 +682,7 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
         <StaticImageGeneratorModal
           briefId={staticImageModal.briefId}
           videoUrl={staticImageModal.videoUrl}
+          existingUrl={brief?.static_images_url || null}
           onClose={() => setStaticImageModal(null)}
           onGenerated={(url: string) => { loadData() }}
         />
