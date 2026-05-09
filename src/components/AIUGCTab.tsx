@@ -687,6 +687,7 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
           briefId={staticImageModal.briefId}
           videoUrl={staticImageModal.videoUrl}
           ugcVideoId={staticImageModal.ugcVideoId}
+          existingUrl={ugcVideos.find(v => v.id === staticImageModal.ugcVideoId)?.static_images_url || null}
           fileName={`${(brief?.campaign_name || 'brief').replace(/\s+/g, '_').toLowerCase()}_persona_gorsel.png`}
           onClose={() => setStaticImageModal(null)}
           onGenerated={(url: string) => { loadData() }}
