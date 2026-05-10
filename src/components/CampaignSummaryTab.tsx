@@ -237,14 +237,8 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
         {/* IMAGES SECTION */}
         {hasAnyImages && (() => {
           function getImageUrl(raw: any, fallbackUrl?: string): string | null {
-            if (fallbackUrl) return fallbackUrl
-            if (!raw) return null
-            if (raw.url && typeof raw.url === 'string') return raw.url
-            if (Array.isArray(raw) && raw[0]) {
-              const first = raw[0]
-              return first?.['4x5']?.with_text || first?.['9x16']?.with_text || null
-            }
-            if (raw?.['4x5']?.with_text) return raw['4x5'].with_text
+            if (raw && typeof raw === 'object' && !Array.isArray(raw) && raw.url) return raw.url
+            if (fallbackUrl && typeof fallbackUrl === 'string' && /\.(png|jpg|jpeg|webp)$/i.test(fallbackUrl)) return fallbackUrl
             return null
           }
           const images: { label: string; url: string }[] = []

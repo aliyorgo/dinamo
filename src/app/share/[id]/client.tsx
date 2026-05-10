@@ -153,26 +153,17 @@ export default function SharePageClient({ brief, clientName, deliveryDate, capti
 
         {/* IMAGES — grouped by source */}
         {hasAnyImages && (() => {
-          function getImageUrl(raw: any): string | null {
-            if (!raw) return null
-            // New format: { url: '...' }
-            if (raw.url && typeof raw.url === 'string') return raw.url
-            // Old format: array of frame objects [{4x5: {with_text: url}}]
-            if (Array.isArray(raw) && raw[0]) {
-              const first = raw[0]
-              return first?.['4x5']?.with_text || first?.['9x16']?.with_text || null
-            }
-            // Old format: single frame object {4x5: {with_text: url}}
-            if (raw?.['4x5']?.with_text) return raw['4x5'].with_text
-            if (raw?.['9x16']?.with_text) return raw['9x16'].with_text
+          function getImageUrl(raw: any, fallbackUrl?: string): string | null {
+            if (raw && typeof raw === 'object' && !Array.isArray(raw) && raw.url) return raw.url
+            if (fallbackUrl && typeof fallbackUrl === 'string' && /\.(png|jpg|jpeg|webp)$/i.test(fallbackUrl)) return fallbackUrl
             return null
           }
           const images: { label: string; url: string }[] = []
-          const mainUrl = getImageUrl(brief.static_image_files) || brief.static_images_url
+          const mainUrl = getImageUrl(brief.static_image_files, brief.static_images_url)
           if (mainUrl) images.push({ label: 'ANA VİDEO', url: mainUrl })
           aiWithImages.forEach((child: any) => {
             const idx = aiChildren.indexOf(child)
-            const childUrl = getImageUrl(child.static_image_files) || child.static_images_url
+            const childUrl = getImageUrl(child.static_image_files, child.static_images_url)
             if (childUrl) images.push({ label: `AI EXPRESS V${idx + 1}`, url: childUrl })
           })
           if (images.length === 0) return null
