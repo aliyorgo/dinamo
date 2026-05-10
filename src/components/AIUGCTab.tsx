@@ -521,7 +521,7 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
                           İndir
                         </button>
                         <button onClick={() => generateUgcCertificatePDF(brief, clientUser?.clients?.company_name || '', personaName, clientUser?.clients?.legal_name)} style={{ fontSize: '11px', color: '#555', background: 'none', border: '0.5px solid rgba(0,0,0,0.12)', padding: '5px 12px', cursor: 'pointer' }}>Telif Belgesi</button>
-                        {video.static_images_url ? (
+                        {video.static_images_url && /\.(png|jpg|jpeg|webp)$/i.test(video.static_images_url) ? (
                           <button onClick={() => downloadFile(video.static_images_url, `${(brief?.campaign_name || 'brief').replace(/\s+/g, '_').toLowerCase()}_persona_v${idx + 1}.png`)} style={{ fontSize: '11px', color: '#0a0a0a', background: 'none', border: '1px solid #0a0a0a', padding: '5px 12px', cursor: 'pointer', letterSpacing: '1px', textTransform: 'uppercase' }}>GÖRSEL İNDİR ↓</button>
                         ) : (
                           <button onClick={() => setStaticImageModal({ briefId, videoUrl: video.raw_video_url || video.final_url, ugcVideoId: video.id })} style={{ fontSize: '11px', color: '#0a0a0a', background: 'none', border: '0.5px solid rgba(0,0,0,0.15)', padding: '5px 12px', cursor: 'pointer' }}>Görsel Oluştur</button>

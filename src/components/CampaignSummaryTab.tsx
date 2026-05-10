@@ -237,7 +237,7 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
         {/* IMAGES SECTION */}
         {hasAnyImages && (() => {
           function getImageUrl(raw: any, fallbackUrl?: string): string | null {
-            if (raw && typeof raw === 'object' && !Array.isArray(raw) && raw.url) return raw.url
+            if (raw && typeof raw === 'object' && !Array.isArray(raw) && raw.url && /\.(png|jpg|jpeg|webp)$/i.test(raw.url)) return raw.url
             if (fallbackUrl && typeof fallbackUrl === 'string' && /\.(png|jpg|jpeg|webp)$/i.test(fallbackUrl)) return fallbackUrl
             return null
           }
