@@ -56,7 +56,7 @@ KURALLAR:
 
 CRITICAL: Output MUST be ONLY raw JSON. First character: '{'. Last character: '}'. No markdown, no backticks, no explanation.
 
-FORMAT: {"dialogue":"140-155 char Türkçe metin"${feedbackBlock ? ',"changes_summary":"Yorumda isteneni nasıl uyguladığının 1-2 cümlelik doğal Türkçe özeti. Geçmiş zaman kullan. Renk adı yaz, hex kod yazma. Max 150 karakter."' : ''}}`
+FORMAT: {"dialogue":"140-155 char Türkçe metin"${feedbackBlock ? ',"changes_summary":"Müşteri yorumunda isteneni nasıl uyguladığının 1-2 cümlelik doğal Türkçe özeti. Geçmiş zaman kullan. Renk adı yaz, hex kod yazma. Max 150 karakter. ASLA 'feedback' kelimesi kullanma, 'yorum' de. Örnek: 'Yorumunuzdaki erkek karakter isteği uygulandı, sahne dış mekana taşındı.'"' : ''}}`
 
   const messages: any[] = [
     { role: 'user', content: `Brief: ${brief.campaign_name}\nMesaj: ${brief.message || ''}\nHedef Kitle: ${brief.target_audience || ''}\nCTA: ${brief.cta || ''}\n\nDialogue'da emoji yok, sadece Türkçe metin.\n\nJSON:` },
