@@ -286,7 +286,7 @@ function ClientBriefDetail() {
     const { data: ugcVids } = await supabase.from('ugc_videos')
       .select('id, final_url, created_at, static_images_url, static_image_files, version, status, personas(name, slug)')
       .eq('brief_id', id)
-      .in('status', ['sold', 'ready'])
+      .eq('status', 'sold')
       .not('final_url', 'is', null)
       .order('created_at', { ascending: true })
     setUgcVideosForSummary(ugcVids || [])

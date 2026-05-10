@@ -101,7 +101,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     `Kampanya: ${brief.campaign_name}`,
     `Musteri: ${clientName}`,
     `Teslim Tarihi: ${date}`,
-    `Ureten: DCC Film`,
+    `Ureten: Dinamo`,
     '',
     'ICINDEKILER',
     '',

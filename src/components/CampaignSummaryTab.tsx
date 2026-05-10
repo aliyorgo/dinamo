@@ -54,9 +54,9 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
 
   const totalVideos = approvedVideos.length + deliveredAi.length + deliveredCps.length + ugcVideos.length
   const draftCount = aiChildren.filter(c => c.status !== 'delivered' && c.ai_video_url).length + cpsChildren.filter((c: any) => !c.video_submissions?.length).length
-  const hasStaticImages = !!brief.static_images_url || !!brief.static_image_files
-  const aiWithImages = aiChildren.filter(c => c.static_image_files && (Array.isArray(c.static_image_files) ? c.static_image_files.length > 0 : Object.keys(c.static_image_files).length > 0))
-  const ugcWithImages = ugcVideos.filter(v => v.static_images_url || v.static_image_files)
+  const hasStaticImages = !!(brief.static_images_url && brief.ai_video_url)
+  const aiWithImages = aiChildren.filter(c => c.status === 'delivered' && c.static_image_files && (Array.isArray(c.static_image_files) ? c.static_image_files.length > 0 : Object.keys(c.static_image_files).length > 0))
+  const ugcWithImages = ugcVideos.filter(v => v.status === 'sold' && (v.static_images_url || v.static_image_files))
   const hasAnyImages = hasStaticImages || aiWithImages.length > 0 || ugcWithImages.length > 0
   // TODO: CPS child görsel üretimi sonraki fazda — cpsChildren.filter(c => c.static_image_files) eklenecek
 
