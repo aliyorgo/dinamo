@@ -245,13 +245,15 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
           const mainUrl = getImageUrl(brief.static_image_files, brief.static_images_url)
           if (mainUrl) images.push({ label: 'ANA VİDEO', url: mainUrl })
           aiWithImages.forEach((child: any) => {
-            const idx = aiChildren.indexOf(child)
             const childUrl = getImageUrl(child.static_image_files, child.static_images_url)
-            if (childUrl) images.push({ label: `AI EXPRESS V${idx + 1}`, url: childUrl })
+            if (!childUrl) return
+            const vMatch = (child.campaign_name || '').match(/#(\d+)/)
+            const version = vMatch ? parseInt(vMatch[1]) : aiChildren.indexOf(child) + 1
+            images.push({ label: `AI EXPRESS V${version}`, url: childUrl })
           })
           ugcWithImages.forEach((video: any, i: number) => {
             const url = getImageUrl(video.static_image_files, video.static_images_url)
-            if (url) images.push({ label: `AI PERSONA V${i + 1}`, url })
+            if (url) images.push({ label: `AI PERSONA V${video.version || i + 1}`, url })
           })
           if (images.length === 0) return null
           return (
