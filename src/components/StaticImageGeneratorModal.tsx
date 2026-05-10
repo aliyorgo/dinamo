@@ -149,15 +149,19 @@ export default function StaticImageGeneratorModal({ briefId, videoUrl, existingU
             <style>{`@keyframes staticProgress { 0% { width: 0% } 100% { width: 90% } }`}</style>
           </div>
         ) : downloadUrl ? (
-          <div style={{ textAlign: 'center', padding: '32px 0' }}>
-            <div style={{ fontSize: '40px', marginBottom: '12px' }}>&#10003;</div>
-            <div style={{ fontSize: '16px', fontWeight: '500', color: '#0a0a0a', marginBottom: '8px' }}>Görselin hazır</div>
-            <div style={{ fontSize: '12px', color: '#888', marginBottom: '24px' }}>4:5 Instagram formatı · PNG</div>
-            <button onClick={() => { downloadFile(downloadUrl, fileName || 'gorsel.png'); setTimeout(onClose, 300) }}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 28px', background: '#22c55e', color: '#fff', border: 'none', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2v9M4 8l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><path d="M2 13h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
-              PNG İndir
-            </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '24px', padding: '32px 0', justifyContent: 'center' }}>
+            <div style={{ width: '180px', aspectRatio: '4/5', overflow: 'hidden', border: '1px solid #e5e4db', background: '#f5f4f0', flexShrink: 0 }}>
+              <img src={downloadUrl} alt="Üretilen görsel" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '6px' }}>
+              <div style={{ fontSize: '18px', fontWeight: '500', color: '#0a0a0a' }}>Görselin hazır</div>
+              <div style={{ fontSize: '11px', color: '#6b6b66', letterSpacing: '0.5px' }}>4:5 Instagram formatı · PNG</div>
+              <button onClick={() => { downloadFile(downloadUrl, fileName || 'gorsel.png'); setTimeout(onClose, 300) }}
+                style={{ marginTop: '12px', display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 24px', background: '#22c55e', color: '#fff', border: 'none', fontSize: '13px', fontWeight: '600', cursor: 'pointer', letterSpacing: '1px', textTransform: 'uppercase' }}>
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2v9M4 8l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><path d="M2 13h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                PNG İndir
+              </button>
+            </div>
           </div>
         ) : (
           <>
