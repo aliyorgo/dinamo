@@ -500,7 +500,7 @@ export default function ClientDashboard() {
                   </div>
 
                   <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: 1.7, marginBottom: '40px' }}>
-                    Her brief gönderdikten sonra AI Express ve Creative Performance System özelliklerine erişirsiniz. AI Express ile briefinizden ~5 dakikada yapay zeka videosu üretin, CPS ile aynı kampanyadan farklı yaratıcı yönler ve varyasyonlar oluşturun.
+                    Her brief gönderdikten sonra AI Express, AI Persona ve Creative Performance System özelliklerine erişirsiniz. AI Express ile ~5 dakikada yapay zeka videosu, AI Persona ile markanıza özel influencer videoları, CPS ile farklı yaratıcı yönler ve varyasyonlar üretin.
                   </div>
 
                   {/* Video grid */}
