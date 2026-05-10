@@ -117,6 +117,17 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
 
   useEffect(() => { loadData() }, [briefId])
 
+  // Global polling — processing video varsa 8sn'de bir tüm listeyi fresh fetch
+  const hasProcessingVideos = ugcVideos.some(v => v.status === 'queued' || v.status === 'generating')
+  useEffect(() => {
+    if (!hasProcessingVideos) return
+    const poll = setInterval(async () => {
+      const { data } = await supabase.from('ugc_videos').select('*, personas(name, slug)').eq('brief_id', briefId).order('created_at', { ascending: true })
+      if (data) setUgcVideos(data)
+    }, 8000)
+    return () => clearInterval(poll)
+  }, [hasProcessingVideos])
+
   // Timer-based stage progression for processing videos
   useEffect(() => {
     const processing = ugcVideos.filter(v => v.status === 'queued' || v.status === 'generating')
