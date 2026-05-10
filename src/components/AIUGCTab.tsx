@@ -17,7 +17,7 @@ const UGC_STAGES = [
   { key: 'merge', label: 'Ses ve görüntü birleştiriliyor', duration: 25 },
 ]
 
-interface Props { briefId: string; brief: any; clientUser: any; autoPlayVideoId?: string }
+interface Props { briefId: string; brief: any; clientUser: any; autoPlayVideoId?: string; onVideoCountChange?: (count: number) => void }
 
 function simpleHash(str: string): string {
   let hash = 0
@@ -45,7 +45,7 @@ function readScript(scripts: Record<string, any>, personaId: number | string): s
   return ''
 }
 
-export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPlayVideoId }: Props) {
+export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPlayVideoId, onVideoCountChange }: Props) {
   // Data — local brief copy for lock updates
   const [brief, setBrief] = useState<any>(briefProp)
   useEffect(() => { setBrief(briefProp) }, [briefProp])
@@ -117,15 +117,25 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
 
   useEffect(() => { loadData() }, [briefId])
 
+  // Notify parent of video count changes (for tab label)
+  useEffect(() => {
+    const count = ugcVideos.filter(v => v.status !== 'failed').length
+    onVideoCountChange?.(count)
+  }, [ugcVideos])
+
   // Global polling — processing video varsa 8sn'de bir tüm listeyi fresh fetch
   const hasProcessingVideos = ugcVideos.some(v => v.status === 'queued' || v.status === 'generating')
+  console.log('[ugc-debug] hasProcessingVideos:', hasProcessingVideos, '| videos:', ugcVideos.map(v => `${v.id?.slice(0,8)}:${v.status}`).join(', '))
   useEffect(() => {
-    if (!hasProcessingVideos) return
+    if (!hasProcessingVideos) { console.log('[ugc-debug] No processing videos, polling OFF'); return }
+    console.log('[ugc-debug] Polling STARTED (8s interval)')
     const poll = setInterval(async () => {
-      const { data } = await supabase.from('ugc_videos').select('*, personas(name, slug)').eq('brief_id', briefId).order('created_at', { ascending: true })
+      console.log('[ugc-debug] Polling tick — fetching DB...')
+      const { data, error } = await supabase.from('ugc_videos').select('*, personas(name, slug)').eq('brief_id', briefId).order('created_at', { ascending: true })
+      console.log('[ugc-debug] DB returned:', data?.length, 'videos, statuses:', data?.map(v => `${v.id?.slice(0,8)}:${v.status}`).join(', '), error ? `ERROR: ${error.message}` : '')
       if (data) setUgcVideos(data)
     }, 8000)
-    return () => clearInterval(poll)
+    return () => { console.log('[ugc-debug] Polling STOPPED'); clearInterval(poll) }
   }, [hasProcessingVideos])
 
   // Timer-based stage progression for processing videos
@@ -319,10 +329,12 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
         // Poll
         const poll = setInterval(async () => {
           const { data: v } = await supabase.from('ugc_videos').select('*, personas(name, slug)').eq('id', genData.ugc_video_id).single()
-          if (v && (v.status === 'ready' || v.status === 'failed')) { clearInterval(poll); setHighlightId(genData.ugc_video_id); setTimeout(() => setHighlightId(null), 1500); setUgcVideos(prev => prev.map(x => x.id === genData.ugc_video_id ? v : x)); setGenerating(false) }
+          console.log('[ugc-debug] Inline poll:', genData.ugc_video_id?.slice(0,8), '→', v?.status)
+          if (v && (v.status === 'ready' || v.status === 'failed')) { clearInterval(poll); console.log('[ugc-debug] Inline poll DONE:', v.status); setHighlightId(genData.ugc_video_id); setTimeout(() => setHighlightId(null), 1500); setUgcVideos(prev => prev.map(x => x.id === genData.ugc_video_id ? v : x)); setGenerating(false) }
           else if (v && v.status !== 'queued') { setUgcVideos(prev => prev.map(x => x.id === genData.ugc_video_id ? v : x)) }
         }, 10000)
         // Optimistic add to end of list
+        console.log('[ugc-debug] Optimistic add:', genData.ugc_video_id?.slice(0,8), 'status: queued')
         setUgcVideos(prev => [...prev, { id: genData.ugc_video_id, status: 'queued', persona_id: selectedPersona, personas: personas.find(p => p.id === selectedPersona), created_at: new Date().toISOString() }])
       } else { setMsg(genData.error || 'Üretim başarısız') }
     } catch { setMsg('Bağlantı hatası') }

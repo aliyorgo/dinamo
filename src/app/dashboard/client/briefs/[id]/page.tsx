@@ -1686,7 +1686,7 @@ function ClientBriefDetail() {
 
               {/* ═══ UGC TAB ═══ */}
               {activeTab === 'ugc' && brief && (
-                <AIUGCTab briefId={id} brief={brief} clientUser={clientUser} autoPlayVideoId={searchParams.get('video') || undefined} />
+                <AIUGCTab briefId={id} brief={brief} clientUser={clientUser} autoPlayVideoId={searchParams.get('video') || undefined} onVideoCountChange={(count) => setUgcVideoCount(count)} />
               )}
 
               {/* ═══ SUMMARY TAB ═══ */}
