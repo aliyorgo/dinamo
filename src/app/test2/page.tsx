@@ -30,7 +30,7 @@ export default function HomePage() {
         setHomeVideos(shuffled.slice(0, 4))
       }
     })
-    supabase.from('admin_settings').select('key, value').in('key', ['credit_bumper','credit_story','credit_feed','credit_longform','credit_ai_express','credit_ai_ugc','prices_visible','advanced_customization_price']).then(({ data }) => {
+    supabase.from('admin_settings').select('key, value').in('key', ['credit_bumper','credit_story','credit_feed','credit_longform','credit_ai_express','credit_ai_ugc','prices_visible','advanced_customization_price','works_visible','partners_visible']).then(({ data }) => {
       const map: Record<string,number> = {}
       data?.forEach((s: any) => { map[s.key] = Number(s.value) || 0 })
       setVideoCredits(map)
@@ -48,6 +48,8 @@ export default function HomePage() {
   }, [])
 
   const pricesVisible = siteSettings['prices_visible'] !== 'false'
+  const worksVisible = siteSettings['works_visible'] !== 'false'
+  const partnersVisible = siteSettings['partners_visible'] !== 'false'
   const advancedPrice = Number(siteSettings['advanced_customization_price'] || 150000)
   const advancedPriceFormatted = advancedPrice.toLocaleString('tr-TR')
 
@@ -484,7 +486,7 @@ export default function HomePage() {
       </section>
 
       {/* ══════ İŞLERİMİZ ══════ */}
-      {mounted && homeVideos.length > 0 && (
+      {mounted && worksVisible && homeVideos.length > 0 && (
         <section id="islerimiz" style={{ background: '#0a0a0a' }}>
           <div className="s-pad" style={{ maxWidth: '1200px', margin: '0 auto', padding: '120px 48px' }}>
             <div>
@@ -553,8 +555,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ══════ LOGO BANDI ══════ */}
-      <div style={{ background: '#0f0f0f', padding: '8px 0 48px 0' }}>
+      {/* ══════ LOGO BANDI (DCC bloğuna yapışık) ══════ */}
+      <div style={{ background: '#0f0f0f', padding: '0 0 48px 0' }}>
         <img src="/logos.png" style={{ width: '100%', maxWidth: '1100px', margin: '0 auto', display: 'block', filter: 'brightness(0.65)', objectFit: 'contain' }} />
       </div>
 
@@ -575,6 +577,27 @@ export default function HomePage() {
           </a>
         </div>
       </section>
+
+      {/* ══════ AI PRODUCTION PARTNERS ══════ */}
+      {mounted && partnersVisible && (
+        <section style={{ background: '#0a0a0a' }}>
+          <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '32px 48px', textAlign: 'center' }}>
+            <div style={{ fontSize: '11px', letterSpacing: '3px', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', fontWeight: '400', marginBottom: '12px' }}>AI Production Partners</div>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '64px', flexWrap: 'wrap' }}>
+              {[
+                { src: '/partners/laser.png', alt: 'Laser Cats', href: 'https://www.instagram.com/lasercats.studio/' },
+                { src: '/partners/swag.png', alt: 'SWAG', href: 'https://www.swag.ist/' },
+                { src: '/partners/dreamdudes.png', alt: 'Dream Dudes', href: 'https://www.instagram.com/thedreamdudes/' },
+                { src: '/partners/bobo.png', alt: 'Bobo', href: 'https://www.boboworkz.com/' },
+              ].map(p => (
+                <a key={p.alt} href={p.href} target="_blank" rel="noopener noreferrer" style={{ display: 'block', opacity: 0.5, cursor: 'pointer' }}>
+                  <img src={p.src} alt={p.alt} style={{ height: '108px', width: 'auto', objectFit: 'contain' }} />
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ══════ FOOTER ══════ */}
       <footer style={{ background: '#0a0a0a', borderTop: '1px solid rgba(255,255,255,0.06)', padding: '36px 48px' }}>
