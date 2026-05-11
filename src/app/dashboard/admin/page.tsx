@@ -89,13 +89,29 @@ export default function AdminDashboard() {
         <div style={{flex:1,padding:'24px 28px'}}>
           {loading ? <div style={{color:'rgba(255,255,255,0.4)',fontSize:'14px'}}>Yükleniyor...</div> : (
             <>
+              {/* İSTATİSTİK KARTLARI */}
+              <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:'12px',marginBottom:'20px'}}>
+                {[
+                  {label:'TOPLAM',value:stats.total},
+                  {label:'YENİ',value:stats.new,color:'#4ade80'},
+                  {label:'ÜRETİMDE',value:stats.inProd,color:'#3b82f6'},
+                  {label:'REVİZYON',value:stats.revision,color:'#ef4444'},
+                  {label:'TAMAMLANAN',value:stats.delivered},
+                ].map(card=>(
+                  <div key={card.label} style={{background:'#fff',border:'1px solid var(--color-border-tertiary)',padding:'20px'}}>
+                    <div style={{fontSize:'10px',letterSpacing:'2px',color:'var(--color-text-tertiary)',fontWeight:'500',marginBottom:'8px'}}>{card.label}</div>
+                    <div style={{fontSize:'28px',fontWeight:'500',color:card.color||'var(--color-text-primary)',letterSpacing:'-1px'}}><CountUp end={card.value} duration={1.2} /></div>
+                  </div>
+                ))}
+              </div>
+
               {/* BUGÜN YAPILACAKLAR */}
               {(approvalCount > 0 || unansweredCount > 0 || pendingCount > 0 || demoCount > 0 || upgradeCount > 0) && (
                 <div style={{background:'#fff',border:'1px solid var(--color-border-tertiary)',overflow:'hidden',marginBottom:'20px'}}>
                   <div style={{padding:'12px 20px',borderBottom:'1px solid var(--color-border-tertiary)',fontSize:'11px',letterSpacing:'2px',textTransform:'uppercase',fontWeight:'500',color:'var(--color-text-primary)'}}>BUGÜN YAPILACAKLAR</div>
                   {[
                     approvalCount > 0 ? { label: `${approvalCount} video onay bekliyor`, href: '/dashboard/admin/briefs?filter=approved', color: '#ef4444', urgent: true } : null,
-                    unansweredCount > 0 ? { label: `${unansweredCount} cevaplanmamış müşteri sorusu`, href: '/dashboard/admin/briefs', color: '#f59e0b', urgent: false } : null,
+                    unansweredCount > 0 ? { label: `${unansweredCount} cevaplanmamış müşteri sorusu`, href: '/dashboard/admin/briefs?filter=unanswered', color: '#f59e0b', urgent: false } : null,
                     demoCount > 0 ? { label: `${demoCount} yeni demo talebi (son 7 gün)`, href: '/dashboard/admin/talepler?tab=demo', color: '#3b82f6', urgent: false } : null,
                     upgradeCount > 0 ? { label: `${upgradeCount} customization yükseltme talebi`, href: '/dashboard/admin/talepler?tab=upgrade', color: '#8b5cf6', urgent: false } : null,
                     pendingCount > 0 ? { label: `${pendingCount} bekleyen creator başvurusu`, href: '/dashboard/admin/creators', color: '#f59e0b', urgent: false } : null,
@@ -133,21 +149,6 @@ export default function AdminDashboard() {
                   })}
                 </div>
               )}
-              <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:'12px',marginBottom:'28px'}}>
-                {[
-                  {label:'TOPLAM',value:stats.total},
-                  {label:'YENİ',value:stats.new,color:'#4ade80'},
-                  {label:'ÜRETİMDE',value:stats.inProd,color:'#3b82f6'},
-                  {label:'REVİZYON',value:stats.revision,color:'#ef4444'},
-                  {label:'TAMAMLANAN',value:stats.delivered},
-                ].map(card=>(
-                  <div key={card.label} style={{background:'#fff',border:'1px solid var(--color-border-tertiary)',padding:'20px'}}>
-                    <div style={{fontSize:'10px',letterSpacing:'2px',color:'var(--color-text-tertiary)',fontWeight:'500',marginBottom:'8px'}}>{card.label}</div>
-                    <div style={{fontSize:'28px',fontWeight:'500',color:card.color||'var(--color-text-primary)',letterSpacing:'-1px'}}><CountUp end={card.value} duration={1.2} /></div>
-                  </div>
-                ))}
-              </div>
-
               <div style={{background:'#fff',border:'1px solid var(--color-border-tertiary)',overflow:'hidden'}}>
                 <div style={{padding:'14px 20px',borderBottom:'1px solid var(--color-border-tertiary)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                   <div style={{fontSize:'11px',letterSpacing:'2px',textTransform:'uppercase',fontWeight:'500',color:'var(--color-text-primary)'}}>TÜM BRİEFLER</div>

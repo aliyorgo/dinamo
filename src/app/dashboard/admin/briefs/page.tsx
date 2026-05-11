@@ -25,6 +25,7 @@ function BriefsPage() {
   const [bulkCreator, setBulkCreator] = useState('')
   const [bulkLoading, setBulkLoading] = useState(false)
   const [producerBriefs, setProducerBriefs] = useState<any[]>([])
+  const [unansweredBriefIds, setUnansweredBriefIds] = useState<Set<string>>(new Set())
 
   useEffect(() => { loadData() }, [])
 
@@ -37,6 +38,8 @@ function BriefsPage() {
     setClients(cl || [])
     const { data: pb } = await supabase.from('producer_briefs').select('brief_id, assigned_creator_id')
     setProducerBriefs(pb || [])
+    const { data: uq } = await supabase.from('brief_questions').select('brief_id').is('answer', null)
+    setUnansweredBriefIds(new Set((uq || []).map((q: any) => q.brief_id)))
   }
 
   function getCreatorId(briefId: string) {
@@ -49,7 +52,8 @@ function BriefsPage() {
   }
 
   const filtered = briefs.filter(b => {
-    if (filter !== 'all' && b.status !== filter) return false
+    if (filter === 'unanswered') { if (!unansweredBriefIds.has(b.id)) return false }
+    else if (filter !== 'all' && b.status !== filter) return false
     if (search && !b.campaign_name?.toLowerCase().includes(search.toLowerCase()) && !b.clients?.company_name?.toLowerCase().includes(search.toLowerCase())) return false
     if (dateFrom && b.created_at < dateFrom) return false
     if (dateTo && b.created_at > dateTo + 'T23:59:59') return false
@@ -115,7 +119,7 @@ function BriefsPage() {
 
         {/* STATUS TABS */}
         <div style={{display:'flex',gap:'8px',marginBottom:'20px',flexWrap:'wrap'}}>
-          {[{val:'all',label:'Tümü'},{val:'submitted',label:'Yeni'},{val:'in_production',label:'Üretimde'},{val:'revision',label:'Revizyon'},{val:'approved',label:'Onay'},{val:'delivered',label:'Teslim'}].map(f=>(
+          {[{val:'all',label:'Tümü'},{val:'submitted',label:'Yeni'},{val:'in_production',label:'Üretimde'},{val:'revision',label:'Revizyon'},{val:'approved',label:'Onay'},{val:'unanswered',label:'Cevaplanmamış'},{val:'delivered',label:'Teslim'}].map(f=>(
             <button key={f.val} onClick={()=>setFilter(f.val)}
               style={{padding:'6px 16px',borderRadius:'100px',border:'1px solid',borderColor:filter===f.val?'#0a0a0a':'#e8e7e3',background:filter===f.val?'#0a0a0a':'#fff',color:filter===f.val?'#fff':'#888',fontSize:'12px',cursor:'pointer'}}>
               {f.label}
