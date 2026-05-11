@@ -599,8 +599,8 @@ export default function ClientDashboard() {
                               <div style={{width:'32px',height:'32px',background:'rgba(245,166,35,0.1)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><span style={{fontSize:'12px',fontWeight:'600',color:'#f5a623'}}>{k.mvc_order || '?'}</span></div>
                             )}
                             <div>
-                              <div style={{display:'flex',alignItems:'center',gap:'6px'}}><div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name}</div><span style={{fontSize:'9px',fontWeight:'600',letterSpacing:'0.8px',padding:'2px 6px',background:'#8b5cf6',color:'#fff',textTransform:'uppercase'}}>CPS {k.mvc_order || '?'}</span></div>
-                              <div style={{fontSize:'10px',color:'#888',marginTop:'2px'}}>{k.cps_hook || `Yön ${k.mvc_order || ''}`}</div>
+                              <div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name}</div>
+                              <div style={{fontSize:'10px',color:'#888',marginTop:'2px'}}>CPS <span style={{color:'#8b5cf6',fontWeight:'600'}}>{k.mvc_order || '?'}</span> · {k.cps_hook || `Yön ${k.mvc_order || ''}`}</div>
                             </div>
                           </div>
                         )
