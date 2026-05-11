@@ -82,6 +82,7 @@ export default function AdminBriefDetail() {
   const [briefOpen, setBriefOpen] = useState(true)
   const [cpsOpen, setCpsOpen] = useState<Record<string,boolean>>({})
   const [aiOpen, setAiOpen] = useState<Record<string,boolean>>({})
+  const [personaOpen, setPersonaOpen] = useState(false)
   const [showAssignForm, setShowAssignForm] = useState(false)
   const [showReassignConfirm, setShowReassignConfirm] = useState(false)
   // CPS per-child creator forms
@@ -557,6 +558,130 @@ export default function AdminBriefDetail() {
 
             <BriefInfoCard b={brief} open={briefOpen} toggle={() => setBriefOpen(!briefOpen)} label="ANA VİDEO BRIEF" />
 
+            {/* 4) ÜRETİM & ONAY */}
+            <div style={{ marginBottom: '16px' }}>
+              <div className="label-caps" style={{ marginBottom: '12px' }}>ÜRETİM & ONAY</div>
+
+              {/* Creator Assignment — State Machine */}
+              <div style={{ background: '#fff', border: '1px solid #0a0a0a', padding: '16px 18px', marginBottom: '12px' }}>
+                {assignState === 'locked' && assigned && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ width: '36px', height: '36px', background: '#888', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: '500', color: '#fff', flexShrink: 0 }}>{(assigned.users?.name || '?').split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()}</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a' }}>{assigned.users?.name}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>{assigned.users?.email}</div>
+                    </div>
+                    <span style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', padding: '3px 8px', border: '1px solid #e5e4db', color: '#888' }}>TAMAMLANDI</span>
+                  </div>
+                )}
+                {assignState === 'assigned' && assigned && (
+                  <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ width: '36px', height: '36px', background: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: '500', color: '#fff', flexShrink: 0 }}>{(assigned.users?.name || '?').split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()}</div>
+                        <div>
+                          <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a' }}>{assigned.users?.name}</div>
+                          <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>{assigned.users?.email}{assigned.phone ? ` · ${assigned.phone}` : ''}</div>
+                        </div>
+                      </div>
+                      <span style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', padding: '3px 8px', border: '1px solid #22c55e', background: 'rgba(34,197,94,0.08)', color: '#0a0a0a' }}>ATANDI</span>
+                    </div>
+                    <button onClick={() => setShowReassignConfirm(true)} className="btn btn-outline" style={{ marginTop: '10px', padding: '6px 14px', fontSize: '10px', width: '100%' }}>ATAMAYI DEĞİŞTİR</button>
+                  </>
+                )}
+                {assignState === 'none' && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>Creator atanmadı</span>
+                    <span style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', padding: '3px 8px', border: '1px solid #f5a623', color: '#f5a623' }}>ATANMADI</span>
+                  </div>
+                )}
+                {(showAssignForm || assignState === 'none') && (
+                  <form onSubmit={handleForward} style={{ marginTop: '12px', borderTop: '1px solid var(--color-border-tertiary)', paddingTop: '12px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: brief.voiceover_type === 'real' ? '1fr 1fr' : '1fr', gap: '8px', marginBottom: '10px' }}>
+                      <div>
+                        <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '4px' }}>CREATOR</div>
+                        <select value={forwardForm.assigned_creator_id} onChange={e => setForwardForm({ ...forwardForm, assigned_creator_id: e.target.value })} style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--color-border-tertiary)', fontSize: '12px', color: '#0a0a0a', boxSizing: 'border-box' }}>
+                          <option value="">Seçin</option>
+                          {creators.map(c => <option key={c.id} value={c.id}>{c.users?.name}{getCreatorUnavailLabel(c)}</option>)}
+                        </select>
+                      </div>
+                      {brief.voiceover_type === 'real' && (
+                        <div>
+                          <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '4px' }}>SESLENDİRME</div>
+                          <select value={forwardForm.assigned_voice_artist_id} onChange={e => setForwardForm({ ...forwardForm, assigned_voice_artist_id: e.target.value })} style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--color-border-tertiary)', fontSize: '12px', color: '#0a0a0a', boxSizing: 'border-box' }}>
+                            <option value="">Seçin</option>
+                            {voiceArtists.map(va => <option key={va.id} value={va.id}>{va.users?.name}</option>)}
+                          </select>
+                        </div>
+                      )}
+                    </div>
+                    <div style={{ marginBottom: '10px' }}>
+                      <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '6px' }}>İLETİLECEK ALANLAR</div>
+                      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                        {[{ field: 'message', label: 'Mesaj' }, { field: 'cta', label: 'CTA' }, { field: 'target_audience', label: 'Hedef Kitle' }, { field: 'voiceover_text', label: 'Seslendirme' }, { field: 'notes', label: 'Notlar' }].filter(f => brief[f.field]).map(f => (
+                          <label key={f.field} style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px', color: '#0a0a0a' }}>
+                            <input type="checkbox" checked={sharedFields.includes(f.field)} onChange={() => toggleSharedField(f.field)} style={{ accentColor: '#0a0a0a' }} /> {f.label}
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                    <textarea value={forwardForm.producer_note} onChange={e => setForwardForm({ ...forwardForm, producer_note: e.target.value })} rows={2} placeholder="Prodüktör notu..." style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--color-border-tertiary)', fontSize: '12px', color: '#0a0a0a', resize: 'vertical', boxSizing: 'border-box', marginBottom: '8px' }} />
+                    <button type="submit" disabled={loading} className="btn" style={{ padding: '8px 16px' }}>{loading ? 'İletiliyor...' : assigned ? 'Güncelle' : "CREATOR'A İLET"}</button>
+                  </form>
+                )}
+              </div>
+
+              {/* Voiceover Upload */}
+              {brief.voiceover_type === 'real' && (
+                <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '14px 18px', marginBottom: '12px' }}>
+                  <div className="label-caps" style={{ marginBottom: '8px' }}>{brief.voiceover_gender === 'male' ? 'ERKEK' : 'KADIN'} SESLENDİRME DOSYASI</div>
+                  {brief.voiceover_file_url ? (
+                    <div>
+                      <audio controls src={brief.voiceover_file_url} style={{ width: '100%', marginBottom: '8px' }} />
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button onClick={() => downloadFile(brief.voiceover_file_url, `${brief.campaign_name || 'voiceover'}_ses.mp3`)} className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '10px' }}>İNDİR ↓</button>
+                        <button onClick={handleVoiceoverDelete} className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '10px', color: '#ef4444', borderColor: '#ef4444' }}>SİL</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <input ref={voFileRef} type="file" accept=".mp3,.wav,.m4a,audio/*" style={{ fontSize: '12px', color: '#0a0a0a', marginBottom: '8px' }} />
+                      <button onClick={handleVoiceoverUpload} disabled={voUpload} className="btn" style={{ padding: '7px 16px' }}>{voUpload ? 'Yükleniyor...' : 'YÜKLE'}</button>
+                      <div style={{ fontSize: '10px', color: 'var(--color-text-tertiary)', marginTop: '6px' }}>mp3, wav, m4a — maks 50MB</div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Video Submissions */}
+              {submissions.length === 0 ? (
+                <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '32px', textAlign: 'center', color: 'var(--color-text-tertiary)', fontSize: '13px' }}>Henüz video yüklenmedi.</div>
+              ) : submissions.map(s => (
+                <div key={s.id} style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', marginBottom: '12px', overflow: 'hidden' }}>
+                  <div style={{ padding: '12px 18px', borderBottom: '1px solid var(--color-border-tertiary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>Versiyon {s.version}</span>
+                      <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>{new Date(s.submitted_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}</span>
+                    </div>
+                    <Badge status={s.status === 'pending' ? 'submitted' : s.status === 'producer_approved' || s.status === 'admin_approved' ? 'delivered' : s.status === 'revision_requested' ? 'revision' : 'submitted'} />
+                  </div>
+                  <div style={{ padding: '16px 18px' }}>
+                    <video ref={s.id === submissions[0]?.id ? videoRef : undefined} controls style={{ width: '100%', maxHeight: '500px', objectFit: 'contain', background: '#000', display: 'block' }}><source src={s.video_url} /></video>
+                  </div>
+                  {(s.status === 'pending' || s.status === 'producer_approved') && (
+                    <div style={{ padding: '0 18px 16px' }}>
+                      <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+                        <button onClick={() => handleApprove(s.id)} disabled={loading} className="btn" style={{ flex: 1, padding: '10px' }}>{loading ? 'İşleniyor...' : 'ONAYLA → MÜŞTERİYE İLET'}</button>
+                      </div>
+                      <textarea value={revisionNotes[s.id] || ''} onChange={e => setRevisionNotes(prev => ({ ...prev, [s.id]: e.target.value }))} placeholder="Revizyon notu yazın..." rows={2} style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--color-border-tertiary)', fontSize: '12px', color: '#0a0a0a', resize: 'vertical', boxSizing: 'border-box', marginBottom: '8px' }} />
+                      <button onClick={() => handleRevision(s.id)} disabled={loading} className="btn btn-outline" style={{ padding: '8px 16px', color: '#ef4444', borderColor: '#ef4444' }}>REVİZYON İSTE</button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+
             {/* 2) CPS BRIEF'LERİ */}
             {cpsChildren.length > 0 && (
               <div style={{ marginBottom: '16px' }}>
@@ -701,161 +826,33 @@ export default function AdminBriefDetail() {
               </div>
             )}
 
-            {/* 3.5) AI Persona (BETA) — Admin Monitoring Only */}
-            {brief.ugc_video_id && (
-              <div style={{ marginBottom: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                  <div className="label-caps">AI Persona</div>
-                  <span style={{ fontSize: '9px', letterSpacing: '1px', padding: '2px 6px', background: 'rgba(245,158,11,0.1)', border: '1px solid #f59e0b', color: '#92400e' }}>BETA</span>
-                </div>
-                {ugcVideo ? (
-                  <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '14px 18px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: ugcVideo.final_url ? '12px' : '0' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>Persona Video</span>
-                        <Badge status={ugcVideo.status === 'sold' ? 'ai_sold' : ugcVideo.status === 'ready' ? 'ai_completed' : ugcVideo.status === 'generating' || ugcVideo.status === 'queued' ? 'ai_processing' : 'cancelled'} />
-                      </div>
-                      {ugcVideo.persona_id && <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>Persona #{ugcVideo.persona_id}</span>}
-                    </div>
-                    {ugcVideo.final_url && <video controls style={{ width: '100%', maxHeight: '300px', objectFit: 'contain', background: '#000', display: 'block' }}><source src={ugcVideo.final_url} /></video>}
+            {/* 3.5) AI Persona (BETA) — Collapsed */}
+            {brief.ugc_video_id && ugcVideo ? (
+              <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '14px 18px', marginBottom: '16px', cursor: 'pointer' }} onClick={() => setPersonaOpen(!personaOpen)}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div className="label-caps">AI Persona</div>
+                    <span style={{ fontSize: '9px', letterSpacing: '1px', padding: '2px 6px', background: 'rgba(245,158,11,0.1)', border: '1px solid #f59e0b', color: '#92400e' }}>BETA</span>
+                    <Badge status={ugcVideo.status === 'sold' ? 'ai_sold' : ugcVideo.status === 'ready' ? 'ai_completed' : ugcVideo.status === 'generating' || ugcVideo.status === 'queued' ? 'ai_processing' : 'cancelled'} />
                   </div>
-                ) : (
-                  <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)' }}>Video yükleniyor...</div>
+                  <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>{personaOpen ? 'KAPAT' : 'DETAY'}</span>
+                </div>
+                {personaOpen && (
+                  <div style={{ marginTop: '12px' }}>
+                    {ugcVideo.final_url && <video controls onClick={e => e.stopPropagation()} style={{ width: '100%', maxHeight: '300px', objectFit: 'contain', background: '#000', display: 'block' }}><source src={ugcVideo.final_url} /></video>}
+                    {ugcVideo.persona_id && <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', marginTop: '8px' }}>Persona #{ugcVideo.persona_id}</div>}
+                  </div>
                 )}
               </div>
-            )}
-            {!brief.ugc_video_id && (
+            ) : (
               <div style={{ marginBottom: '16px', padding: '14px 18px', background: '#fff', border: '1px solid var(--color-border-tertiary)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <div className="label-caps" style={{ color: 'var(--color-text-tertiary)' }}>AI Persona</div>
                   <span style={{ fontSize: '9px', letterSpacing: '1px', padding: '2px 6px', background: 'rgba(245,158,11,0.1)', border: '1px solid #f59e0b', color: '#92400e' }}>BETA</span>
-                  <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', marginLeft: '8px' }}>Henüz UGC üretilmedi</span>
+                  <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', marginLeft: '8px' }}>{brief.ugc_video_id ? 'Video yükleniyor...' : 'Henüz UGC üretilmedi'}</span>
                 </div>
               </div>
             )}
-
-            {/* 4) ÜRETİM & ONAY */}
-            <div style={{ marginBottom: '16px' }}>
-              <div className="label-caps" style={{ marginBottom: '12px' }}>ÜRETİM & ONAY</div>
-
-              {/* Creator Assignment — State Machine */}
-              <div style={{ background: '#fff', border: '1px solid #0a0a0a', padding: '16px 18px', marginBottom: '12px' }}>
-                {assignState === 'locked' && assigned && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ width: '36px', height: '36px', background: '#888', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: '500', color: '#fff', flexShrink: 0 }}>{(assigned.users?.name || '?').split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()}</div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a' }}>{assigned.users?.name}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>{assigned.users?.email}</div>
-                    </div>
-                    <span style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', padding: '3px 8px', border: '1px solid #e5e4db', color: '#888' }}>TAMAMLANDI</span>
-                  </div>
-                )}
-                {assignState === 'assigned' && assigned && (
-                  <>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div style={{ width: '36px', height: '36px', background: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: '500', color: '#fff', flexShrink: 0 }}>{(assigned.users?.name || '?').split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()}</div>
-                        <div>
-                          <div style={{ fontSize: '14px', fontWeight: '500', color: '#0a0a0a' }}>{assigned.users?.name}</div>
-                          <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>{assigned.users?.email}{assigned.phone ? ` · ${assigned.phone}` : ''}</div>
-                        </div>
-                      </div>
-                      <span style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', padding: '3px 8px', border: '1px solid #22c55e', background: 'rgba(34,197,94,0.08)', color: '#0a0a0a' }}>ATANDI</span>
-                    </div>
-                    <button onClick={() => setShowReassignConfirm(true)} className="btn btn-outline" style={{ marginTop: '10px', padding: '6px 14px', fontSize: '10px', width: '100%' }}>ATAMAYI DEĞİŞTİR</button>
-                  </>
-                )}
-                {assignState === 'none' && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>Creator atanmadı</span>
-                    <span style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', padding: '3px 8px', border: '1px solid #f5a623', color: '#f5a623' }}>ATANMADI</span>
-                  </div>
-                )}
-                {(showAssignForm || assignState === 'none') && (
-                  <form onSubmit={handleForward} style={{ marginTop: '12px', borderTop: '1px solid var(--color-border-tertiary)', paddingTop: '12px' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: brief.voiceover_type === 'real' ? '1fr 1fr' : '1fr', gap: '8px', marginBottom: '10px' }}>
-                      <div>
-                        <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '4px' }}>CREATOR</div>
-                        <select value={forwardForm.assigned_creator_id} onChange={e => setForwardForm({ ...forwardForm, assigned_creator_id: e.target.value })} style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--color-border-tertiary)', fontSize: '12px', color: '#0a0a0a', boxSizing: 'border-box' }}>
-                          <option value="">Seçin</option>
-                          {creators.map(c => <option key={c.id} value={c.id}>{c.users?.name}{getCreatorUnavailLabel(c)}</option>)}
-                        </select>
-                      </div>
-                      {brief.voiceover_type === 'real' && (
-                        <div>
-                          <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '4px' }}>SESLENDİRME</div>
-                          <select value={forwardForm.assigned_voice_artist_id} onChange={e => setForwardForm({ ...forwardForm, assigned_voice_artist_id: e.target.value })} style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--color-border-tertiary)', fontSize: '12px', color: '#0a0a0a', boxSizing: 'border-box' }}>
-                            <option value="">Seçin</option>
-                            {voiceArtists.map(va => <option key={va.id} value={va.id}>{va.users?.name}</option>)}
-                          </select>
-                        </div>
-                      )}
-                    </div>
-                    <div style={{ marginBottom: '10px' }}>
-                      <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '6px' }}>İLETİLECEK ALANLAR</div>
-                      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                        {[{ field: 'message', label: 'Mesaj' }, { field: 'cta', label: 'CTA' }, { field: 'target_audience', label: 'Hedef Kitle' }, { field: 'voiceover_text', label: 'Seslendirme' }, { field: 'notes', label: 'Notlar' }].filter(f => brief[f.field]).map(f => (
-                          <label key={f.field} style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px', color: '#0a0a0a' }}>
-                            <input type="checkbox" checked={sharedFields.includes(f.field)} onChange={() => toggleSharedField(f.field)} style={{ accentColor: '#0a0a0a' }} /> {f.label}
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                    <textarea value={forwardForm.producer_note} onChange={e => setForwardForm({ ...forwardForm, producer_note: e.target.value })} rows={2} placeholder="Prodüktör notu..." style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--color-border-tertiary)', fontSize: '12px', color: '#0a0a0a', resize: 'vertical', boxSizing: 'border-box', marginBottom: '8px' }} />
-                    <button type="submit" disabled={loading} className="btn" style={{ padding: '8px 16px' }}>{loading ? 'İletiliyor...' : assigned ? 'Güncelle' : "CREATOR'A İLET"}</button>
-                  </form>
-                )}
-              </div>
-
-              {/* Voiceover Upload */}
-              {brief.voiceover_type === 'real' && (
-                <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '14px 18px', marginBottom: '12px' }}>
-                  <div className="label-caps" style={{ marginBottom: '8px' }}>{brief.voiceover_gender === 'male' ? 'ERKEK' : 'KADIN'} SESLENDİRME DOSYASI</div>
-                  {brief.voiceover_file_url ? (
-                    <div>
-                      <audio controls src={brief.voiceover_file_url} style={{ width: '100%', marginBottom: '8px' }} />
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <button onClick={() => downloadFile(brief.voiceover_file_url, `${brief.campaign_name || 'voiceover'}_ses.mp3`)} className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '10px' }}>İNDİR ↓</button>
-                        <button onClick={handleVoiceoverDelete} className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '10px', color: '#ef4444', borderColor: '#ef4444' }}>SİL</button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div>
-                      <input ref={voFileRef} type="file" accept=".mp3,.wav,.m4a,audio/*" style={{ fontSize: '12px', color: '#0a0a0a', marginBottom: '8px' }} />
-                      <button onClick={handleVoiceoverUpload} disabled={voUpload} className="btn" style={{ padding: '7px 16px' }}>{voUpload ? 'Yükleniyor...' : 'YÜKLE'}</button>
-                      <div style={{ fontSize: '10px', color: 'var(--color-text-tertiary)', marginTop: '6px' }}>mp3, wav, m4a — maks 50MB</div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Video Submissions */}
-              {submissions.length === 0 ? (
-                <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '32px', textAlign: 'center', color: 'var(--color-text-tertiary)', fontSize: '13px' }}>Henüz video yüklenmedi.</div>
-              ) : submissions.map(s => (
-                <div key={s.id} style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', marginBottom: '12px', overflow: 'hidden' }}>
-                  <div style={{ padding: '12px 18px', borderBottom: '1px solid var(--color-border-tertiary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>Versiyon {s.version}</span>
-                      <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>{new Date(s.submitted_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}</span>
-                    </div>
-                    <Badge status={s.status === 'pending' ? 'submitted' : s.status === 'producer_approved' || s.status === 'admin_approved' ? 'delivered' : s.status === 'revision_requested' ? 'revision' : 'submitted'} />
-                  </div>
-                  <div style={{ padding: '16px 18px' }}>
-                    <video ref={s.id === submissions[0]?.id ? videoRef : undefined} controls style={{ width: '100%', maxHeight: '500px', objectFit: 'contain', background: '#000', display: 'block' }}><source src={s.video_url} /></video>
-                  </div>
-                  {(s.status === 'pending' || s.status === 'producer_approved') && (
-                    <div style={{ padding: '0 18px 16px' }}>
-                      <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
-                        <button onClick={() => handleApprove(s.id)} disabled={loading} className="btn" style={{ flex: 1, padding: '10px' }}>{loading ? 'İşleniyor...' : 'ONAYLA → MÜŞTERİYE İLET'}</button>
-                      </div>
-                      <textarea value={revisionNotes[s.id] || ''} onChange={e => setRevisionNotes(prev => ({ ...prev, [s.id]: e.target.value }))} placeholder="Revizyon notu yazın..." rows={2} style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--color-border-tertiary)', fontSize: '12px', color: '#0a0a0a', resize: 'vertical', boxSizing: 'border-box', marginBottom: '8px' }} />
-                      <button onClick={() => handleRevision(s.id)} disabled={loading} className="btn btn-outline" style={{ padding: '8px 16px', color: '#ef4444', borderColor: '#ef4444' }}>REVİZYON İSTE</button>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
 
             {/* 5) Q&A */}
             <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '16px 18px', marginBottom: '16px' }}>
