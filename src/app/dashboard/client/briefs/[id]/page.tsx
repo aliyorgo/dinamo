@@ -145,6 +145,7 @@ function ClientBriefDetail() {
   const [ugcVideosForSummary, setUgcVideosForSummary] = useState<any[]>([])
   const [ugcVideoCount, setUgcVideoCount] = useState(0)
   const [animationVideoCount, setAnimationVideoCount] = useState(0)
+  const [animationVideosForSummary, setAnimationVideosForSummary] = useState<any[]>([])
   const [activeTab, setActiveTab] = useState<'hybrid'|'cps'|'express'|'ugc'|'animation'|'summary'>(searchParams.get('tab') === 'express' ? 'express' : searchParams.get('tab') === 'ugc' ? 'ugc' : searchParams.get('tab') === 'animation' ? 'animation' : searchParams.get('tab') === 'cps' ? 'cps' : searchParams.get('tab') === 'summary' ? 'summary' : 'hybrid')
 
   // Onboarding: auto-open info modal on first visit per module
@@ -295,6 +296,11 @@ function ClientBriefDetail() {
     // Total UGC count for tab label
     const { count: ugcTotal } = await supabase.from('ugc_videos').select('id', { count: 'exact', head: true }).eq('brief_id', id).neq('status', 'failed')
     setUgcVideoCount(ugcTotal || 0)
+    // Animation videos for summary
+    const { data: animVids } = await supabase.from('animation_videos')
+      .select('id, final_url, created_at, version, status, style_slug, animation_styles(label)')
+      .eq('brief_id', id).eq('status', 'sold').not('final_url', 'is', null).order('created_at', { ascending: true })
+    setAnimationVideosForSummary(animVids || [])
   }
 
   // AI video polling — runs when brief is ai_processing and video not yet ready
@@ -1701,7 +1707,7 @@ function ClientBriefDetail() {
 
               {/* ═══ SUMMARY TAB ═══ */}
               {activeTab === 'summary' && brief && (
-                <CampaignSummaryTab brief={brief} companyName={companyName} videos={videos} aiChildren={aiChildren} cpsChildren={cpsChildren} ugcVideos={ugcVideosForSummary} onRefresh={loadData}
+                <CampaignSummaryTab brief={brief} companyName={companyName} videos={videos} aiChildren={aiChildren} cpsChildren={cpsChildren} ugcVideos={ugcVideosForSummary} animationVideos={animationVideosForSummary} onRefresh={loadData}
                   captionText={captionText} setCaptionText={setCaptionText} savedCaption={savedCaption} captionLoading={captionLoading} captionToast={captionToast}
                   onGenerateCaption={generateCaption} onCaptionAction={handleCaptionAction} onRegenerateConfirm={() => setShowRegenerateConfirm(true)} />
               )}

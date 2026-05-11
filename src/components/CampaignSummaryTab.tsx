@@ -15,6 +15,7 @@ interface Props {
   aiChildren: any[]
   cpsChildren: any[]
   ugcVideos?: any[]
+  animationVideos?: any[]
   onRefresh?: () => void
   captionText: string
   setCaptionText: (v: string) => void
@@ -33,7 +34,7 @@ function slugify(name: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '')
 }
 
-export default function CampaignSummaryTab({ brief, companyName, videos, aiChildren, cpsChildren, ugcVideos = [], onRefresh, captionText, setCaptionText, savedCaption, captionLoading, captionToast, onGenerateCaption, onCaptionAction, onRegenerateConfirm }: Props) {
+export default function CampaignSummaryTab({ brief, companyName, videos, aiChildren, cpsChildren, ugcVideos = [], animationVideos = [], onRefresh, captionText, setCaptionText, savedCaption, captionLoading, captionToast, onGenerateCaption, onCaptionAction, onRegenerateConfirm }: Props) {
   const [lightbox, setLightbox] = useState<{ type: 'video' | 'image'; url: string } | null>(null)
   const [menuOpen, setMenuOpen] = useState<string | null>(null)
   const [linkCopied, setLinkCopied] = useState(false)
@@ -52,7 +53,8 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
   const deliveredAi = aiChildren.filter(c => c.status === 'delivered' && c.ai_video_url)
   const deliveredCps = cpsChildren.filter((c: any) => c.video_submissions?.length > 0)
 
-  const totalVideos = approvedVideos.length + deliveredAi.length + deliveredCps.length + ugcVideos.length
+  const soldAnimation = animationVideos.filter(v => v.status === 'sold')
+  const totalVideos = approvedVideos.length + deliveredAi.length + deliveredCps.length + ugcVideos.length + soldAnimation.length
   const draftCount = aiChildren.filter(c => c.status !== 'delivered' && c.ai_video_url).length + cpsChildren.filter((c: any) => !c.video_submissions?.length).length
   const hasStaticImages = !!(brief.static_images_url && /\.(png|jpg|jpeg|webp)$/i.test(brief.static_images_url))
   const aiWithImages = aiChildren.filter(c => c.status === 'delivered' && c.static_image_files && (Array.isArray(c.static_image_files) ? c.static_image_files.length > 0 : Object.keys(c.static_image_files).length > 0))
@@ -233,6 +235,17 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
             )}
           </>
         )}
+
+            {soldAnimation.length > 0 && (
+              <div style={{ marginBottom: '28px' }}>
+                <div style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '10px' }}>AI ANIMATION · {soldAnimation.length} video</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '16px' }}>
+                  {soldAnimation.map((v: any, i: number) => (
+                    <VideoThumb key={v.id} url={v.final_url} label={`Animation V${v.version || i + 1} — ${v.animation_styles?.label || v.style_slug}`} />
+                  ))}
+                </div>
+              </div>
+            )}
 
         {/* IMAGES SECTION */}
         {hasAnyImages && (() => {
