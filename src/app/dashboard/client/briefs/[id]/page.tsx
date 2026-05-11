@@ -10,6 +10,7 @@ import VideoLoadingBox from '@/components/VideoLoadingBox'
 import { logClientActivity } from '@/lib/log-client'
 import { pauseOtherVideos } from '@/lib/video-playback'
 import AIUGCTab from '@/components/AIUGCTab'
+import AIAnimationTab from '@/components/AIAnimationTab'
 import { downloadFile } from '@/lib/download-helper'
 import { useCredits } from '@/lib/credits'
 import { useClientContext } from '../../layout'
@@ -143,7 +144,8 @@ function ClientBriefDetail() {
   }
   const [ugcVideosForSummary, setUgcVideosForSummary] = useState<any[]>([])
   const [ugcVideoCount, setUgcVideoCount] = useState(0)
-  const [activeTab, setActiveTab] = useState<'hybrid'|'cps'|'express'|'ugc'|'summary'>(searchParams.get('tab') === 'express' ? 'express' : searchParams.get('tab') === 'ugc' ? 'ugc' : searchParams.get('tab') === 'cps' ? 'cps' : searchParams.get('tab') === 'summary' ? 'summary' : 'hybrid')
+  const [animationVideoCount, setAnimationVideoCount] = useState(0)
+  const [activeTab, setActiveTab] = useState<'hybrid'|'cps'|'express'|'ugc'|'animation'|'summary'>(searchParams.get('tab') === 'express' ? 'express' : searchParams.get('tab') === 'ugc' ? 'ugc' : searchParams.get('tab') === 'animation' ? 'animation' : searchParams.get('tab') === 'cps' ? 'cps' : searchParams.get('tab') === 'summary' ? 'summary' : 'hybrid')
 
   // Onboarding: auto-open info modal on first visit per module
   useEffect(() => {
@@ -715,11 +717,13 @@ function ClientBriefDetail() {
             const hasSummary = aiChildren.length > 0 || cpsChildren.length > 0 || !!brief?.static_images_url || ugcVideosForSummary.length > 0
             const expressVisible = brief?.clients?.ai_video_enabled !== false && featureFlags.aiExpressGlobal
             const ugcVisible = brief?.clients?.ugc_enabled !== false && featureFlags.ugcGlobal
+            const animationVisible = featureFlags.animationGlobal
             const tabs = [
               {key:'hybrid' as const, label:'Ana Video'},
               {key:'cps' as const, label:'CPS'},
               ...(expressVisible ? [{key:'express' as const, label:'AI Express'}] : []),
               ...(ugcVisible ? [{key:'ugc' as const, label:'AI Persona'}] : []),
+              ...(animationVisible ? [{key:'animation' as const, label:'AI Animation'}] : []),
               ...(hasSummary ? [{key:'summary' as const, label:'Kampanya Özeti'}] : []),
             ]
             return tabs.map((t,ti)=>{
@@ -736,6 +740,8 @@ function ClientBriefDetail() {
                   {t.key==='ugc' && ugcVideoCount > 0 && <span style={{marginLeft:'6px',fontSize:'10px',color:'#3b82f6',fontWeight:'600'}}>{ugcVideoCount}</span>}
                   {t.key==='express' && aiChildren.length > 0 && <span style={{marginLeft:'6px',fontSize:'10px',color:'#1DB81D',fontWeight:'600'}}>{aiChildren.filter(c=>c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout').length}</span>}
                   {t.key==='cps' && cpsChildren.length > 0 && <span style={{marginLeft:'6px',fontSize:'10px',color:'#3b82f6',fontWeight:'600'}}>{cpsChildren.length}</span>}
+                  {t.key==='animation' && <span style={{marginLeft:'4px',fontSize:'9px',padding:'1px 5px',background:'#f59e0b',color:'#fff',fontWeight:'600',verticalAlign:'middle'}}>Beta</span>}
+                  {t.key==='animation' && animationVideoCount > 0 && <span style={{marginLeft:'6px',fontSize:'10px',color:'#8b5cf6',fontWeight:'600'}}>{animationVideoCount}</span>}
                 </button>
               )
             })
@@ -1687,6 +1693,10 @@ function ClientBriefDetail() {
               {/* ═══ UGC TAB ═══ */}
               {activeTab === 'ugc' && brief && (
                 <AIUGCTab briefId={id} brief={brief} clientUser={clientUser} autoPlayVideoId={searchParams.get('video') || undefined} onVideoCountChange={(count) => setUgcVideoCount(count)} />
+              )}
+
+              {activeTab === 'animation' && brief && (
+                <AIAnimationTab briefId={id} brief={brief} clientUser={clientUser} onVideoCountChange={(count) => setAnimationVideoCount(count)} />
               )}
 
               {/* ═══ SUMMARY TAB ═══ */}
