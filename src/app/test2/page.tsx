@@ -584,13 +584,14 @@ export default function HomePage() {
           <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '32px 48px', textAlign: 'center' }}>
             <div style={{ fontSize: '11px', letterSpacing: '3px', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', fontWeight: '400', marginBottom: '12px' }}>AI Production Partners</div>
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '64px', flexWrap: 'wrap' }}>
+              <style>{`.partner-logo { display: block; opacity: 0.5; cursor: pointer; transition: transform 0.2s ease, opacity 0.2s ease, filter 0.2s ease; } .partner-logo:hover { opacity: 0.85; transform: scale(1.12); filter: brightness(1.15); }`}</style>
               {[
                 { src: '/partners/laser.png', alt: 'Laser Cats', href: 'https://www.instagram.com/lasercats.studio/' },
                 { src: '/partners/swag.png', alt: 'SWAG', href: 'https://www.swag.ist/' },
                 { src: '/partners/dreamdudes.png', alt: 'Dream Dudes', href: 'https://www.instagram.com/thedreamdudes/' },
                 { src: '/partners/bobo.png', alt: 'Bobo', href: 'https://www.boboworkz.com/' },
               ].map(p => (
-                <a key={p.alt} href={p.href} target="_blank" rel="noopener noreferrer" style={{ display: 'block', opacity: 0.5, cursor: 'pointer' }}>
+                <a key={p.alt} href={p.href} target="_blank" rel="noopener noreferrer" className="partner-logo">
                   <img src={p.src} alt={p.alt} style={{ height: '108px', width: 'auto', objectFit: 'contain' }} />
                 </a>
               ))}
