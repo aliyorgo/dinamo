@@ -137,7 +137,7 @@ export default function AdminBriefDetail() {
     // CPS producer_briefs
     if (cps && cps.length > 0) {
       const cpsIds = cps.map((c: any) => c.id)
-      const { data: cpsPbs } = await supabase.from('producer_briefs').select('brief_id, assigned_creator_id').in('brief_id', cpsIds)
+      const { data: cpsPbs } = await supabase.from('producer_briefs').select('brief_id, assigned_creator_id, producer_note').in('brief_id', cpsIds)
       const pbMap: Record<string, any> = {}
       cpsPbs?.forEach((pb: any) => { pbMap[pb.brief_id] = pb })
       setCpsProducerBriefs(pbMap)
@@ -599,9 +599,17 @@ export default function AdminBriefDetail() {
                             {(() => {
                               const cpsPb = cpsProducerBriefs[child.id]
                               const cpsAssigned = cpsPb ? creators.find(c => c.id === cpsPb.assigned_creator_id) : null
+                              const cpsNote = cpsPb?.producer_note
                               const cpsHasSubs = childSubs.length > 0
                               const cpsState = !cpsAssigned ? 'none' : cpsHasSubs ? 'locked' : 'assigned'
                               return (
+                                <>
+                                {cpsNote && (
+                                  <div style={{ padding: '8px 12px', background: '#f5f4f0', borderLeft: '2px solid #999', fontSize: '12px', color: '#555', lineHeight: 1.5, marginBottom: '10px' }}>
+                                    <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#999', marginBottom: '3px' }}>CREATOR NOTU</div>
+                                    {cpsNote}
+                                  </div>
+                                )}
                                 <div style={{ borderTop: '1px solid var(--color-border-tertiary)', paddingTop: '10px', marginBottom: '10px' }}>
                                   {cpsState === 'locked' && cpsAssigned && (
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -633,6 +641,7 @@ export default function AdminBriefDetail() {
                                     </div>
                                   )}
                                 </div>
+                                </>
                               )
                             })()}
                             {/* Video submissions */}
