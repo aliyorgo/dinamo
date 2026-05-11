@@ -584,7 +584,7 @@ export default function ClientDashboard() {
                           <div key={`main-${b.id}`} onClick={() => router.push(`/dashboard/client/briefs/${b.id}`)}
                             style={{padding:'12px 14px',background:'#fff',borderLeft:'3px solid #f5a623',border:'1px solid #e5e4db',cursor:'pointer',display:'flex',alignItems:'center',gap:'10px'}}>
                             {videoMap[b.id] && <div style={{width:'32px',height:'56px',overflow:'hidden',background:'#0a0a0a',flexShrink:0}}><video src={videoMap[b.id]+'#t=0.1'} muted playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'cover'}} /></div>}
-                            <div><div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name}</div><div style={{fontSize:'10px',color:'#888',marginTop:'2px'}}>Ana Video</div></div>
+                            <div><div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name}</div><div style={{fontSize:'10px',color:'#888',marginTop:'2px',textTransform:'uppercase',letterSpacing:'0.5px'}}>Ana Video</div></div>
                           </div>
                         )
                       }
