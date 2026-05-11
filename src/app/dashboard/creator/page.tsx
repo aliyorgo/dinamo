@@ -47,7 +47,7 @@ export default function CreatorDashboard() {
       pb?.forEach((p: any) => { fwdMap[p.brief_id] = p.forwarded_at })
       setForwardedMap(fwdMap)
       if (briefIds.length > 0) {
-        const { data: b } = await supabase.from('briefs').select('*, clients(company_name)').in('id', briefIds).neq('status', 'cancelled').neq('status', 'delivered').order('created_at', { ascending: false })
+        const { data: b } = await supabase.from('briefs').select('*, clients(company_name), video_submissions(id, video_url, status)').in('id', briefIds).neq('status', 'cancelled').neq('status', 'delivered').order('created_at', { ascending: false })
         setJobs(b || [])
       }
       // Load unseen thanks
@@ -228,6 +228,7 @@ export default function CreatorDashboard() {
                     style={{ background: '#fff', border: '1px solid #e5e4db', padding: '18px 22px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', transition: 'background 0.1s' }}
                     onMouseEnter={e => { e.currentTarget.style.background = '#fafaf7' }}
                     onMouseLeave={e => { e.currentTarget.style.background = '#fff' }}>
+                    {(() => { const lastSub = job.video_submissions?.filter((s: any) => s.video_url)?.[0]; return lastSub ? <div style={{ width: '48px', height: '64px', background: '#0a0a0a', flexShrink: 0, overflow: 'hidden' }}><video src={lastSub.video_url + '#t=0.5'} muted playsInline preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /></div> : null })()}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '4px' }}>{job.clients?.company_name} · {jobType}</div>
                       <div style={{ fontSize: '16px', fontWeight: '500', color: '#0a0a0a', marginBottom: '6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{job.campaign_name}</div>
