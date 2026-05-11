@@ -96,7 +96,7 @@ export default function ClientDashboard() {
 
           // CPS children
           const { data: cpsKids } = await supabase.from('briefs')
-            .select('id, root_campaign_id, parent_brief_id, status, brief_type, campaign_name, cps_hook, cps_ton, mvc_order')
+            .select('id, root_campaign_id, parent_brief_id, status, brief_type, campaign_name, cps_hook, cps_ton, mvc_order, video_submissions(video_url, submitted_at)')
             .eq('client_id', clientId)
             .eq('brief_type', 'cps_child')
           const cpsMap: Record<string, any[]> = {}
@@ -589,11 +589,19 @@ export default function ClientDashboard() {
                         )
                       }
                       cpsPending.forEach((k: any) => {
+                        const cpsThumb = k.video_submissions?.slice().sort((a: any, b: any) => new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime())[0]?.video_url
                         cards.push(
                           <div key={`cps-${k.id}`} onClick={() => router.push(`/dashboard/client/briefs/${b.id}?tab=cps`)}
                             style={{padding:'12px 14px',background:'#fff',borderLeft:'3px solid #f5a623',border:'1px solid #e5e4db',cursor:'pointer',display:'flex',alignItems:'center',gap:'10px'}}>
-                            <div style={{width:'32px',height:'32px',background:'rgba(245,166,35,0.1)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><span style={{fontSize:'12px',fontWeight:'600',color:'#f5a623'}}>{k.mvc_order || '?'}</span></div>
-                            <div><div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name}</div><div style={{fontSize:'10px',color:'#888',marginTop:'2px'}}>CPS {k.cps_hook ? `· ${k.cps_hook}` : `Yön ${k.mvc_order || ''}`}</div></div>
+                            {cpsThumb ? (
+                              <div style={{width:'32px',height:'56px',overflow:'hidden',background:'#0a0a0a',flexShrink:0}}><video src={cpsThumb+'#t=0.5'} muted playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'cover'}} /></div>
+                            ) : (
+                              <div style={{width:'32px',height:'32px',background:'rgba(245,166,35,0.1)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><span style={{fontSize:'12px',fontWeight:'600',color:'#f5a623'}}>{k.mvc_order || '?'}</span></div>
+                            )}
+                            <div>
+                              <div style={{display:'flex',alignItems:'center',gap:'6px'}}><div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name}</div><span style={{fontSize:'9px',fontWeight:'600',letterSpacing:'0.8px',padding:'2px 6px',background:'#8b5cf6',color:'#fff',textTransform:'uppercase'}}>CPS {k.mvc_order || '?'}</span></div>
+                              <div style={{fontSize:'10px',color:'#888',marginTop:'2px'}}>{k.cps_hook || `Yön ${k.mvc_order || ''}`}</div>
+                            </div>
                           </div>
                         )
                       })
