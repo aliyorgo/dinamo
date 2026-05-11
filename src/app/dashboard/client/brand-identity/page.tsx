@@ -14,6 +14,7 @@ export default function BrandIdentityPage() {
   const { userName, companyName, credits, clientId: ctxClientId, customizationTier } = useClientContext()
   const [clientId, setClientId] = useState('')
   const [tierModalOpen, setTierModalOpen] = useState(false)
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false)
   const [files, setFiles] = useState<any[]>([])
   const [briefs, setBriefs] = useState<any[]>([])
   const [uploading, setUploading] = useState(false)
@@ -221,11 +222,20 @@ export default function BrandIdentityPage() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
         {/* Customization Tier Card */}
         <div style={{ padding: '20px', background: '#fff', border: '1px solid var(--color-border-tertiary)' }}>
-          <div style={{ fontSize: '11px', letterSpacing: '1.5px', fontWeight: '500', color: '#0a0a0a', marginBottom: '8px' }}>{customizationTier === 'corporate' ? 'KURUMSAL PAKET' : customizationTier === 'advanced' ? 'ADVANCED CUSTOMIZATION' : 'BASIC CUSTOMIZATION'}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+            <div style={{ fontSize: '11px', letterSpacing: '1.5px', fontWeight: '500', color: '#0a0a0a' }}>ÖZELLEŞTİRME SEVİYESİ</div>
+            <span style={{ fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: '500', padding: '2px 8px', border: '1px solid var(--color-border-tertiary)', color: 'var(--color-text-secondary)' }}>{customizationTier === 'corporate' ? 'KURUMSAL' : customizationTier === 'advanced' ? 'ADVANCED' : 'BASIC'}</span>
+          </div>
           <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', marginBottom: '12px' }}>{customizationTier === 'corporate' ? 'Tüm Advanced özellikleri ve özel hesap yöneticisi.' : customizationTier === 'advanced' ? 'Derin marka eğitimi, custom grafikler ve markaya özel ses.' : 'Marka tanıma, ses kütüphanesi ve persona havuzu erişimi.'}</div>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button onClick={() => setTierModalOpen(true)} className="btn btn-outline" style={{ padding: '6px 14px', fontSize: '10px' }}>İÇERİĞİ GÖR</button>
-            {customizationTier !== 'corporate' && <a href="/demo-request" className="btn btn-outline" style={{ padding: '6px 14px', fontSize: '10px', textDecoration: 'none' }}>YÜKSELT</a>}
+            {customizationTier !== 'corporate' && <button onClick={async () => {
+              setUpgradeModalOpen(true)
+              try {
+                const { data: { user } } = await supabase.auth.getUser()
+                await supabase.from('demo_requests').insert({ name: `[YÜKSELTME] ${companyName}`, company: companyName, email: user?.email || '', phone: '' })
+              } catch (err) { console.error('[tier-upgrade] request failed:', err) }
+            }} className="btn btn-outline" style={{ padding: '6px 14px', fontSize: '10px' }}>YÜKSELT</button>}
           </div>
         </div>
 
@@ -249,6 +259,16 @@ export default function BrandIdentityPage() {
       </div>
 
       <PackageDetailModal isOpen={tierModalOpen} onClose={() => setTierModalOpen(false)} mode="tier" initialTab={customizationTier} />
+
+      {upgradeModalOpen && (
+        <div onClick={() => setUpgradeModalOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', padding: '32px', maxWidth: '400px', width: '90%' }}>
+            <div style={{ fontSize: '16px', fontWeight: '500', color: '#0a0a0a', marginBottom: '12px' }}>Yükseltme Talebiniz Alındı</div>
+            <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: 1.6, marginBottom: '24px' }}>Dinamo ekibi en kısa sürede sizinle iletişime geçecek. Genellikle 1 iş günü içinde dönüş yapıyoruz.</div>
+            <button onClick={() => setUpgradeModalOpen(false)} className="btn" style={{ width: '100%', padding: '10px' }}>TAMAM</button>
+          </div>
+        </div>
+      )}
 
       {msg && <div style={{ marginBottom: '16px', padding: '10px 14px', background: msg.includes('Hata') || msg.includes('hatası') ? 'rgba(239,68,68,0.08)' : 'rgba(34,197,94,0.08)', border: `1px solid ${msg.includes('Hata') || msg.includes('hatası') ? '#ef4444' : '#22c55e'}`, fontSize: '12px', color: '#0a0a0a' }}>{msg}</div>}
 
