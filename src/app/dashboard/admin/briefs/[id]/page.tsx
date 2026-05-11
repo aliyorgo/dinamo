@@ -380,33 +380,60 @@ export default function AdminBriefDetail() {
                 <div style={{ fontSize: '13px', color: '#0a0a0a', lineHeight: '1.5' }}>{b.notes}</div>
               </div>
             )}
-            {/* PACKSHOT'LAR */}
+            {/* PACKSHOT'LAR + LOGO */}
             {(() => {
               const ps = b.clients?.packshots || {}
               const filled = ['9x16','16x9','1x1','4x5','2x3'].filter(k => ps[k])
-              if (!filled.length) return null
+              const logoUrl = b.clients?.logo_url
+              if (!filled.length && !logoUrl && !b.clients?.font_url) return null
               return (
                 <div style={{ marginBottom: '12px' }}>
-                  <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#888', marginBottom: '6px', fontWeight: '500' }}>PACKSHOT'LAR</div>
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    {filled.map(k => (
-                      <a key={k} href={ps[k]} target="_blank" download={`packshot_${k}.png`} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 10px', border: '1px solid #e5e4db', fontSize: '11px', color: '#0a0a0a', textDecoration: 'none', cursor: 'pointer' }}
+                  {filled.length > 0 && (
+                    <>
+                      <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#888', marginBottom: '6px', fontWeight: '500' }}>PACKSHOT'LAR</div>
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '10px' }}>
+                        {filled.map(k => {
+                          const isVideo = /\.(mp4|mov|webm)$/i.test(ps[k])
+                          return (
+                            <div key={k} onClick={() => downloadFile(ps[k], `packshot_${k.replace('x',':')}.${isVideo ? 'mp4' : 'png'}`)}
+                              style={{ border: '1px solid #e5e4db', padding: '6px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}
+                              onMouseEnter={e => { e.currentTarget.style.background = '#f5f4f0' }} onMouseLeave={e => { e.currentTarget.style.background = '#fff' }}>
+                              <div style={{ width: '80px', aspectRatio: k.replace('x', '/'), background: '#f5f4f0', overflow: 'hidden' }}>
+                                {isVideo ? (
+                                  <video src={ps[k] + '#t=0.5'} muted playsInline preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                ) : (
+                                  <img src={ps[k]} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                )}
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <span style={{ fontSize: '10px', color: '#0a0a0a' }}>{k.replace('x', ':')}</span>
+                                <span style={{ fontSize: '9px', color: '#888' }}>↓</span>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </>
+                  )}
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    {logoUrl && (
+                      <div onClick={() => downloadFile(logoUrl, `logo_${b.clients?.company_name || 'brand'}.png`)}
+                        style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 10px', border: '1px solid #e5e4db', cursor: 'pointer' }}
                         onMouseEnter={e => { e.currentTarget.style.background = '#f5f4f0' }} onMouseLeave={e => { e.currentTarget.style.background = '#fff' }}>
-                        <img src={ps[k]} style={{ width: '28px', height: '28px', objectFit: 'cover' }} />
-                        <span>{k.replace('x', ':')}</span>
+                        <div style={{ width: '48px', height: '32px', background: 'var(--color-background-secondary)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <img src={logoUrl} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                        </div>
+                        <span style={{ fontSize: '10px', color: '#0a0a0a' }}>LOGO</span>
                         <span style={{ fontSize: '9px', color: '#888' }}>↓</span>
-                      </a>
-                    ))}
+                      </div>
+                    )}
+                    {b.clients?.font_url && (
+                      <button onClick={() => downloadFile(b.clients.font_url, `font_${b.clients?.company_name || 'brand'}.ttf`)} className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '10px' }}>FONT ↓</button>
+                    )}
                   </div>
                 </div>
               )
             })()}
-            {(b.clients?.logo_url || b.clients?.font_url) && (
-              <div style={{ display: 'flex', gap: '10px' }}>
-                {b.clients?.logo_url && <a href={b.clients.logo_url} target="_blank" className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '10px' }}>LOGO ↓</a>}
-                {b.clients?.font_url && <a href={b.clients.font_url} target="_blank" className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '10px' }}>FONT ↓</a>}
-              </div>
-            )}
           </div>
         )}
       </div>
