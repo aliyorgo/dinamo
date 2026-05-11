@@ -14,7 +14,7 @@ function BriefsPage() {
   const [briefs, setBriefs] = useState<any[]>([])
   const [creators, setCreators] = useState<any[]>([])
   const [clients, setClients] = useState<any[]>([])
-  const [filter, setFilter] = useState('all')
+  const [filter, setFilter] = useState(searchParams.get('filter') || 'all')
   const [search, setSearch] = useState('')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')

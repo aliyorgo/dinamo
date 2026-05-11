@@ -24,6 +24,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true)
   const [pendingCount, setPendingCount] = useState(0)
   const [demoCount, setDemoCount] = useState(0)
+  const [upgradeCount, setUpgradeCount] = useState(0)
   const [unansweredCount, setUnansweredCount] = useState(0)
   const [approvalCount, setApprovalCount] = useState(0)
   const [overdueBriefs, setOverdueBriefs] = useState<any[]>([])
@@ -54,8 +55,11 @@ export default function AdminDashboard() {
       const { count } = await supabase.from('users').select('id', { count: 'exact', head: true }).eq('role', 'creator').eq('status', 'pending')
       setPendingCount(count || 0)
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-      const { count: dc } = await supabase.from('demo_requests').select('id', { count: 'exact', head: true }).gte('created_at', sevenDaysAgo)
-      setDemoCount(dc || 0)
+      const { data: demoRows } = await supabase.from('demo_requests').select('name').gte('created_at', sevenDaysAgo)
+      const demos = (demoRows || []).filter(r => !r.name?.startsWith('[YÜKSELTME'))
+      const upgrades = (demoRows || []).filter(r => r.name?.startsWith('[YÜKSELTME'))
+      setDemoCount(demos.length)
+      setUpgradeCount(upgrades.length)
       const { count: uq } = await supabase.from('brief_questions').select('id', { count: 'exact', head: true }).is('answer', null)
       setUnansweredCount(uq || 0)
       const { count: ac } = await supabase.from('video_submissions').select('id', { count: 'exact', head: true }).eq('status', 'producer_approved')
@@ -86,13 +90,14 @@ export default function AdminDashboard() {
           {loading ? <div style={{color:'rgba(255,255,255,0.4)',fontSize:'14px'}}>Yükleniyor...</div> : (
             <>
               {/* BUGÜN YAPILACAKLAR */}
-              {(approvalCount > 0 || unansweredCount > 0 || pendingCount > 0 || demoCount > 0) && (
+              {(approvalCount > 0 || unansweredCount > 0 || pendingCount > 0 || demoCount > 0 || upgradeCount > 0) && (
                 <div style={{background:'#fff',border:'1px solid var(--color-border-tertiary)',overflow:'hidden',marginBottom:'20px'}}>
                   <div style={{padding:'12px 20px',borderBottom:'1px solid var(--color-border-tertiary)',fontSize:'11px',letterSpacing:'2px',textTransform:'uppercase',fontWeight:'500',color:'var(--color-text-primary)'}}>BUGÜN YAPILACAKLAR</div>
                   {[
-                    approvalCount > 0 ? { label: `${approvalCount} video onay bekliyor`, href: '/dashboard/admin/briefs', color: '#ef4444', urgent: true } : null,
+                    approvalCount > 0 ? { label: `${approvalCount} video onay bekliyor`, href: '/dashboard/admin/briefs?filter=approved', color: '#ef4444', urgent: true } : null,
                     unansweredCount > 0 ? { label: `${unansweredCount} cevaplanmamış müşteri sorusu`, href: '/dashboard/admin/briefs', color: '#f59e0b', urgent: false } : null,
-                    demoCount > 0 ? { label: `${demoCount} yeni demo talebi (son 7 gün)`, href: '/dashboard/admin/creators', color: '#3b82f6', urgent: false } : null,
+                    demoCount > 0 ? { label: `${demoCount} yeni demo talebi (son 7 gün)`, href: '/dashboard/admin/talepler?tab=demo', color: '#3b82f6', urgent: false } : null,
+                    upgradeCount > 0 ? { label: `${upgradeCount} customization yükseltme talebi`, href: '/dashboard/admin/talepler?tab=upgrade', color: '#8b5cf6', urgent: false } : null,
                     pendingCount > 0 ? { label: `${pendingCount} bekleyen creator başvurusu`, href: '/dashboard/admin/creators', color: '#f59e0b', urgent: false } : null,
                   ].filter(Boolean).map((item: any) => (
                     <div key={item.label} onClick={() => router.push(item.href)}
