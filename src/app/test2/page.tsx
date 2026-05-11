@@ -556,8 +556,8 @@ export default function HomePage() {
       </section>
 
       {/* ══════ LOGO BANDI (DCC bloğuna yapışık) ══════ */}
-      <div style={{ background: '#0f0f0f', padding: '0 0 48px 0' }}>
-        <img src="/logos.png" style={{ width: '100%', maxWidth: '1100px', margin: '0 auto', display: 'block', filter: 'brightness(0.65)', objectFit: 'contain' }} />
+      <div style={{ backgroundColor: '#0f0f0f', paddingTop: 0, paddingRight: 0, paddingBottom: '48px', paddingLeft: 0 }}>
+        <img src="/logos.png" style={{ width: '100%', maxWidth: '1100px', marginLeft: 'auto', marginRight: 'auto', display: 'block', filter: 'brightness(0.65)', objectFit: 'contain' }} />
       </div>
 
       {/* ══════ CTA ══════ */}
