@@ -230,8 +230,8 @@ export default function CreatorJobDetail() {
   const statusBadge = (status: string) => {
     const m: Record<string, { label: string, border: string }> = {
       submitted: { label: 'ATANDI', border: '#9ca3af' }, read: { label: 'ATANDI', border: '#9ca3af' },
-      in_production: { label: 'ÜRETİMDE', border: '#3b82f6' }, revision: { label: 'REVİZYON', border: '#ef4444' },
-      approved: { label: 'ONAY BEKLİYOR', border: '#f59e0b' }, delivered: { label: 'TESLİM', border: '#22c55e' },
+      in_production: { label: 'ÜRETİMDE', border: '#3b82f6' }, revision: { label: 'REVİZYON İSTENDİ', border: '#ef4444' },
+      approved: { label: 'ONAYLANDI', border: '#f59e0b' }, delivered: { label: 'TESLİM EDİLDİ', border: '#22c55e' },
     }
     const s = m[status] || { label: status, border: '#888' }
     return <span style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', padding: '3px 8px', border: `1px solid ${s.border}`, color: '#0a0a0a', fontWeight: '500' }}>{s.label}</span>

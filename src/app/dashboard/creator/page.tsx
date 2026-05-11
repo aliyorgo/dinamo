@@ -7,7 +7,7 @@ const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env
 
 const statusLabel: Record<string, string> = {
   submitted: 'Atandı', read: 'Atandı', in_production: 'Üretimde',
-  revision: 'Revizyon', approved: 'Onay Bekliyor', delivered: 'Teslim Edildi'
+  revision: 'Revizyon İstendi', approved: 'Onaylandı', delivered: 'Teslim Edildi'
 }
 
 export default function CreatorDashboard() {
@@ -123,8 +123,8 @@ export default function CreatorDashboard() {
     switch (status) {
       case 'submitted': case 'read': return { label: 'ATANDI', bg: 'rgba(156,163,175,0.12)', border: '#9ca3af' }
       case 'in_production': return { label: 'ÜRETİMDE', bg: 'rgba(59,130,246,0.12)', border: '#3b82f6' }
-      case 'revision': return { label: 'REVİZYON', bg: 'rgba(239,68,68,0.12)', border: '#ef4444' }
-      case 'approved': return { label: 'ONAY BEKLİYOR', bg: 'rgba(245,158,11,0.12)', border: '#f59e0b' }
+      case 'revision': return { label: 'REVİZYON İSTENDİ', bg: 'rgba(239,68,68,0.12)', border: '#ef4444' }
+      case 'approved': return { label: 'ONAYLANDI', bg: 'rgba(245,158,11,0.12)', border: '#f59e0b' }
       default: return { label: statusLabel[status] || status, bg: 'rgba(0,0,0,0.06)', border: '#888' }
     }
   }
