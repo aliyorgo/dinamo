@@ -14,7 +14,11 @@ export default function BrandIdentityPage() {
   const { userName, companyName, credits, clientId: ctxClientId, customizationTier } = useClientContext()
   const [clientId, setClientId] = useState('')
   const [tierModalOpen, setTierModalOpen] = useState(false)
-  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false)
+  const [upgradeStep, setUpgradeStep] = useState<'confirm' | 'content' | 'success' | null>(null)
+  const tierLadder = ['basic', 'advanced', 'corporate'] as const
+  const tierLabels: Record<string, string> = { basic: 'BASIC', advanced: 'ADVANCED', corporate: 'KURUMSAL' }
+  const currentIdx = tierLadder.indexOf(customizationTier as any)
+  const nextTier = currentIdx >= 0 && currentIdx < tierLadder.length - 1 ? tierLadder[currentIdx + 1] : null
   const [files, setFiles] = useState<any[]>([])
   const [briefs, setBriefs] = useState<any[]>([])
   const [uploading, setUploading] = useState(false)
@@ -229,13 +233,7 @@ export default function BrandIdentityPage() {
           <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', marginBottom: '12px' }}>{customizationTier === 'corporate' ? 'Tüm Advanced özellikleri ve özel hesap yöneticisi.' : customizationTier === 'advanced' ? 'Derin marka eğitimi, custom grafikler ve markaya özel ses.' : 'Marka tanıma, ses kütüphanesi ve persona havuzu erişimi.'}</div>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button onClick={() => setTierModalOpen(true)} className="btn btn-outline" style={{ padding: '6px 14px', fontSize: '10px' }}>İÇERİĞİ GÖR</button>
-            {customizationTier !== 'corporate' && <button onClick={async () => {
-              setUpgradeModalOpen(true)
-              try {
-                const { data: { user } } = await supabase.auth.getUser()
-                await supabase.from('demo_requests').insert({ name: `[YÜKSELTME] ${companyName}`, company: companyName, email: user?.email || '', phone: '' })
-              } catch (err) { console.error('[tier-upgrade] request failed:', err) }
-            }} className="btn btn-outline" style={{ padding: '6px 14px', fontSize: '10px' }}>YÜKSELT</button>}
+            {nextTier && <button onClick={() => setUpgradeStep('confirm')} className="btn btn-outline" style={{ padding: '6px 14px', fontSize: '10px' }}>YÜKSELT</button>}
           </div>
         </div>
 
@@ -260,15 +258,41 @@ export default function BrandIdentityPage() {
 
       <PackageDetailModal isOpen={tierModalOpen} onClose={() => setTierModalOpen(false)} mode="tier" initialTab={customizationTier} />
 
-      {upgradeModalOpen && (
-        <div onClick={() => setUpgradeModalOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', padding: '32px', maxWidth: '400px', width: '90%' }}>
-            <div style={{ fontSize: '16px', fontWeight: '500', color: '#0a0a0a', marginBottom: '12px' }}>Yükseltme Talebiniz Alındı</div>
-            <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: 1.6, marginBottom: '24px' }}>Dinamo ekibi en kısa sürede sizinle iletişime geçecek. Genellikle 1 iş günü içinde dönüş yapıyoruz.</div>
-            <button onClick={() => setUpgradeModalOpen(false)} className="btn" style={{ width: '100%', padding: '10px' }}>TAMAM</button>
+      {upgradeStep === 'confirm' && nextTier && (
+        <div onClick={() => setUpgradeStep(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', padding: '32px', maxWidth: '440px', width: '90%' }}>
+            <div style={{ fontSize: '16px', fontWeight: '500', color: '#0a0a0a', marginBottom: '12px' }}>Paket Yükseltme</div>
+            <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: 1.7, marginBottom: '16px' }}>
+              <span style={{ fontWeight: '500', color: '#0a0a0a' }}>{tierLabels[customizationTier] || 'BASIC'}</span> paketinden <span style={{ fontWeight: '500', color: '#0a0a0a' }}>{tierLabels[nextTier]}</span> pakete geçmek üzeresiniz. Talebiniz Dinamo ekibine iletilecek ve sizinle iletişime geçeceğiz.
+            </div>
+            <div style={{ marginBottom: '24px' }}>
+              <span onClick={() => setUpgradeStep('content')} style={{ fontSize: '12px', color: 'var(--color-text-secondary)', textDecoration: 'underline', cursor: 'pointer' }}>Yeni paketin içeriğini görüntüle</span>
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button onClick={() => setUpgradeStep(null)} className="btn btn-outline" style={{ flex: 1, padding: '10px', fontSize: '11px' }}>İPTAL</button>
+              <button onClick={async () => {
+                try {
+                  const { data: { user } } = await supabase.auth.getUser()
+                  await supabase.from('demo_requests').insert({ name: `[YÜKSELTME → ${tierLabels[nextTier]}] ${companyName}`, company: companyName, email: user?.email || '', phone: '' })
+                } catch (err) { console.error('[tier-upgrade] request failed:', err) }
+                setUpgradeStep('success')
+              }} className="btn" style={{ flex: 1, padding: '10px', fontSize: '11px' }}>YÜKSELT</button>
+            </div>
           </div>
         </div>
       )}
+
+      {upgradeStep === 'success' && (
+        <div onClick={() => setUpgradeStep(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', padding: '32px', maxWidth: '400px', width: '90%' }}>
+            <div style={{ fontSize: '16px', fontWeight: '500', color: '#0a0a0a', marginBottom: '12px' }}>Yükseltme Talebiniz Alındı</div>
+            <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: 1.6, marginBottom: '24px' }}>Dinamo ekibi en kısa sürede sizinle iletişime geçecek. Genellikle 1 iş günü içinde dönüş yapıyoruz.</div>
+            <button onClick={() => setUpgradeStep(null)} className="btn" style={{ width: '100%', padding: '10px' }}>TAMAM</button>
+          </div>
+        </div>
+      )}
+
+      <PackageDetailModal isOpen={upgradeStep === 'content'} onClose={() => setUpgradeStep('confirm')} mode="tier" initialTab={nextTier || 'advanced'} />
 
       {msg && <div style={{ marginBottom: '16px', padding: '10px 14px', background: msg.includes('Hata') || msg.includes('hatası') ? 'rgba(239,68,68,0.08)' : 'rgba(34,197,94,0.08)', border: `1px solid ${msg.includes('Hata') || msg.includes('hatası') ? '#ef4444' : '#22c55e'}`, fontSize: '12px', color: '#0a0a0a' }}>{msg}</div>}
 
