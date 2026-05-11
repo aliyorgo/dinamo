@@ -114,7 +114,8 @@ export default function CreatorJobDetail() {
     setUploadProgress(100)
     const { data: urlData } = supabase.storage.from('videos').getPublicUrl(storagePath)
     const version = submissions.filter(s => s.status !== 'draft').length + 1
-    await supabase.from('video_submissions').insert({ brief_id: briefId, creator_id: cd.id, video_url: urlData.publicUrl, version, status: 'draft', format: brief?.format || null })
+    const { error: insErr } = await supabase.from('video_submissions').insert({ brief_id: briefId, creator_id: cd.id, video_url: urlData.publicUrl, version, status: 'draft', format: brief?.format || null })
+    if (insErr) { console.error('[upload] insert error:', insErr); setMsg('Yükleme hatası: ' + insErr.message); setUploading(false); return }
     setMsg('Video taslak olarak yüklendi. Gönder butonuyla admin\'e ilet.')
     if (fileRef.current) fileRef.current.value = ''
     setCreatorNote('')
