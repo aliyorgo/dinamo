@@ -63,7 +63,11 @@ function PackshotManager({ clientId }: { clientId: string }) {
               {url ? (
                 <>
                   <div style={{ width: '100%', aspectRatio: label.replace(':', '/'), background: '#f5f4f0', overflow: 'hidden', marginBottom: '6px' }}>
-                    <img src={url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    {/\.(mp4|mov|webm)$/i.test(url) ? (
+                      <video src={url + '#t=0.5'} muted playsInline preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <img src={url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    )}
                   </div>
                   <div style={{ fontSize: '10px', color: '#22c55e', marginBottom: '4px' }}>Yüklü</div>
                   <button onClick={() => handleDelete(aspect)} style={{ fontSize: '10px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>Sil</button>
