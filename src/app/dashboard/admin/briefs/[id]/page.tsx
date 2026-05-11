@@ -853,13 +853,12 @@ export default function AdminBriefDetail() {
               </div>
             )}
 
-            {/* 3.5) AI Persona (BETA) — Collapsed */}
+            {/* 3.5) AI Persona — Collapsed */}
             {brief.ugc_video_id && ugcVideo ? (
               <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '14px 18px', marginBottom: '16px', cursor: 'pointer' }} onClick={() => setPersonaOpen(!personaOpen)}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <div className="label-caps">AI Persona</div>
-                    <span style={{ fontSize: '9px', letterSpacing: '1px', padding: '2px 6px', background: 'rgba(245,158,11,0.1)', border: '1px solid #f59e0b', color: '#92400e' }}>BETA</span>
                     <Badge status={ugcVideo.status === 'sold' ? 'ai_sold' : ugcVideo.status === 'ready' ? 'ai_completed' : ugcVideo.status === 'generating' || ugcVideo.status === 'queued' ? 'ai_processing' : 'cancelled'} />
                   </div>
                   <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>{personaOpen ? 'KAPAT' : 'DETAY'}</span>
