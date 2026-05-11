@@ -600,7 +600,7 @@ export default function ClientDashboard() {
                             )}
                             <div>
                               <div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name}</div>
-                              <div style={{fontSize:'10px',color:'#888',marginTop:'2px'}}>CPS <span style={{color:'#8b5cf6',fontWeight:'600'}}>{k.mvc_order || '?'}</span> · {k.cps_hook || `Yön ${k.mvc_order || ''}`}</div>
+                              <div style={{fontSize:'10px',color:'#888',marginTop:'2px',textTransform:'uppercase',letterSpacing:'0.5px'}}>CPS <span style={{color:'#8b5cf6',fontWeight:'600'}}>{k.mvc_order || '?'}</span><span style={{margin:'0 8px',color:'#ccc'}}>|</span>{k.cps_hook || `Yön ${k.mvc_order || ''}`}</div>
                             </div>
                           </div>
                         )
