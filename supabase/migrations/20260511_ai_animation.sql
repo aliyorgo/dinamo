@@ -1,7 +1,5 @@
--- ══════════════════════════════════════════════════════════════════════════════
--- AI ANIMATION — DB MIGRATION
--- Çalıştır: Supabase SQL Editor'da manuel
--- ══════════════════════════════════════════════════════════════════════════════
+-- AI ANIMATION -- DB MIGRATION
+-- Calistir: Supabase SQL Editor'da manuel
 
 -- 1) animation_styles — 8 stil tanımı
 CREATE TABLE IF NOT EXISTS animation_styles (
