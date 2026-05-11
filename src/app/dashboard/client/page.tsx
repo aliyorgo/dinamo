@@ -608,9 +608,13 @@ export default function ClientDashboard() {
                 <div>
                   <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',marginBottom:'10px'}}>{(() => { const ec = allAiReady.filter(r => r.type === 'express').length; const uc = allAiReady.filter(r => r.type === 'ugc').length; return <>{ec > 0 && <span style={{color:'#4ade80'}}>AI EXPRESS · {ec}</span>}{ec > 0 && uc > 0 && <span style={{color:'#aaa',margin:'0 8px'}}>+</span>}{uc > 0 && <span style={{color:'#3b82f6'}}>AI PERSONA · {uc}</span>}</> })()}</div>
                   <div className="ai-grid" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'10px'}}>
-                    {allAiReady.map(({ type, parent, item, versionNum, versionPart }) => (
+                    {allAiReady.map(({ type, parent, item, versionNum, versionPart }) => {
+                      const thumbUrl = type === 'express' ? item.ai_video_url : item.final_url
+                      return (
                       <div key={item.id} onClick={() => router.push(type === 'express' ? `/dashboard/client/briefs/${parent.id}?tab=express&ai_child=${item.id}` : `/dashboard/client/briefs/${parent.id}?tab=ugc&video=${item.id}`)}
-                        style={{padding:'12px 14px',background:'#fff',borderLeft:`3px solid ${type === 'ugc' ? '#3b82f6' : '#4ade80'}`,border:'1px solid #e5e4db',cursor:'pointer',position:'relative'}}>
+                        style={{padding:'12px 14px',background:'#fff',borderLeft:`3px solid ${type === 'ugc' ? '#3b82f6' : '#4ade80'}`,border:'1px solid #e5e4db',cursor:'pointer',position:'relative',display:'flex',alignItems:'center',gap:'10px'}}>
+                        {thumbUrl && <div style={{width:'32px',height:'56px',overflow:'hidden',background:'#0a0a0a',flexShrink:0}}><video src={thumbUrl+'#t=0.5'} muted playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'cover'}} /></div>}
+                        <div style={{flex:1,minWidth:0}}>
                         <div className="dot" style={{position:'absolute',top:'8px',right:'8px',width:'8px',height:'8px',background:type === 'ugc' ? '#3b82f6' : '#4ade80'}} />
                         <div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>{parent.campaign_name}</div>
                         <div style={{fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'#888',marginTop:'3px'}}>
@@ -618,7 +622,9 @@ export default function ClientDashboard() {
                           {item.completed_at && <><span style={{margin:'0 8px',color:'#ccc'}}>|</span><span style={{color:'#aaa',textTransform:'none'}}>{formatDuration(item.created_at, item.completed_at)}</span></>}
                         </div>
                       </div>
-                    ))}
+                      </div>
+                      )
+                    })}
                   </div>
                 </div>
               )}
