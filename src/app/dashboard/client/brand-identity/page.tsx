@@ -341,7 +341,6 @@ export default function BrandIdentityPage() {
           <div style={{ fontSize: '11px', color: '#0a0a0a' }}>{files.length} dosya yüklendi</div>
         </div>
 
-        {/* LOGO BOYUTU */}
         {/* Logo boyutu admin marka studyosundan yonetilir */}
       </div>
 
@@ -494,7 +493,6 @@ export default function BrandIdentityPage() {
       <style>{`@media (max-width: 768px) { div[style*="grid-template-columns: 1fr 1fr"] { grid-template-columns: 1fr !important; } }`}</style>
 
       {/* Logo Size Modal kaldirildi — admin marka studyosundan yonetilir */}
-      )}
         </div>
       </div>
     </div>
