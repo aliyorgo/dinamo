@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { useRouter, useParams } from 'next/navigation'
 import CountUp from 'react-countup'
+import BrandOverlayStudio from '@/components/BrandOverlayStudio'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
@@ -1280,6 +1281,9 @@ export default function ClientDetailPage() {
 
             {/* ANİMASYON STİLLERİ ATAMA */}
             <BrandAnimationStylesAssignment clientId={clientId} />
+
+            {/* MARKA GORSEL KIMLIGI */}
+            <BrandOverlayStudio clientId={clientId} />
 
             {/* PACKSHOT'LAR */}
             <PackshotManager clientId={clientId} />
