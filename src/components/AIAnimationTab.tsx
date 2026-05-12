@@ -152,24 +152,13 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
 
   async function persistAnimVoiceovers(newVo: Record<string, string>, styleSlug?: string) {
     setStyleVoiceovers(newVo)
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session?.access_token) return
-    fetch(`/api/briefs/${briefId}/animation-voiceovers`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
-      body: JSON.stringify({ animation_voiceovers: newVo, last_animation_style: styleSlug || undefined })
-    })
+    const updates: any = { animation_voiceovers: newVo }
+    if (styleSlug) updates.last_animation_style = styleSlug
+    await supabase.from('briefs').update(updates).eq('id', briefId)
   }
 
   function persistStyleOnly(styleSlug: string) {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session?.access_token) return
-      fetch(`/api/briefs/${briefId}/animation-voiceovers`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
-        body: JSON.stringify({ last_animation_style: styleSlug })
-      })
-    })
+    supabase.from('briefs').update({ last_animation_style: styleSlug }).eq('id', briefId)
   }
 
   async function handleGenerateVoiceover() {
