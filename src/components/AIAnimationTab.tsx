@@ -30,6 +30,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
   const [styles, setStyles] = useState<any[]>([])
   const [hasMascot, setHasMascot] = useState(false)
   const [mascotIcons, setMascotIcons] = useState<Record<string, string | null>>({})
+  const [mascotName, setMascotName] = useState<string | null>(null)
 
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null)
   const [voiceoverText, setVoiceoverText] = useState('')
@@ -108,6 +109,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
     setStyles(stylesRes.styles || [])
     setHasMascot(stylesRes.hasMascot || false)
     setMascotIcons(stylesRes.mascotIcons || {})
+    setMascotName(stylesRes.mascotName || null)
     setAnimationVideos(videos || [])
     setFeedbacks(fb?.animation_feedbacks || [])
     if (fb?.animation_settings) setAnimSettings({ logo_enabled: true, cta_enabled: true, packshot_enabled: false, ...fb.animation_settings })
@@ -239,6 +241,11 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
   const selectedStyleInfo = styles.find(s => s.slug === selectedStyle)
   const wordCount = voiceoverText.trim().split(/\s+/).filter(Boolean).length
   const getStyleIcon = (s: any) => mascotIcons[s.slug] || s.icon_path
+  const getStyleLabel = (s: any) => {
+    if (s.slug === 'mascot_only') return mascotName || 'MASKOT'
+    if (s.slug === 'mascot_hybrid') return (mascotName || 'MASKOT') + ' + REEL'
+    return s.label
+  }
 
   return (
     <div>
@@ -302,7 +309,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
         {animationVideos.map((video, idx) => {
           const hasVideo = !!video.final_url; const isPurchased = video.status === 'sold'; const isFailed = video.status === 'failed'
           const isProcessing = video.status === 'queued' || video.status === 'generating'
-          const styleLabel = video.animation_styles?.label || video.style_slug
+          const styleLabel = video.animation_styles ? getStyleLabel(video.animation_styles) : video.style_slug
           const vLabel = `V${video.version || idx + 1}`
           const lastFb = feedbacks.find((f: any) => f.video_version === vLabel)
           const stageIdx = timerStageMap[video.id] || 0; const stage = STAGES[stageIdx]
@@ -399,8 +406,8 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
               {/* Left: style image — Persona pattern (210px, full height) */}
               <div style={{ width: '210px', flexShrink: 0 }}>
                 <div style={{ position: 'relative', width: '210px', height: '210px', background: '#f5f4f0', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {getStyleIcon(selectedStyleInfo) ? <img src={getStyleIcon(selectedStyleInfo)} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} /> : <span style={{ fontSize: '52px', color: '#ccc' }}>{selectedStyleInfo.label?.[0]}</span>}
-                  <span style={{ position: 'absolute', top: 0, left: 0, fontSize: '11px', fontWeight: '700', color: '#0a0a0a', background: 'rgba(255,255,255,0.95)', padding: '5px 11px' }}>{selectedStyleInfo.label}</span>
+                  {getStyleIcon(selectedStyleInfo) ? <img src={getStyleIcon(selectedStyleInfo)} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} /> : <span style={{ fontSize: '52px', color: '#ccc' }}>{getStyleLabel(selectedStyleInfo)?.[0]}</span>}
+                  <span style={{ position: 'absolute', top: 0, left: 0, fontSize: '11px', fontWeight: '700', color: '#0a0a0a', background: 'rgba(255,255,255,0.95)', padding: '5px 11px' }}>{getStyleLabel(selectedStyleInfo)}</span>
                   {selectedStyleInfo.description_tr && (
                     <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.5), rgba(0,0,0,0))', padding: '24px 12px 10px' }}>
                       <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.85)', letterSpacing: '0.01em', lineHeight: 1.4 }}>{selectedStyleInfo.description_tr}</div>
@@ -456,25 +463,25 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
               </div>
               <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', overflowX: 'auto', overflowY: 'visible', padding: '10px 0 10px 24px' }}>
                 {showMascotSection && mascotStyles.map(style => (
-                  <div key={style.slug} title={style.label}
+                  <div key={style.slug} title={getStyleLabel(style)}
                     onClick={() => styleClick(style.slug)}
                     style={{ flexShrink: 0, cursor: 'pointer', opacity: selectedStyle === style.slug ? 1 : 0.6, transition: 'all 0.15s' }}
-                    onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.15)'; setHoveredStyle(style.label) }}
+                    onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.15)'; setHoveredStyle(getStyleLabel(style)) }}
                     onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; setHoveredStyle(null) }}>
                     <div className="dot" style={{ width: '52px', height: '52px', background: '#f5f4f0', display: 'flex', alignItems: 'center', justifyContent: 'center', border: selectedStyle === style.slug ? '2px solid #8b5cf6' : '1px solid #e5e4db', overflow: 'hidden', transition: 'border-color 0.15s' }}>
-                      {getStyleIcon(style) ? <img src={getStyleIcon(style)} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} /> : <span style={{ fontSize: '18px', color: '#888' }}>{style.label?.[0]}</span>}
+                      {getStyleIcon(style) ? <img src={getStyleIcon(style)} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} /> : <span style={{ fontSize: '18px', color: '#888' }}>{getStyleLabel(style)?.[0]}</span>}
                     </div>
                   </div>
                 ))}
                 {showMascotSection && <div style={{ width: '0', height: '52px', borderLeft: '1px solid #e5e4db', flexShrink: 0, marginLeft: '18px', marginRight: '18px' }} />}
                 {regularStyles.length > 0 ? regularStyles.map(style => (
-                  <div key={style.slug} title={style.label}
+                  <div key={style.slug} title={getStyleLabel(style)}
                     onClick={() => styleClick(style.slug)}
                     style={{ flexShrink: 0, cursor: 'pointer', opacity: selectedStyle === style.slug ? 1 : 0.6, transition: 'all 0.15s' }}
-                    onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.15)'; setHoveredStyle(style.label) }}
+                    onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.15)'; setHoveredStyle(getStyleLabel(style)) }}
                     onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; setHoveredStyle(null) }}>
                     <div className="dot" style={{ width: '52px', height: '52px', background: '#f5f4f0', display: 'flex', alignItems: 'center', justifyContent: 'center', border: selectedStyle === style.slug ? '2px solid #8b5cf6' : '1px solid #e5e4db', overflow: 'hidden', transition: 'border-color 0.15s' }}>
-                      {getStyleIcon(style) ? <img src={getStyleIcon(style)} className="dot" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} /> : <span style={{ fontSize: '14px', color: '#888' }}>{style.label?.[0]}</span>}
+                      {getStyleIcon(style) ? <img src={getStyleIcon(style)} className="dot" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} /> : <span style={{ fontSize: '14px', color: '#888' }}>{getStyleLabel(style)?.[0]}</span>}
                     </div>
                   </div>
                 )) : (
