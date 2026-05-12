@@ -11,7 +11,7 @@ const POSITIONS = ['top-left','top-center','top-right','middle-left','middle-cen
 const REVEALS = ['none','fade','slide-up','slide-down','slide-left','slide-right','scale-in','blur-in'] as const
 
 const DEFAULT_LOGO = { size_percent: 50, position: 'middle-center', margin_x: 0, margin_y: 0, opacity: 85, shadow_enabled: false, shadow_softness: 8, reveal_effect: 'none', reveal_duration_ms: 0, show_from_end_s: 2.0 }
-const DEFAULT_CTA = { font: 'default', font_size_percent: 6, color: '#ffffff', bg_mode: 'transparent', bg_color: '#000000', bg_opacity: 50, position: 'custom', margin_x: 15, margin_y: 65, padding_x: 0, padding_y: 0, border_radius: 0, shadow_enabled: true, shadow_softness: 4, reveal_effect: 'none', reveal_duration_ms: 0, show_from_end_s: 2.5 }
+const DEFAULT_CTA = { font: 'default', font_size_percent: 6, color: '#ffffff', bg_mode: 'transparent', bg_color: '#000000', bg_opacity: 50, position: 'custom', margin_x: 15, margin_y: 65, padding_x: 0, padding_y: 0, border_radius: 0, shadow_enabled: true, shadow_softness: 4, reveal_effect: 'none', reveal_duration_ms: 0, show_from_s: 5, hide_at_s: 15, show_until_end: false }
 
 function getSettings(allSettings: any, feature: string, aspect: string) {
   return {
@@ -192,7 +192,8 @@ export default function BrandOverlayStudio({ clientId }: { clientId: string }) {
                         </select>
                       </div>
                       {current.logo.reveal_effect !== 'none' && <NumInput label="Reveal suresi" value={current.logo.reveal_duration_ms} onChange={v => updateField('logo', 'reveal_duration_ms', v)} max={2000} step={100} suffix="ms" />}
-                      <NumInput label="Son N saniye" value={current.logo.show_from_end_s} onChange={v => updateField('logo', 'show_from_end_s', v)} min={0.5} max={10} step={0.1} suffix="s" />
+                      <NumInput label="Sondan kac saniye once belirir" value={current.logo.show_from_end_s} onChange={v => updateField('logo', 'show_from_end_s', v)} min={0.5} max={10} step={0.1} suffix="s" />
+                      <div style={{ fontSize: '10px', color: '#aaa', marginTop: '-4px' }}>Logo belirdikten sonra video sonuna kadar gorunur</div>
                     </div>
                   )}
 
@@ -254,7 +255,13 @@ export default function BrandOverlayStudio({ clientId }: { clientId: string }) {
                       </select>
                     </div>
                     {current.cta.reveal_effect !== 'none' && <NumInput label="Reveal suresi" value={current.cta.reveal_duration_ms} onChange={v => updateField('cta', 'reveal_duration_ms', v)} max={2000} step={100} suffix="ms" />}
-                    <NumInput label="Son N saniye" value={current.cta.show_from_end_s} onChange={v => updateField('cta', 'show_from_end_s', v)} min={0.5} max={10} step={0.1} suffix="s" />
+                    <NumInput label="Kacinci saniyede belirir" value={current.cta.show_from_s || 5} onChange={v => updateField('cta', 'show_from_s', v)} min={0} max={30} step={0.1} suffix="s" />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+                      <input type="checkbox" checked={current.cta.show_until_end || false} onChange={e => updateField('cta', 'show_until_end', e.target.checked)} />
+                      <span style={{ fontSize: '11px', color: '#555' }}>Video sonuna kadar gorunsun</span>
+                    </div>
+                    {!current.cta.show_until_end && <NumInput label="Kacinci saniyede kaybolur" value={current.cta.hide_at_s || 15} onChange={v => updateField('cta', 'hide_at_s', v)} min={0} max={30} step={0.1} suffix="s" />}
+                    <div style={{ fontSize: '10px', color: '#aaa', marginTop: '4px' }}>{current.cta.show_until_end ? `CTA ${current.cta.show_from_s || 5}. saniyede belirir ve video sonuna kadar gorunur` : `CTA ${current.cta.show_from_s || 5}. saniyede belirir, ${current.cta.hide_at_s || 15}. saniyede kaybolur`}</div>
                   </div>
                 </div>
 
