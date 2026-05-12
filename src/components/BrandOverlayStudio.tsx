@@ -53,7 +53,7 @@ function NumInput({ label, value, onChange, min = 0, max = 100, step = 1, suffix
 }
 
 // ── LIVE PREVIEW ────────────────────────────────────────────────────────────
-function LivePreview({ logoSettings, ctaSettings, aspect, previewUrl, logoUrl, isPersona }: { logoSettings: any; ctaSettings: any; aspect: string; previewUrl: string; logoUrl: string; isPersona: boolean }) {
+function LivePreview({ logoSettings, ctaSettings, aspect, previewUrl, logoUrl, isPersona, hasBrandFont }: { logoSettings: any; ctaSettings: any; aspect: string; previewUrl: string; logoUrl: string; isPersona: boolean; hasBrandFont: boolean }) {
   const aspectRatio = aspect.replace(':', '/')
   const containerRef = useRef<HTMLDivElement>(null)
   const [dims, setDims] = useState({ w: 200, h: 356 })
@@ -80,7 +80,7 @@ function LivePreview({ logoSettings, ctaSettings, aspect, previewUrl, logoUrl, i
   const ctaPadY = Math.round(dims.h * ((ctaSettings.padding_y_percent ?? ctaSettings.padding_y ?? 0) / 100))
   const ctaCSS: React.CSSProperties = {
     position: 'absolute', ...positionToCSS(ctaSettings.position, ctaSettings.margin_x_percent ?? ctaSettings.margin_x ?? 15, ctaSettings.margin_y_percent ?? ctaSettings.margin_y ?? 65),
-    fontSize: `${ctaFontPx}px`, color: ctaSettings.color, fontWeight: 'bold', pointerEvents: 'none', lineHeight: 1.2, maxWidth: '80%',
+    fontSize: `${ctaFontPx}px`, fontFamily: (ctaSettings.font === 'brand' && hasBrandFont) ? "'BrandFont', Arial, sans-serif" : "'Inter', Arial, sans-serif", color: ctaSettings.color, fontWeight: 'bold', pointerEvents: 'none', lineHeight: 1.2, maxWidth: '80%',
     ...(ctaSettings.bg_mode === 'solid' ? { background: ctaSettings.bg_color, padding: `${ctaPadY}px ${ctaPadX}px`, borderRadius: `${ctaSettings.border_radius}px`, opacity: ctaSettings.bg_opacity / 100 } : {}),
     ...(ctaSettings.shadow_enabled ? { textShadow: `0 2px ${ctaSettings.shadow_softness}px rgba(0,0,0,0.6)` } : {}),
   }
@@ -109,16 +109,30 @@ export default function BrandOverlayStudio({ clientId }: { clientId: string }) {
   const [saving, setSaving] = useState(false)
   const [previewUrl, setPreviewUrl] = useState('')
   const [logoUrl, setLogoUrl] = useState('')
+  const [brandFontUrl, setBrandFontUrl] = useState('')
   const [uploading, setUploading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    supabase.from('clients').select('brand_overlay_settings, brand_overlay_preview_url, brand_logo_url').eq('id', clientId).single().then(({ data }) => {
+    supabase.from('clients').select('brand_overlay_settings, brand_overlay_preview_url, brand_logo_url, brand_font_url').eq('id', clientId).single().then(({ data }) => {
       if (data?.brand_overlay_settings) setAllSettings(data.brand_overlay_settings)
       if (data?.brand_overlay_preview_url) setPreviewUrl(data.brand_overlay_preview_url)
       if (data?.brand_logo_url) setLogoUrl(data.brand_logo_url)
+      if (data?.brand_font_url) setBrandFontUrl(data.brand_font_url)
     })
   }, [clientId])
+
+  // Brand font @font-face injection
+  useEffect(() => {
+    if (!brandFontUrl) return
+    const id = 'brand-overlay-font'
+    if (document.getElementById(id)) return
+    const style = document.createElement('style')
+    style.id = id
+    style.textContent = `@font-face { font-family: 'BrandFont'; src: url('${brandFontUrl}'); font-display: swap; }`
+    document.head.appendChild(style)
+    return () => { document.getElementById(id)?.remove() }
+  }, [brandFontUrl])
 
   const current = getSettings(allSettings, activeFeature, activeAspect)
   const isPersona = activeFeature === 'persona'
@@ -225,6 +239,7 @@ export default function BrandOverlayStudio({ clientId }: { clientId: string }) {
                     <div style={{ marginBottom: '6px' }}>
                       <div style={{ fontSize: '10px', color: '#888', marginBottom: '2px' }}>Font</div>
                       <select value={current.cta.font} onChange={e => updateField('cta', 'font', e.target.value)} style={{ width: '100%', padding: '3px 6px', border: '1px solid #e5e4db', fontSize: '10px' }}><option value="default">Default (Arial)</option><option value="brand">Marka fontu</option></select>
+                      {current.cta.font === 'brand' && !brandFontUrl && <div style={{ fontSize: '9px', color: '#ef4444', marginTop: '2px' }}>Marka fontu yuklenmemis</div>}
                     </div>
                     <NumInput label="Font boyutu" value={current.cta.font_size_percent} onChange={v => updateField('cta', 'font_size_percent', v)} min={2} max={15} step={0.5} suffix="%" />
                     <div style={{ marginBottom: '6px' }}><div style={{ fontSize: '10px', color: '#888', marginBottom: '2px' }}>Renk</div><input type="color" value={current.cta.color} onChange={e => updateField('cta', 'color', e.target.value)} style={{ width: '36px', height: '24px', border: '1px solid #e5e4db', cursor: 'pointer' }} /></div>
@@ -254,7 +269,7 @@ export default function BrandOverlayStudio({ clientId }: { clientId: string }) {
               {/* RIGHT: Live Preview */}
               <div style={{ width: '240px', padding: '16px', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
                 <div style={{ fontSize: '10px', color: '#888', textTransform: 'uppercase', letterSpacing: '1px' }}>Onizleme</div>
-                <LivePreview logoSettings={current.logo} ctaSettings={current.cta} aspect={activeAspect} previewUrl={previewUrl} logoUrl={logoUrl} isPersona={isPersona} />
+                <LivePreview logoSettings={current.logo} ctaSettings={current.cta} aspect={activeAspect} previewUrl={previewUrl} logoUrl={logoUrl} isPersona={isPersona} hasBrandFont={!!brandFontUrl} />
                 <div style={{ width: '100%' }}>
                   <button onClick={() => fileRef.current?.click()} disabled={uploading} style={{ width: '100%', padding: '5px', background: '#fff', border: '1px solid #e5e4db', fontSize: '9px', cursor: 'pointer', color: '#555' }}>{uploading ? 'Yukleniyor...' : previewUrl ? 'Video degistir' : 'Preview video yukle'}</button>
                   <input ref={fileRef} type="file" accept="video/*" style={{ display: 'none' }} onChange={handlePreviewUpload} />
