@@ -56,6 +56,19 @@ function NumInput({ label, value, onChange, min = 0, max = 100, step = 1, suffix
 function LivePreview({ logoSettings, ctaSettings, aspect, previewUrl, logoUrl, isPersona }: { logoSettings: any; ctaSettings: any; aspect: string; previewUrl: string; logoUrl: string; isPersona: boolean }) {
   const aspectRatio = aspect.replace(':', '/')
   const containerRef = useRef<HTMLDivElement>(null)
+  const [dims, setDims] = useState({ w: 200, h: 356 })
+
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const measure = () => setDims({ w: el.offsetWidth, h: el.offsetHeight })
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [aspect])
+
+  const ctaFontPx = Math.round(dims.h * (ctaSettings.font_size_percent / 100))
 
   const logoCSS: React.CSSProperties = {
     position: 'absolute', ...positionToCSS(logoSettings.position, logoSettings.margin_x, logoSettings.margin_y),
@@ -65,7 +78,7 @@ function LivePreview({ logoSettings, ctaSettings, aspect, previewUrl, logoUrl, i
 
   const ctaCSS: React.CSSProperties = {
     position: 'absolute', ...positionToCSS(ctaSettings.position, ctaSettings.margin_x, ctaSettings.margin_y),
-    fontSize: `${ctaSettings.font_size_percent}%`, color: ctaSettings.color, fontWeight: 'bold', pointerEvents: 'none',
+    fontSize: `${ctaFontPx}px`, color: ctaSettings.color, fontWeight: 'bold', pointerEvents: 'none', lineHeight: 1.2, maxWidth: '80%',
     ...(ctaSettings.bg_mode === 'solid' ? { background: ctaSettings.bg_color, padding: `${ctaSettings.padding_y}px ${ctaSettings.padding_x}px`, borderRadius: `${ctaSettings.border_radius}px`, opacity: ctaSettings.bg_opacity / 100 } : {}),
     ...(ctaSettings.shadow_enabled ? { textShadow: `0 2px ${ctaSettings.shadow_softness}px rgba(0,0,0,0.6)` } : {}),
   }
@@ -79,9 +92,7 @@ function LivePreview({ logoSettings, ctaSettings, aspect, previewUrl, logoUrl, i
           <span style={{ fontSize: '10px', color: '#555' }}>Video yukleyin</span>
         </div>
       )}
-      {/* Logo overlay */}
       {!isPersona && logoUrl && <img src={logoUrl} style={logoCSS} />}
-      {/* CTA overlay */}
       <div style={ctaCSS}>Ornek CTA</div>
     </div>
   )
