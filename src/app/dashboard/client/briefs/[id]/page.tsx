@@ -1242,7 +1242,7 @@ function ClientBriefDetail() {
                 </button>
                 </div>
                 <div style={{display:'flex',alignItems:'center',gap:'6px',marginLeft:'8px'}} title="720p daha keskin, üretim biraz daha uzun sürer">
-                  <span style={{fontSize:'10px',color:'#888'}}>720p</span>
+                  <span style={{fontSize:'10px',color:'#888'}}>HQ</span>
                   <button onClick={()=>setExpressHQ(!expressHQ)} style={{width:'36px',height:'20px',border:'none',cursor:'pointer',background:expressHQ?'#22c55e':'#ddd',position:'relative',transition:'background 0.2s',flexShrink:0}}>
                     <span className="dot" style={{position:'absolute',top:'2px',left:expressHQ?'18px':'2px',width:'16px',height:'16px',background:'#fff',transition:'left 0.2s'}} />
                   </button>
