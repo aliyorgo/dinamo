@@ -13,20 +13,16 @@ const REVEALS = ['none','fade','slide-up','slide-down','slide-left','slide-right
 const DEFAULT_LOGO = { size_percent: 50, position: 'middle-center', margin_x: 0, margin_y: 0, opacity: 85, shadow_enabled: false, shadow_softness: 8, reveal_effect: 'none', reveal_duration_ms: 0, show_from_end_s: 2.0 }
 const DEFAULT_CTA = { font: 'default', font_size_percent: 6, color: '#ffffff', bg_mode: 'transparent', bg_color: '#000000', bg_opacity: 50, position: 'custom', margin_x: 15, margin_y: 65, padding_x: 0, padding_y: 0, border_radius: 0, shadow_enabled: true, shadow_softness: 4, reveal_effect: 'none', reveal_duration_ms: 0, show_from_s: 5, hide_at_s: 15, show_until_end: false }
 
-function getSettings(allSettings: any, feature: string, aspect: string) {
-  return {
-    logo: { ...DEFAULT_LOGO, ...(allSettings?.[feature]?.[aspect]?.logo || {}) },
-    cta: { ...DEFAULT_CTA, ...(allSettings?.[feature]?.[aspect]?.cta || {}) },
-  }
+function getSettings(s: any, f: string, a: string) {
+  return { logo: { ...DEFAULT_LOGO, ...(s?.[f]?.[a]?.logo || {}) }, cta: { ...DEFAULT_CTA, ...(s?.[f]?.[a]?.cta || {}) } }
 }
 
-// ── 9-Grid Position Picker ──────────────────────────────────────────────────
+// ── Position helpers ────────────────────────────────────────────────────────
 function PositionGrid({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '3px', width: '84px' }}>
       {POSITIONS.map(pos => (
-        <div key={pos} onClick={() => onChange(pos)}
-          style={{ width: '26px', height: '26px', border: value === pos ? '2px solid #8b5cf6' : '1px solid #ccc', background: value === pos ? 'rgba(139,92,246,0.1)' : '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div key={pos} onClick={() => onChange(pos)} style={{ width: '26px', height: '26px', border: value === pos ? '2px solid #8b5cf6' : '1px solid #ccc', background: value === pos ? 'rgba(139,92,246,0.1)' : '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ width: '6px', height: '6px', background: value === pos ? '#8b5cf6' : '#ccc' }} />
         </div>
       ))}
@@ -34,11 +30,20 @@ function PositionGrid({ value, onChange }: { value: string; onChange: (v: string
   )
 }
 
-// ── Number Input ────────────────────────────────────────────────────────────
+function positionToCSS(pos: string, mx: number, my: number): React.CSSProperties {
+  if (pos === 'custom') return { left: `${mx}%`, top: `${my}%` }
+  const p: Record<string, React.CSSProperties> = {
+    'top-left': { top: `${my}px`, left: `${mx}px` }, 'top-center': { top: `${my}px`, left: '50%', transform: 'translateX(-50%)' }, 'top-right': { top: `${my}px`, right: `${mx}px` },
+    'middle-left': { top: '50%', left: `${mx}px`, transform: 'translateY(-50%)' }, 'middle-center': { top: '50%', left: '50%', transform: 'translate(-50%,-50%)' }, 'middle-right': { top: '50%', right: `${mx}px`, transform: 'translateY(-50%)' },
+    'bottom-left': { bottom: `${my}px`, left: `${mx}px` }, 'bottom-center': { bottom: `${my}px`, left: '50%', transform: 'translateX(-50%)' }, 'bottom-right': { bottom: `${my}px`, right: `${mx}px` },
+  }
+  return p[pos] || p['middle-center']
+}
+
 function NumInput({ label, value, onChange, min = 0, max = 100, step = 1, suffix = '' }: { label: string; value: number; onChange: (v: number) => void; min?: number; max?: number; step?: number; suffix?: string }) {
   return (
     <div style={{ marginBottom: '8px' }}>
-      <div style={{ fontSize: '10px', color: '#888', marginBottom: '2px' }}>{label}</div>
+      {label && <div style={{ fontSize: '10px', color: '#888', marginBottom: '2px' }}>{label}</div>}
       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
         <input type="number" value={value} onChange={e => onChange(Math.min(max, Math.max(min, parseFloat(e.target.value) || 0)))} min={min} max={max} step={step} style={{ width: '70px', padding: '4px 6px', border: '1px solid #e5e4db', fontSize: '12px', boxSizing: 'border-box' }} />
         {suffix && <span style={{ fontSize: '10px', color: '#aaa' }}>{suffix}</span>}
@@ -47,7 +52,42 @@ function NumInput({ label, value, onChange, min = 0, max = 100, step = 1, suffix
   )
 }
 
-// ── MAIN COMPONENT ──────────────────────────────────────────────────────────
+// ── LIVE PREVIEW ────────────────────────────────────────────────────────────
+function LivePreview({ logoSettings, ctaSettings, aspect, previewUrl, logoUrl, isPersona }: { logoSettings: any; ctaSettings: any; aspect: string; previewUrl: string; logoUrl: string; isPersona: boolean }) {
+  const aspectRatio = aspect.replace(':', '/')
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  const logoCSS: React.CSSProperties = {
+    position: 'absolute', ...positionToCSS(logoSettings.position, logoSettings.margin_x, logoSettings.margin_y),
+    width: `${logoSettings.size_percent}%`, opacity: logoSettings.opacity / 100, pointerEvents: 'none',
+    ...(logoSettings.shadow_enabled ? { filter: `drop-shadow(0 2px ${logoSettings.shadow_softness}px rgba(0,0,0,0.5))` } : {}),
+  }
+
+  const ctaCSS: React.CSSProperties = {
+    position: 'absolute', ...positionToCSS(ctaSettings.position, ctaSettings.margin_x, ctaSettings.margin_y),
+    fontSize: `${ctaSettings.font_size_percent}%`, color: ctaSettings.color, fontWeight: 'bold', pointerEvents: 'none',
+    ...(ctaSettings.bg_mode === 'solid' ? { background: ctaSettings.bg_color, padding: `${ctaSettings.padding_y}px ${ctaSettings.padding_x}px`, borderRadius: `${ctaSettings.border_radius}px`, opacity: ctaSettings.bg_opacity / 100 } : {}),
+    ...(ctaSettings.shadow_enabled ? { textShadow: `0 2px ${ctaSettings.shadow_softness}px rgba(0,0,0,0.6)` } : {}),
+  }
+
+  return (
+    <div ref={containerRef} style={{ width: '100%', maxWidth: '200px', aspectRatio, background: '#0a0a0a', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
+      {previewUrl ? (
+        <video src={previewUrl} muted loop playsInline autoPlay style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+      ) : (
+        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1a1a1a' }}>
+          <span style={{ fontSize: '10px', color: '#555' }}>Video yukleyin</span>
+        </div>
+      )}
+      {/* Logo overlay */}
+      {!isPersona && logoUrl && <img src={logoUrl} style={logoCSS} />}
+      {/* CTA overlay */}
+      <div style={ctaCSS}>Ornek CTA</div>
+    </div>
+  )
+}
+
+// ── MAIN ────────────────────────────────────────────────────────────────────
 export default function BrandOverlayStudio({ clientId }: { clientId: string }) {
   const [modalOpen, setModalOpen] = useState(false)
   const [allSettings, setAllSettings] = useState<any>({})
@@ -55,13 +95,15 @@ export default function BrandOverlayStudio({ clientId }: { clientId: string }) {
   const [activeAspect, setActiveAspect] = useState<string>('9:16')
   const [saving, setSaving] = useState(false)
   const [previewUrl, setPreviewUrl] = useState('')
+  const [logoUrl, setLogoUrl] = useState('')
   const [uploading, setUploading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    supabase.from('clients').select('brand_overlay_settings, brand_overlay_preview_url').eq('id', clientId).single().then(({ data }) => {
+    supabase.from('clients').select('brand_overlay_settings, brand_overlay_preview_url, brand_logo_url').eq('id', clientId).single().then(({ data }) => {
       if (data?.brand_overlay_settings) setAllSettings(data.brand_overlay_settings)
       if (data?.brand_overlay_preview_url) setPreviewUrl(data.brand_overlay_preview_url)
+      if (data?.brand_logo_url) setLogoUrl(data.brand_logo_url)
     })
   }, [clientId])
 
@@ -80,8 +122,8 @@ export default function BrandOverlayStudio({ clientId }: { clientId: string }) {
     })
   }
 
-  function importFromAspect(sourceAspect: string) {
-    const source = getSettings(allSettings, activeFeature, sourceAspect)
+  function importFromAspect(src: string) {
+    const source = getSettings(allSettings, activeFeature, src)
     setAllSettings((prev: any) => {
       const next = JSON.parse(JSON.stringify(prev || {}))
       if (!next[activeFeature]) next[activeFeature] = {}
@@ -90,182 +132,121 @@ export default function BrandOverlayStudio({ clientId }: { clientId: string }) {
     })
   }
 
-  async function handleSave() {
-    setSaving(true)
-    await fetch(`/api/admin/clients/${clientId}/overlay-settings`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brand_overlay_settings: allSettings }) })
-    setSaving(false); setModalOpen(false)
-  }
+  async function handleSave() { setSaving(true); await fetch(`/api/admin/clients/${clientId}/overlay-settings`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brand_overlay_settings: allSettings }) }); setSaving(false); setModalOpen(false) }
 
   async function handlePreviewUpload() {
-    const file = fileRef.current?.files?.[0]; if (!file) return
-    setUploading(true)
+    const file = fileRef.current?.files?.[0]; if (!file) return; setUploading(true)
     const fd = new FormData(); fd.append('file', file)
     const res = await fetch(`/api/admin/clients/${clientId}/overlay-preview-upload`, { method: 'POST', body: fd })
-    const data = await res.json()
-    if (data.preview_url) setPreviewUrl(data.preview_url)
-    setUploading(false)
+    const data = await res.json(); if (data.preview_url) setPreviewUrl(data.preview_url); setUploading(false)
   }
 
-  // ── CARD ────────────────────────────────────────────────────────────────────
   return (
     <>
       <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '20px', marginBottom: '16px' }}>
         <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: '500', marginBottom: '6px' }}>MARKA GORSEL KIMLIGI</div>
-        <div style={{ fontSize: '11px', color: '#aaa', marginBottom: '14px' }}>Logo + CTA ayarlarini her ozellik ve aspect icin yonet</div>
+        <div style={{ fontSize: '11px', color: '#aaa', marginBottom: '14px' }}>Logo + CTA overlay ayarlari (Express, Animation, Persona, Static Image)</div>
         <button onClick={() => setModalOpen(true)} style={{ padding: '7px 16px', background: '#0a0a0a', color: '#fff', border: 'none', fontSize: '11px', cursor: 'pointer' }}>Duzenle</button>
       </div>
 
-      {/* ── MODAL ──────────────────────────────────────────────────────────── */}
       {modalOpen && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: '#fff', width: '95vw', maxWidth: '1100px', height: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ background: '#fff', width: '95vw', maxWidth: '1200px', height: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             {/* HEADER */}
-            <div style={{ padding: '16px 24px', borderBottom: '1px solid #e5e4db', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
-              <div style={{ fontSize: '16px', fontWeight: '600' }}>Marka Gorsel Kimligi</div>
+            <div style={{ padding: '14px 24px', borderBottom: '1px solid #e5e4db', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+              <div style={{ fontSize: '15px', fontWeight: '600' }}>Marka Gorsel Kimligi</div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button onClick={handleSave} disabled={saving} style={{ padding: '6px 16px', background: '#0a0a0a', color: '#fff', border: 'none', fontSize: '11px', cursor: 'pointer' }}>{saving ? 'Kaydediliyor...' : 'Kaydet'}</button>
                 <button onClick={() => setModalOpen(false)} style={{ width: '32px', height: '32px', border: '1px solid #e5e4db', background: '#fff', cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>x</button>
               </div>
             </div>
 
-            {/* BODY */}
+            {/* BODY: tabs | settings | preview */}
             <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
               {/* LEFT: Feature tabs */}
-              <div style={{ width: '140px', borderRight: '1px solid #e5e4db', padding: '12px 0', flexShrink: 0, overflowY: 'auto' }}>
+              <div style={{ width: '120px', borderRight: '1px solid #e5e4db', padding: '12px 0', flexShrink: 0 }}>
                 {FEATURES.map(f => (
                   <div key={f} onClick={() => { setActiveFeature(f); if (f === 'persona') setActiveAspect('9:16') }}
-                    style={{ padding: '10px 16px', fontSize: '12px', fontWeight: activeFeature === f ? '600' : '400', color: activeFeature === f ? '#0a0a0a' : '#888', background: activeFeature === f ? '#f5f4f0' : 'transparent', cursor: 'pointer', borderLeft: activeFeature === f ? '3px solid #8b5cf6' : '3px solid transparent' }}>
+                    style={{ padding: '10px 14px', fontSize: '11px', fontWeight: activeFeature === f ? '600' : '400', color: activeFeature === f ? '#0a0a0a' : '#888', background: activeFeature === f ? '#f5f4f0' : 'transparent', cursor: 'pointer', borderLeft: activeFeature === f ? '3px solid #8b5cf6' : '3px solid transparent' }}>
                     {FEATURE_LABELS[f]}
                   </div>
                 ))}
-                <div style={{ borderTop: '1px solid #e5e4db', margin: '12px 16px', paddingTop: '12px' }}>
-                  <div style={{ fontSize: '10px', color: '#888', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '1px' }}>Preview</div>
-                  <div style={{ width: '100%', aspectRatio: '9/16', background: '#0a0a0a', overflow: 'hidden', marginBottom: '6px', cursor: 'pointer', position: 'relative' }} onClick={() => fileRef.current?.click()}>
-                    {previewUrl ? <video src={previewUrl} muted loop playsInline autoPlay style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', color: '#333' }}>+</div>}
-                  </div>
-                  <button onClick={() => fileRef.current?.click()} disabled={uploading} style={{ width: '100%', padding: '4px', background: '#fff', border: '1px solid #e5e4db', fontSize: '9px', cursor: 'pointer', color: '#555' }}>{uploading ? 'Yukleniyor...' : previewUrl ? 'Degistir' : 'Video Yukle'}</button>
-                  <input ref={fileRef} type="file" accept="video/*" style={{ display: 'none' }} onChange={handlePreviewUpload} />
-                </div>
               </div>
 
-              {/* RIGHT: Settings panel */}
-              <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px' }}>
+              {/* CENTER: Settings */}
+              <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px', borderRight: '1px solid #e5e4db' }}>
                 {/* Aspect selector */}
-                <div style={{ display: 'flex', gap: '6px', marginBottom: '16px', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '4px', marginBottom: '14px', flexWrap: 'wrap', alignItems: 'center' }}>
                   {(availableAspects as readonly string[]).map(a => (
-                    <button key={a} onClick={() => setActiveAspect(a)}
-                      style={{ padding: '5px 12px', border: activeAspect === a ? '2px solid #8b5cf6' : '1px solid #e5e4db', background: activeAspect === a ? 'rgba(139,92,246,0.05)' : '#fff', fontSize: '11px', fontWeight: activeAspect === a ? '600' : '400', cursor: 'pointer' }}>{a}</button>
+                    <button key={a} onClick={() => setActiveAspect(a)} style={{ padding: '4px 10px', border: activeAspect === a ? '2px solid #8b5cf6' : '1px solid #e5e4db', background: activeAspect === a ? 'rgba(139,92,246,0.05)' : '#fff', fontSize: '10px', fontWeight: activeAspect === a ? '600' : '400', cursor: 'pointer' }}>{a}</button>
                   ))}
-                  {!isPersona && activeAspect !== '9:16' && (
-                    <button onClick={() => importFromAspect('9:16')} style={{ padding: '5px 12px', border: '1px dashed #ccc', background: '#fff', fontSize: '10px', color: '#888', cursor: 'pointer' }}>9:16'dan kopyala</button>
-                  )}
+                  {!isPersona && activeAspect !== '9:16' && <button onClick={() => importFromAspect('9:16')} style={{ padding: '4px 10px', border: '1px dashed #ccc', fontSize: '9px', color: '#888', cursor: 'pointer', background: '#fff' }}>9:16'dan kopyala</button>}
                 </div>
 
-                <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
-                  {/* LOGO SECTION (Persona'da yok) */}
+                <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+                  {/* LOGO */}
                   {!isPersona && (
-                    <div style={{ flex: '1 1 280px', minWidth: '280px' }}>
-                      <div style={{ fontSize: '12px', fontWeight: '600', color: '#0a0a0a', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>Logo</div>
-                      <NumInput label="Boy" value={current.logo.size_percent} onChange={v => updateField('logo', 'size_percent', v)} min={5} max={80} suffix="% video genisligi" />
-                      <div style={{ marginBottom: '8px' }}>
-                        <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}>Konum</div>
-                        <PositionGrid value={current.logo.position} onChange={v => updateField('logo', 'position', v)} />
-                      </div>
+                    <div style={{ flex: '1 1 240px', minWidth: '220px' }}>
+                      <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Logo</div>
+                      <NumInput label="Boy" value={current.logo.size_percent} onChange={v => updateField('logo', 'size_percent', v)} min={5} max={80} suffix="%" />
+                      <div style={{ marginBottom: '8px' }}><div style={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}>Konum</div><PositionGrid value={current.logo.position} onChange={v => updateField('logo', 'position', v)} /></div>
                       <NumInput label="Margin X" value={current.logo.margin_x} onChange={v => updateField('logo', 'margin_x', v)} max={200} suffix="px" />
                       <NumInput label="Margin Y" value={current.logo.margin_y} onChange={v => updateField('logo', 'margin_y', v)} max={200} suffix="px" />
                       <div style={{ marginBottom: '8px' }}>
                         <div style={{ fontSize: '10px', color: '#888', marginBottom: '2px' }}>Opacity</div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <input type="range" min={0} max={100} value={current.logo.opacity} onChange={e => updateField('logo', 'opacity', parseInt(e.target.value))} style={{ flex: 1 }} />
-                          <span style={{ fontSize: '11px', color: '#555', width: '30px' }}>{current.logo.opacity}%</span>
-                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><input type="range" min={0} max={100} value={current.logo.opacity} onChange={e => updateField('logo', 'opacity', parseInt(e.target.value))} style={{ flex: 1 }} /><span style={{ fontSize: '10px', color: '#555', width: '28px' }}>{current.logo.opacity}%</span></div>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
-                        <input type="checkbox" checked={current.logo.shadow_enabled} onChange={e => updateField('logo', 'shadow_enabled', e.target.checked)} />
-                        <span style={{ fontSize: '11px', color: '#555' }}>Golge</span>
-                        {current.logo.shadow_enabled && <NumInput label="" value={current.logo.shadow_softness} onChange={v => updateField('logo', 'shadow_softness', v)} max={30} suffix="px" />}
-                      </div>
-                      <div style={{ marginBottom: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}><input type="checkbox" checked={current.logo.shadow_enabled} onChange={e => updateField('logo', 'shadow_enabled', e.target.checked)} /><span style={{ fontSize: '10px' }}>Golge</span></div>
+                      <div style={{ marginBottom: '6px' }}>
                         <div style={{ fontSize: '10px', color: '#888', marginBottom: '2px' }}>Reveal</div>
-                        <select value={current.logo.reveal_effect} onChange={e => updateField('logo', 'reveal_effect', e.target.value)} style={{ width: '100%', padding: '4px 6px', border: '1px solid #e5e4db', fontSize: '11px' }}>
-                          {REVEALS.map(r => <option key={r} value={r}>{r}</option>)}
-                        </select>
+                        <select value={current.logo.reveal_effect} onChange={e => updateField('logo', 'reveal_effect', e.target.value)} style={{ width: '100%', padding: '3px 6px', border: '1px solid #e5e4db', fontSize: '10px' }}>{REVEALS.map(r => <option key={r} value={r}>{r}</option>)}</select>
                       </div>
-                      {current.logo.reveal_effect !== 'none' && <NumInput label="Reveal suresi" value={current.logo.reveal_duration_ms} onChange={v => updateField('logo', 'reveal_duration_ms', v)} max={2000} step={100} suffix="ms" />}
-                      <NumInput label="Sondan kac saniye once belirir" value={current.logo.show_from_end_s} onChange={v => updateField('logo', 'show_from_end_s', v)} min={0.5} max={10} step={0.1} suffix="s" />
-                      <div style={{ fontSize: '10px', color: '#aaa', marginTop: '-4px' }}>Logo belirdikten sonra video sonuna kadar gorunur</div>
+                      <NumInput label="Sondan kac sn once belirir" value={current.logo.show_from_end_s} onChange={v => updateField('logo', 'show_from_end_s', v)} min={0.5} max={10} step={0.1} suffix="s" />
+                      <div style={{ fontSize: '9px', color: '#aaa' }}>Belirdikten sonra video sonuna kadar gorunur</div>
                     </div>
                   )}
 
-                  {/* CTA SECTION */}
-                  <div style={{ flex: '1 1 280px', minWidth: '280px' }}>
-                    <div style={{ fontSize: '12px', fontWeight: '600', color: '#0a0a0a', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>CTA</div>
-                    <div style={{ marginBottom: '8px' }}>
+                  {/* CTA */}
+                  <div style={{ flex: '1 1 240px', minWidth: '220px' }}>
+                    <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>CTA</div>
+                    <div style={{ marginBottom: '6px' }}>
                       <div style={{ fontSize: '10px', color: '#888', marginBottom: '2px' }}>Font</div>
-                      <select value={current.cta.font} onChange={e => updateField('cta', 'font', e.target.value)} style={{ width: '100%', padding: '4px 6px', border: '1px solid #e5e4db', fontSize: '11px' }}>
-                        <option value="default">Default (Arial)</option>
-                        <option value="brand">Marka fontu</option>
-                      </select>
+                      <select value={current.cta.font} onChange={e => updateField('cta', 'font', e.target.value)} style={{ width: '100%', padding: '3px 6px', border: '1px solid #e5e4db', fontSize: '10px' }}><option value="default">Default (Arial)</option><option value="brand">Marka fontu</option></select>
                     </div>
-                    <NumInput label="Font boyutu" value={current.cta.font_size_percent} onChange={v => updateField('cta', 'font_size_percent', v)} min={2} max={15} step={0.5} suffix="% video yuksekligi" />
-                    <div style={{ marginBottom: '8px' }}>
-                      <div style={{ fontSize: '10px', color: '#888', marginBottom: '2px' }}>Renk</div>
-                      <input type="color" value={current.cta.color} onChange={e => updateField('cta', 'color', e.target.value)} style={{ width: '40px', height: '28px', border: '1px solid #e5e4db', cursor: 'pointer' }} />
-                    </div>
-                    <div style={{ marginBottom: '8px' }}>
-                      <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}>Arka plan</div>
+                    <NumInput label="Font boyutu" value={current.cta.font_size_percent} onChange={v => updateField('cta', 'font_size_percent', v)} min={2} max={15} step={0.5} suffix="%" />
+                    <div style={{ marginBottom: '6px' }}><div style={{ fontSize: '10px', color: '#888', marginBottom: '2px' }}>Renk</div><input type="color" value={current.cta.color} onChange={e => updateField('cta', 'color', e.target.value)} style={{ width: '36px', height: '24px', border: '1px solid #e5e4db', cursor: 'pointer' }} /></div>
+                    <div style={{ marginBottom: '6px' }}>
+                      <div style={{ fontSize: '10px', color: '#888', marginBottom: '3px' }}>Arka plan</div>
                       <div style={{ display: 'flex', gap: '8px' }}>
-                        <label style={{ fontSize: '11px', cursor: 'pointer' }}><input type="radio" name={`bg-${activeFeature}-${activeAspect}`} checked={current.cta.bg_mode === 'transparent'} onChange={() => updateField('cta', 'bg_mode', 'transparent')} /> Seffaf</label>
-                        <label style={{ fontSize: '11px', cursor: 'pointer' }}><input type="radio" name={`bg-${activeFeature}-${activeAspect}`} checked={current.cta.bg_mode === 'solid'} onChange={() => updateField('cta', 'bg_mode', 'solid')} /> Dolgulu</label>
+                        <label style={{ fontSize: '10px', cursor: 'pointer' }}><input type="radio" name={`bg-${activeFeature}-${activeAspect}`} checked={current.cta.bg_mode === 'transparent'} onChange={() => updateField('cta', 'bg_mode', 'transparent')} /> Seffaf</label>
+                        <label style={{ fontSize: '10px', cursor: 'pointer' }}><input type="radio" name={`bg-${activeFeature}-${activeAspect}`} checked={current.cta.bg_mode === 'solid'} onChange={() => updateField('cta', 'bg_mode', 'solid')} /> Dolgulu</label>
                       </div>
                     </div>
-                    {current.cta.bg_mode === 'solid' && (
-                      <>
-                        <div style={{ marginBottom: '8px' }}>
-                          <div style={{ fontSize: '10px', color: '#888', marginBottom: '2px' }}>BG renk</div>
-                          <input type="color" value={current.cta.bg_color} onChange={e => updateField('cta', 'bg_color', e.target.value)} style={{ width: '40px', height: '28px', border: '1px solid #e5e4db', cursor: 'pointer' }} />
-                        </div>
-                        <div style={{ marginBottom: '8px' }}>
-                          <div style={{ fontSize: '10px', color: '#888', marginBottom: '2px' }}>BG opacity</div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <input type="range" min={0} max={100} value={current.cta.bg_opacity} onChange={e => updateField('cta', 'bg_opacity', parseInt(e.target.value))} style={{ flex: 1 }} />
-                            <span style={{ fontSize: '11px', color: '#555', width: '30px' }}>{current.cta.bg_opacity}%</span>
-                          </div>
-                        </div>
-                      </>
-                    )}
-                    <div style={{ marginBottom: '8px' }}>
-                      <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}>Konum</div>
-                      <PositionGrid value={current.cta.position === 'custom' ? 'bottom-left' : current.cta.position} onChange={v => updateField('cta', 'position', v)} />
-                    </div>
+                    {current.cta.bg_mode === 'solid' && (<><div style={{ marginBottom: '6px' }}><div style={{ fontSize: '10px', color: '#888', marginBottom: '2px' }}>BG renk</div><input type="color" value={current.cta.bg_color} onChange={e => updateField('cta', 'bg_color', e.target.value)} style={{ width: '36px', height: '24px', border: '1px solid #e5e4db', cursor: 'pointer' }} /></div><div style={{ marginBottom: '6px' }}><div style={{ fontSize: '10px', color: '#888', marginBottom: '2px' }}>BG opacity</div><div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><input type="range" min={0} max={100} value={current.cta.bg_opacity} onChange={e => updateField('cta', 'bg_opacity', parseInt(e.target.value))} style={{ flex: 1 }} /><span style={{ fontSize: '10px', width: '28px' }}>{current.cta.bg_opacity}%</span></div></div></>)}
+                    <div style={{ marginBottom: '6px' }}><div style={{ fontSize: '10px', color: '#888', marginBottom: '3px' }}>Konum</div><PositionGrid value={current.cta.position === 'custom' ? 'bottom-left' : current.cta.position} onChange={v => updateField('cta', 'position', v)} /></div>
                     <NumInput label="Margin X" value={current.cta.margin_x} onChange={v => updateField('cta', 'margin_x', v)} max={200} suffix="px" />
                     <NumInput label="Margin Y" value={current.cta.margin_y} onChange={v => updateField('cta', 'margin_y', v)} max={200} suffix="px" />
-                    <NumInput label="Padding X" value={current.cta.padding_x} onChange={v => updateField('cta', 'padding_x', v)} max={50} suffix="px" />
-                    <NumInput label="Padding Y" value={current.cta.padding_y} onChange={v => updateField('cta', 'padding_y', v)} max={50} suffix="px" />
-                    <NumInput label="Border radius" value={current.cta.border_radius} onChange={v => updateField('cta', 'border_radius', v)} max={50} suffix="px" />
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
-                      <input type="checkbox" checked={current.cta.shadow_enabled} onChange={e => updateField('cta', 'shadow_enabled', e.target.checked)} />
-                      <span style={{ fontSize: '11px', color: '#555' }}>Golge</span>
-                      {current.cta.shadow_enabled && <NumInput label="" value={current.cta.shadow_softness} onChange={v => updateField('cta', 'shadow_softness', v)} max={30} suffix="px" />}
-                    </div>
-                    <div style={{ marginBottom: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}><input type="checkbox" checked={current.cta.shadow_enabled} onChange={e => updateField('cta', 'shadow_enabled', e.target.checked)} /><span style={{ fontSize: '10px' }}>Golge</span></div>
+                    <div style={{ marginBottom: '6px' }}>
                       <div style={{ fontSize: '10px', color: '#888', marginBottom: '2px' }}>Reveal</div>
-                      <select value={current.cta.reveal_effect} onChange={e => updateField('cta', 'reveal_effect', e.target.value)} style={{ width: '100%', padding: '4px 6px', border: '1px solid #e5e4db', fontSize: '11px' }}>
-                        {REVEALS.map(r => <option key={r} value={r}>{r}</option>)}
-                      </select>
+                      <select value={current.cta.reveal_effect} onChange={e => updateField('cta', 'reveal_effect', e.target.value)} style={{ width: '100%', padding: '3px 6px', border: '1px solid #e5e4db', fontSize: '10px' }}>{REVEALS.map(r => <option key={r} value={r}>{r}</option>)}</select>
                     </div>
-                    {current.cta.reveal_effect !== 'none' && <NumInput label="Reveal suresi" value={current.cta.reveal_duration_ms} onChange={v => updateField('cta', 'reveal_duration_ms', v)} max={2000} step={100} suffix="ms" />}
-                    <NumInput label="Kacinci saniyede belirir" value={current.cta.show_from_s || 5} onChange={v => updateField('cta', 'show_from_s', v)} min={0} max={30} step={0.1} suffix="s" />
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
-                      <input type="checkbox" checked={current.cta.show_until_end || false} onChange={e => updateField('cta', 'show_until_end', e.target.checked)} />
-                      <span style={{ fontSize: '11px', color: '#555' }}>Video sonuna kadar gorunsun</span>
-                    </div>
-                    {!current.cta.show_until_end && <NumInput label="Kacinci saniyede kaybolur" value={current.cta.hide_at_s || 15} onChange={v => updateField('cta', 'hide_at_s', v)} min={0} max={30} step={0.1} suffix="s" />}
-                    <div style={{ fontSize: '10px', color: '#aaa', marginTop: '4px' }}>{current.cta.show_until_end ? `CTA ${current.cta.show_from_s || 5}. saniyede belirir ve video sonuna kadar gorunur` : `CTA ${current.cta.show_from_s || 5}. saniyede belirir, ${current.cta.hide_at_s || 15}. saniyede kaybolur`}</div>
+                    <NumInput label="Belirir (saniye)" value={current.cta.show_from_s || 5} onChange={v => updateField('cta', 'show_from_s', v)} min={0} max={30} step={0.1} suffix="s" />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}><input type="checkbox" checked={current.cta.show_until_end || false} onChange={e => updateField('cta', 'show_until_end', e.target.checked)} /><span style={{ fontSize: '10px' }}>Sona kadar</span></div>
+                    {!current.cta.show_until_end && <NumInput label="Kaybolur (saniye)" value={current.cta.hide_at_s || 15} onChange={v => updateField('cta', 'hide_at_s', v)} min={0} max={30} step={0.1} suffix="s" />}
                   </div>
                 </div>
+              </div>
 
-                <div style={{ fontSize: '10px', color: '#aaa', marginTop: '16px', borderTop: '1px solid #e5e4db', paddingTop: '12px' }}>Preview Parca 3'te canli olacak. Simdilik ayarlari kaydedin, pipeline uretimde kullanir.</div>
+              {/* RIGHT: Live Preview */}
+              <div style={{ width: '240px', padding: '16px', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                <div style={{ fontSize: '10px', color: '#888', textTransform: 'uppercase', letterSpacing: '1px' }}>Onizleme</div>
+                <LivePreview logoSettings={current.logo} ctaSettings={current.cta} aspect={activeAspect} previewUrl={previewUrl} logoUrl={logoUrl} isPersona={isPersona} />
+                <div style={{ width: '100%' }}>
+                  <button onClick={() => fileRef.current?.click()} disabled={uploading} style={{ width: '100%', padding: '5px', background: '#fff', border: '1px solid #e5e4db', fontSize: '9px', cursor: 'pointer', color: '#555' }}>{uploading ? 'Yukleniyor...' : previewUrl ? 'Video degistir' : 'Preview video yukle'}</button>
+                  <input ref={fileRef} type="file" accept="video/*" style={{ display: 'none' }} onChange={handlePreviewUpload} />
+                </div>
+                <div style={{ fontSize: '9px', color: '#aaa', textAlign: 'center' }}>Ayar degisiklikleri anlik yansir. Timing preview icin video yukleyin.</div>
               </div>
             </div>
           </div>
