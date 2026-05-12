@@ -444,24 +444,11 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
           const regularStyles = styles.filter(s => !s.requires_mascot_image)
           const showMascotSection = hasMascot && mascotStyles.length > 0
 
-          const styleClick = async (slug: string) => {
+          const styleClick = (slug: string) => {
             if (slug === selectedStyle) return
-            console.log('[STYLE CLICK]', { from: selectedStyle, to: slug })
             setStyleFading(true); setVoiceoverText('')
             persistSticky(slug, '')
             setTimeout(() => { setSelectedStyle(slug); setStyleFading(false) }, 150)
-            // Auto-generate voiceover for new style
-            setVoiceoverLoading(true)
-            try {
-              const res = await fetch('/api/animation/generate-voiceover', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, style_slug: slug }) })
-              const data = await res.json()
-              if (data.voiceoverText) {
-                console.log('[CLAUDE VO auto]', { text: data.voiceoverText.substring(0, 50) })
-                setVoiceoverText(data.voiceoverText)
-                persistSticky(slug, data.voiceoverText)
-              }
-            } catch {}
-            setVoiceoverLoading(false)
           }
 
           return (
