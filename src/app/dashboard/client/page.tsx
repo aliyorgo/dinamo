@@ -131,6 +131,7 @@ export default function ClientDashboard() {
             .in('brief_id', briefIds)
             .in('status', ['ready', 'sold'])
             .not('final_url', 'is', null)
+            .is('viewed_at', null)
           const animMap: Record<string, any[]> = {}
           animVids?.forEach((v: any) => {
             if (!animMap[v.brief_id]) animMap[v.brief_id] = []
