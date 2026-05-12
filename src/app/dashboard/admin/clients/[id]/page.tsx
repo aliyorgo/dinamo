@@ -314,6 +314,135 @@ function PersonaAssignment({ clientId }: { clientId: string }) {
   )
 }
 
+function MascotManager({ clientId }: { clientId: string }) {
+  const [mascotEnabled, setMascotEnabled] = useState(false)
+  const [mascotUrl, setMascotUrl] = useState('')
+  const [mascotName, setMascotName] = useState('')
+  const [mascotDesc, setMascotDesc] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [uploading, setUploading] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    supabase.from('clients').select('mascot_enabled, mascot_image_url, mascot_name, mascot_description').eq('id', clientId).single().then(({ data }) => {
+      if (data) { setMascotEnabled(data.mascot_enabled || false); setMascotUrl(data.mascot_image_url || ''); setMascotName(data.mascot_name || ''); setMascotDesc(data.mascot_description || '') }
+      setLoading(false)
+    })
+  }, [clientId])
+
+  async function handleUpload() {
+    const file = fileRef.current?.files?.[0]; if (!file) return
+    setUploading(true)
+    const fd = new FormData(); fd.append('file', file)
+    const res = await fetch(`/api/admin/clients/${clientId}/mascot`, { method: 'POST', body: fd })
+    const data = await res.json()
+    if (data.mascot_image_url) setMascotUrl(data.mascot_image_url)
+    setUploading(false)
+  }
+
+  async function handleSave() {
+    setSaving(true)
+    await fetch(`/api/admin/clients/${clientId}/mascot`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mascot_enabled: mascotEnabled, mascot_name: mascotName, mascot_description: mascotDesc }) })
+    setSaving(false)
+  }
+
+  if (loading) return <div style={{ padding: '20px', color: '#888', fontSize: '12px' }}>Maskot bilgileri yükleniyor...</div>
+
+  return (
+    <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '20px', marginBottom: '16px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+        <div>
+          <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: '500' }}>MASKOT</div>
+          <div style={{ fontSize: '11px', color: '#aaa', marginTop: '2px' }}>Marka maskotunu animasyonlarda kullanmak için aktive edin</div>
+        </div>
+        <button onClick={() => setMascotEnabled(!mascotEnabled)} style={{ width: '44px', height: '24px', borderRadius: '100px', border: 'none', cursor: 'pointer', background: mascotEnabled ? '#22c55e' : '#ddd', position: 'relative', transition: 'background 0.2s' }}>
+          <span style={{ position: 'absolute', top: '3px', left: mascotEnabled ? '23px' : '3px', width: '18px', height: '18px', borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }} />
+        </button>
+      </div>
+      {mascotEnabled && (
+        <div style={{ borderTop: '1px solid #e5e4db', paddingTop: '12px' }}>
+          <div style={{ display: 'flex', gap: '16px', marginBottom: '12px' }}>
+            <div style={{ width: '100px', height: '100px', background: '#f5f4f0', border: '1px dashed #ccc', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden', flexShrink: 0 }} onClick={() => fileRef.current?.click()}>
+              {mascotUrl ? <img src={mascotUrl} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <span style={{ fontSize: '24px', color: '#ccc' }}>+</span>}
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ marginBottom: '8px' }}>
+                <div style={{ fontSize: '10px', color: '#888', marginBottom: '2px' }}>Maskot Adı</div>
+                <input value={mascotName} onChange={e => setMascotName(e.target.value)} placeholder="Vadaa" style={{ width: '100%', padding: '6px 8px', border: '1px solid #e5e4db', fontSize: '12px', boxSizing: 'border-box' }} />
+              </div>
+              <div>
+                <div style={{ fontSize: '10px', color: '#888', marginBottom: '2px' }}>Özellikler</div>
+                <textarea value={mascotDesc} onChange={e => setMascotDesc(e.target.value.slice(0, 300))} maxLength={300} rows={2} placeholder="Turuncu kedicik, meraklı, sevimli..." style={{ width: '100%', padding: '6px 8px', border: '1px solid #e5e4db', fontSize: '12px', resize: 'vertical', boxSizing: 'border-box' }} />
+                <div style={{ fontSize: '9px', color: '#aaa', textAlign: 'right' }}>{mascotDesc.length}/300</div>
+              </div>
+            </div>
+          </div>
+          <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleUpload} />
+          {uploading && <div style={{ fontSize: '10px', color: '#888', marginBottom: '8px' }}>Yükleniyor...</div>}
+          <button onClick={handleSave} disabled={saving || (mascotEnabled && !mascotUrl)} style={{ padding: '7px 16px', background: '#0a0a0a', color: '#fff', border: 'none', fontSize: '11px', cursor: 'pointer', opacity: saving || (mascotEnabled && !mascotUrl) ? 0.5 : 1 }}>{saving ? 'Kaydediliyor...' : 'Kaydet'}</button>
+          {mascotEnabled && !mascotUrl && <span style={{ fontSize: '10px', color: '#ef4444', marginLeft: '8px' }}>Maskot görseli yükleyin</span>}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function BrandAnimationStylesAssignment({ clientId }: { clientId: string }) {
+  const [allStyles, setAllStyles] = useState<any[]>([])
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    fetch(`/api/admin/clients/${clientId}/animation-styles`).then(r => r.json()).then(data => {
+      setAllStyles(data.allStyles || [])
+      setSelected(new Set(data.assignedStyleIds || []))
+      setLoading(false)
+    })
+  }, [clientId])
+
+  function toggle(styleId: string) {
+    setSelected(prev => {
+      const next = new Set(prev)
+      if (next.has(styleId)) { next.delete(styleId) }
+      else if (next.size < 4) { next.add(styleId) }
+      return next
+    })
+  }
+
+  async function handleSave() {
+    setSaving(true)
+    await fetch(`/api/admin/clients/${clientId}/animation-styles`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ styleIds: [...selected] }) })
+    setSaving(false)
+  }
+
+  if (loading) return <div style={{ padding: '20px', color: '#888', fontSize: '12px' }}>Animasyon stilleri yükleniyor...</div>
+
+  return (
+    <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '20px', marginBottom: '16px' }}>
+      <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: '500', marginBottom: '6px' }}>ANİMASYON STİLLERİ</div>
+      <div style={{ fontSize: '11px', color: '#aaa', marginBottom: '14px' }}>Bu markanın müşterilerine gösterilecek animasyon tarzları (4 stil seç)</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '12px' }}>
+        {allStyles.map(style => {
+          const isSelected = selected.has(style.id)
+          return (
+            <div key={style.id} onClick={() => toggle(style.id)}
+              style={{ border: isSelected ? '2px solid #8b5cf6' : '1px solid #e5e4db', padding: '10px', textAlign: 'center', cursor: 'pointer', background: isSelected ? 'rgba(139,92,246,0.04)' : '#fff', transition: 'all 0.15s' }}>
+              {style.icon_path && <img src={style.icon_path} alt={style.label} style={{ width: '36px', height: '36px', objectFit: 'contain', marginBottom: '4px' }} />}
+              <div style={{ fontSize: '10px', fontWeight: '500', color: '#0a0a0a' }}>{style.label}</div>
+            </div>
+          )
+        })}
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontSize: '11px', color: selected.size >= 4 ? '#f59e0b' : '#888' }}>{selected.size}/4 seçili</span>
+        <button onClick={handleSave} disabled={saving} style={{ padding: '7px 16px', background: '#0a0a0a', color: '#fff', border: 'none', fontSize: '11px', cursor: 'pointer' }}>{saving ? 'Kaydediliyor...' : 'Kaydet'}</button>
+      </div>
+    </div>
+  )
+}
+
 export default function ClientDetailPage() {
   const router = useRouter()
   const params = useParams()
@@ -1100,6 +1229,12 @@ export default function ClientDetailPage() {
 
             {/* SES ATAMA */}
             <VoiceAssignment clientId={clientId} />
+
+            {/* MASKOT */}
+            <MascotManager clientId={clientId} />
+
+            {/* ANİMASYON STİLLERİ ATAMA */}
+            <BrandAnimationStylesAssignment clientId={clientId} />
 
             {/* PACKSHOT'LAR */}
             <PackshotManager clientId={clientId} />
