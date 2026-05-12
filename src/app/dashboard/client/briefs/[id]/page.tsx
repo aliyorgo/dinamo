@@ -115,6 +115,7 @@ function ClientBriefDetail() {
   const [selectedAiIdx, setSelectedAiIdx] = useState<number>(0)
   const [showAiGenerate, setShowAiGenerate] = useState(false)
   const [aiGenerating, setAiGenerating] = useState(false)
+  const [expressEngine, setExpressEngine] = useState<'kling' | 'seedance'>('kling')
   const [expressInfoOpen, setExpressInfoOpen] = useState(false)
   const [cpsInfoOpen, setCpsInfoOpen] = useState(false)
   const [expressSettingsOpen, setExpressSettingsOpen] = useState(false)
@@ -273,7 +274,7 @@ function ClientBriefDetail() {
     // AI clones for this campaign (root_campaign_id based)
     const rootId = b?.root_campaign_id || b?.id
     const { data: aiKids } = await supabase.from('briefs')
-      .select('id, campaign_name, status, format, ai_video_status, ai_video_url, ai_video_error, product_image_url, created_at, completed_at, ai_feedbacks, static_images_url, static_image_files, ai_express_viewed_at, ai_express_settings_snapshot, ai_feedback_summary')
+      .select('id, campaign_name, status, format, ai_video_status, ai_video_url, ai_video_error, product_image_url, created_at, completed_at, ai_feedbacks, static_images_url, static_image_files, ai_express_viewed_at, ai_express_settings_snapshot, ai_feedback_summary, express_engine')
       .eq('root_campaign_id', rootId)
       .like('campaign_name', '%Full AI%')
       .order('created_at', { ascending: true })
@@ -413,7 +414,8 @@ function ClientBriefDetail() {
     setShowAiGenerate(false)
     setAiError('')
     try {
-      const res = await fetch('/api/ai-express/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: id, client_user_id: clientUser.id, mode }) })
+      const endpoint = expressEngine === 'seedance' ? '/api/ai-express-seedance/generate' : '/api/ai-express/generate'
+      const res = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: id, client_user_id: clientUser.id, mode }) })
       const data = await res.json()
       if (!res.ok) { setAiError(data.error || 'Üretim başarısız'); setAiGenerating(false); return }
       if (data.child_brief) {
@@ -1477,8 +1479,15 @@ function ClientBriefDetail() {
                       </div>
                     ) : (
                       <div>
+                        <div style={{display:'flex',gap:'6px',marginBottom:'8px',alignItems:'center'}}>
+                          <span style={{fontSize:'10px',color:'#888',letterSpacing:'0.5px'}}>Engine:</span>
+                          <select value={expressEngine} onChange={e=>setExpressEngine(e.target.value as any)} style={{padding:'4px 8px',border:'1px solid #e5e4db',fontSize:'11px',color:'#0a0a0a',background:'#fff',cursor:'pointer'}}>
+                            <option value="kling">Klasik (Kling)</option>
+                            <option value="seedance">Seedance V2 BETA</option>
+                          </select>
+                        </div>
                         <div style={{display:'flex',gap:'8px'}}>
-                          <button onClick={()=>brief.product_image_url?setShowAiGenerate(true):handleStudioGenerate('character')} disabled={(clientUser?.allocated_credits||0)<1}
+                          <button onClick={()=>brief.product_image_url&&expressEngine==='kling'?setShowAiGenerate(true):handleStudioGenerate('character')} disabled={(clientUser?.allocated_credits||0)<1}
                             style={{flex:1,padding:'14px',background:(clientUser?.allocated_credits||0)<1?'#ccc':'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'13px',fontWeight:'600',cursor:(clientUser?.allocated_credits||0)<1?'default':'pointer',transition:'background 0.15s',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}
                             onMouseEnter={e=>{if((clientUser?.allocated_credits||0)>=1)e.currentTarget.style.background='#1DB81D'}}
                             onMouseLeave={e=>{if((clientUser?.allocated_credits||0)>=1)e.currentTarget.style.background='#0a0a0a'}}>
