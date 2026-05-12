@@ -18,12 +18,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   })
 }
 
-// Update assigned styles (delete-then-insert, max 4)
+// Update assigned styles (delete-then-insert, max 8)
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: clientId } = await params
   const { styleIds } = await req.json()
 
-  if (!Array.isArray(styleIds) || styleIds.length > 4) return NextResponse.json({ error: 'En fazla 4 stil seçilebilir' }, { status: 400 })
+  if (!Array.isArray(styleIds) || styleIds.length > 8) return NextResponse.json({ error: 'En fazla 8 stil seçilebilir' }, { status: 400 })
 
   // Delete existing
   await supabase.from('brand_animation_styles').delete().eq('client_id', clientId)

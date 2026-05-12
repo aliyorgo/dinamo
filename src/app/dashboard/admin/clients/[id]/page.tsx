@@ -451,7 +451,7 @@ function BrandAnimationStylesAssignment({ clientId }: { clientId: string }) {
     setSelected(prev => {
       const next = new Set(prev)
       if (next.has(styleId)) { next.delete(styleId) }
-      else if (next.size < 4) { next.add(styleId) }
+      else if (next.size < 8) { next.add(styleId) }
       return next
     })
   }
@@ -467,7 +467,7 @@ function BrandAnimationStylesAssignment({ clientId }: { clientId: string }) {
   return (
     <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '20px', marginBottom: '16px' }}>
       <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: '500', marginBottom: '6px' }}>ANİMASYON STİLLERİ</div>
-      <div style={{ fontSize: '11px', color: '#aaa', marginBottom: '14px' }}>Bu markanın müşterilerine gösterilecek animasyon tarzları (4 stil seç)</div>
+      <div style={{ fontSize: '11px', color: '#aaa', marginBottom: '14px' }}>Bu markanın müşterilerine gösterilecek animasyon tarzları (en fazla 8 stil seç)</div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '12px' }}>
         {allStyles.map(style => {
           const isSelected = selected.has(style.id)
@@ -481,7 +481,7 @@ function BrandAnimationStylesAssignment({ clientId }: { clientId: string }) {
         })}
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: '11px', color: selected.size >= 4 ? '#f59e0b' : '#888' }}>{selected.size}/4 seçili</span>
+        <span style={{ fontSize: '11px', color: selected.size >= 8 ? '#f59e0b' : '#888' }}>{selected.size}/8 seçili</span>
         <button onClick={handleSave} disabled={saving} style={{ padding: '7px 16px', background: '#0a0a0a', color: '#fff', border: 'none', fontSize: '11px', cursor: 'pointer' }}>{saving ? 'Kaydediliyor...' : 'Kaydet'}</button>
       </div>
     </div>
