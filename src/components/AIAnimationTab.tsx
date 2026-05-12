@@ -170,7 +170,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
     try {
       const res = await fetch('/api/animation/generate-voiceover', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, style_slug: selectedStyle }) })
       const data = await res.json()
-      if (data.voiceoverText) { console.log('[CLAUDE VO]', { text: data.voiceoverText.substring(0, 50) }); setVoiceoverText(data.voiceoverText); persistSticky(undefined, data.voiceoverText) }
+      if (data.voiceoverText) { console.log('[CLAUDE VO btn]', { text: data.voiceoverText.substring(0, 50) }); setVoiceoverText(data.voiceoverText); persistSticky(selectedStyle || undefined, data.voiceoverText) }
     } catch {}
     setVoiceoverLoading(false)
   }
@@ -425,7 +425,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
                     </button>
                     <span style={{ fontSize: '13px', fontWeight: '500', color: wordCount > 30 ? '#ef4444' : wordCount >= 25 ? '#22c55e' : wordCount >= 15 ? '#f59e0b' : '#888' }}>{wordCount} / 30</span>
                   </div>
-                  <textarea value={voiceoverText} onChange={e => setVoiceoverText(e.target.value)} onBlur={() => { if (voiceoverText.trim()) persistSticky(undefined, voiceoverText.trim()) }} placeholder={voiceoverLoading ? 'Üretiliyor...' : 'Bu stil için dış ses metni henüz üretilmedi. DIŞ SES METNİ YAZ butonuna basın veya buraya yazın.'} style={{ width: '100%', flex: 1, minHeight: '80px', fontSize: '13px', color: '#0a0a0a', lineHeight: 1.6, border: '1px solid #e5e4db', padding: '10px 12px', resize: 'none', boxSizing: 'border-box' }} />
+                  <textarea value={voiceoverText} onChange={e => setVoiceoverText(e.target.value)} onBlur={() => { if (voiceoverText.trim()) persistSticky(selectedStyle || undefined, voiceoverText.trim()) }} placeholder={voiceoverLoading ? 'Üretiliyor...' : 'Bu stil için dış ses metni henüz üretilmedi. DIŞ SES METNİ YAZ butonuna basın veya buraya yazın.'} style={{ width: '100%', flex: 1, minHeight: '80px', fontSize: '13px', color: '#0a0a0a', lineHeight: 1.6, border: '1px solid #e5e4db', padding: '10px 12px', resize: 'none', boxSizing: 'border-box' }} />
                   <button onClick={handleGenerate} disabled={generating || !selectedStyle || !voiceoverText.trim() || credits < 1} style={{ width: '100%', padding: '12px', marginTop: '10px', background: (generating || !selectedStyle || !voiceoverText.trim() || credits < 1) ? '#ccc' : '#0a0a0a', color: '#fff', border: 'none', fontSize: '13px', fontWeight: '600', cursor: (generating || !voiceoverText.trim()) ? 'default' : 'pointer' }}>
                     {totalCount === 0 ? 'ÜRET (ÜCRETSİZ)' : 'ÜRET (1 KREDİ)'}
                   </button>
@@ -444,7 +444,25 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
           const regularStyles = styles.filter(s => !s.requires_mascot_image)
           const showMascotSection = hasMascot && mascotStyles.length > 0
 
-          const styleClick = (slug: string) => { if (slug === selectedStyle) return; console.log('[STYLE CLICK]', { from: selectedStyle, to: slug }); setStyleFading(true); setVoiceoverText(''); persistSticky(slug, ''); setTimeout(() => { setSelectedStyle(slug); setStyleFading(false) }, 150) }
+          const styleClick = async (slug: string) => {
+            if (slug === selectedStyle) return
+            console.log('[STYLE CLICK]', { from: selectedStyle, to: slug })
+            setStyleFading(true); setVoiceoverText('')
+            persistSticky(slug, '')
+            setTimeout(() => { setSelectedStyle(slug); setStyleFading(false) }, 150)
+            // Auto-generate voiceover for new style
+            setVoiceoverLoading(true)
+            try {
+              const res = await fetch('/api/animation/generate-voiceover', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, style_slug: slug }) })
+              const data = await res.json()
+              if (data.voiceoverText) {
+                console.log('[CLAUDE VO auto]', { text: data.voiceoverText.substring(0, 50) })
+                setVoiceoverText(data.voiceoverText)
+                persistSticky(slug, data.voiceoverText)
+              }
+            } catch {}
+            setVoiceoverLoading(false)
+          }
 
           return (
             <div style={{ marginTop: '20px' }}>
