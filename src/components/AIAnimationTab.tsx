@@ -319,7 +319,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
                   </div>
                 ) : hasVideo ? (
                   <>
-                    <video src={video.final_url} controls preload="metadata" onPlay={e => { pauseOtherVideos(e.currentTarget); markViewed(video.id) }} style={{ width: '100%', height: '100%', objectFit: 'contain', backgroundColor: 'black', display: 'block' }} />
+                    <video src={video.final_url} controls preload="metadata" onPlay={e => { pauseOtherVideos(e.currentTarget); markViewed(video.id) }} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                     {!isPurchased && <img src="/dinamo_logo.png" alt="" style={{ position: 'absolute', top: '14px', left: '14px', width: '60px', opacity: 0.65, pointerEvents: 'none' }} />}
                   </>
                 ) : isProcessing ? (
