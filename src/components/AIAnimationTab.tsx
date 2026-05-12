@@ -113,9 +113,11 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
 
     const stickyStyle = fb?.last_animation_style
     const stickyVoiceover = fb?.last_animation_voiceover
+    console.log('[STICKY READ]', { stickyStyle, stickyVoiceover, voLen: stickyVoiceover?.length })
 
     // Sticky read: both exist → use cached, skip Claude (Persona pattern)
     if (stickyStyle && stickyVoiceover) {
+      console.log('[STICKY HIT] Claude atlanir')
       setSelectedStyle(stickyStyle)
       setSuggestedSlug(stickyStyle)
       setVoiceoverText(stickyVoiceover)
@@ -140,6 +142,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
           // Persist sticky — only write voiceover if truthy
           const persistUpdate: any = { last_animation_style: sd.suggestedStyleSlug }
           if (sd.voiceoverText) persistUpdate.last_animation_voiceover = sd.voiceoverText
+          console.log('[STICKY WRITE suggest]', persistUpdate)
           await supabase.from('briefs').update(persistUpdate).eq('id', briefId)
         }
         if (sd.voiceoverText) setVoiceoverText(sd.voiceoverText)
@@ -152,9 +155,12 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
     const updates: any = {}
     if (style !== undefined) updates.last_animation_style = style
     if (voiceover !== undefined && voiceover.trim()) updates.last_animation_voiceover = voiceover
+    else if (voiceover !== undefined) console.log('[STICKY SKIP] bos voiceover, yazilmadi')
     if (Object.keys(updates).length > 0) {
+      console.log('[STICKY WRITE persist]', updates)
       const { error } = await supabase.from('briefs').update(updates).eq('id', briefId)
       if (error) console.error('[STICKY WRITE ERROR]', error)
+      else console.log('[STICKY SAVED]', updates)
     }
   }
 
@@ -164,7 +170,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
     try {
       const res = await fetch('/api/animation/generate-voiceover', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, style_slug: selectedStyle }) })
       const data = await res.json()
-      if (data.voiceoverText) { setVoiceoverText(data.voiceoverText); persistSticky(undefined, data.voiceoverText) }
+      if (data.voiceoverText) { console.log('[CLAUDE VO]', { text: data.voiceoverText.substring(0, 50) }); setVoiceoverText(data.voiceoverText); persistSticky(undefined, data.voiceoverText) }
     } catch {}
     setVoiceoverLoading(false)
   }
@@ -438,7 +444,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
           const regularStyles = styles.filter(s => !s.requires_mascot_image)
           const showMascotSection = hasMascot && mascotStyles.length > 0
 
-          const styleClick = (slug: string) => { if (slug === selectedStyle) return; setStyleFading(true); setVoiceoverText(''); persistSticky(slug, ''); setTimeout(() => { setSelectedStyle(slug); setStyleFading(false) }, 150) }
+          const styleClick = (slug: string) => { if (slug === selectedStyle) return; console.log('[STYLE CLICK]', { from: selectedStyle, to: slug }); setStyleFading(true); setVoiceoverText(''); persistSticky(slug, ''); setTimeout(() => { setSelectedStyle(slug); setStyleFading(false) }, 150) }
 
           return (
             <div style={{ marginTop: '20px' }}>
