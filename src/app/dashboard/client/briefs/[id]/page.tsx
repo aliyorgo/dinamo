@@ -1241,6 +1241,12 @@ function ClientBriefDetail() {
                   Ayarlar
                 </button>
                 </div>
+                <div style={{display:'flex',alignItems:'center',gap:'6px',marginLeft:'8px'}} title="720p daha keskin, üretim biraz daha uzun sürer">
+                  <span style={{fontSize:'10px',color:'#888'}}>720p</span>
+                  <button onClick={()=>setExpressHQ(!expressHQ)} style={{width:'36px',height:'20px',border:'none',cursor:'pointer',background:expressHQ?'#22c55e':'#ddd',position:'relative',transition:'background 0.2s',flexShrink:0}}>
+                    <span className="dot" style={{position:'absolute',top:'2px',left:expressHQ?'18px':'2px',width:'16px',height:'16px',background:'#fff',transition:'left 0.2s'}} />
+                  </button>
+                </div>
                 <div style={{flex:1}} />
                 {(() => { const total = aiChildren.length + aiChildren.filter(c => c.status === 'delivered').length * 2; return <div style={{display:'inline-flex',padding:'6px 14px',border:'1px solid #0a0a0a',fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:total > 0 ? '#0a0a0a' : '#9ca3af',flexShrink:0,whiteSpace:'nowrap'}}>{total} KREDİ</div> })()}
               </div>
@@ -1478,13 +1484,7 @@ function ClientBriefDetail() {
                       </div>
                     ) : (
                       <div>
-                        <div style={{display:'flex',gap:'8px',alignItems:'center'}}>
-                          <div style={{display:'flex',alignItems:'center',gap:'6px',flexShrink:0}} title="720p daha keskin, üretim biraz daha uzun sürer">
-                            <span style={{fontSize:'10px',color:'#888'}}>Yüksek Kalite (720p)</span>
-                            <button onClick={()=>setExpressHQ(!expressHQ)} style={{width:'36px',height:'20px',border:'none',cursor:'pointer',background:expressHQ?'#22c55e':'#ddd',position:'relative',transition:'background 0.2s',flexShrink:0}}>
-                              <span className="dot" style={{position:'absolute',top:'2px',left:expressHQ?'18px':'2px',width:'16px',height:'16px',background:'#fff',transition:'left 0.2s'}} />
-                            </button>
-                          </div>
+                        <div style={{display:'flex',gap:'8px'}}>
                           <button onClick={()=>handleStudioGenerate('character')} disabled={(clientUser?.allocated_credits||0)<1}
                             style={{flex:1,padding:'14px',background:(clientUser?.allocated_credits||0)<1?'#ccc':'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'13px',fontWeight:'600',cursor:(clientUser?.allocated_credits||0)<1?'default':'pointer',transition:'background 0.15s',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}
                             onMouseEnter={e=>{if((clientUser?.allocated_credits||0)>=1)e.currentTarget.style.background='#1DB81D'}}
