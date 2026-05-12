@@ -595,7 +595,7 @@ export default function ClientDetailPage() {
   useEffect(() => { load() }, [clientId])
 
   async function load() {
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { session } } = await supabase.auth.getSession(); const user = session?.user
     if (!user) { router.push('/login'); return }
     const { data: ud } = await supabase.from('users').select('name, role').eq('id', user.id).single()
     if (!ud || ud.role !== 'admin') { router.push('/login'); return }

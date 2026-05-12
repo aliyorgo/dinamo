@@ -240,7 +240,7 @@ function ClientBriefDetail() {
   }, [brief, clientUser, aiChildren.length])
 
   async function loadData() {
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { session } } = await supabase.auth.getSession(); const user = session?.user
     if (!user) return
     const { data: userData } = await supabase.from('users').select('name').eq('id', user.id).single()
     setUserName(userData?.name || '')
@@ -389,7 +389,7 @@ function ClientBriefDetail() {
   async function handleAiPurchase() {
     if (!clientUser || !brief?.ai_video_url) return
     if ((clientUser.allocated_credits || 0) < (creditSettings?.credit_ai_express || 1)) { setAiError('Yetersiz kredi'); return }
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { session } } = await supabase.auth.getSession(); const user = session?.user
     if (!user) return
     const res = await fetch('/api/generate-ai-video/purchase', {
       method: 'POST',
@@ -431,7 +431,7 @@ function ClientBriefDetail() {
   async function handleStudioPurchase(childBrief: any) {
     if (!clientUser || !childBrief?.ai_video_url) return
     if ((clientUser.allocated_credits || 0) < (creditSettings?.credit_ai_express || 1)) { setAiError('Yetersiz kredi'); return }
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { session } } = await supabase.auth.getSession(); const user = session?.user
     if (!user) return
     const res = await fetch('/api/generate-ai-video/purchase', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },

@@ -23,7 +23,7 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
 
   useEffect(() => {
     async function check() {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession(); const user = session?.user
       if (!user) { router.push('/login'); return }
       const { data: ud } = await supabase.from('users').select('name, role').eq('id', user.id).single()
       if (!ud || ud.role !== 'creator') { router.push('/login'); return }

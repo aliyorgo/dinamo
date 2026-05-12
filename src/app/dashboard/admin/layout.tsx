@@ -32,7 +32,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     async function check() {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession(); const user = session?.user
       if (!user) { router.push('/login'); return }
       const { data } = await supabase.from('users').select('name, role').eq('id', user.id).single()
       console.log('[ADMIN-LAYOUT] user.id:', user.id, '| DB role:', data?.role, '| name:', data?.name)

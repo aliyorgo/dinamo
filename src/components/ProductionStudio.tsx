@@ -89,7 +89,7 @@ export default function ProductionStudio({ briefId, source = 'admin', userRole =
     // Delete all AI ideas
     if (aiIdeas.length > 0) await supabase.from('brief_inspirations').delete().in('id', aiIdeas.map(i => i.id))
     setIdeas(manualIdeas)
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { session } } = await supabase.auth.getSession(); const user = session?.user
     const res = await fetch('/api/generate-inspirations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, user_id: user?.id, source, count: 3, target_levels: ['minimal', 'orta', 'sinematik'] }) })
     const data = await res.json()
     if (data.inspirations) { showToast(`${data.inspirations.length} fikir üretildi`, 'ok'); loadData() }
@@ -100,7 +100,7 @@ export default function ProductionStudio({ briefId, source = 'admin', userRole =
   async function fillSlot(level: string) {
     setLoading(`slot-${level}`)
     const existing = aiIdeas.filter(i => i.id).map(i => ({ title: i.title, concept: i.concept }))
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { session } } = await supabase.auth.getSession(); const user = session?.user
     const res = await fetch('/api/generate-inspirations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, user_id: user?.id, source, count: 1, existing_ideas: existing, target_levels: [level] }) })
     const data = await res.json()
     if (data.inspirations) { showToast('Fikir üretildi', 'ok'); loadData() }
@@ -189,7 +189,7 @@ export default function ProductionStudio({ briefId, source = 'admin', userRole =
   // ─── Step 3: Prompt (creator only) ───
   async function generatePrompt() {
     setLoading('prompt')
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { session } } = await supabase.auth.getSession(); const user = session?.user
     const inspId = ideas.find(i => i.scenario)?.id || selectedIdea?.id || ideas[0]?.id
     if (!inspId) { showToast('Önce senaryo kaydedin', 'err'); setLoading(''); return }
     const res = await fetch('/api/generate-prompts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ inspiration_id: inspId, model: 'generic', user_id: user?.id }) })

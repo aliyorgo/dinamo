@@ -73,7 +73,7 @@ export default function BrandIdentityPage() {
 
   useEffect(() => {
     async function load() {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession(); const user = session?.user
       if (!user) { router.push('/login'); return }
       const { data: cu } = await supabase.from('client_users').select('client_id, clients(brand_voices, logo_size_percent, brand_logo_url, packshots)').eq('user_id', user.id).single()
       if (cu) {
@@ -272,7 +272,7 @@ export default function BrandIdentityPage() {
               <button onClick={() => setUpgradeStep(null)} className="btn btn-outline" style={{ flex: 1, padding: '10px', fontSize: '11px' }}>İPTAL</button>
               <button onClick={async () => {
                 try {
-                  const { data: { user } } = await supabase.auth.getUser()
+                  const { data: { session } } = await supabase.auth.getSession(); const user = session?.user
                   await supabase.from('demo_requests').insert({ name: `[YÜKSELTME → ${tierLabels[nextTier]}] ${companyName}`, company: companyName, email: user?.email || '', phone: '' })
                 } catch (err) { console.error('[tier-upgrade] request failed:', err) }
                 setUpgradeStep('success')
