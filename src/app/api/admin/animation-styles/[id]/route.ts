@@ -16,6 +16,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (body.requires_mascot_image !== undefined) updates.requires_mascot_image = body.requires_mascot_image
   if (body.active !== undefined) updates.active = body.active
   if (body.icon_path !== undefined) updates.icon_path = body.icon_path
+  if (body.description_tr !== undefined) updates.description_tr = body.description_tr
 
   const { data, error } = await supabase.from('animation_styles').update(updates).eq('id', id).select().single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

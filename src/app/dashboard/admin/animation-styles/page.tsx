@@ -1,10 +1,10 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
-const EMPTY_FORM = { label: '', slug: '', prompt_template: '', mood_hints: '', model: 'seedance', task_type: 'seedance-2-fast-preview', sort_order: 0, requires_mascot_image: false, active: true }
+const EMPTY_FORM = { label: '', slug: '', prompt_template: '', mood_hints: '', model: 'seedance', task_type: 'seedance-2-fast-preview', sort_order: 0, requires_mascot_image: false, active: true, description_tr: '' }
 
 export default function AnimationStylesPage() {
   const [styles, setStyles] = useState<any[]>([])
@@ -13,6 +13,9 @@ export default function AnimationStylesPage() {
   const [form, setForm] = useState<any>({ ...EMPTY_FORM })
   const [modalOpen, setModalOpen] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [iconPreview, setIconPreview] = useState<string | null>(null)
+  const [iconUploading, setIconUploading] = useState(false)
+  const iconFileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { loadData() }, [])
 
@@ -24,13 +27,26 @@ export default function AnimationStylesPage() {
   }
 
   function openNew() {
-    setEditId(null); setForm({ ...EMPTY_FORM, sort_order: styles.length + 1 }); setModalOpen(true)
+    setEditId(null); setForm({ ...EMPTY_FORM, sort_order: styles.length + 1 }); setIconPreview(null); setModalOpen(true)
   }
 
   function openEdit(style: any) {
     setEditId(style.id)
-    setForm({ label: style.label, slug: style.slug, prompt_template: style.prompt_template || '', mood_hints: (style.mood_hints || []).join(', '), model: style.model || 'seedance', task_type: style.task_type || 'seedance-2-fast-preview', sort_order: style.sort_order || 0, requires_mascot_image: style.requires_mascot_image || false, active: style.active !== false })
+    setForm({ label: style.label, slug: style.slug, prompt_template: style.prompt_template || '', mood_hints: (style.mood_hints || []).join(', '), model: style.model || 'seedance', task_type: style.task_type || 'seedance-2-fast-preview', sort_order: style.sort_order || 0, requires_mascot_image: style.requires_mascot_image || false, active: style.active !== false, description_tr: style.description_tr || '' })
+    setIconPreview(style.icon_path || null)
     setModalOpen(true)
+  }
+
+  async function handleIconUpload() {
+    const file = iconFileRef.current?.files?.[0]; if (!file || !editId) return
+    setIconUploading(true)
+    const fd = new FormData(); fd.append('file', file)
+    try {
+      const res = await fetch(`/api/admin/animation-styles/${editId}/icon-upload`, { method: 'POST', body: fd })
+      const data = await res.json()
+      if (data.icon_path) { setIconPreview(data.icon_path); setStyles(prev => prev.map(s => s.id === editId ? { ...s, icon_path: data.icon_path } : s)) }
+    } catch {}
+    setIconUploading(false)
   }
 
   async function handleSave() {
@@ -73,7 +89,7 @@ export default function AnimationStylesPage() {
                 <span style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>{style.label}</span>
                 {style.requires_mascot_image && <span style={{ fontSize: '8px', padding: '1px 5px', background: 'rgba(245,158,11,0.1)', color: '#f59e0b', letterSpacing: '0.5px' }}>MASKOT</span>}
               </div>
-              <div style={{ fontSize: '11px', color: '#888', marginTop: '2px' }}>{style.slug} · {style.model}</div>
+              <div style={{ fontSize: '11px', color: '#888', marginTop: '2px' }}>{style.slug} · {style.model}{style.description_tr ? ` · ${style.description_tr}` : ''}</div>
             </div>
             <button onClick={() => openEdit(style)} style={{ padding: '4px 10px', background: '#fff', color: '#555', border: '1px solid #e8e7e3', fontSize: '10px', cursor: 'pointer' }}>Düzenle</button>
             <button onClick={() => handleDelete(style.id, style.label)} style={{ padding: '4px 10px', background: '#fff', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', fontSize: '10px', cursor: 'pointer' }}>Sil</button>
@@ -101,6 +117,10 @@ export default function AnimationStylesPage() {
                 <div style={{ fontSize: '10px', color: '#888', marginBottom: '2px' }}>LABEL</div>
                 <input value={form.label} onChange={e => setForm({ ...form, label: e.target.value })} style={{ width: '100%', padding: '6px 8px', border: '1px solid #e5e4db', fontSize: '12px', boxSizing: 'border-box' }} />
               </div>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <div style={{ fontSize: '10px', color: '#888', marginBottom: '2px' }}>ACIKLAMA (Turkce, kisa, 2-4 kelime)</div>
+                <input value={form.description_tr} onChange={e => setForm({ ...form, description_tr: e.target.value })} placeholder="Sicak, duygulu" style={{ width: '100%', padding: '6px 8px', border: '1px solid #e5e4db', fontSize: '12px', boxSizing: 'border-box' }} />
+              </div>
               <div>
                 <div style={{ fontSize: '10px', color: '#888', marginBottom: '2px' }}>MODEL</div>
                 <input value={form.model} onChange={e => setForm({ ...form, model: e.target.value })} style={{ width: '100%', padding: '6px 8px', border: '1px solid #e5e4db', fontSize: '12px', boxSizing: 'border-box' }} />
@@ -122,6 +142,21 @@ export default function AnimationStylesPage() {
               <div style={{ fontSize: '10px', color: '#888', marginBottom: '2px' }}>PROMPT TEMPLATE</div>
               <textarea value={form.prompt_template} onChange={e => setForm({ ...form, prompt_template: e.target.value })} rows={12} style={{ width: '100%', padding: '8px', border: '1px solid #e5e4db', fontSize: '11px', fontFamily: 'monospace', lineHeight: 1.5, resize: 'vertical', boxSizing: 'border-box' }} />
             </div>
+            {editId && (
+              <div style={{ marginBottom: '12px' }}>
+                <div style={{ fontSize: '10px', color: '#888', marginBottom: '6px' }}>İKON</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ width: '64px', height: '64px', background: '#f5f4f0', border: '1px dashed #ccc', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden', flexShrink: 0 }} onClick={() => iconFileRef.current?.click()}>
+                    {iconPreview ? <img src={iconPreview} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: '20px', color: '#ccc' }}>+</span>}
+                  </div>
+                  <div>
+                    <button onClick={() => iconFileRef.current?.click()} disabled={iconUploading} style={{ padding: '4px 12px', background: '#fff', border: '1px solid #e5e4db', fontSize: '10px', cursor: 'pointer', color: '#555' }}>{iconUploading ? 'Yukleniyor...' : iconPreview ? 'Degistir' : 'Yukle'}</button>
+                    {iconPreview && <div style={{ fontSize: '9px', color: '#22c55e', marginTop: '4px' }}>Yuklu</div>}
+                  </div>
+                  <input ref={iconFileRef} type="file" accept="image/png,image/jpeg,image/webp" style={{ display: 'none' }} onChange={handleIconUpload} />
+                </div>
+              </div>
+            )}
             <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', cursor: 'pointer' }}>
                 <input type="checkbox" checked={form.requires_mascot_image} onChange={e => setForm({ ...form, requires_mascot_image: e.target.checked })} /> Maskot görseli gerektirir

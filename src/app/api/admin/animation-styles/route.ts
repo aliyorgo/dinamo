@@ -11,7 +11,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
-  const { slug, label, prompt_template, mood_hints, model, task_type, sort_order, requires_mascot_image, active, icon_path } = body
+  const { slug, label, prompt_template, mood_hints, model, task_type, sort_order, requires_mascot_image, active, icon_path, description_tr } = body
   if (!slug || !label) return NextResponse.json({ error: 'slug ve label zorunlu' }, { status: 400 })
 
   const moodArr = typeof mood_hints === 'string' ? mood_hints.split(',').map((s: string) => s.trim()).filter(Boolean) : (mood_hints || [])
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     slug, label, prompt_template: prompt_template || '', mood_hints: moodArr,
     model: model || 'seedance', task_type: task_type || 'seedance-2-fast-preview',
     sort_order: sort_order || 0, requires_mascot_image: requires_mascot_image || false,
-    active: active !== false, icon_path: icon_path || null,
+    active: active !== false, icon_path: icon_path || null, description_tr: description_tr || null,
   }).select().single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json(data, { status: 201 })

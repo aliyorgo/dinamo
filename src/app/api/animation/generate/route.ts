@@ -6,7 +6,7 @@ const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env
 
 export async function POST(req: NextRequest) {
   try {
-    const { brief_id, style_slug, client_user_id } = await req.json()
+    const { brief_id, style_slug, client_user_id, voiceover_text } = await req.json()
     if (!brief_id || !style_slug || !client_user_id) return NextResponse.json({ error: 'brief_id, style_slug, client_user_id gerekli' }, { status: 400 })
 
     // Verify style exists and is active
@@ -39,6 +39,7 @@ export async function POST(req: NextRequest) {
       style_slug,
       version: nextVersion,
       status: 'queued',
+      script: voiceover_text || null,
       credit_cost_generate: creditCost,
     }).select('id').single()
     if (insErr) return NextResponse.json({ error: insErr.message }, { status: 500 })

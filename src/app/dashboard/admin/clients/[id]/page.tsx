@@ -319,14 +319,19 @@ function MascotManager({ clientId }: { clientId: string }) {
   const [mascotUrl, setMascotUrl] = useState('')
   const [mascotName, setMascotName] = useState('')
   const [mascotDesc, setMascotDesc] = useState('')
+  const [mascotOnlyIcon, setMascotOnlyIcon] = useState('')
+  const [mascotHybridIcon, setMascotHybridIcon] = useState('')
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
+  const [iconUploading, setIconUploading] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+  const iconOnlyRef = useRef<HTMLInputElement>(null)
+  const iconHybridRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    supabase.from('clients').select('mascot_enabled, mascot_image_url, mascot_name, mascot_description').eq('id', clientId).single().then(({ data }) => {
-      if (data) { setMascotEnabled(data.mascot_enabled || false); setMascotUrl(data.mascot_image_url || ''); setMascotName(data.mascot_name || ''); setMascotDesc(data.mascot_description || '') }
+    supabase.from('clients').select('mascot_enabled, mascot_image_url, mascot_name, mascot_description, mascot_only_icon_url, mascot_hybrid_icon_url').eq('id', clientId).single().then(({ data }) => {
+      if (data) { setMascotEnabled(data.mascot_enabled || false); setMascotUrl(data.mascot_image_url || ''); setMascotName(data.mascot_name || ''); setMascotDesc(data.mascot_description || ''); setMascotOnlyIcon(data.mascot_only_icon_url || ''); setMascotHybridIcon(data.mascot_hybrid_icon_url || '') }
       setLoading(false)
     })
   }, [clientId])
@@ -339,6 +344,22 @@ function MascotManager({ clientId }: { clientId: string }) {
     const data = await res.json()
     if (data.mascot_image_url) setMascotUrl(data.mascot_image_url)
     setUploading(false)
+  }
+
+  async function handleIconUpload(style: 'mascot_only' | 'mascot_hybrid') {
+    const ref = style === 'mascot_only' ? iconOnlyRef : iconHybridRef
+    const file = ref.current?.files?.[0]; if (!file) return
+    setIconUploading(style)
+    const fd = new FormData(); fd.append('file', file); fd.append('style', style)
+    try {
+      const res = await fetch(`/api/admin/clients/${clientId}/mascot-icon-upload`, { method: 'POST', body: fd })
+      const data = await res.json()
+      if (data.icon_url) {
+        if (style === 'mascot_only') setMascotOnlyIcon(data.icon_url)
+        else setMascotHybridIcon(data.icon_url)
+      }
+    } catch {}
+    setIconUploading(null)
   }
 
   async function handleSave() {
@@ -354,7 +375,7 @@ function MascotManager({ clientId }: { clientId: string }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
         <div>
           <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: '500' }}>MASKOT</div>
-          <div style={{ fontSize: '11px', color: '#aaa', marginTop: '2px' }}>Marka maskotunu animasyonlarda kullanmak için aktive edin</div>
+          <div style={{ fontSize: '11px', color: '#aaa', marginTop: '2px' }}>Marka maskotunu animasyonlarda kullanmak icin aktive edin</div>
         </div>
         <button onClick={() => setMascotEnabled(!mascotEnabled)} style={{ width: '44px', height: '24px', borderRadius: '100px', border: 'none', cursor: 'pointer', background: mascotEnabled ? '#22c55e' : '#ddd', position: 'relative', transition: 'background 0.2s' }}>
           <span style={{ position: 'absolute', top: '3px', left: mascotEnabled ? '23px' : '3px', width: '18px', height: '18px', borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }} />
@@ -368,20 +389,44 @@ function MascotManager({ clientId }: { clientId: string }) {
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ marginBottom: '8px' }}>
-                <div style={{ fontSize: '10px', color: '#888', marginBottom: '2px' }}>Maskot Adı</div>
+                <div style={{ fontSize: '10px', color: '#888', marginBottom: '2px' }}>Maskot Adi</div>
                 <input value={mascotName} onChange={e => setMascotName(e.target.value)} placeholder="Vadaa" style={{ width: '100%', padding: '6px 8px', border: '1px solid #e5e4db', fontSize: '12px', boxSizing: 'border-box' }} />
               </div>
               <div>
-                <div style={{ fontSize: '10px', color: '#888', marginBottom: '2px' }}>Özellikler</div>
-                <textarea value={mascotDesc} onChange={e => setMascotDesc(e.target.value.slice(0, 300))} maxLength={300} rows={2} placeholder="Turuncu kedicik, meraklı, sevimli..." style={{ width: '100%', padding: '6px 8px', border: '1px solid #e5e4db', fontSize: '12px', resize: 'vertical', boxSizing: 'border-box' }} />
+                <div style={{ fontSize: '10px', color: '#888', marginBottom: '2px' }}>Ozellikler</div>
+                <textarea value={mascotDesc} onChange={e => setMascotDesc(e.target.value.slice(0, 300))} maxLength={300} rows={2} placeholder="Turuncu kedicik, merakli, sevimli..." style={{ width: '100%', padding: '6px 8px', border: '1px solid #e5e4db', fontSize: '12px', resize: 'vertical', boxSizing: 'border-box' }} />
                 <div style={{ fontSize: '9px', color: '#aaa', textAlign: 'right' }}>{mascotDesc.length}/300</div>
               </div>
             </div>
           </div>
           <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleUpload} />
-          {uploading && <div style={{ fontSize: '10px', color: '#888', marginBottom: '8px' }}>Yükleniyor...</div>}
-          <button onClick={handleSave} disabled={saving || (mascotEnabled && !mascotUrl)} style={{ padding: '7px 16px', background: '#0a0a0a', color: '#fff', border: 'none', fontSize: '11px', cursor: 'pointer', opacity: saving || (mascotEnabled && !mascotUrl) ? 0.5 : 1 }}>{saving ? 'Kaydediliyor...' : 'Kaydet'}</button>
-          {mascotEnabled && !mascotUrl && <span style={{ fontSize: '10px', color: '#ef4444', marginLeft: '8px' }}>Maskot görseli yükleyin</span>}
+          {uploading && <div style={{ fontSize: '10px', color: '#888', marginBottom: '8px' }}>Yukleniyor...</div>}
+
+          {/* Stil Ikonlari */}
+          <div style={{ borderTop: '1px solid #f0f0ee', marginTop: '12px', paddingTop: '12px' }}>
+            <div style={{ fontSize: '10px', color: '#888', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>STİL İKONLARI</div>
+            <div style={{ display: 'flex', gap: '20px' }}>
+              {[
+                { key: 'mascot_only' as const, label: 'MASKOT', icon: mascotOnlyIcon, ref: iconOnlyRef },
+                { key: 'mascot_hybrid' as const, label: 'MASKOT + REEL', icon: mascotHybridIcon, ref: iconHybridRef },
+              ].map(item => (
+                <div key={item.key} style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '9px', color: '#888', marginBottom: '4px', letterSpacing: '0.5px' }}>{item.label}</div>
+                  <div style={{ width: '72px', height: '72px', background: '#f5f4f0', border: '1px dashed #ccc', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden', marginBottom: '4px' }} onClick={() => item.ref.current?.click()}>
+                    {item.icon ? <img src={item.icon} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} /> : <span style={{ fontSize: '18px', color: '#ccc' }}>+</span>}
+                  </div>
+                  <button onClick={() => item.ref.current?.click()} disabled={iconUploading === item.key} style={{ padding: '2px 8px', background: '#fff', border: '1px solid #e5e4db', fontSize: '9px', cursor: 'pointer', color: '#555' }}>{iconUploading === item.key ? 'Yukleniyor...' : item.icon ? 'Degistir' : 'Yukle'}</button>
+                  <input ref={item.ref} type="file" accept="image/png,image/jpeg,image/webp" style={{ display: 'none' }} onChange={() => handleIconUpload(item.key)} />
+                </div>
+              ))}
+            </div>
+            <div style={{ fontSize: '9px', color: '#aaa', marginTop: '6px' }}>Yuklu degilse global stil ikonu kullanilir</div>
+          </div>
+
+          <div style={{ marginTop: '12px' }}>
+            <button onClick={handleSave} disabled={saving || (mascotEnabled && !mascotUrl)} style={{ padding: '7px 16px', background: '#0a0a0a', color: '#fff', border: 'none', fontSize: '11px', cursor: 'pointer', opacity: saving || (mascotEnabled && !mascotUrl) ? 0.5 : 1 }}>{saving ? 'Kaydediliyor...' : 'Kaydet'}</button>
+            {mascotEnabled && !mascotUrl && <span style={{ fontSize: '10px', color: '#ef4444', marginLeft: '8px' }}>Maskot gorseli yukleyin</span>}
+          </div>
         </div>
       )}
     </div>
