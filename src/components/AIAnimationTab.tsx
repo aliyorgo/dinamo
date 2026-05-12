@@ -33,6 +33,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
 
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null)
   const [voiceoverText, setVoiceoverText] = useState('')
+  const [styleVoiceovers, setStyleVoiceovers] = useState<Record<string, string>>({})
   const [voiceoverLoading, setVoiceoverLoading] = useState(false)
   const [animationVideos, setAnimationVideos] = useState<any[]>([])
   const [generating, setGenerating] = useState(false)
@@ -102,7 +103,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
     const [stylesRes, { data: videos }, { data: fb }] = await Promise.all([
       fetch(`/api/animation/styles?client_id=${brief?.client_id || ''}`).then(r => r.json()),
       supabase.from('animation_videos').select('*, animation_styles(label, icon_path)').eq('brief_id', briefId).order('created_at', { ascending: true }),
-      supabase.from('briefs').select('animation_feedbacks, last_animation_style, last_animation_voiceover, animation_settings').eq('id', briefId).single(),
+      supabase.from('briefs').select('animation_feedbacks, last_animation_style, animation_voiceovers, animation_settings').eq('id', briefId).single(),
     ])
     setStyles(stylesRes.styles || [])
     setHasMascot(stylesRes.hasMascot || false)
@@ -112,24 +113,23 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
     if (fb?.animation_settings) setAnimSettings({ logo_enabled: true, cta_enabled: true, packshot_enabled: false, ...fb.animation_settings })
 
     const stickyStyle = fb?.last_animation_style
-    const stickyVoiceover = fb?.last_animation_voiceover
-    console.log('[STICKY READ]', { stickyStyle, stickyVoiceover, voLen: stickyVoiceover?.length })
+    const voiceovers = fb?.animation_voiceovers || {}
+    setStyleVoiceovers(voiceovers)
 
-    // Sticky read: both exist → use cached, skip Claude (Persona pattern)
-    if (stickyStyle && stickyVoiceover) {
-      console.log('[STICKY HIT] Claude atlanir')
+    if (stickyStyle) {
       setSelectedStyle(stickyStyle)
-      setSuggestedSlug(stickyStyle)
-      setVoiceoverText(stickyVoiceover)
-      suggestedRef.current = true
-      setLoading(false)
-      return
+      const cachedVo = voiceovers[stickyStyle]
+      if (cachedVo) {
+        setSuggestedSlug(stickyStyle)
+        setVoiceoverText(cachedVo)
+        suggestedRef.current = true
+        setLoading(false)
+        return
+      }
     }
-
-    if (stickyStyle) setSelectedStyle(stickyStyle)
     setLoading(false)
 
-    // No sticky → Claude suggest (first time only)
+    // No sticky voiceover for current style → Claude suggest (first time only)
     if (!suggestedRef.current && (stylesRes.styles || []).length > 0) {
       suggestedRef.current = true
       setSuggestLoading(true)
@@ -139,11 +139,11 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
         if (sd.suggestedStyleSlug) {
           setSuggestedSlug(sd.suggestedStyleSlug)
           if (!stickyStyle) setSelectedStyle(sd.suggestedStyleSlug)
-          // Persist sticky — only write voiceover if truthy
-          const persistUpdate: any = { last_animation_style: sd.suggestedStyleSlug }
-          if (sd.voiceoverText) persistUpdate.last_animation_voiceover = sd.voiceoverText
-          console.log('[STICKY WRITE suggest]', persistUpdate)
-          await supabase.from('briefs').update(persistUpdate).eq('id', briefId)
+          if (sd.voiceoverText) {
+            const newVo = { ...voiceovers, [sd.suggestedStyleSlug]: sd.voiceoverText }
+            setStyleVoiceovers(newVo)
+            await supabase.from('briefs').update({ last_animation_style: sd.suggestedStyleSlug, animation_voiceovers: newVo }).eq('id', briefId)
+          }
         }
         if (sd.voiceoverText) setVoiceoverText(sd.voiceoverText)
       } catch {}
@@ -151,17 +151,15 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
     }
   }
 
-  async function persistSticky(style?: string, voiceover?: string) {
-    const updates: any = {}
-    if (style !== undefined) updates.last_animation_style = style
-    if (voiceover !== undefined && voiceover.trim()) updates.last_animation_voiceover = voiceover
-    else if (voiceover !== undefined) console.log('[STICKY SKIP] bos voiceover, yazilmadi')
-    if (Object.keys(updates).length > 0) {
-      console.log('[STICKY WRITE persist]', updates)
-      const { error } = await supabase.from('briefs').update(updates).eq('id', briefId)
-      if (error) console.error('[STICKY WRITE ERROR]', error)
-      else console.log('[STICKY SAVED]', updates)
-    }
+  async function persistStyleVoiceover(styleSlug: string, voiceover: string) {
+    const newVo = { ...styleVoiceovers, [styleSlug]: voiceover }
+    setStyleVoiceovers(newVo)
+    const { error } = await supabase.from('briefs').update({ last_animation_style: styleSlug, animation_voiceovers: newVo }).eq('id', briefId)
+    if (error) console.error('[STICKY WRITE ERROR]', error)
+  }
+
+  function persistStyleOnly(styleSlug: string) {
+    supabase.from('briefs').update({ last_animation_style: styleSlug }).eq('id', briefId)
   }
 
   async function handleGenerateVoiceover() {
@@ -170,7 +168,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
     try {
       const res = await fetch('/api/animation/generate-voiceover', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, style_slug: selectedStyle }) })
       const data = await res.json()
-      if (data.voiceoverText) { console.log('[CLAUDE VO btn]', { text: data.voiceoverText.substring(0, 50) }); setVoiceoverText(data.voiceoverText); persistSticky(selectedStyle || undefined, data.voiceoverText) }
+      if (data.voiceoverText && selectedStyle) { setVoiceoverText(data.voiceoverText); persistStyleVoiceover(selectedStyle, data.voiceoverText) }
     } catch {}
     setVoiceoverLoading(false)
   }
@@ -425,7 +423,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
                     </button>
                     <span style={{ fontSize: '13px', fontWeight: '500', color: wordCount > 30 ? '#ef4444' : wordCount >= 25 ? '#22c55e' : wordCount >= 15 ? '#f59e0b' : '#888' }}>{wordCount} / 30</span>
                   </div>
-                  <textarea value={voiceoverText} onChange={e => setVoiceoverText(e.target.value)} onBlur={() => { if (voiceoverText.trim()) persistSticky(selectedStyle || undefined, voiceoverText.trim()) }} placeholder={voiceoverLoading ? 'Üretiliyor...' : 'Bu stil için dış ses metni henüz üretilmedi. DIŞ SES METNİ YAZ butonuna basın veya buraya yazın.'} style={{ width: '100%', flex: 1, minHeight: '80px', fontSize: '13px', color: '#0a0a0a', lineHeight: 1.6, border: '1px solid #e5e4db', padding: '10px 12px', resize: 'none', boxSizing: 'border-box' }} />
+                  <textarea value={voiceoverText} onChange={e => setVoiceoverText(e.target.value)} onBlur={() => { if (voiceoverText.trim() && selectedStyle) persistStyleVoiceover(selectedStyle, voiceoverText.trim()) }} placeholder={voiceoverLoading ? 'Üretiliyor...' : 'Bu stil için dış ses metni henüz üretilmedi. DIŞ SES METNİ YAZ butonuna basın veya buraya yazın.'} style={{ width: '100%', flex: 1, minHeight: '80px', fontSize: '13px', color: '#0a0a0a', lineHeight: 1.6, border: '1px solid #e5e4db', padding: '10px 12px', resize: 'none', boxSizing: 'border-box' }} />
                   <button onClick={handleGenerate} disabled={generating || !selectedStyle || !voiceoverText.trim() || credits < 1} style={{ width: '100%', padding: '12px', marginTop: '10px', background: (generating || !selectedStyle || !voiceoverText.trim() || credits < 1) ? '#ccc' : '#0a0a0a', color: '#fff', border: 'none', fontSize: '13px', fontWeight: '600', cursor: (generating || !voiceoverText.trim()) ? 'default' : 'pointer' }}>
                     {totalCount === 0 ? 'ÜRET (ÜCRETSİZ)' : 'ÜRET (1 KREDİ)'}
                   </button>
@@ -446,9 +444,10 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
 
           const styleClick = (slug: string) => {
             if (slug === selectedStyle) return
+            const cachedVo = styleVoiceovers[slug] || ''
             setStyleFading(true); setVoiceoverText('')
-            persistSticky(slug, '')
-            setTimeout(() => { setSelectedStyle(slug); setStyleFading(false) }, 150)
+            persistStyleOnly(slug)
+            setTimeout(() => { setSelectedStyle(slug); setVoiceoverText(cachedVo); setStyleFading(false) }, 150)
           }
 
           return (
