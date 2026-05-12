@@ -6,7 +6,7 @@ const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env
 
 export async function POST(req: NextRequest) {
   try {
-  const { brief_id, client_user_id } = await req.json()
+  const { brief_id, client_user_id, express_engine = 'seedance' } = await req.json()
   if (!brief_id || !client_user_id) return NextResponse.json({ error: 'brief_id ve client_user_id gerekli' }, { status: 400 })
 
   const { data: brief } = await supabase.from('briefs').select('id, client_id, root_campaign_id, campaign_name, format, video_type, product_image_url, message, voiceover_text, voiceover_type, voiceover_gender, cta, target_audience, platforms, notes, languages, selected_ai_idea').eq('id', brief_id).single()
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     client_id: brief.client_id,
     client_user_id,
     brief_type: 'express_clone',
-    express_engine: 'seedance',
+    express_engine: express_engine === 'seedance_hq' ? 'seedance_hq' : 'seedance',
     format: brief.format,
     message: ideaContext + (brief.message || ''),
     voiceover_text: brief.voiceover_text,
