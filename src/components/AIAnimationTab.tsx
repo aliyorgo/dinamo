@@ -114,8 +114,6 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
     const stickyStyle = fb?.last_animation_style
     const stickyVoiceover = fb?.last_animation_voiceover
 
-    console.log('[STICKY DEBUG]', { stickyStyle, stickyVoiceover, fbKeys: fb ? Object.keys(fb) : 'null', rawFb: JSON.stringify(fb).substring(0, 300) })
-
     // Sticky read: both exist → use cached, skip Claude (Persona pattern)
     if (stickyStyle && stickyVoiceover) {
       setSelectedStyle(stickyStyle)
@@ -153,9 +151,8 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
   async function persistSticky(style?: string, voiceover?: string) {
     const updates: any = {}
     if (style !== undefined) updates.last_animation_style = style
-    if (voiceover !== undefined) updates.last_animation_voiceover = voiceover
+    if (voiceover !== undefined && voiceover.trim()) updates.last_animation_voiceover = voiceover
     if (Object.keys(updates).length > 0) {
-      console.log('[STICKY WRITE]', { briefId, updates })
       const { error } = await supabase.from('briefs').update(updates).eq('id', briefId)
       if (error) console.error('[STICKY WRITE ERROR]', error)
     }
