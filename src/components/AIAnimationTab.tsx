@@ -141,8 +141,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
           if (!stickyStyle) setSelectedStyle(sd.suggestedStyleSlug)
           if (sd.voiceoverText) {
             const newVo = { ...voiceovers, [sd.suggestedStyleSlug]: sd.voiceoverText }
-            setStyleVoiceovers(newVo)
-            await supabase.from('briefs').update({ last_animation_style: sd.suggestedStyleSlug, animation_voiceovers: newVo }).eq('id', briefId)
+            persistAnimVoiceovers(newVo, sd.suggestedStyleSlug)
           }
         }
         if (sd.voiceoverText) setVoiceoverText(sd.voiceoverText)
@@ -151,15 +150,26 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
     }
   }
 
-  async function persistStyleVoiceover(styleSlug: string, voiceover: string) {
-    const newVo = { ...styleVoiceovers, [styleSlug]: voiceover }
+  async function persistAnimVoiceovers(newVo: Record<string, string>, styleSlug?: string) {
     setStyleVoiceovers(newVo)
-    const { error } = await supabase.from('briefs').update({ last_animation_style: styleSlug, animation_voiceovers: newVo }).eq('id', briefId)
-    if (error) console.error('[STICKY WRITE ERROR]', error)
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.access_token) return
+    fetch(`/api/briefs/${briefId}/animation-voiceovers`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+      body: JSON.stringify({ animation_voiceovers: newVo, last_animation_style: styleSlug || undefined })
+    })
   }
 
   function persistStyleOnly(styleSlug: string) {
-    supabase.from('briefs').update({ last_animation_style: styleSlug }).eq('id', briefId)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session?.access_token) return
+      fetch(`/api/briefs/${briefId}/animation-voiceovers`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+        body: JSON.stringify({ last_animation_style: styleSlug })
+      })
+    })
   }
 
   async function handleGenerateVoiceover() {
@@ -168,7 +178,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
     try {
       const res = await fetch('/api/animation/generate-voiceover', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, style_slug: selectedStyle }) })
       const data = await res.json()
-      if (data.voiceoverText && selectedStyle) { setVoiceoverText(data.voiceoverText); persistStyleVoiceover(selectedStyle, data.voiceoverText) }
+      if (data.voiceoverText && selectedStyle) { setVoiceoverText(data.voiceoverText); persistAnimVoiceovers({ ...styleVoiceovers, [selectedStyle]: data.voiceoverText }, selectedStyle) }
     } catch {}
     setVoiceoverLoading(false)
   }
@@ -423,7 +433,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
                     </button>
                     <span style={{ fontSize: '13px', fontWeight: '500', color: wordCount > 30 ? '#ef4444' : wordCount >= 25 ? '#22c55e' : wordCount >= 15 ? '#f59e0b' : '#888' }}>{wordCount} / 30</span>
                   </div>
-                  <textarea value={voiceoverText} onChange={e => setVoiceoverText(e.target.value)} onBlur={() => { if (voiceoverText.trim() && selectedStyle) persistStyleVoiceover(selectedStyle, voiceoverText.trim()) }} placeholder={voiceoverLoading ? 'Üretiliyor...' : 'Bu stil için dış ses metni henüz üretilmedi. DIŞ SES METNİ YAZ butonuna basın veya buraya yazın.'} style={{ width: '100%', flex: 1, minHeight: '80px', fontSize: '13px', color: '#0a0a0a', lineHeight: 1.6, border: '1px solid #e5e4db', padding: '10px 12px', resize: 'none', boxSizing: 'border-box' }} />
+                  <textarea value={voiceoverText} onChange={e => setVoiceoverText(e.target.value)} onBlur={() => { if (voiceoverText.trim() && selectedStyle && voiceoverText !== (styleVoiceovers[selectedStyle] || '')) persistAnimVoiceovers({ ...styleVoiceovers, [selectedStyle]: voiceoverText.trim() }, selectedStyle) }} placeholder={voiceoverLoading ? 'Üretiliyor...' : 'Bu stil için dış ses metni henüz üretilmedi. DIŞ SES METNİ YAZ butonuna basın veya buraya yazın.'} style={{ width: '100%', flex: 1, minHeight: '80px', fontSize: '13px', color: '#0a0a0a', lineHeight: 1.6, border: '1px solid #e5e4db', padding: '10px 12px', resize: 'none', boxSizing: 'border-box' }} />
                   <button onClick={handleGenerate} disabled={generating || !selectedStyle || !voiceoverText.trim() || credits < 1} style={{ width: '100%', padding: '12px', marginTop: '10px', background: (generating || !selectedStyle || !voiceoverText.trim() || credits < 1) ? '#ccc' : '#0a0a0a', color: '#fff', border: 'none', fontSize: '13px', fontWeight: '600', cursor: (generating || !voiceoverText.trim()) ? 'default' : 'pointer' }}>
                     {totalCount === 0 ? 'ÜRET (ÜCRETSİZ)' : 'ÜRET (1 KREDİ)'}
                   </button>
