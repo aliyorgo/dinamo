@@ -1355,7 +1355,7 @@ function ClientBriefDetail() {
                           <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'4px'}}>
                             <span style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>V{idx+1}</span>
                             {isPurchased && <span style={{fontSize:'9px',color:'#1DB81D',fontWeight:'600'}}>&#10003; Satın Alındı</span>}
-                            {isProcessing && <span style={{fontSize:'9px',fontWeight:'500',display:'inline-flex',alignItems:'center',gap:'4px'}}><span className="dot" style={{width:'6px',height:'6px',background:'#4ade80',display:'inline-block',animation:'pulse 1.5s ease infinite'}}></span><span style={{color:'#0a0a0a'}}>Üretiliyor</span> <span style={{color:'#6b6b66'}}>(~5 dakika)</span></span>}
+                            {isProcessing && <span style={{fontSize:'9px',fontWeight:'500',display:'inline-flex',alignItems:'center',gap:'4px'}}><span className="dot" style={{width:'6px',height:'6px',background:'#4ade80',display:'inline-block',animation:'pulse 1.5s ease infinite'}}></span><span style={{color:'#0a0a0a'}}>Üretiliyor</span> <span style={{color:'#6b6b66'}}>(~{child.express_engine === 'seedance_hq' ? '10' : '5'} dakika)</span></span>}
                             {isFailed && <span style={{fontSize:'9px',color:'#ef4444',fontWeight:'500'}}>Başarısız</span>}
                             {child.ai_express_settings_snapshot && (() => { const s = child.ai_express_settings_snapshot; const badges = []; if (s.logo) badges.push('LOGO'); if (s.cta) badges.push('CTA'); if (s.packshot) badges.push('PACKSHOT'); return badges.length > 0 ? <span style={{display:'inline-flex',gap:'4px',marginLeft:'6px'}}>{badges.map((b: string)=><span key={b} style={{fontSize:'9px',padding:'2px 6px',background:'#f5f4f0',color:'#888',letterSpacing:'0.5px',fontWeight:600}}>{b}</span>)}</span> : null })()}
                           </div>
@@ -1498,7 +1498,7 @@ function ClientBriefDetail() {
                             Dış Ses
                           </button>
                         </div>
-                        <div style={{fontSize:'13px',color:'#999',textAlign:'center',marginTop:'6px'}}>{aiChildren.filter(c => c.ai_video_status === 'completed' || c.status === 'delivered').length > 0 ? `~5 dakika · ${creditSettings?.credit_ai_express_generate || 1} kredi` : `~5 dakika · İlk deneme ücretsiz · ${creditSettings?.credit_ai_express || 1} kredi satın alma`}</div>
+                        <div style={{fontSize:'13px',color:'#999',textAlign:'center',marginTop:'6px'}}>{aiChildren.filter(c => c.ai_video_status === 'completed' || c.status === 'delivered').length > 0 ? `~${expressHQ ? '10' : '5'} dakika · ${creditSettings?.credit_ai_express_generate || 1} kredi` : `~${expressHQ ? '10' : '5'} dakika · İlk deneme ücretsiz · ${creditSettings?.credit_ai_express || 1} kredi satın alma`}</div>
                       </div>
                     )}
                   </div>}
