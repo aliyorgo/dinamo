@@ -137,8 +137,10 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
         if (sd.suggestedStyleSlug) {
           setSuggestedSlug(sd.suggestedStyleSlug)
           if (!stickyStyle) setSelectedStyle(sd.suggestedStyleSlug)
-          // Persist sticky
-          await supabase.from('briefs').update({ last_animation_style: sd.suggestedStyleSlug, last_animation_voiceover: sd.voiceoverText || null }).eq('id', briefId)
+          // Persist sticky — only write voiceover if truthy
+          const persistUpdate: any = { last_animation_style: sd.suggestedStyleSlug }
+          if (sd.voiceoverText) persistUpdate.last_animation_voiceover = sd.voiceoverText
+          await supabase.from('briefs').update(persistUpdate).eq('id', briefId)
         }
         if (sd.voiceoverText) setVoiceoverText(sd.voiceoverText)
       } catch {}

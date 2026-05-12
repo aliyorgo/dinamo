@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
       headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-opus-4-20250514', max_tokens: 500,
-        system: `Sen bir animasyon direktörüsün. Verilen brief'e en uygun animasyon stilini seç ve o stilde 25-30 kelimelik Türkçe dış ses metni yaz. JSON dön.`,
+        system: `Sen bir animasyon direktörüsün. Verilen brief'e en uygun animasyon stilini seç ve o stilde 25-30 kelimelik Türkçe dış ses metni yaz. voiceoverText alanı MUTLAKA dolu olmalı, asla boş bırakma. JSON dön.`,
         messages: [{ role: 'user', content: `Brief: ${brief.campaign_name}\nMesaj: ${brief.message || ''}\nHedef Kitle: ${brief.target_audience || ''}\nCTA: ${brief.cta || ''}\n\nMevcut stiller:\n${styleOptions.join('\n')}\n\nJSON formatı: {"suggestedStyleSlug":"slug","voiceoverText":"25-30 kelime Türkçe dış ses"}` }],
       }),
     })
