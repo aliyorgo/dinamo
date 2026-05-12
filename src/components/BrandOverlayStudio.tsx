@@ -10,8 +10,8 @@ const ASPECTS = ['9:16', '1:1', '16:9', '4:5', '2:3'] as const
 const POSITIONS = ['top-left','top-center','top-right','middle-left','middle-center','middle-right','bottom-left','bottom-center','bottom-right'] as const
 const REVEALS = ['none','fade','slide-up','slide-down','slide-left','slide-right','scale-in','blur-in'] as const
 
-const DEFAULT_LOGO = { size_percent: 50, position: 'middle-center', margin_x: 0, margin_y: 0, opacity: 85, shadow_enabled: false, shadow_softness: 8, reveal_effect: 'none', reveal_duration_ms: 0, show_from_end_s: 2.0 }
-const DEFAULT_CTA = { font: 'default', font_size_percent: 6, color: '#ffffff', bg_mode: 'transparent', bg_color: '#000000', bg_opacity: 50, position: 'custom', margin_x: 15, margin_y: 65, padding_x: 0, padding_y: 0, border_radius: 0, shadow_enabled: true, shadow_softness: 4, reveal_effect: 'none', reveal_duration_ms: 0, show_from_s: 5, hide_at_s: 15, show_until_end: false }
+const DEFAULT_LOGO = { size_percent: 50, position: 'middle-center', margin_x_percent: 0, margin_y_percent: 0, opacity: 85, shadow_enabled: false, shadow_softness: 8, reveal_effect: 'none', reveal_duration_ms: 0, show_from_end_s: 2.0 }
+const DEFAULT_CTA = { font: 'default', font_size_percent: 6, color: '#ffffff', bg_mode: 'transparent', bg_color: '#000000', bg_opacity: 50, position: 'custom', margin_x_percent: 15, margin_y_percent: 65, padding_x_percent: 0, padding_y_percent: 0, border_radius: 0, shadow_enabled: true, shadow_softness: 4, reveal_effect: 'none', reveal_duration_ms: 0, show_from_s: 5, hide_at_s: 15, show_until_end: false }
 
 function getSettings(s: any, f: string, a: string) {
   return { logo: { ...DEFAULT_LOGO, ...(s?.[f]?.[a]?.logo || {}) }, cta: { ...DEFAULT_CTA, ...(s?.[f]?.[a]?.cta || {}) } }
@@ -30,12 +30,12 @@ function PositionGrid({ value, onChange }: { value: string; onChange: (v: string
   )
 }
 
-function positionToCSS(pos: string, mx: number, my: number): React.CSSProperties {
-  if (pos === 'custom') return { left: `${mx}%`, top: `${my}%` }
+function positionToCSS(pos: string, mxPct: number, myPct: number): React.CSSProperties {
+  if (pos === 'custom') return { left: `${mxPct}%`, top: `${myPct}%` }
   const p: Record<string, React.CSSProperties> = {
-    'top-left': { top: `${my}px`, left: `${mx}px` }, 'top-center': { top: `${my}px`, left: '50%', transform: 'translateX(-50%)' }, 'top-right': { top: `${my}px`, right: `${mx}px` },
-    'middle-left': { top: '50%', left: `${mx}px`, transform: 'translateY(-50%)' }, 'middle-center': { top: '50%', left: '50%', transform: 'translate(-50%,-50%)' }, 'middle-right': { top: '50%', right: `${mx}px`, transform: 'translateY(-50%)' },
-    'bottom-left': { bottom: `${my}px`, left: `${mx}px` }, 'bottom-center': { bottom: `${my}px`, left: '50%', transform: 'translateX(-50%)' }, 'bottom-right': { bottom: `${my}px`, right: `${mx}px` },
+    'top-left': { top: `${myPct}%`, left: `${mxPct}%` }, 'top-center': { top: `${myPct}%`, left: '50%', transform: 'translateX(-50%)' }, 'top-right': { top: `${myPct}%`, right: `${mxPct}%` },
+    'middle-left': { top: '50%', left: `${mxPct}%`, transform: 'translateY(-50%)' }, 'middle-center': { top: '50%', left: '50%', transform: 'translate(-50%,-50%)' }, 'middle-right': { top: '50%', right: `${mxPct}%`, transform: 'translateY(-50%)' },
+    'bottom-left': { bottom: `${myPct}%`, left: `${mxPct}%` }, 'bottom-center': { bottom: `${myPct}%`, left: '50%', transform: 'translateX(-50%)' }, 'bottom-right': { bottom: `${myPct}%`, right: `${mxPct}%` },
   }
   return p[pos] || p['middle-center']
 }
@@ -71,15 +71,17 @@ function LivePreview({ logoSettings, ctaSettings, aspect, previewUrl, logoUrl, i
   const ctaFontPx = Math.round(dims.h * (ctaSettings.font_size_percent / 100))
 
   const logoCSS: React.CSSProperties = {
-    position: 'absolute', ...positionToCSS(logoSettings.position, logoSettings.margin_x, logoSettings.margin_y),
+    position: 'absolute', ...positionToCSS(logoSettings.position, logoSettings.margin_x_percent ?? logoSettings.margin_x ?? 0, logoSettings.margin_y_percent ?? logoSettings.margin_y ?? 0),
     width: `${logoSettings.size_percent}%`, opacity: logoSettings.opacity / 100, pointerEvents: 'none',
     ...(logoSettings.shadow_enabled ? { filter: `drop-shadow(0 2px ${logoSettings.shadow_softness}px rgba(0,0,0,0.5))` } : {}),
   }
 
+  const ctaPadX = Math.round(dims.w * ((ctaSettings.padding_x_percent ?? ctaSettings.padding_x ?? 0) / 100))
+  const ctaPadY = Math.round(dims.h * ((ctaSettings.padding_y_percent ?? ctaSettings.padding_y ?? 0) / 100))
   const ctaCSS: React.CSSProperties = {
-    position: 'absolute', ...positionToCSS(ctaSettings.position, ctaSettings.margin_x, ctaSettings.margin_y),
+    position: 'absolute', ...positionToCSS(ctaSettings.position, ctaSettings.margin_x_percent ?? ctaSettings.margin_x ?? 15, ctaSettings.margin_y_percent ?? ctaSettings.margin_y ?? 65),
     fontSize: `${ctaFontPx}px`, color: ctaSettings.color, fontWeight: 'bold', pointerEvents: 'none', lineHeight: 1.2, maxWidth: '80%',
-    ...(ctaSettings.bg_mode === 'solid' ? { background: ctaSettings.bg_color, padding: `${ctaSettings.padding_y}px ${ctaSettings.padding_x}px`, borderRadius: `${ctaSettings.border_radius}px`, opacity: ctaSettings.bg_opacity / 100 } : {}),
+    ...(ctaSettings.bg_mode === 'solid' ? { background: ctaSettings.bg_color, padding: `${ctaPadY}px ${ctaPadX}px`, borderRadius: `${ctaSettings.border_radius}px`, opacity: ctaSettings.bg_opacity / 100 } : {}),
     ...(ctaSettings.shadow_enabled ? { textShadow: `0 2px ${ctaSettings.shadow_softness}px rgba(0,0,0,0.6)` } : {}),
   }
 
@@ -201,8 +203,8 @@ export default function BrandOverlayStudio({ clientId }: { clientId: string }) {
                       <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Logo</div>
                       <NumInput label="Boy" value={current.logo.size_percent} onChange={v => updateField('logo', 'size_percent', v)} min={5} max={80} suffix="%" />
                       <div style={{ marginBottom: '8px' }}><div style={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}>Konum</div><PositionGrid value={current.logo.position} onChange={v => updateField('logo', 'position', v)} /></div>
-                      <NumInput label="Margin X" value={current.logo.margin_x} onChange={v => updateField('logo', 'margin_x', v)} max={200} suffix="px" />
-                      <NumInput label="Margin Y" value={current.logo.margin_y} onChange={v => updateField('logo', 'margin_y', v)} max={200} suffix="px" />
+                      <NumInput label="Margin X" value={current.logo.margin_x_percent ?? current.logo.margin_x ?? 0} onChange={v => updateField('logo', 'margin_x_percent', v)} max={50} step={0.5} suffix="%" />
+                      <NumInput label="Margin Y" value={current.logo.margin_y_percent ?? current.logo.margin_y ?? 0} onChange={v => updateField('logo', 'margin_y_percent', v)} max={50} step={0.5} suffix="%" />
                       <div style={{ marginBottom: '8px' }}>
                         <div style={{ fontSize: '10px', color: '#888', marginBottom: '2px' }}>Opacity</div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><input type="range" min={0} max={100} value={current.logo.opacity} onChange={e => updateField('logo', 'opacity', parseInt(e.target.value))} style={{ flex: 1 }} /><span style={{ fontSize: '10px', color: '#555', width: '28px' }}>{current.logo.opacity}%</span></div>
@@ -235,8 +237,8 @@ export default function BrandOverlayStudio({ clientId }: { clientId: string }) {
                     </div>
                     {current.cta.bg_mode === 'solid' && (<><div style={{ marginBottom: '6px' }}><div style={{ fontSize: '10px', color: '#888', marginBottom: '2px' }}>BG renk</div><input type="color" value={current.cta.bg_color} onChange={e => updateField('cta', 'bg_color', e.target.value)} style={{ width: '36px', height: '24px', border: '1px solid #e5e4db', cursor: 'pointer' }} /></div><div style={{ marginBottom: '6px' }}><div style={{ fontSize: '10px', color: '#888', marginBottom: '2px' }}>BG opacity</div><div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><input type="range" min={0} max={100} value={current.cta.bg_opacity} onChange={e => updateField('cta', 'bg_opacity', parseInt(e.target.value))} style={{ flex: 1 }} /><span style={{ fontSize: '10px', width: '28px' }}>{current.cta.bg_opacity}%</span></div></div></>)}
                     <div style={{ marginBottom: '6px' }}><div style={{ fontSize: '10px', color: '#888', marginBottom: '3px' }}>Konum</div><PositionGrid value={current.cta.position === 'custom' ? 'bottom-left' : current.cta.position} onChange={v => updateField('cta', 'position', v)} /></div>
-                    <NumInput label="Margin X" value={current.cta.margin_x} onChange={v => updateField('cta', 'margin_x', v)} max={200} suffix="px" />
-                    <NumInput label="Margin Y" value={current.cta.margin_y} onChange={v => updateField('cta', 'margin_y', v)} max={200} suffix="px" />
+                    <NumInput label="Margin X" value={current.cta.margin_x_percent ?? current.cta.margin_x ?? 15} onChange={v => updateField('cta', 'margin_x_percent', v)} max={50} step={0.5} suffix="%" />
+                    <NumInput label="Margin Y" value={current.cta.margin_y_percent ?? current.cta.margin_y ?? 65} onChange={v => updateField('cta', 'margin_y_percent', v)} max={100} step={0.5} suffix="%" />
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}><input type="checkbox" checked={current.cta.shadow_enabled} onChange={e => updateField('cta', 'shadow_enabled', e.target.checked)} /><span style={{ fontSize: '10px' }}>Golge</span></div>
                     <div style={{ marginBottom: '6px' }}>
                       <div style={{ fontSize: '10px', color: '#888', marginBottom: '2px' }}>Reveal</div>
