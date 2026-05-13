@@ -565,7 +565,7 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
                         <textarea
                           value={currentFbText}
                           onChange={e => { if (e.target.value.length <= 200) setFeedbackText(p => ({ ...p, [video.id]: e.target.value })) }}
-                          placeholder="AI Persona videolar şimdilik harika olmayabilir ama gelişebilir. Yorum bırakın — bir sonraki üretimde dikkate alınır."
+                          placeholder="Yorum / revizyon yazın, bir sonraki üretiminiz daha iyi olsun."
                           rows={3}
                           style={{ flex: 1, padding: '12px 14px', border: '0.5px solid rgba(0,0,0,0.1)', fontSize: '11px', color: '#0a0a0a', resize: 'vertical', boxSizing: 'border-box' }}
                         />
