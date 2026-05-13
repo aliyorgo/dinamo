@@ -349,7 +349,10 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
                   {isProcessing && <span style={{ fontSize: '9px', fontWeight: '500', display: 'inline-flex', alignItems: 'center', gap: '4px' }}><span className="dot" style={{ width: '6px', height: '6px', background: '#4ade80', display: 'inline-block', animation: 'pulse 1.5s ease infinite' }} /><span style={{ color: '#0a0a0a' }}>Uretiliyor</span> <span style={{ color: '#6b6b66' }}>(~5 dakika)</span></span>}
                   {isFailed && <span style={{ fontSize: '9px', color: '#ef4444', fontWeight: '500' }}>Basarisiz</span>}
                 </div>
-                {(() => { const dur = formatDuration(video.generating_started_at || video.created_at, video.completed_at); return dur ? <div style={{ fontSize: '10px', color: '#aaa', marginBottom: '6px' }}>{dur}</div> : null })()}
+                <div style={{ fontSize: '11px', color: '#888', marginBottom: '10px' }}>
+                  {new Date(video.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                  {!isFailed && video.completed_at && (() => { const dur = formatDuration(video.generating_started_at || video.created_at, video.completed_at); return dur ? <><span style={{ margin: '0 8px', color: '#ccc' }}>|</span><span style={{ color: '#aaa' }}>{dur}</span></> : null })()}
+                </div>
                 {video.feedback_summary && <div style={{ fontFamily: "'JetBrains Mono','Menlo','Monaco',monospace", fontSize: '11px', color: '#3a3a3a', borderLeft: '2px solid #d4d2cc', paddingLeft: '18px', paddingTop: '8px', paddingBottom: '8px', marginBottom: '8px', lineHeight: 1.6, letterSpacing: '-0.01em' }}>{video.feedback_summary}</div>}
                 {/* Retry — failed */}
                 {isFailed && (
