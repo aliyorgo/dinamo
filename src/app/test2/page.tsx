@@ -298,21 +298,21 @@ export default function HomePage() {
             <div>
               <div style={{ marginBottom: '16px' }}>
                 <div style={{ fontSize: '11px', letterSpacing: '3px', color: '#1db81d', textTransform: 'uppercase', marginBottom: '16px', fontWeight: '400' }}>AI Express</div>
-                <h2 style={{ fontSize: 'clamp(18px, 2.6vw, 27px)', fontWeight: '300', letterSpacing: '-1px', marginBottom: '12px' }}>AI Express — 5 Dakikada Video</h2>
+                <h2 style={{ fontSize: 'clamp(18px, 2.6vw, 27px)', fontWeight: '300', letterSpacing: '-1px', marginBottom: '12px' }}>5 Dakikada Video</h2>
                 <div style={{ display: 'inline-block', padding: '4px 12px', background: 'rgba(29,184,29,0.1)', border: '1px solid rgba(29,184,29,0.2)', fontSize: '11px', color: '#1DB81D', marginBottom: '40px' }}>BETA</div>
               </div>
               <div>
                 <p style={{ fontSize: '18px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.9, marginBottom: '20px', fontWeight: '300' }}>
-                  Brief gonderdiniz. Ekip calisirken yapay zeka da calisiyor.
+                  Brief gönderdiniz. Ekip çalışırken yapay zeka da çalışıyor.
                 </p>
                 <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.9, marginBottom: '20px', fontWeight: '300' }}>
-                  Dinamo AI Express, brief'inizi okur. Marka tonunu, kurumsal renkleri ve hedef kitleyi analiz eder; 5 dakika icinde fikir, gorsel, Turkce seslendirme ve muzik uretir. Yorumlarinizla kendini gelistirir.
+                  Dinamo AI Express, brief'inizi okur. Marka tonunu, kurumsal renkleri ve hedef kitleyi analiz eder; 5 dakika içinde fikir, görsel, Türkçe seslendirme ve müzik üretir. Yorumlarınızla kendini geliştirir.
                 </p>
                 <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.9, marginBottom: '20px', fontWeight: '300' }}>
-                  AI Express'le yayina cikmadan once fikrinizi test edin, hangi mesajin ise yaradigini gorun, kreatif yon belirleyin.
+                  AI Express'le yayına çıkmadan önce fikrinizi test edin, hangi mesajın işe yaradığını görün, kreatif yön belirleyin.
                 </p>
                 <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.3)', marginTop: '16px', letterSpacing: '0.5px' }}>
-                  ~5 dakika · Ilk deneme ucretsiz · {creditSettings?.credit_ai_express || 1} kredi satin alma
+                  ~5 dakika · İlk deneme ücretsiz · {creditSettings?.credit_ai_express || 1} kredi satın alma
                 </p>
               </div>
             </div>
@@ -333,21 +333,21 @@ export default function HomePage() {
             <div>
               <div style={{ marginBottom: '16px' }}>
                 <div style={{ fontSize: '11px', letterSpacing: '3px', color: '#1db81d', textTransform: 'uppercase', marginBottom: '16px', fontWeight: '400' }}>AI Persona</div>
-                <h2 style={{ fontSize: 'clamp(18px, 2.6vw, 27px)', fontWeight: '300', letterSpacing: '-1px', marginBottom: '12px' }}>AI Persona — Influencer Tarzı Dikey Video</h2>
+                <h2 style={{ fontSize: 'clamp(18px, 2.6vw, 27px)', fontWeight: '300', letterSpacing: '-1px', marginBottom: '12px' }}>Influencer Tarzı Dikey Video</h2>
                 <div style={{ display: 'inline-block', padding: '4px 12px', background: 'rgba(29,184,29,0.1)', border: '1px solid rgba(29,184,29,0.2)', fontSize: '11px', color: '#1DB81D', marginBottom: '40px' }}>BETA</div>
               </div>
               <div>
                 <p style={{ fontSize: '18px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.9, marginBottom: '20px', fontWeight: '300' }}>
-                  3 dakikada AI influencer icerigi. Sectiginiz persona, brief'ten uretilen metni dogal ve karakterine uygun sekilde okur.
+                  3 dakikada AI influencer içeriği. Seçtiğiniz persona, brief'ten üretilen metni doğal ve karakterine uygun şekilde okur.
                 </p>
                 <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.9, marginBottom: '20px', fontWeight: '300' }}>
-                  Dinamo AI Persona, briefinizi analiz eder, uygun personayi olusturur ve gercek bir creator izlenimi yaratir.
+                  Dinamo AI Persona, briefinizi analiz eder, uygun personayı oluşturur ve gerçek bir creator izlenimi yaratır.
                 </p>
                 <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.9, marginBottom: '20px', fontWeight: '300' }}>
-                  AI Persona'yla TikTok ve Reels uretimini hizlandirin, hangi tonun markaniz icin dogru oldugunu gorun.
+                  AI Persona'yla TikTok ve Reels üretimini hızlandırın, hangi tonun markanız için doğru olduğunu görün.
                 </p>
                 <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.3)', marginTop: '16px', letterSpacing: '0.5px' }}>
-                  ~3 dakika · Ilk deneme ucretsiz · {creditSettings?.credit_ai_ugc || 1} kredi satin alma
+                  ~3 dakika · İlk deneme ücretsiz · {creditSettings?.credit_ai_ugc || 1} kredi satın alma
                 </p>
               </div>
             </div>
@@ -368,21 +368,21 @@ export default function HomePage() {
             <div>
               <div style={{ marginBottom: '16px' }}>
                 <div style={{ fontSize: '11px', letterSpacing: '3px', color: '#1db81d', textTransform: 'uppercase', marginBottom: '16px', fontWeight: '400' }}>AI Animation</div>
-                <h2 style={{ fontSize: 'clamp(18px, 2.6vw, 27px)', fontWeight: '300', letterSpacing: '-1px', marginBottom: '12px' }}>AI Animation — Marka Karakteriyle Animasyon</h2>
+                <h2 style={{ fontSize: 'clamp(18px, 2.6vw, 27px)', fontWeight: '300', letterSpacing: '-1px', marginBottom: '12px' }}>Marka Karakteriyle Animasyon</h2>
                 <div style={{ display: 'inline-block', padding: '4px 12px', background: 'rgba(29,184,29,0.1)', border: '1px solid rgba(29,184,29,0.2)', fontSize: '11px', color: '#1DB81D', marginBottom: '40px' }}>BETA</div>
               </div>
               <div>
                 <p style={{ fontSize: '18px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.9, marginBottom: '20px', fontWeight: '300' }}>
-                  Markanizin maskotunu canlandirin ya da fikrinizi farkli animasyon stillerinde test edin. 5 dakikada brief'ten animasyon.
+                  Markanızın maskotunu canlandırın ya da fikrinizi farklı animasyon stillerinde test edin. 5 dakikada brief'ten animasyon.
                 </p>
                 <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.9, marginBottom: '20px', fontWeight: '300' }}>
-                  Dinamo AI Animation, brief'inizi analiz eder; sahneyi, karakterleri, Turkce seslendirmeyi ve muzigi uretir. Maskotunuz varsa onu da canlandirir — tek basina ya da gercek oyuncularla ayni sahnede.
+                  Dinamo AI Animation, brief'inizi analiz eder; sahneyi, karakterleri, Türkçe seslendirmeyi ve müziği üretir. Maskotunuz varsa onu da canlandırır — tek başına ya da gerçek oyuncularla aynı sahnede.
                 </p>
                 <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.9, marginBottom: '20px', fontWeight: '300' }}>
-                  AI Animation'la studyo maliyetlerine girmeden kampanya fikrinizi farkli stillerde deneyin, sosyal medya icerigini saatler icinde cogaltin.
+                  AI Animation'la stüdyo maliyetlerine girmeden kampanya fikrinizi farklı stillerde deneyin, sosyal medya içeriğini saatler içinde çoğaltın.
                 </p>
                 <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.3)', marginTop: '16px', letterSpacing: '0.5px' }}>
-                  ~5 dakika · Ilk deneme ucretsiz · 1 kredi satin alma
+                  ~5 dakika · İlk deneme ücretsiz · 1 kredi satın alma
                 </p>
               </div>
             </div>
