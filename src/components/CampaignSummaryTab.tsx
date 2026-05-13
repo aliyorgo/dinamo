@@ -241,7 +241,7 @@ export default function CampaignSummaryTab({ brief, companyName, videos, aiChild
                 <div style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '10px' }}>AI ANIMATION · {soldAnimation.length} video</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '16px' }}>
                   {soldAnimation.map((v: any, i: number) => (
-                    <VideoThumb key={v.id} url={v.final_url} label={`Animation V${v.version || i + 1} — ${v.animation_styles?.label || v.style_slug}`} />
+                    <VideoThumb key={v.id} id={`anim-${v.id}`} url={v.final_url} label={`Animation V${v.version || i + 1} — ${v.animation_styles?.label || v.style_slug}`} />
                   ))}
                 </div>
               </div>
