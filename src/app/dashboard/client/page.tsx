@@ -56,6 +56,7 @@ export default function ClientDashboard() {
   const [ugcReadyMap, setUgcReadyMap] = useState<Record<string, any[]>>({})
   const [ugcCountMap, setUgcCountMap] = useState<Record<string, number>>({})
   const [animReadyMap, setAnimReadyMap] = useState<Record<string, any[]>>({})
+  const [animCountMap, setAnimCountMap] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
   // Notifications
   const [notifications, setNotifications] = useState<any[]>([])
@@ -138,6 +139,12 @@ export default function ClientDashboard() {
             animMap[v.brief_id].push(v)
           })
           setAnimReadyMap(animMap)
+
+          // Animation total count per brief (all statuses except failed)
+          const { data: animAll } = await supabase.from('animation_videos').select('brief_id').in('brief_id', briefIds).neq('status', 'failed')
+          const acMap: Record<string, number> = {}
+          animAll?.forEach((v: any) => { acMap[v.brief_id] = (acMap[v.brief_id] || 0) + 1 })
+          setAnimCountMap(acMap)
         }
 
         const withVideoIds = (b || []).filter(br => ['delivered','approved'].includes(br.status)).map(br => br.id)
@@ -285,7 +292,7 @@ export default function ClientDashboard() {
     if (b.animation_status) {
       const animProcessing = b.animation_status === 'queued' || b.animation_status === 'generating'
       const animFailed = b.animation_status === 'failed'
-      const animCount = (animReadyMap[b.id] || []).length
+      const animCount = animCountMap[b.id] || 0
       indicators.push({ label: `ANİMASYON${animCount > 0 ? ` · ${animCount}` : ''}`, pulse: animProcessing, error: animFailed, tab: 'animation' })
     }
     if (b.static_image_files || b.static_images_url) indicators.push({ label: 'GÖRSEL' })
