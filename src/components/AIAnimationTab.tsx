@@ -1,11 +1,11 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { getSupabaseBrowser } from '@/lib/supabase-browser'
 import { downloadFile } from '@/lib/download-helper'
 import { pauseOtherVideos } from '@/lib/video-playback'
 import { generateCertificatePDF } from '@/lib/generate-certificate'
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+const supabase = getSupabaseBrowser()
 
 interface Props { briefId: string; brief: any; clientUser: any; autoPlayVideoId?: string; onVideoCountChange?: (count: number) => void }
 

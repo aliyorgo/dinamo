@@ -1,9 +1,9 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { getSupabaseBrowser } from '@/lib/supabase-browser'
 import Link from 'next/link'
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+const supabase = getSupabaseBrowser()
 
 const ACTION_LABELS: Record<string, string> = {
   'auth.login': 'giriş yaptı',

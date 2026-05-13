@@ -1,10 +1,10 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { getSupabaseBrowser } from '@/lib/supabase-browser'
 import { useRouter } from 'next/navigation'
 import CountUp from 'react-countup'
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+const supabase = getSupabaseBrowser()
 
 const statusLabel: Record<string,string> = {
   submitted:'Yeni', read:'Okundu', in_production:'Üretimde',

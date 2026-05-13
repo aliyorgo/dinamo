@@ -1,8 +1,8 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { getSupabaseBrowser } from '@/lib/supabase-browser'
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+const supabase = getSupabaseBrowser()
 
 const FEATURES = ['express', 'animation', 'persona', 'static_image'] as const
 const FEATURE_LABELS: Record<string, string> = { express: 'Express', animation: 'Animation', persona: 'Persona', static_image: 'Static Image' }

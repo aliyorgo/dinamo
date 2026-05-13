@@ -1,8 +1,8 @@
 'use client'
 import { useState, useEffect, Suspense } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { getSupabaseBrowser } from '@/lib/supabase-browser'
 import { useRouter, useSearchParams } from 'next/navigation'
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+const supabase = getSupabaseBrowser()
 const statusLabel: Record<string,string> = {submitted:'Yeni',read:'Okundu',in_production:'Üretimde',revision:'Revizyon',approved:'Onaylandı',delivered:'Teslim Edildi',cancelled:'İptal'}
 const statusColor: Record<string,string> = {submitted:'#1db81d',read:'#888',in_production:'#f59e0b',revision:'#e24b4a',approved:'#1db81d',delivered:'#888',cancelled:'#555'}
 

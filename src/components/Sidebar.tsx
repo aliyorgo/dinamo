@@ -1,8 +1,8 @@
 'use client'
 import { useRouter, usePathname } from 'next/navigation'
-import { createClient } from '@supabase/supabase-js'
+import { getSupabaseBrowser } from '@/lib/supabase-browser'
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+const supabase = getSupabaseBrowser()
 
 type NavItem = { href?: string; label: string; divider?: boolean }
 

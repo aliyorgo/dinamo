@@ -1,11 +1,11 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { getSupabaseBrowser } from '@/lib/supabase-browser'
 import { useRouter, useParams } from 'next/navigation'
 import CountUp from 'react-countup'
 import BrandOverlayStudio from '@/components/BrandOverlayStudio'
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+const supabase = getSupabaseBrowser()
 
 
 const STATUS_MAP: Record<string, { label: string; bg: string; color: string }> = {

@@ -1,8 +1,8 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { getSupabaseBrowser } from '@/lib/supabase-browser'
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+const supabase = getSupabaseBrowser()
 
 export default function ProductionStudio({ briefId, source = 'admin', userRole = 'admin' }: { briefId: string, source?: 'admin' | 'creator', userRole?: 'admin' | 'producer' | 'creator' }) {
   const [isOpen, setIsOpen] = useState(false)

@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { getSupabaseBrowser } from '@/lib/supabase-browser'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import { generateCertificatePDF } from '@/lib/generate-certificate'
@@ -15,7 +15,7 @@ import { downloadFile } from '@/lib/download-helper'
 import { useCredits } from '@/lib/credits'
 import { useClientContext } from '../../layout'
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+const supabase = getSupabaseBrowser()
 
 function formatDuration(start: string | null, end: string | null): string | null {
   if (!start || !end) return null

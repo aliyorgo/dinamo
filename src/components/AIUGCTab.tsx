@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { getSupabaseBrowser } from '@/lib/supabase-browser'
 import { UGCSettings, DEFAULT_SETTINGS } from './UGCSettingsModal'
 import { UGC_MAX_CHARS } from '@/lib/ai-ugc-rules'
 import { generateUgcCertificatePDF } from '@/lib/generate-certificate'
@@ -8,7 +8,7 @@ import { downloadFile } from '@/lib/download-helper'
 import { pauseOtherVideos } from '@/lib/video-playback'
 import StaticImageGeneratorModal from '@/components/StaticImageGeneratorModal'
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+const supabase = getSupabaseBrowser()
 
 const UGC_STAGES = [
   { key: 'script', label: 'Konuşma metni hazırlanıyor', duration: 15 },

@@ -1,10 +1,10 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { getSupabaseBrowser } from '@/lib/supabase-browser'
 import { NEGATIVE_PROMPT, CHARACTER_TYPES, SYSTEM_PROMPT } from '@/lib/ai-express-rules'
 import { UGC_NEGATIVE_PROMPT, UGC_SYSTEM_PROMPT } from '@/lib/ai-ugc-rules'
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+const supabase = getSupabaseBrowser()
 
 
 export default function SettingsPage() {

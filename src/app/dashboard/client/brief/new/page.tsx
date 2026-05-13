@@ -1,13 +1,13 @@
 'use client'
 import { useState, useEffect, useRef, Suspense } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { getSupabaseBrowser } from '@/lib/supabase-browser'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { logClientActivity } from '@/lib/log-client'
 import { useClientContext } from '../../layout'
 import { cleanVoiceName } from '@/lib/voice-utils'
 import { useCredits, CREDIT_DEFAULTS } from '@/lib/credits'
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+const supabase = getSupabaseBrowser()
 
 const VIDEO_TYPES = ['Bumper / Pre-roll','Story / Reels','Feed Video','Long Form']
 const VIDEO_DURATIONS: Record<string,string> = {'Bumper / Pre-roll':'6 saniye','Story / Reels':'15 saniye','Feed Video':'30 saniye','Long Form':'60 saniye'}

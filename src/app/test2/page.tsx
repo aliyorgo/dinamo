@@ -1,10 +1,10 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { getSupabaseBrowser } from '@/lib/supabase-browser'
 import { useCredits } from '@/lib/credits'
 import PackageDetailModal from '@/components/PackageDetailModal'
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+const supabase = getSupabaseBrowser()
 
 export default function HomePage() {
   const [mounted, setMounted] = useState(false)

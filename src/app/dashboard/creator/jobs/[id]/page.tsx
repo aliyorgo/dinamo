@@ -1,12 +1,12 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { getSupabaseBrowser } from '@/lib/supabase-browser'
 import ProductionStudio from '@/components/ProductionStudio'
 import { cleanVoiceName } from '@/lib/voice-utils'
 import { downloadFile } from '@/lib/download-helper'
 import { useRouter, useParams } from 'next/navigation'
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+const supabase = getSupabaseBrowser()
 
 export default function CreatorJobDetail() {
   const router = useRouter()

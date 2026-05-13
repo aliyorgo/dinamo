@@ -1,8 +1,8 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { getSupabaseBrowser } from '@/lib/supabase-browser'
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+const supabase = getSupabaseBrowser()
 
 const EMPTY_FORM = { label: '', slug: '', prompt_template: '', mood_hints: '', model: 'seedance', task_type: 'seedance-2-fast-preview', sort_order: 0, requires_mascot_image: false, active: true, description_tr: '' }
 
