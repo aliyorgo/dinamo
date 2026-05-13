@@ -412,9 +412,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
                   {getStyleIcon(selectedStyleInfo) ? <img src={getStyleIcon(selectedStyleInfo)} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} /> : <span style={{ fontSize: '52px', color: '#ccc' }}>{getStyleLabel(selectedStyleInfo)?.[0]}</span>}
                   <span style={{ position: 'absolute', top: 0, left: 0, fontSize: '11px', fontWeight: '700', color: '#0a0a0a', background: 'rgba(255,255,255,0.95)', padding: '5px 11px' }}>{getStyleLabel(selectedStyleInfo)}</span>
                   {selectedStyleInfo.description_tr && (
-                    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.5), rgba(0,0,0,0))', padding: '24px 12px 10px' }}>
-                      <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.85)', letterSpacing: '0.01em', lineHeight: 1.4 }}>{selectedStyleInfo.description_tr}</div>
-                    </div>
+                    <div style={{ position: 'absolute', bottom: '8px', left: '12px', fontSize: '10px', color: 'rgba(255,255,255,0.9)', letterSpacing: '0.01em', lineHeight: 1.4, textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>{selectedStyleInfo.description_tr}</div>
                   )}
                 </div>
               </div>
