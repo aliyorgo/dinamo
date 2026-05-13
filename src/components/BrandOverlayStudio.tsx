@@ -159,7 +159,7 @@ export default function BrandOverlayStudio({ clientId }: { clientId: string }) {
     })
   }
 
-  async function handleSave() { setSaving(true); await fetch(`/api/admin/clients/${clientId}/overlay-settings`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brand_overlay_settings: allSettings }) }); setSaving(false); setModalOpen(false) }
+  async function handleSave() { setSaving(true); await fetch(`/api/admin/clients/${clientId}/overlay-settings`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brand_overlay_settings: allSettings }) }); setSaving(false); setModalOpen(false); window.location.reload() }
 
   async function handlePreviewUpload() {
     const file = fileRef.current?.files?.[0]; if (!file) return; setUploading(true)
