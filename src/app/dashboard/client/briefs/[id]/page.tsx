@@ -738,7 +738,7 @@ function ClientBriefDetail() {
               const isSummary = t.key === 'summary'
               return (
                 <button key={t.key} onClick={()=>setActiveTab(t.key)}
-                  style={{padding:'8px 16px',border:'none',borderBottom:isActive?(isSummary?'2px solid #f5a623':'2px solid #0a0a0a'):'2px solid transparent',borderRight:ti<total-1?'1px solid rgba(0,0,0,0.06)':'none',background:isActive?(isSummary?'transparent':'#0a0a0a'):(isSummary?'transparent':'#fff'),color:isActive?(isSummary?'#0a0a0a':'#fff'):'#555',fontSize:'12px',fontWeight:isSummary?'400':'600',cursor:'pointer',transition:'all 0.15s'}}
+                  style={{padding:'8px 16px',minWidth:isSummary?undefined:'90px',border:'none',borderBottom:isActive?(isSummary?'2px solid #f5a623':'2px solid #0a0a0a'):'2px solid transparent',borderRight:ti<total-1?'1px solid rgba(0,0,0,0.06)':'none',background:isActive?(isSummary?'transparent':'#0a0a0a'):(isSummary?'transparent':'#fff'),color:isActive?(isSummary?'#0a0a0a':'#fff'):'#555',fontSize:'12px',fontWeight:isSummary?'400':'600',cursor:'pointer',transition:'all 0.15s'}}
                   onMouseEnter={e=>{if(!isActive&&!isSummary)e.currentTarget.style.background='#f5f5f5'}}
                   onMouseLeave={e=>{if(!isActive&&!isSummary)e.currentTarget.style.background=isSummary?'transparent':'#fff'}}>
                   {t.label}
