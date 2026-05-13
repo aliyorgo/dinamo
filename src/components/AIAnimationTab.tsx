@@ -345,9 +345,12 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
                   <span style={{ fontSize: '13px', fontWeight: '500' }}>{vLabel}</span>
                   <span style={{ fontSize: '9px', padding: '2px 6px', background: 'rgba(139,92,246,0.08)', color: '#8b5cf6', fontWeight: '500', textTransform: 'uppercase' }}>{styleLabel}</span>
-                  {isPurchased && <span style={{ fontSize: '9px', color: '#1DB81D', fontWeight: '600' }}>&#10003; Satin Alindi</span>}
-                  {isProcessing && <span style={{ fontSize: '9px', fontWeight: '500', display: 'inline-flex', alignItems: 'center', gap: '4px' }}><span className="dot" style={{ width: '6px', height: '6px', background: '#4ade80', display: 'inline-block', animation: 'pulse 1.5s ease infinite' }} /><span style={{ color: '#0a0a0a' }}>Uretiliyor</span> <span style={{ color: '#6b6b66' }}>(~5 dakika)</span></span>}
-                  {isFailed && <span style={{ fontSize: '9px', color: '#ef4444', fontWeight: '500' }}>Basarisiz</span>}
+                  {animSettings.logo_enabled && <span style={{ fontSize: '9px', padding: '2px 6px', background: '#f5f4f0', color: '#888', letterSpacing: '0.5px', fontWeight: 600 }}>LOGO</span>}
+                  {animSettings.cta_enabled && <span style={{ fontSize: '9px', padding: '2px 6px', background: '#f5f4f0', color: '#888', letterSpacing: '0.5px', fontWeight: 600 }}>CTA</span>}
+                  {animSettings.packshot_enabled && <span style={{ fontSize: '9px', padding: '2px 6px', background: '#f5f4f0', color: '#888', letterSpacing: '0.5px', fontWeight: 600 }}>PACKSHOT</span>}
+                  {isPurchased && <span style={{ fontSize: '9px', color: '#1DB81D', fontWeight: '600' }}>&#10003; Satın Alındı</span>}
+                  {isProcessing && <span style={{ fontSize: '9px', fontWeight: '500', display: 'inline-flex', alignItems: 'center', gap: '4px' }}><span className="dot" style={{ width: '6px', height: '6px', background: '#4ade80', display: 'inline-block', animation: 'pulse 1.5s ease infinite' }} /><span style={{ color: '#0a0a0a' }}>Üretiliyor</span> <span style={{ color: '#6b6b66' }}>(~5 dakika)</span></span>}
+                  {isFailed && <span style={{ fontSize: '9px', color: '#ef4444', fontWeight: '500' }}>Başarısız</span>}
                 </div>
                 <div style={{ fontSize: '11px', color: '#888', marginBottom: '10px' }}>
                   {new Date(video.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
