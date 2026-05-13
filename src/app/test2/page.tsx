@@ -303,19 +303,16 @@ export default function HomePage() {
               </div>
               <div>
                 <p style={{ fontSize: '18px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.9, marginBottom: '20px', fontWeight: '300' }}>
-                  Brief gönderdiniz. Ekip çalışırken, yapay zeka da çalışıyor.
+                  Brief gonderdiniz. Ekip calisirken yapay zeka da calisiyor.
                 </p>
                 <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.9, marginBottom: '20px', fontWeight: '300' }}>
-                  Dinamo AI Express, kampanya briefinizi okur. Marka tonunu, kurumsal renkleri, hedef kitleyi analiz eder ve 5 dakika içinde fikir, görsel, Türkçe seslendirme ve müzik üretir. Her video için yorum bırakırsınız — sistem isteklerinizi anlayıp markanızı tanıdıkça daha iyi üretir.
+                  Dinamo AI Express, brief'inizi okur. Marka tonunu, kurumsal renkleri ve hedef kitleyi analiz eder; 5 dakika icinde fikir, gorsel, Turkce seslendirme ve muzik uretir. Yorumlarinizla kendini gelistirir.
                 </p>
                 <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.9, marginBottom: '20px', fontWeight: '300' }}>
-                  AI Express'le yayına çıkmadan önce fikrinizi test edin. Hangi mesajın işe yaradığını görün, brief'inizi geliştirin, kreatif yön belirleyin.
-                </p>
-                <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.9, fontWeight: '300' }}>
-                  Beta sürecindedir. Sonuçlar garanti edilmez. İnsan yapımı üretimin yerini tutmaz — ama fikir aşamasını, içerik testini ve sosyal medya hızını değiştirir.
+                  AI Express'le yayina cikmadan once fikrinizi test edin, hangi mesajin ise yaradigini gorun, kreatif yon belirleyin.
                 </p>
                 <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.3)', marginTop: '16px', letterSpacing: '0.5px' }}>
-                  ~5 dakika · İlk deneme ücretsiz · {creditSettings?.credit_ai_express || 1} kredi satın alma
+                  ~5 dakika · Ilk deneme ucretsiz · {creditSettings?.credit_ai_express || 1} kredi satin alma
                 </p>
               </div>
             </div>
@@ -341,19 +338,16 @@ export default function HomePage() {
               </div>
               <div>
                 <p style={{ fontSize: '18px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.9, marginBottom: '20px', fontWeight: '300' }}>
-                  AI influencer videolarıyla mesajınızı çeşitlendirin. 3 dakikada seçtiğiniz persona brief'ten üretilen metni doğal ve karakterine uygun şekilde okusun.
+                  3 dakikada AI influencer icerigi. Sectiginiz persona, brief'ten uretilen metni dogal ve karakterine uygun sekilde okur.
                 </p>
                 <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.9, marginBottom: '20px', fontWeight: '300' }}>
-                  Dinamo AI Persona, briefinizi ve seçtiğiniz personayı okur. Karakter, ortam, konuşma metni, ses ve dudak senkronu — tamamı yapay zeka tarafından üretilir. 8 saniyelik dikey video ile gerçek bir creator izlenimi yaratır. Ton, müzik ve CTA tercihlerinizi siz belirlersiniz.
+                  Dinamo AI Persona, briefinizi analiz eder, uygun personayi olusturur ve gercek bir creator izlenimi yaratir.
                 </p>
                 <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.9, marginBottom: '20px', fontWeight: '300' }}>
-                  AI Persona'yla TikTok ve Reels için içerik üretimini hızlandırın. Farklı personaları test edin, hangi tonun marka için doğru olduğunu görün, kampanyanızı dağıtmadan önce hissini deneyin.
-                </p>
-                <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.9, fontWeight: '300' }}>
-                  Beta sürecindedir. Sonuçlar garanti edilmez. Türkçe seslendirme ve karakter tutarlılığında iyileştirmeler devam ediyor — ama persona stilinde içerik üretiminin maliyetini ve hızını değiştirir.
+                  AI Persona'yla TikTok ve Reels uretimini hizlandirin, hangi tonun markaniz icin dogru oldugunu gorun.
                 </p>
                 <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.3)', marginTop: '16px', letterSpacing: '0.5px' }}>
-                  ~3 dakika · İlk deneme ücretsiz · {creditSettings?.credit_ai_ugc || 1} kredi satın alma
+                  ~3 dakika · Ilk deneme ucretsiz · {creditSettings?.credit_ai_ugc || 1} kredi satin alma
                 </p>
               </div>
             </div>
@@ -386,9 +380,6 @@ export default function HomePage() {
                 </p>
                 <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.9, marginBottom: '20px', fontWeight: '300' }}>
                   AI Animation'la studyo maliyetlerine girmeden kampanya fikrinizi farkli stillerde deneyin, sosyal medya icerigini saatler icinde cogaltin.
-                </p>
-                <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.9, fontWeight: '300' }}>
-                  Beta surecindedir. Sonuclar garanti edilmez. Insan yapimi animasyonun yerini tutmaz — ama fikir asamasini ve icerik testini hizlandirir.
                 </p>
                 <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.3)', marginTop: '16px', letterSpacing: '0.5px' }}>
                   ~5 dakika · Ilk deneme ucretsiz · 1 kredi satin alma
