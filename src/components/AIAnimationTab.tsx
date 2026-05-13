@@ -423,16 +423,18 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
                 </div>
               ) : (
                 <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <button onClick={handleGenerateVoiceover} disabled={voiceoverLoading || !selectedStyle} className="btn btn-outline" style={{ padding: '4px 12px', fontSize: '10px' }}>
-                      {voiceoverLoading ? 'ÜRETİLİYOR...' : voiceoverText ? 'YENİ DIŞ SES METNİ YAZ' : 'DIŞ SES METNİ YAZ'}
-                    </button>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
                     <span style={{ fontSize: '13px', fontWeight: '500', color: wordCount > 30 ? '#ef4444' : wordCount >= 25 ? '#22c55e' : wordCount >= 15 ? '#f59e0b' : '#888' }}>{wordCount} / 30</span>
                   </div>
-                  <textarea value={voiceoverText} onChange={e => setVoiceoverText(e.target.value)} onBlur={() => { if (voiceoverText.trim() && selectedStyle && voiceoverText !== (styleVoiceovers[selectedStyle] || '')) persistAnimVoiceovers({ ...styleVoiceovers, [selectedStyle]: voiceoverText.trim() }, selectedStyle) }} placeholder={voiceoverLoading ? 'Üretiliyor...' : 'Bu stil için dış ses metni henüz üretilmedi. DIŞ SES METNİ YAZ butonuna basın veya buraya yazın.'} style={{ width: '100%', flex: 1, minHeight: '80px', fontSize: '13px', color: '#0a0a0a', lineHeight: 1.6, border: '1px solid #e5e4db', padding: '10px 12px', resize: 'none', boxSizing: 'border-box' }} />
-                  <button onClick={handleGenerate} disabled={generating || !selectedStyle || !voiceoverText.trim() || credits < 1} style={{ width: '100%', padding: '12px', marginTop: '10px', background: (generating || !selectedStyle || !voiceoverText.trim() || credits < 1) ? '#ccc' : '#0a0a0a', color: '#fff', border: 'none', fontSize: '13px', fontWeight: '600', cursor: (generating || !voiceoverText.trim()) ? 'default' : 'pointer' }}>
-                    {totalCount === 0 ? 'ÜRET (ÜCRETSİZ)' : 'ÜRET (1 KREDİ)'}
-                  </button>
+                  <textarea value={voiceoverText} onChange={e => setVoiceoverText(e.target.value)} onBlur={() => { if (voiceoverText.trim() && selectedStyle && voiceoverText !== (styleVoiceovers[selectedStyle] || '')) persistAnimVoiceovers({ ...styleVoiceovers, [selectedStyle]: voiceoverText.trim() }, selectedStyle) }} placeholder={voiceoverLoading ? 'Uretiliyor...' : 'Bu stil icin dis ses metni henuz uretilmedi. Butona basin veya buraya yazin.'} style={{ width: '100%', flex: 1, minHeight: '80px', fontSize: '13px', color: '#0a0a0a', lineHeight: 1.6, border: '1px solid #e5e4db', padding: '10px 12px', resize: 'none', boxSizing: 'border-box' }} />
+                  {(() => {
+                    const isTextEmpty = !voiceoverText.trim()
+                    const isLoading = voiceoverLoading || generating
+                    const label = isLoading ? 'URETILIYOR...' : isTextEmpty ? 'DIS SES METNI YAZ' : (totalCount === 0 ? 'URET (UCRETSIZ)' : 'URET (1 KREDI)')
+                    const disabled = isLoading || !selectedStyle || (!isTextEmpty && credits < 1)
+                    const onClick = () => { if (isTextEmpty) handleGenerateVoiceover(); else handleGenerate() }
+                    return <button onClick={onClick} disabled={disabled} style={{ width: '100%', padding: '12px', marginTop: '10px', background: disabled ? '#ccc' : '#0a0a0a', color: '#fff', border: 'none', fontSize: '13px', fontWeight: '600', cursor: disabled ? 'default' : 'pointer' }}>{label}</button>
+                  })()}
                   <div style={{ fontSize: '13px', color: '#999', textAlign: 'center', marginTop: '6px' }}>~5 dakika</div>
                 </div>
               )}
