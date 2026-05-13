@@ -285,7 +285,8 @@ export default function ClientDashboard() {
     if (b.animation_status) {
       const animProcessing = b.animation_status === 'queued' || b.animation_status === 'generating'
       const animFailed = b.animation_status === 'failed'
-      indicators.push({ label: 'ANİMASYON', pulse: animProcessing, error: animFailed, tab: 'animation' })
+      const animCount = (animReadyMap[b.id] || []).length
+      indicators.push({ label: `ANİMASYON${animCount > 0 ? ` · ${animCount}` : ''}`, pulse: animProcessing, error: animFailed, tab: 'animation' })
     }
     if (b.static_image_files || b.static_images_url) indicators.push({ label: 'GÖRSEL' })
     return indicators
