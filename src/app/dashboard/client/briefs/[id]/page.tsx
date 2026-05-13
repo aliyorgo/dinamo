@@ -149,6 +149,9 @@ function ClientBriefDetail() {
   const [animationVideosForSummary, setAnimationVideosForSummary] = useState<any[]>([])
   const [activeTab, setActiveTab] = useState<'hybrid'|'cps'|'express'|'ugc'|'animation'|'summary'>(searchParams.get('tab') === 'express' ? 'express' : searchParams.get('tab') === 'ugc' ? 'ugc' : searchParams.get('tab') === 'animation' ? 'animation' : searchParams.get('tab') === 'cps' ? 'cps' : searchParams.get('tab') === 'summary' ? 'summary' : 'hybrid')
 
+  // DEBUG: Seedance prompt modal (gecici)
+  const [debugPrompt, setDebugPrompt] = useState<{director: string; prompt: string} | null>(null)
+
   // Onboarding: auto-open info modal on first visit per module
   useEffect(() => {
     const map: Record<string, () => void> = {
@@ -1364,6 +1367,9 @@ function ClientBriefDetail() {
                             {isProcessing && <span style={{fontSize:'9px',fontWeight:'500',display:'inline-flex',alignItems:'center',gap:'4px'}}><span className="dot" style={{width:'6px',height:'6px',background:'#4ade80',display:'inline-block',animation:'pulse 1.5s ease infinite'}}></span><span style={{color:'#0a0a0a'}}>Üretiliyor</span> <span style={{color:'#6b6b66'}}>(~{child.express_engine === 'seedance_hq' ? '10' : '5'} dakika)</span></span>}
                             {isFailed && <span style={{fontSize:'9px',color:'#ef4444',fontWeight:'500'}}>Başarısız</span>}
                             {child.ai_express_settings_snapshot && (() => { const s = child.ai_express_settings_snapshot; const badges = []; if (s.logo) badges.push('LOGO'); if (s.cta) badges.push('CTA'); if (s.packshot) badges.push('PACKSHOT'); return badges.length > 0 ? <span style={{display:'inline-flex',gap:'4px',marginLeft:'6px'}}>{badges.map((b: string)=><span key={b} style={{fontSize:'9px',padding:'2px 6px',background:'#f5f4f0',color:'#888',letterSpacing:'0.5px',fontWeight:600}}>{b}</span>)}</span> : null })()}
+                            {/* DEBUG: director badge + prompt link */}
+                            {child.ai_express_settings_snapshot?.director && <span style={{marginLeft:'6px',fontSize:'9px',padding:'2px 6px',background:'rgba(139,92,246,0.08)',color:'#8b5cf6',letterSpacing:'0.5px',fontWeight:600}}>DIR: {child.ai_express_settings_snapshot.director}</span>}
+                            {child.ai_express_settings_snapshot?.seedance_prompt && <span onClick={()=>setDebugPrompt({director:child.ai_express_settings_snapshot.director||'',prompt:child.ai_express_settings_snapshot.seedance_prompt})} style={{marginLeft:'6px',fontSize:'9px',color:'#888',cursor:'pointer',textDecoration:'underline'}}>Prompt</span>}
                           </div>
                           <div style={{fontSize:'11px',color:'#888',marginBottom:'10px'}}>{new Date(child.created_at).toLocaleDateString('tr-TR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}{child.completed_at && <><span style={{margin:'0 8px',color:'#ccc'}}>|</span><span style={{color:'#aaa'}}>{formatDuration(child.created_at, child.completed_at)}</span></>}</div>
                           {isFailed && (
@@ -1862,6 +1868,23 @@ function ClientBriefDetail() {
       {/* AI EXPRESS INFO MODAL */}
 
       {/* CPS INFO MODAL */}
+
+      {/* DEBUG: Seedance prompt read-only modal */}
+      {debugPrompt && (
+        <div onClick={()=>setDebugPrompt(null)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.6)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <div onClick={e=>e.stopPropagation()} style={{background:'#fff',maxWidth:'700px',width:'90%',maxHeight:'80vh',display:'flex',flexDirection:'column',padding:'24px'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}}>
+              <div>
+                <div style={{fontSize:'14px',fontWeight:'600'}}>Seedance Prompt (Debug)</div>
+                {debugPrompt.director && <span style={{fontSize:'10px',padding:'2px 8px',background:'rgba(139,92,246,0.08)',color:'#8b5cf6',fontWeight:600}}>DIR: {debugPrompt.director}</span>}
+              </div>
+              <button onClick={()=>setDebugPrompt(null)} style={{width:'28px',height:'28px',border:'none',background:'none',cursor:'pointer',fontSize:'18px',color:'#888'}}>x</button>
+            </div>
+            <pre style={{flex:1,overflow:'auto',background:'#f5f4f0',padding:'16px',fontSize:'11px',lineHeight:1.6,whiteSpace:'pre-wrap',wordBreak:'break-word',margin:0}}>{debugPrompt.prompt}</pre>
+            <button onClick={()=>{navigator.clipboard.writeText(debugPrompt.prompt)}} style={{marginTop:'12px',padding:'8px 16px',background:'#0a0a0a',color:'#fff',border:'none',fontSize:'11px',cursor:'pointer',alignSelf:'flex-end'}}>Kopyala</button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
