@@ -105,7 +105,7 @@ export default function AdminCreators() {
     if (!paymentForm.amount_tl) { setMsg('Tutar girin.'); return }
     setLoading(true)
     setMsg('')
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { session } } = await supabase.auth.getSession(); const user = session?.user
     const grossAmount = parseFloat(paymentForm.amount_tl)
     const creator = creators.find(c => c.id === creatorId)
     const isPersonal = creator?.entity_type === 'personal' || (!creator?.entity_type)

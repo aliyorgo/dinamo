@@ -52,7 +52,7 @@ function AgencyNewBrief() {
 
   useEffect(() => {
     async function load() {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession(); const user = session?.user
       if (!user) { router.push('/login'); return }
       const { data: ud } = await supabase.from('users').select('name, role, agency_id').eq('id', user.id).single()
       if (!ud || ud.role !== 'agency' || !ud.agency_id) { router.push('/login'); return }

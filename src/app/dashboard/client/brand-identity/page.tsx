@@ -73,7 +73,7 @@ export default function BrandIdentityPage() {
 
   useEffect(() => {
     async function load() {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession(); const user = session?.user
       if (!user) { router.push('/login'); return }
       const { data: cu } = await supabase.from('client_users').select('client_id, clients(brand_voices, logo_size_percent, brand_logo_url, packshots)').eq('user_id', user.id).single()
       if (cu) {
@@ -272,7 +272,7 @@ export default function BrandIdentityPage() {
               <button onClick={() => setUpgradeStep(null)} className="btn btn-outline" style={{ flex: 1, padding: '10px', fontSize: '11px' }}>İPTAL</button>
               <button onClick={async () => {
                 try {
-                  const { data: { user } } = await supabase.auth.getUser()
+                  const { data: { session } } = await supabase.auth.getSession(); const user = session?.user
                   await supabase.from('demo_requests').insert({ name: `[YÜKSELTME → ${tierLabels[nextTier]}] ${companyName}`, company: companyName, email: user?.email || '', phone: '' })
                 } catch (err) { console.error('[tier-upgrade] request failed:', err) }
                 setUpgradeStep('success')
@@ -341,15 +341,7 @@ export default function BrandIdentityPage() {
           <div style={{ fontSize: '11px', color: '#0a0a0a' }}>{files.length} dosya yüklendi</div>
         </div>
 
-        {/* LOGO BOYUTU */}
-        <div style={{ background: '#fff', border: '1px solid #e5e4db', padding: '22px 26px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-            <div style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', fontWeight: '500' }}>LOGO BOYUTU</div>
-            <button onClick={() => { setLogoSizeTemp(logoSizePercent); setLogoSizeModal(true) }} className="btn btn-outline" style={{ padding: '6px 14px', fontSize: '10px' }}>LOGOYU BÜYÜT →</button>
-          </div>
-          <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', lineHeight: 1.5, marginBottom: '12px' }}>AI Express videolarının sonundaki logo boyutunu ayarla.</div>
-          <div style={{ fontSize: '11px', color: '#0a0a0a' }}>Mevcut: %{logoSizePercent}</div>
-        </div>
+        {/* Logo boyutu admin marka studyosundan yonetilir */}
       </div>
 
       {/* Divider + Files Header */}
@@ -500,48 +492,7 @@ export default function BrandIdentityPage() {
       <audio ref={previewAudioRef} style={{ display: 'none' }} />
       <style>{`@media (max-width: 768px) { div[style*="grid-template-columns: 1fr 1fr"] { grid-template-columns: 1fr !important; } }`}</style>
 
-      {/* Logo Size Modal */}
-      {logoSizeModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setLogoSizeModal(false)}>
-          <div style={{ background: '#fff', padding: '32px', maxWidth: '520px', width: '90%' }} onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-              <div style={{ fontSize: '14px', fontWeight: '600', color: '#0a0a0a' }}>Logo Boyutu</div>
-              <button onClick={() => setLogoSizeModal(false)} style={{ width: '28px', height: '28px', border: 'none', background: 'none', cursor: 'pointer', fontSize: '18px', color: '#888' }}>×</button>
-            </div>
-            <div style={{ display: 'flex', gap: '24px', alignItems: 'center', marginBottom: '24px' }}>
-              {/* 9:16 Preview */}
-              <div style={{ width: '200px', height: '356px', background: 'repeating-conic-gradient(#e5e5e5 0% 25%, #f5f5f5 0% 50%) 50% / 20px 20px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1px solid #e5e4db', position: 'relative' }}>
-                {brandLogoUrlClient ? (
-                  <img src={brandLogoUrlClient} style={{ maxWidth: '60%', maxHeight: '30%', objectFit: 'contain', transform: `scale(${logoSizeTemp / 100})`, transition: 'transform 0.2s' }} />
-                ) : (
-                  <div style={{ fontSize: '24px', fontWeight: '700', color: '#ccc', transform: `scale(${logoSizeTemp / 100})`, transition: 'transform 0.2s' }}>LOGO</div>
-                )}
-              </div>
-              {/* Controls */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center' }}>
-                <button onClick={() => setLogoSizeTemp(Math.min(200, logoSizeTemp + 10))} disabled={logoSizeTemp >= 200}
-                  style={{ padding: '14px 28px', background: logoSizeTemp >= 200 ? '#ddd' : '#0a0a0a', color: '#fff', border: 'none', fontSize: '14px', fontWeight: '600', cursor: logoSizeTemp >= 200 ? 'default' : 'pointer' }}>
-                  BÜYÜT +
-                </button>
-                <button onClick={() => setLogoSizeTemp(Math.max(50, logoSizeTemp - 10))} disabled={logoSizeTemp <= 50}
-                  style={{ padding: '8px 20px', background: '#fff', color: logoSizeTemp <= 50 ? '#ccc' : '#0a0a0a', border: `1px solid ${logoSizeTemp <= 50 ? '#ddd' : '#0a0a0a'}`, fontSize: '12px', fontWeight: '500', cursor: logoSizeTemp <= 50 ? 'default' : 'pointer' }}>
-                  küçült −
-                </button>
-                <div style={{ fontSize: '18px', fontWeight: '600', color: '#0a0a0a', marginTop: '8px' }}>%{logoSizeTemp}</div>
-              </div>
-            </div>
-            <button onClick={async () => {
-              const { data: { session } } = await supabase.auth.getSession()
-              if (!session?.access_token) return
-              await fetch('/api/client/logo-size', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` }, body: JSON.stringify({ logo_size_percent: logoSizeTemp }) })
-              setLogoSizePercent(logoSizeTemp)
-              setLogoSizeModal(false)
-            }} style={{ width: '100%', padding: '12px', background: '#0a0a0a', color: '#fff', border: 'none', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>
-              KAYDET
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Logo Size Modal kaldirildi — admin marka studyosundan yonetilir */}
         </div>
       </div>
     </div>

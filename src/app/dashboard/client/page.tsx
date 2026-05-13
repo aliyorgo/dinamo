@@ -55,6 +55,7 @@ export default function ClientDashboard() {
   const [cpsChildrenMap, setCpsChildrenMap] = useState<Record<string, any[]>>({})
   const [ugcReadyMap, setUgcReadyMap] = useState<Record<string, any[]>>({})
   const [ugcCountMap, setUgcCountMap] = useState<Record<string, number>>({})
+  const [animReadyMap, setAnimReadyMap] = useState<Record<string, any[]>>({})
   const [loading, setLoading] = useState(true)
   // Notifications
   const [notifications, setNotifications] = useState<any[]>([])
@@ -123,6 +124,20 @@ export default function ClientDashboard() {
           const countMap: Record<string, number> = {}
           ugcAll?.forEach((v: any) => { countMap[v.brief_id] = (countMap[v.brief_id] || 0) + 1 })
           setUgcCountMap(countMap)
+
+          // Animation videos — ready, unviewed
+          const { data: animVids } = await supabase.from('animation_videos')
+            .select('id, brief_id, final_url, viewed_at, created_at, completed_at, version, style_slug, animation_styles(label)')
+            .in('brief_id', briefIds)
+            .in('status', ['ready', 'sold'])
+            .not('final_url', 'is', null)
+            .is('viewed_at', null)
+          const animMap: Record<string, any[]> = {}
+          animVids?.forEach((v: any) => {
+            if (!animMap[v.brief_id]) animMap[v.brief_id] = []
+            animMap[v.brief_id].push(v)
+          })
+          setAnimReadyMap(animMap)
         }
 
         const withVideoIds = (b || []).filter(br => ['delivered','approved'].includes(br.status)).map(br => br.id)
@@ -252,19 +267,24 @@ export default function ClientDashboard() {
   function getBriefIndicators(b: any) {
     const aiKids = aiChildrenMap[b.root_campaign_id] || aiChildrenMap[b.id] || []
     const cpsKids = cpsChildrenMap[b.root_campaign_id] || cpsChildrenMap[b.id] || []
-    const indicators: { label: string; pulse?: boolean; error?: boolean }[] = []
+    const indicators: { label: string; pulse?: boolean; error?: boolean; tab?: string }[] = []
     if (aiKids.length > 0) {
       const latestKid = aiKids[aiKids.length - 1]
       const hasFailed = latestKid && (latestKid.ai_video_status === 'failed' || latestKid.ai_video_status === 'timeout')
       const processing = aiKids.some((k: any) => k.status === 'ai_processing' && !k.ai_video_url && k.ai_video_status !== 'failed' && k.ai_video_status !== 'timeout')
-      indicators.push({ label: `AI EXPRESS · ${aiKids.length}`, pulse: processing, error: hasFailed })
+      indicators.push({ label: `AI EXPRESS · ${aiKids.length}`, pulse: processing, error: hasFailed, tab: 'express' })
     }
     if (cpsKids.length > 0) indicators.push({ label: `CPS · ${cpsKids.length} YÖN` })
     const ugcCount = ugcCountMap[b.id] || 0
     if (b.ugc_status || ugcCount > 0) {
       const ugcProcessing = b.ugc_status === 'queued' || b.ugc_status === 'generating'
       const ugcFailed = b.ugc_status === 'failed'
-      indicators.push({ label: `AI PERSONA${ugcCount > 0 ? ` · ${ugcCount}` : ''}`, pulse: ugcProcessing, error: ugcFailed })
+      indicators.push({ label: `AI PERSONA${ugcCount > 0 ? ` · ${ugcCount}` : ''}`, pulse: ugcProcessing, error: ugcFailed, tab: 'ugc' })
+    }
+    if (b.animation_status) {
+      const animProcessing = b.animation_status === 'queued' || b.animation_status === 'generating'
+      const animFailed = b.animation_status === 'failed'
+      indicators.push({ label: 'ANİMASYON', pulse: animProcessing, error: animFailed, tab: 'animation' })
     }
     if (b.static_image_files || b.static_images_url) indicators.push({ label: 'GÖRSEL' })
     return indicators
@@ -333,8 +353,16 @@ export default function ClientDashboard() {
   })
   const ugcReadyCount = ugcReadyList.reduce((s, r) => s + r.videos.length, 0)
 
-  // Merged AI ready items (Express + UGC), sorted by completed_at DESC
-  const allAiReady: { type: 'express' | 'ugc'; parent: any; item: any; versionNum?: string; versionPart?: string }[] = []
+  // Animation ready for cards
+  const animReadyList: { brief: any; videos: any[] }[] = []
+  nonDrafts.forEach(b => {
+    const vids = animReadyMap[b.id] || []
+    if (vids.length > 0) animReadyList.push({ brief: b, videos: vids })
+  })
+  const animReadyCount = animReadyList.reduce((s, r) => s + r.videos.length, 0)
+
+  // Merged AI ready items (Express + UGC + Animation), sorted by completed_at DESC
+  const allAiReady: { type: 'express' | 'ugc' | 'animation'; parent: any; item: any; versionNum?: string; versionPart?: string }[] = []
   aiExpressReady.forEach(({ parent, children }) => children.forEach((kid: any, i: number) => {
     const versionPart = kid.campaign_name?.split('—')[1]?.trim() || ''
     const versionNum = versionPart.match(/#(\d+)/)?.[1] || String(i + 1)
@@ -342,6 +370,9 @@ export default function ClientDashboard() {
   }))
   ugcReadyList.forEach(({ brief: parent, videos }) => videos.forEach((vid: any) => {
     allAiReady.push({ type: 'ugc', parent, item: vid })
+  }))
+  animReadyList.forEach(({ brief: parent, videos }) => videos.forEach((vid: any) => {
+    allAiReady.push({ type: 'animation', parent, item: vid })
   }))
   allAiReady.sort((a, b) => {
     const aT = new Date(a.item.completed_at || a.item.created_at).getTime()
@@ -614,19 +645,21 @@ export default function ClientDashboard() {
               {/* 3) AI HAZIR (Express + UGC birleşik, son biten ilk) */}
               {allAiReadyCount > 0 && (
                 <div>
-                  <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',marginBottom:'10px'}}>{(() => { const ec = allAiReady.filter(r => r.type === 'express').length; const uc = allAiReady.filter(r => r.type === 'ugc').length; return <>{ec > 0 && <span style={{color:'#4ade80'}}>AI EXPRESS · {ec}</span>}{ec > 0 && uc > 0 && <span style={{color:'#aaa',margin:'0 8px'}}>+</span>}{uc > 0 && <span style={{color:'#3b82f6'}}>AI PERSONA · {uc}</span>}</> })()}</div>
+                  <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',marginBottom:'10px'}}>{(() => { const ec = allAiReady.filter(r => r.type === 'express').length; const uc = allAiReady.filter(r => r.type === 'ugc').length; const ac = allAiReady.filter(r => r.type === 'animation').length; const parts: any[] = []; if (ec > 0) parts.push(<span key="e" style={{color:'#4ade80'}}>AI EXPRESS · {ec}</span>); if (uc > 0) parts.push(<span key="u" style={{color:'#3b82f6'}}>AI PERSONA · {uc}</span>); if (ac > 0) parts.push(<span key="a" style={{color:'#8b5cf6'}}>ANIMASYON · {ac}</span>); return parts.reduce((acc: any[], p, i) => i === 0 ? [p] : [...acc, <span key={`s${i}`} style={{color:'#aaa',margin:'0 8px'}}>+</span>, p], []) })()}</div>
                   <div className="ai-grid" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'10px'}}>
-                    {allAiReady.map(({ type, parent, item, versionNum, versionPart }) => {
+                    {allAiReady.map(({ type, parent, item, versionNum }) => {
                       const thumbUrl = type === 'express' ? item.ai_video_url : item.final_url
+                      const borderColor = type === 'animation' ? '#8b5cf6' : type === 'ugc' ? '#3b82f6' : '#4ade80'
+                      const navUrl = type === 'express' ? `/dashboard/client/briefs/${parent.id}?tab=express&ai_child=${item.id}` : type === 'animation' ? `/dashboard/client/briefs/${parent.id}?tab=animation&videoId=${item.id}` : `/dashboard/client/briefs/${parent.id}?tab=ugc&video=${item.id}`
                       return (
-                      <div key={item.id} onClick={() => router.push(type === 'express' ? `/dashboard/client/briefs/${parent.id}?tab=express&ai_child=${item.id}` : `/dashboard/client/briefs/${parent.id}?tab=ugc&video=${item.id}`)}
-                        style={{padding:'12px 14px',background:'#fff',borderLeft:`3px solid ${type === 'ugc' ? '#3b82f6' : '#4ade80'}`,border:'1px solid #e5e4db',cursor:'pointer',position:'relative',display:'flex',alignItems:'center',gap:'10px'}}>
+                      <div key={item.id} onClick={() => router.push(navUrl)}
+                        style={{padding:'12px 14px',background:'#fff',borderLeft:`3px solid ${borderColor}`,border:'1px solid #e5e4db',cursor:'pointer',position:'relative',display:'flex',alignItems:'center',gap:'10px'}}>
                         {thumbUrl && <div style={{width:'32px',height:'56px',overflow:'hidden',background:'#0a0a0a',flexShrink:0}}><video src={thumbUrl+'#t=0.5'} muted playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'cover'}} /></div>}
                         <div style={{flex:1,minWidth:0}}>
-                        <div className="dot" style={{position:'absolute',top:'8px',right:'8px',width:'8px',height:'8px',background:type === 'ugc' ? '#3b82f6' : '#4ade80'}} />
+                        <div className="dot" style={{position:'absolute',top:'8px',right:'8px',width:'8px',height:'8px',background:borderColor}} />
                         <div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>{parent.campaign_name}</div>
                         <div style={{fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'#888',marginTop:'3px'}}>
-                          {type === 'express' ? <>EXPRESS<span style={{margin:'0 8px',color:'#ccc'}}>|</span>VERSİYON {versionNum}</> : <>PERSONA<span style={{margin:'0 8px',color:'#ccc'}}>|</span>{item.personas?.name || 'Video'}</>}
+                          {type === 'express' ? <>EXPRESS<span style={{margin:'0 8px',color:'#ccc'}}>|</span>VERSİYON {versionNum}</> : type === 'animation' ? <>ANIMASYON<span style={{margin:'0 8px',color:'#ccc'}}>|</span>{item.animation_styles?.label || item.style_slug}{item.version ? ` V${item.version}` : ''}</> : <>PERSONA<span style={{margin:'0 8px',color:'#ccc'}}>|</span>{item.personas?.name || 'Video'}</>}
                           {item.completed_at && <><span style={{margin:'0 8px',color:'#ccc'}}>|</span><span style={{color:'#aaa',textTransform:'none'}}>{formatDuration(item.created_at, item.completed_at)}</span></>}
                         </div>
                       </div>
@@ -650,7 +683,7 @@ export default function ClientDashboard() {
                         <div>
                           <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{b.campaign_name}</div>
                           <div style={{fontSize:'10px',color:'#888',marginTop:'2px'}}>{b.video_type} · {statusLabel[b.status]}</div>
-                          {inds.length > 0 && <div style={{display:'flex',gap:'6px',marginTop:'4px'}}>{inds.map((ind,i) => <span key={i} style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'2px 7px',border:'1px solid #e5e4db',background:'#fafaf7',color:'#0a0a0a',whiteSpace:'nowrap',display:'inline-flex',alignItems:'center',gap:'5px'}}>{ind.error ? <span className="dot" style={{width:'6px',height:'6px',minWidth:'6px',minHeight:'6px',background:'#ef4444',display:'inline-block',flexShrink:0}} /> : ind.pulse ? <span className="dot" style={{width:'6px',height:'6px',minWidth:'6px',minHeight:'6px',background:'#4ade80',display:'inline-block',animation:'ai-pulse 1.2s ease-in-out infinite',flexShrink:0}} /> : null}{ind.label}</span>)}</div>}
+                          {inds.length > 0 && <div style={{display:'flex',gap:'6px',marginTop:'4px'}}>{inds.map((ind,i) => <span key={i} onClick={ind.tab ? (e) => { e.stopPropagation(); router.push(`/dashboard/client/briefs/${b.id}?tab=${ind.tab}`) } : undefined} style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'2px 7px',border:'1px solid #e5e4db',background:'#fafaf7',color:'#0a0a0a',whiteSpace:'nowrap',display:'inline-flex',alignItems:'center',gap:'5px',cursor:ind.tab?'pointer':undefined}}>{ind.error ? <span className="dot" style={{width:'6px',height:'6px',minWidth:'6px',minHeight:'6px',background:'#ef4444',display:'inline-block',flexShrink:0}} /> : ind.pulse ? <span className="dot" style={{width:'6px',height:'6px',minWidth:'6px',minHeight:'6px',background:'#4ade80',display:'inline-block',animation:'ai-pulse 1.2s ease-in-out infinite',flexShrink:0}} /> : null}{ind.label}</span>)}</div>}
                         </div>
                         <span style={{fontSize:'10px',padding:'3px 8px',background:`${statusColor[b.status]}12`,color:statusColor[b.status],fontWeight:'500'}}>{statusLabel[b.status]}</span>
                       </div>
@@ -696,7 +729,7 @@ export default function ClientDashboard() {
                           <div style={{padding:'8px 10px'}}>
                             <div style={{fontSize:'11px',fontWeight:'500',color:'#0a0a0a',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.campaign_name}</div>
                             <div style={{fontSize:'9px',color:'#888',marginTop:'2px'}}>{new Date(b.updated_at || b.created_at).toLocaleDateString('tr-TR')}</div>
-                            {inds.length > 0 && <div style={{display:'flex',gap:'4px',marginTop:'4px',flexWrap:'wrap'}}>{inds.map((ind,i) => <span key={i} style={{fontSize:'8px',letterSpacing:'1px',textTransform:'uppercase',padding:'1px 5px',border:'1px solid #e5e4db',color:'#888',whiteSpace:'nowrap',display:'inline-flex',alignItems:'center',gap:'4px'}}>{ind.error ? <span className="dot" style={{width:'5px',height:'5px',minWidth:'5px',minHeight:'5px',background:'#ef4444',display:'inline-block',flexShrink:0}} /> : ind.pulse ? <span className="dot" style={{width:'5px',height:'5px',minWidth:'5px',minHeight:'5px',background:'#4ade80',display:'inline-block',animation:'ai-pulse 1.2s ease-in-out infinite',flexShrink:0}} /> : null}{ind.label}</span>)}</div>}
+                            {inds.length > 0 && <div style={{display:'flex',gap:'4px',marginTop:'4px',flexWrap:'wrap'}}>{inds.map((ind,i) => <span key={i} onClick={ind.tab ? (e) => { e.stopPropagation(); router.push(`/dashboard/client/briefs/${b.id}?tab=${ind.tab}`) } : undefined} style={{fontSize:'8px',letterSpacing:'1px',textTransform:'uppercase',padding:'1px 5px',border:'1px solid #e5e4db',color:'#888',whiteSpace:'nowrap',display:'inline-flex',alignItems:'center',gap:'4px',cursor:ind.tab?'pointer':undefined}}>{ind.error ? <span className="dot" style={{width:'5px',height:'5px',minWidth:'5px',minHeight:'5px',background:'#ef4444',display:'inline-block',flexShrink:0}} /> : ind.pulse ? <span className="dot" style={{width:'5px',height:'5px',minWidth:'5px',minHeight:'5px',background:'#4ade80',display:'inline-block',animation:'ai-pulse 1.2s ease-in-out infinite',flexShrink:0}} /> : null}{ind.label}</span>)}</div>}
                           </div>
                         </div>
                       )

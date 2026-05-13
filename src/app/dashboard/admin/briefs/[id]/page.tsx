@@ -111,7 +111,7 @@ export default function AdminBriefDetail() {
   useEffect(() => { loadData() }, [id])
 
   async function loadData() {
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { session } } = await supabase.auth.getSession(); const user = session?.user
     if (user) { const { data: ud } = await supabase.from('users').select('name').eq('id', user.id).single(); setUserName(ud?.name||'') }
     const { data: b } = await supabase.from('briefs').select('*, clients(company_name, logo_url, font_url, brand_voices, packshots), client_users(*, users(email, name))').eq('id', id).single()
     setBrief(b); setEditForm(b||{})
@@ -163,7 +163,7 @@ export default function AdminBriefDetail() {
     if (!form?.creator_id) { console.log('[CPS] No creator_id, aborting'); setMsg('Creator seçilmedi.'); return }
     setLoading(true)
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession(); const user = session?.user
       const { error: delErr } = await supabase.from('producer_briefs').delete().eq('brief_id', childId)
       if (delErr) console.log('[CPS] delete error:', delErr.message)
       const { error: insErr } = await supabase.from('producer_briefs').insert({ brief_id: childId, producer_id: user?.id, assigned_creator_id: form.creator_id, producer_note: form.note || '', shared_fields: sharedFields, forwarded_at: new Date().toISOString() })
@@ -180,7 +180,7 @@ export default function AdminBriefDetail() {
     if (unassigned.length === 0) { setMsg('Tüm yönler zaten atanmış.'); return }
     setLoading(true)
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession(); const user = session?.user
       for (const child of unassigned) {
         const { error: delErr } = await supabase.from('producer_briefs').delete().eq('brief_id', child.id)
         if (delErr) console.log('[CPS] bulk delete error:', delErr.message)
@@ -193,7 +193,7 @@ export default function AdminBriefDetail() {
     loadData(); setLoading(false)
   }
   async function approveCpsSubmission(childId: string, subId: string) {
-    setLoading(true); const { data: { user } } = await supabase.auth.getUser()
+    setLoading(true); const { data: { session } } = await supabase.auth.getSession(); const user = session?.user
     await supabase.from('video_submissions').update({ status: 'admin_approved' }).eq('id', subId)
     await supabase.from('approvals').insert({ video_submission_id: subId, approved_by: user?.id, role: 'admin' })
     await supabase.from('briefs').update({ status: 'approved' }).eq('id', childId)
@@ -229,16 +229,16 @@ export default function AdminBriefDetail() {
   }
   async function generateInspirations() {
     setInspLoading(true); await supabase.from('brief_inspirations').delete().eq('brief_id', id).eq('is_starred', false)
-    const starred = inspirations.filter(i => i.is_starred); const { data: { user } } = await supabase.auth.getUser()
+    const starred = inspirations.filter(i => i.is_starred); const { data: { session } } = await supabase.auth.getSession(); const user = session?.user
     const res = await fetch('/api/generate-inspirations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: id, user_id: user?.id }) })
     const data = await res.json(); setInspirations([...starred, ...(data.inspirations || [])]); setInspLoading(false)
   }
   async function toggleStar(inspId: string, current: boolean) { await supabase.from('brief_inspirations').update({ is_starred: !current }).eq('id', inspId); setInspirations(prev => prev.map(i => i.id === inspId ? { ...i, is_starred: !current } : i)) }
   async function handleAnswerForClient(qId: string) { if (!answerText.trim()) return; await supabase.from('brief_questions').update({ answer: answerText, answered_at: new Date().toISOString() }).eq('id', qId); setAnswerEditing(null); setAnswerText(''); loadData() }
-  async function handleAddNote() { if (!newNote.trim()) return; const { data: { user } } = await supabase.auth.getUser(); await supabase.from('brief_notes').insert({ brief_id: id, note: newNote, created_by: user?.id }); setNewNote(''); const { data: notes } = await supabase.from('brief_notes').select('*, users:created_by(name)').eq('brief_id', id).order('created_at', { ascending: false }); setAdminNotes(notes || []) }
+  async function handleAddNote() { if (!newNote.trim()) return; const { data: { session } } = await supabase.auth.getSession(); const user = session?.user; await supabase.from('brief_notes').insert({ brief_id: id, note: newNote, created_by: user?.id }); setNewNote(''); const { data: notes } = await supabase.from('brief_notes').select('*, users:created_by(name)').eq('brief_id', id).order('created_at', { ascending: false }); setAdminNotes(notes || []) }
   function toggleSharedField(f: string) { setSharedFields(prev => prev.includes(f) ? prev.filter(x => x !== f) : [...prev, f]) }
   async function handleApprove(submissionId: string) {
-    setLoading(true); setMsg(''); const { data: { user } } = await supabase.auth.getUser()
+    setLoading(true); setMsg(''); const { data: { session } } = await supabase.auth.getSession(); const user = session?.user
     await supabase.from('video_submissions').update({ status:'admin_approved' }).eq('id', submissionId)
     await supabase.from('approvals').insert({ video_submission_id: submissionId, approved_by: user?.id, role:'admin' })
     await supabase.from('briefs').update({ status:'approved' }).eq('id', id)
@@ -264,7 +264,7 @@ export default function AdminBriefDetail() {
     setMsg('Revizyon talebi gönderildi.'); loadData(); setLoading(false)
   }
   async function doForward() {
-    setLoading(true); setMsg(''); const { data: { user } } = await supabase.auth.getUser()
+    setLoading(true); setMsg(''); const { data: { session } } = await supabase.auth.getSession(); const user = session?.user
     const creatorId = forwardForm.assigned_creator_id && forwardForm.assigned_creator_id.length > 10 ? forwardForm.assigned_creator_id : null
     const voiceId = forwardForm.assigned_voice_artist_id && forwardForm.assigned_voice_artist_id.length > 10 ? forwardForm.assigned_voice_artist_id : null
     await supabase.from('producer_briefs').delete().eq('brief_id', id)
@@ -287,7 +287,7 @@ export default function AdminBriefDetail() {
     doForward()
   }
   async function handleQuestion(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault(); if (!question.trim()) return; const { data: { user } } = await supabase.auth.getUser()
+    e.preventDefault(); if (!question.trim()) return; const { data: { session } } = await supabase.auth.getSession(); const user = session?.user
     await supabase.from('brief_questions').insert({ brief_id: id, question, asked_by: user?.id })
     await supabase.from('briefs').update({ question_sent_at: new Date().toISOString() }).eq('id', id)
     if (clientEmail && brief) { await fetch('/api/notify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ to: clientEmail, subject: `${brief.campaign_name} hakkında bir soru var`, html: `<p>Merhaba,</p><p>Prodüktörünüz <strong>${brief.campaign_name}</strong> brief'iniz hakkında soru sordu.</p><p>Dinamo'ya giriş yaparak yanıtlayabilirsiniz.</p><p>İyi çalışmalar,<br/>Dinamo</p>` })}).catch(() => null) }

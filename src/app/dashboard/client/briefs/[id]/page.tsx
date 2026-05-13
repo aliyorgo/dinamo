@@ -240,7 +240,7 @@ function ClientBriefDetail() {
   }, [brief, clientUser, aiChildren.length])
 
   async function loadData() {
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { session } } = await supabase.auth.getSession(); const user = session?.user
     if (!user) return
     const { data: userData } = await supabase.from('users').select('name').eq('id', user.id).single()
     setUserName(userData?.name || '')
@@ -389,7 +389,7 @@ function ClientBriefDetail() {
   async function handleAiPurchase() {
     if (!clientUser || !brief?.ai_video_url) return
     if ((clientUser.allocated_credits || 0) < (creditSettings?.credit_ai_express || 1)) { setAiError('Yetersiz kredi'); return }
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { session } } = await supabase.auth.getSession(); const user = session?.user
     if (!user) return
     const res = await fetch('/api/generate-ai-video/purchase', {
       method: 'POST',
@@ -431,7 +431,7 @@ function ClientBriefDetail() {
   async function handleStudioPurchase(childBrief: any) {
     if (!clientUser || !childBrief?.ai_video_url) return
     if ((clientUser.allocated_credits || 0) < (creditSettings?.credit_ai_express || 1)) { setAiError('Yetersiz kredi'); return }
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { session } } = await supabase.auth.getSession(); const user = session?.user
     if (!user) return
     const res = await fetch('/api/generate-ai-video/purchase', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -747,7 +747,7 @@ function ClientBriefDetail() {
                   {t.key==='ugc' && ugcVideoCount > 0 && <span style={{marginLeft:'6px',fontSize:'10px',color:'#3b82f6',fontWeight:'600'}}>{ugcVideoCount}</span>}
                   {t.key==='express' && aiChildren.length > 0 && <span style={{marginLeft:'6px',fontSize:'10px',color:'#1DB81D',fontWeight:'600'}}>{aiChildren.filter(c=>c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout').length}</span>}
                   {t.key==='cps' && cpsChildren.length > 0 && <span style={{marginLeft:'6px',fontSize:'10px',color:'#3b82f6',fontWeight:'600'}}>{cpsChildren.length}</span>}
-                  {t.key==='animation' && <span style={{marginLeft:'4px',fontSize:'9px',padding:'1px 5px',background:'#f59e0b',color:'#fff',fontWeight:'600',verticalAlign:'middle'}}>Beta</span>}
+                  {t.key==='animation' && <span style={{marginLeft:'4px',fontSize:'9px',padding:'1px 5px',background:'#1DB81D',color:'#fff',fontWeight:'600',verticalAlign:'middle'}}>Beta</span>}
                   {t.key==='animation' && animationVideoCount > 0 && <span style={{marginLeft:'6px',fontSize:'10px',color:'#8b5cf6',fontWeight:'600'}}>{animationVideoCount}</span>}
                 </button>
               )
@@ -1330,7 +1330,7 @@ function ClientBriefDetail() {
                             <>
                               <video key={child.ai_video_url} src={child.ai_video_url} controls preload="metadata"
                                 onPlay={e => { pauseOtherVideos(e.currentTarget); markAiChildViewed(child.id) }}
-                                style={{width:'100%',height:'100%',objectFit:'contain',backgroundColor:'black'}} />
+                                style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}} />
                               {!isPurchased && <img src="/dinamo_logo.png" alt="" style={{position:'absolute',top:'14px',left:'14px',width:'60px',opacity:0.65,pointerEvents:'none'}} />}
                             </>
                           ) : isProcessing ? (
@@ -1709,7 +1709,7 @@ function ClientBriefDetail() {
               )}
 
               {activeTab === 'animation' && brief && (
-                <AIAnimationTab briefId={id} brief={brief} clientUser={clientUser} onVideoCountChange={(count) => setAnimationVideoCount(count)} />
+                <AIAnimationTab briefId={id} brief={brief} clientUser={clientUser} autoPlayVideoId={searchParams.get('videoId') || undefined} onVideoCountChange={(count) => setAnimationVideoCount(count)} />
               )}
 
               {/* ═══ SUMMARY TAB ═══ */}

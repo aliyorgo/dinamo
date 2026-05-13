@@ -59,7 +59,7 @@ export default function CreatorJobDetail() {
   }, [briefId])
 
   async function loadData() {
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { session } } = await supabase.auth.getSession(); const user = session?.user
     if (!user) return
     const { data: ud } = await supabase.from('users').select('name').eq('id', user.id).single()
     setUserName(ud?.name || '')
@@ -97,7 +97,7 @@ export default function CreatorJobDetail() {
     const existingDraft = submissions.find(s => s.status === 'draft')
     if (existingDraft) { setMsg('Önce mevcut taslağı sil veya gönder.'); return }
     setUploading(true); setUploadProgress(0); setMsg('')
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { session } } = await supabase.auth.getSession(); const user = session?.user
     const { data: cd } = await supabase.from('creators').select('id').eq('user_id', user?.id).maybeSingle()
     if (!cd) { setMsg('Creator kaydı bulunamadı.'); setUploading(false); return }
     const ext = file.name.split('.').pop() || 'mp4'
@@ -143,7 +143,7 @@ export default function CreatorJobDetail() {
   async function handleQuestion(e: React.FormEvent) {
     e.preventDefault()
     if (!newQuestion.trim()) return
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { session } } = await supabase.auth.getSession(); const user = session?.user
     await supabase.from('brief_questions').insert({ brief_id: briefId, question: newQuestion, asked_by: user?.id })
     setNewQuestion(''); loadData()
   }

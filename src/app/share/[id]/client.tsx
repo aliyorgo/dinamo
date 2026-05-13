@@ -21,7 +21,7 @@ export default function SharePageClient({ brief, clientName, deliveryDate, capti
   const [zipping, setZipping] = useState(false)
   const [captionCopied, setCaptionCopied] = useState(false)
 
-  const totalVideos = videos.length + aiChildren.length + cpsChildren.length
+  const totalVideos = videos.length + aiChildren.length + cpsChildren.length + ugcVideos.length + animationVideos.length
   const hasStaticImages = !!brief.static_images_url || !!brief.static_image_files
   const aiWithImages = aiChildren.filter((c: any) => c.static_image_files && (Array.isArray(c.static_image_files) ? c.static_image_files.length > 0 : Object.keys(c.static_image_files).length > 0))
   const hasAnyImages = hasStaticImages || aiWithImages.length > 0
