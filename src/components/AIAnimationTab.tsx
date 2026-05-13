@@ -407,13 +407,10 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
             </div>
             <div style={{ display: 'flex', gap: '30px', alignItems: 'stretch' }}>
               {/* Left: style image */}
-              <div style={{ width: '210px', flexShrink: 0 }}>
-                <div style={{ position: 'relative', width: '210px', height: '100%', minHeight: '280px', background: '#f5f4f0', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: '210px', height: '210px', flexShrink: 0 }}>
+                <div style={{ position: 'relative', width: '210px', height: '210px', background: '#f5f4f0', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {getStyleIcon(selectedStyleInfo) ? <img src={getStyleIcon(selectedStyleInfo)} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} /> : <span style={{ fontSize: '52px', color: '#ccc' }}>{getStyleLabel(selectedStyleInfo)?.[0]}</span>}
                   <span style={{ position: 'absolute', top: 0, left: 0, fontSize: '11px', fontWeight: '700', color: '#0a0a0a', background: 'rgba(255,255,255,0.95)', padding: '5px 11px' }}>{getStyleLabel(selectedStyleInfo)}</span>
-                  {selectedStyleInfo.description_tr && (
-                    <div style={{ position: 'absolute', bottom: '8px', left: '12px', fontSize: '10px', color: 'rgba(255,255,255,0.9)', letterSpacing: '0.01em', lineHeight: 1.4, textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>{selectedStyleInfo.description_tr}</div>
-                  )}
                 </div>
               </div>
               {/* Right: voiceover + generate */}
