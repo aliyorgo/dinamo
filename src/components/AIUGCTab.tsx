@@ -614,7 +614,10 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
 
             return (
               <>
-                <div style={{ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#22c55e', fontWeight: '500', marginBottom: '10px', visibility: isRecommended ? 'visible' : 'hidden' }}>ÖNERİLEN PERSONA</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '10px' }}>
+                  <div style={{ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#22c55e', fontWeight: '500', visibility: isRecommended ? 'visible' : 'hidden' }}>ÖNERİLEN PERSONA</div>
+                  <span style={{ fontSize: '13px', fontWeight: '500', color: scriptText.length > 160 ? '#ef4444' : scriptText.length >= 155 ? '#f59e0b' : scriptText.length >= 140 ? '#22c55e' : scriptText.length >= 110 ? '#f59e0b' : '#888' }}>{scriptText.length} / {UGC_MAX_CHARS}</span>
+                </div>
                 <div style={{ display: 'flex', gap: '30px', alignItems: 'stretch' }}>
                   {/* Left: persona image */}
                   <div style={{ width: '210px', flexShrink: 0 }}>
@@ -634,15 +637,12 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
                     </div>
                   ) : (
                     <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
-                        <span style={{ fontSize: '13px', fontWeight: '500', color: scriptText.length > 160 ? '#ef4444' : scriptText.length >= 155 ? '#f59e0b' : scriptText.length >= 140 ? '#22c55e' : scriptText.length >= 110 ? '#f59e0b' : '#888' }}>{scriptText.length} / {UGC_MAX_CHARS}</span>
-                      </div>
-                      <textarea value={scriptText} onChange={e => { if (e.target.value.length <= UGC_MAX_CHARS) setScriptText(e.target.value) }} onBlur={() => { if (!selectedPersona || scriptText === readScript(ugcScripts, selectedPersona)) return; const updated = { ...ugcScripts, [String(selectedPersona)]: scriptText }; setUgcScripts(updated); persistUgcScripts(updated) }} placeholder={scriptLoading ? 'Uretiliyor...' : 'Bu persona icin konusma metni henuz uretilmedi. Butona basin veya buraya yazin.'} style={{ width: '100%', flex: 1, minHeight: '80px', fontSize: '13px', color: '#0a0a0a', lineHeight: 1.6, border: '1px solid #e5e4db', padding: '10px 12px', resize: 'none', boxSizing: 'border-box' }} />
+                      <textarea value={scriptText} onChange={e => { if (e.target.value.length <= UGC_MAX_CHARS) setScriptText(e.target.value) }} onBlur={() => { if (!selectedPersona || scriptText === readScript(ugcScripts, selectedPersona)) return; const updated = { ...ugcScripts, [String(selectedPersona)]: scriptText }; setUgcScripts(updated); persistUgcScripts(updated) }} placeholder={scriptLoading ? 'Üretiliyor...' : 'Bu persona için konuşma metni henüz üretilmedi. Butona basın veya buraya yazın.'} style={{ width: '100%', flex: 1, minHeight: '80px', fontSize: '13px', color: '#0a0a0a', lineHeight: 1.6, border: '1px solid #e5e4db', padding: '10px 12px', resize: 'none', boxSizing: 'border-box' }} />
                       {(() => {
                         const isTextEmpty = !scriptText.trim()
                         const isLoading = scriptLoading || generating
                         const completedCount = ugcVideos.filter(v => v.status !== 'failed').length
-                        const label = isLoading ? 'URETILIYOR...' : isTextEmpty ? 'KONUSMA METNI YAZ' : (completedCount === 0 ? 'URET (UCRETSIZ)' : 'URET (1 KREDI)')
+                        const label = isLoading ? 'ÜRETİLİYOR...' : isTextEmpty ? 'KONUŞMA METNİ YAZ' : (completedCount === 0 ? 'ÜRET (ÜCRETSİZ)' : 'ÜRET (1 KREDİ)')
                         const disabled = isLoading || !selectedPersona || (!isTextEmpty && (clientUser?.allocated_credits || 0) < 1)
                         const onClick = async () => {
                           if (isTextEmpty) {
@@ -652,16 +652,19 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
                               const res = await fetch('/api/ugc/generate-script', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: selectedPersona, use_product: false, settings, previous_feedbacks: feedbacks }) })
                               const data = await res.json()
                               if (data.dialogue) { setScriptText(data.dialogue); setChangesSummary(data.changes_summary || ''); const updated = { ...ugcScripts, [String(selectedPersona)]: data.dialogue }; setUgcScripts(updated); persistUgcScripts(updated) }
-                              else { setMsg(data.error || 'Script uretilemedi') }
-                            } catch { setMsg('Baglanti hatasi') }
+                              else { setMsg(data.error || 'Script üretilemedi') }
+                            } catch { setMsg('Bağlantı hatası') }
                             setScriptLoading(false)
                           } else {
                             if (scriptText.length < 100) { setShortTextWarning(true) } else { handleGenerate() }
                           }
                         }
-                        return <button onClick={onClick} disabled={disabled} style={{ width: '100%', padding: '12px', marginTop: '10px', background: disabled ? '#ccc' : '#0a0a0a', color: '#fff', border: 'none', fontSize: '13px', fontWeight: '600', cursor: disabled ? 'default' : 'pointer' }}>{label}</button>
+                        return (
+                          <button onClick={onClick} disabled={disabled} style={{ width: '100%', padding: '10px 12px', marginTop: '10px', background: disabled ? '#ccc' : '#0a0a0a', color: '#fff', border: 'none', fontSize: '13px', fontWeight: '600', cursor: disabled ? 'default' : 'pointer', flexShrink: 0 }}>
+                            {label}<span style={{ display: 'block', fontSize: '10px', fontWeight: '400', opacity: 0.5, marginTop: '2px' }}>~3 dakika</span>
+                          </button>
+                        )
                       })()}
-                      <div style={{ fontSize: '13px', color: '#999', textAlign: 'center', marginTop: '6px' }}>~3 dakika</div>
                     </div>
                   )}
                 </div>
