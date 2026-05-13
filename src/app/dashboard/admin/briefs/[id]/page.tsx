@@ -83,6 +83,8 @@ export default function AdminBriefDetail() {
   const [cpsOpen, setCpsOpen] = useState<Record<string,boolean>>({})
   const [aiOpen, setAiOpen] = useState<Record<string,boolean>>({})
   const [personaOpen, setPersonaOpen] = useState(false)
+  const [animationOpen, setAnimationOpen] = useState(false)
+  const [animationVideos, setAnimationVideos] = useState<any[]>([])
   const [showAssignForm, setShowAssignForm] = useState(false)
   const [showReassignConfirm, setShowReassignConfirm] = useState(false)
   // CPS per-child creator forms
@@ -484,6 +486,12 @@ export default function AdminBriefDetail() {
     }
   }, [brief?.ugc_video_id])
 
+  // Animation videos fetch
+  useEffect(() => {
+    if (!brief?.id) return
+    supabase.from('animation_videos').select('*, animation_styles(label, icon_path)').eq('brief_id', brief.id).order('created_at', { ascending: true }).then(({ data }) => { if (data) setAnimationVideos(data) })
+  }, [brief?.id])
+
   if (!brief) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', color: 'var(--color-text-tertiary)' }}>Yükleniyor...</div>
 
   return (
@@ -876,6 +884,47 @@ export default function AdminBriefDetail() {
                   <div className="label-caps" style={{ color: 'var(--color-text-tertiary)' }}>AI Persona</div>
                   <span style={{ fontSize: '9px', letterSpacing: '1px', padding: '2px 6px', background: 'rgba(245,158,11,0.1)', border: '1px solid #f59e0b', color: '#92400e' }}>BETA</span>
                   <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', marginLeft: '8px' }}>{brief.ugc_video_id ? 'Video yükleniyor...' : 'Henüz UGC üretilmedi'}</span>
+                </div>
+              </div>
+            )}
+
+            {/* 4) AI ANIMATION — Collapsed */}
+            {animationVideos.length > 0 ? (
+              <div style={{ background: '#fff', border: '1px solid var(--color-border-tertiary)', padding: '14px 18px', marginBottom: '16px', cursor: 'pointer' }} onClick={() => setAnimationOpen(!animationOpen)}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div className="label-caps">AI Animation</div>
+                    <span style={{ fontSize: '9px', letterSpacing: '1px', padding: '2px 6px', background: 'rgba(245,158,11,0.1)', border: '1px solid #f59e0b', color: '#92400e' }}>BETA</span>
+                    <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>{animationVideos.length} video</span>
+                  </div>
+                  <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>{animationOpen ? 'KAPAT' : 'DETAY'}</span>
+                </div>
+                {animationOpen && (
+                  <div style={{ marginTop: '12px' }} onClick={e => e.stopPropagation()}>
+                    {animationVideos.map((av: any) => (
+                      <div key={av.id} style={{ border: '1px solid var(--color-border-tertiary)', padding: '10px 14px', marginBottom: '6px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: av.final_url ? '8px' : '0' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '12px', fontWeight: '500' }}>V{av.version}</span>
+                            <span style={{ fontSize: '9px', letterSpacing: '1px', padding: '2px 6px', background: 'rgba(139,92,246,0.08)', color: '#8b5cf6', fontWeight: '500', textTransform: 'uppercase' }}>{av.animation_styles?.label || av.style_slug}</span>
+                            <Badge status={av.status === 'sold' ? 'ai_sold' : av.status === 'ready' ? 'ai_completed' : av.status === 'generating' || av.status === 'queued' ? 'ai_processing' : 'cancelled'} />
+                          </div>
+                          {av.completed_at && <span style={{ fontSize: '10px', color: 'var(--color-text-tertiary)' }}>{new Date(av.completed_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}</span>}
+                        </div>
+                        {av.final_url && <video controls style={{ width: '100%', maxHeight: '300px', objectFit: 'contain', background: '#000', display: 'block', marginBottom: '6px' }}><source src={av.final_url} /></video>}
+                        {av.error_message && <div style={{ fontSize: '11px', color: '#ef4444', marginTop: '4px' }}>{av.error_message}</div>}
+                        {av.feedback_summary && <div style={{ fontSize: '11px', color: '#6b6b66', fontFamily: 'monospace', marginTop: '4px' }}>{av.feedback_summary}</div>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div style={{ marginBottom: '16px', padding: '14px 18px', background: '#fff', border: '1px solid var(--color-border-tertiary)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div className="label-caps" style={{ color: 'var(--color-text-tertiary)' }}>AI Animation</div>
+                  <span style={{ fontSize: '9px', letterSpacing: '1px', padding: '2px 6px', background: 'rgba(245,158,11,0.1)', border: '1px solid #f59e0b', color: '#92400e' }}>BETA</span>
+                  <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', marginLeft: '8px' }}>Henüz animasyon üretilmedi</span>
                 </div>
               </div>
             )}

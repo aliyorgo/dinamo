@@ -13,9 +13,10 @@ interface Props {
   aiChildren: any[]
   cpsChildren: any[]
   ugcVideos?: any[]
+  animationVideos?: any[]
 }
 
-export default function SharePageClient({ brief, clientName, deliveryDate, caption, videos, aiChildren, cpsChildren, ugcVideos = [] }: Props) {
+export default function SharePageClient({ brief, clientName, deliveryDate, caption, videos, aiChildren, cpsChildren, ugcVideos = [], animationVideos = [] }: Props) {
   const [lightbox, setLightbox] = useState<{ type: 'video' | 'image'; url: string } | null>(null)
   const [zipping, setZipping] = useState(false)
   const [captionCopied, setCaptionCopied] = useState(false)
@@ -144,6 +145,17 @@ export default function SharePageClient({ brief, clientName, deliveryDate, capti
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '16px' }}>
                   {ugcVideos.map((v: any, i: number) => (
                     <VideoThumb key={v.id} url={v.final_url} label={`V${i + 1} — ${v.personas?.name || 'Persona'}`} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {animationVideos.length > 0 && (
+              <div style={{ marginBottom: '28px' }}>
+                <div style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', marginBottom: '10px' }}>AI ANIMATION · {animationVideos.length}</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '16px' }}>
+                  {animationVideos.map((v: any, i: number) => (
+                    <VideoThumb key={v.id} url={v.final_url} label={`Animation V${v.version || i + 1} — ${v.animation_styles?.label || v.style_slug}`} />
                   ))}
                 </div>
               </div>

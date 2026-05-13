@@ -30,11 +30,11 @@ const DEFAULTS: CreditSettings = {
 }
 
 let cached: CreditSettings | null = null
-let cachedFlags: { aiExpressGlobal: boolean; ugcGlobal: boolean } | null = null
+let cachedFlags: { aiExpressGlobal: boolean; ugcGlobal: boolean; animationGlobal: boolean } | null = null
 
-export function useCredits(): { credits: CreditSettings | null; flags: { aiExpressGlobal: boolean; ugcGlobal: boolean }; loading: boolean } {
+export function useCredits(): { credits: CreditSettings | null; flags: { aiExpressGlobal: boolean; ugcGlobal: boolean; animationGlobal: boolean }; loading: boolean } {
   const [credits, setCredits] = useState<CreditSettings | null>(cached)
-  const [flags, setFlags] = useState(cachedFlags || { aiExpressGlobal: true, ugcGlobal: true })
+  const [flags, setFlags] = useState(cachedFlags || { aiExpressGlobal: true, ugcGlobal: true, animationGlobal: false })
   const [loading, setLoading] = useState(!cached)
 
   useEffect(() => {
@@ -50,7 +50,7 @@ export function useCredits(): { credits: CreditSettings | null; flags: { aiExpre
         }
         cached = merged
         setCredits(merged)
-        const f = { aiExpressGlobal: data.ai_express_global_enabled !== 'false', ugcGlobal: data.ugc_global_enabled !== 'false' }
+        const f = { aiExpressGlobal: data.ai_express_global_enabled !== 'false', ugcGlobal: data.ugc_global_enabled !== 'false', animationGlobal: data.animation_global_enabled === 'true' }
         cachedFlags = f
         setFlags(f)
       })

@@ -175,6 +175,7 @@ export default function SettingsPage() {
     { key: 'credit_ai_ugc', label: 'AI Persona kredi değeri', type: 'number', unit: 'kredi' },
     { key: 'ai_express_global_enabled', label: 'AI Express global aktif', type: 'toggle' },
     { key: 'ugc_global_enabled', label: 'Persona global aktif', type: 'toggle' },
+    { key: 'animation_global_enabled', label: 'Animation global aktif', type: 'toggle' },
     { key: 'prices_visible', label: 'Anasayfada fiyatları göster', type: 'toggle' },
     { key: 'works_visible', label: 'Anasayfada işleri göster', type: 'toggle' },
     { key: 'partners_visible', label: 'Anasayfada partnerleri göster', type: 'toggle' },

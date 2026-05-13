@@ -10,6 +10,7 @@ import VideoLoadingBox from '@/components/VideoLoadingBox'
 import { logClientActivity } from '@/lib/log-client'
 import { pauseOtherVideos } from '@/lib/video-playback'
 import AIUGCTab from '@/components/AIUGCTab'
+import AIAnimationTab from '@/components/AIAnimationTab'
 import { downloadFile } from '@/lib/download-helper'
 import { useCredits } from '@/lib/credits'
 import { useClientContext } from '../../layout'
@@ -114,6 +115,7 @@ function ClientBriefDetail() {
   const [selectedAiIdx, setSelectedAiIdx] = useState<number>(0)
   const [showAiGenerate, setShowAiGenerate] = useState(false)
   const [aiGenerating, setAiGenerating] = useState(false)
+  const [expressHQ, setExpressHQ] = useState(false)
   const [expressInfoOpen, setExpressInfoOpen] = useState(false)
   const [cpsInfoOpen, setCpsInfoOpen] = useState(false)
   const [expressSettingsOpen, setExpressSettingsOpen] = useState(false)
@@ -143,7 +145,9 @@ function ClientBriefDetail() {
   }
   const [ugcVideosForSummary, setUgcVideosForSummary] = useState<any[]>([])
   const [ugcVideoCount, setUgcVideoCount] = useState(0)
-  const [activeTab, setActiveTab] = useState<'hybrid'|'cps'|'express'|'ugc'|'summary'>(searchParams.get('tab') === 'express' ? 'express' : searchParams.get('tab') === 'ugc' ? 'ugc' : searchParams.get('tab') === 'cps' ? 'cps' : searchParams.get('tab') === 'summary' ? 'summary' : 'hybrid')
+  const [animationVideoCount, setAnimationVideoCount] = useState(0)
+  const [animationVideosForSummary, setAnimationVideosForSummary] = useState<any[]>([])
+  const [activeTab, setActiveTab] = useState<'hybrid'|'cps'|'express'|'ugc'|'animation'|'summary'>(searchParams.get('tab') === 'express' ? 'express' : searchParams.get('tab') === 'ugc' ? 'ugc' : searchParams.get('tab') === 'animation' ? 'animation' : searchParams.get('tab') === 'cps' ? 'cps' : searchParams.get('tab') === 'summary' ? 'summary' : 'hybrid')
 
   // Onboarding: auto-open info modal on first visit per module
   useEffect(() => {
@@ -270,7 +274,7 @@ function ClientBriefDetail() {
     // AI clones for this campaign (root_campaign_id based)
     const rootId = b?.root_campaign_id || b?.id
     const { data: aiKids } = await supabase.from('briefs')
-      .select('id, campaign_name, status, format, ai_video_status, ai_video_url, ai_video_error, product_image_url, created_at, completed_at, ai_feedbacks, static_images_url, static_image_files, ai_express_viewed_at, ai_express_settings_snapshot, ai_feedback_summary')
+      .select('id, campaign_name, status, format, ai_video_status, ai_video_url, ai_video_error, product_image_url, created_at, completed_at, ai_feedbacks, static_images_url, static_image_files, ai_express_viewed_at, ai_express_settings_snapshot, ai_feedback_summary, express_engine')
       .eq('root_campaign_id', rootId)
       .like('campaign_name', '%Full AI%')
       .order('created_at', { ascending: true })
@@ -293,6 +297,11 @@ function ClientBriefDetail() {
     // Total UGC count for tab label
     const { count: ugcTotal } = await supabase.from('ugc_videos').select('id', { count: 'exact', head: true }).eq('brief_id', id).neq('status', 'failed')
     setUgcVideoCount(ugcTotal || 0)
+    // Animation videos for summary
+    const { data: animVids } = await supabase.from('animation_videos')
+      .select('id, final_url, created_at, version, status, style_slug, animation_styles(label)')
+      .eq('brief_id', id).eq('status', 'sold').not('final_url', 'is', null).order('created_at', { ascending: true })
+    setAnimationVideosForSummary(animVids || [])
   }
 
   // AI video polling — runs when brief is ai_processing and video not yet ready
@@ -405,7 +414,7 @@ function ClientBriefDetail() {
     setShowAiGenerate(false)
     setAiError('')
     try {
-      const res = await fetch('/api/ai-express/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: id, client_user_id: clientUser.id, mode }) })
+      const res = await fetch('/api/ai-express-seedance/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: id, client_user_id: clientUser.id, express_engine: expressHQ ? 'seedance_hq' : 'seedance' }) })
       const data = await res.json()
       if (!res.ok) { setAiError(data.error || 'Üretim başarısız'); setAiGenerating(false); return }
       if (data.child_brief) {
@@ -715,11 +724,13 @@ function ClientBriefDetail() {
             const hasSummary = aiChildren.length > 0 || cpsChildren.length > 0 || !!brief?.static_images_url || ugcVideosForSummary.length > 0
             const expressVisible = brief?.clients?.ai_video_enabled !== false && featureFlags.aiExpressGlobal
             const ugcVisible = brief?.clients?.ugc_enabled !== false && featureFlags.ugcGlobal
+            const animationVisible = featureFlags.animationGlobal
             const tabs = [
               {key:'hybrid' as const, label:'Ana Video'},
               {key:'cps' as const, label:'CPS'},
               ...(expressVisible ? [{key:'express' as const, label:'AI Express'}] : []),
               ...(ugcVisible ? [{key:'ugc' as const, label:'AI Persona'}] : []),
+              ...(animationVisible ? [{key:'animation' as const, label:'AI Animation'}] : []),
               ...(hasSummary ? [{key:'summary' as const, label:'Kampanya Özeti'}] : []),
             ]
             return tabs.map((t,ti)=>{
@@ -736,6 +747,8 @@ function ClientBriefDetail() {
                   {t.key==='ugc' && ugcVideoCount > 0 && <span style={{marginLeft:'6px',fontSize:'10px',color:'#3b82f6',fontWeight:'600'}}>{ugcVideoCount}</span>}
                   {t.key==='express' && aiChildren.length > 0 && <span style={{marginLeft:'6px',fontSize:'10px',color:'#1DB81D',fontWeight:'600'}}>{aiChildren.filter(c=>c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout').length}</span>}
                   {t.key==='cps' && cpsChildren.length > 0 && <span style={{marginLeft:'6px',fontSize:'10px',color:'#3b82f6',fontWeight:'600'}}>{cpsChildren.length}</span>}
+                  {t.key==='animation' && <span style={{marginLeft:'4px',fontSize:'9px',padding:'1px 5px',background:'#f59e0b',color:'#fff',fontWeight:'600',verticalAlign:'middle'}}>Beta</span>}
+                  {t.key==='animation' && animationVideoCount > 0 && <span style={{marginLeft:'6px',fontSize:'10px',color:'#8b5cf6',fontWeight:'600'}}>{animationVideoCount}</span>}
                 </button>
               )
             })
@@ -1228,6 +1241,12 @@ function ClientBriefDetail() {
                   Ayarlar
                 </button>
                 </div>
+                <div style={{display:'flex',alignItems:'center',gap:'6px',marginLeft:'8px'}} title="720p daha keskin, üretim biraz daha uzun sürer">
+                  <span style={{fontSize:'10px',color:'#888'}}>HQ</span>
+                  <button onClick={()=>setExpressHQ(!expressHQ)} style={{width:'36px',height:'20px',border:'none',cursor:'pointer',background:expressHQ?'#22c55e':'#ddd',position:'relative',transition:'background 0.2s',flexShrink:0}}>
+                    <span className="dot" style={{position:'absolute',top:'2px',left:expressHQ?'18px':'2px',width:'16px',height:'16px',background:'#fff',transition:'left 0.2s'}} />
+                  </button>
+                </div>
                 <div style={{flex:1}} />
                 {(() => { const total = aiChildren.length + aiChildren.filter(c => c.status === 'delivered').length * 2; return <div style={{display:'inline-flex',padding:'6px 14px',border:'1px solid #0a0a0a',fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:total > 0 ? '#0a0a0a' : '#9ca3af',flexShrink:0,whiteSpace:'nowrap'}}>{total} KREDİ</div> })()}
               </div>
@@ -1336,7 +1355,7 @@ function ClientBriefDetail() {
                           <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'4px'}}>
                             <span style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>V{idx+1}</span>
                             {isPurchased && <span style={{fontSize:'9px',color:'#1DB81D',fontWeight:'600'}}>&#10003; Satın Alındı</span>}
-                            {isProcessing && <span style={{fontSize:'9px',fontWeight:'500',display:'inline-flex',alignItems:'center',gap:'4px'}}><span className="dot" style={{width:'6px',height:'6px',background:'#4ade80',display:'inline-block',animation:'pulse 1.5s ease infinite'}}></span><span style={{color:'#0a0a0a'}}>Üretiliyor</span> <span style={{color:'#6b6b66'}}>(~5 dakika)</span></span>}
+                            {isProcessing && <span style={{fontSize:'9px',fontWeight:'500',display:'inline-flex',alignItems:'center',gap:'4px'}}><span className="dot" style={{width:'6px',height:'6px',background:'#4ade80',display:'inline-block',animation:'pulse 1.5s ease infinite'}}></span><span style={{color:'#0a0a0a'}}>Üretiliyor</span> <span style={{color:'#6b6b66'}}>(~{child.express_engine === 'seedance_hq' ? '10' : '5'} dakika)</span></span>}
                             {isFailed && <span style={{fontSize:'9px',color:'#ef4444',fontWeight:'500'}}>Başarısız</span>}
                             {child.ai_express_settings_snapshot && (() => { const s = child.ai_express_settings_snapshot; const badges = []; if (s.logo) badges.push('LOGO'); if (s.cta) badges.push('CTA'); if (s.packshot) badges.push('PACKSHOT'); return badges.length > 0 ? <span style={{display:'inline-flex',gap:'4px',marginLeft:'6px'}}>{badges.map((b: string)=><span key={b} style={{fontSize:'9px',padding:'2px 6px',background:'#f5f4f0',color:'#888',letterSpacing:'0.5px',fontWeight:600}}>{b}</span>)}</span> : null })()}
                           </div>
@@ -1466,7 +1485,7 @@ function ClientBriefDetail() {
                     ) : (
                       <div>
                         <div style={{display:'flex',gap:'8px'}}>
-                          <button onClick={()=>brief.product_image_url?setShowAiGenerate(true):handleStudioGenerate('character')} disabled={(clientUser?.allocated_credits||0)<1}
+                          <button onClick={()=>handleStudioGenerate('character')} disabled={(clientUser?.allocated_credits||0)<1}
                             style={{flex:1,padding:'14px',background:(clientUser?.allocated_credits||0)<1?'#ccc':'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'13px',fontWeight:'600',cursor:(clientUser?.allocated_credits||0)<1?'default':'pointer',transition:'background 0.15s',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}
                             onMouseEnter={e=>{if((clientUser?.allocated_credits||0)>=1)e.currentTarget.style.background='#1DB81D'}}
                             onMouseLeave={e=>{if((clientUser?.allocated_credits||0)>=1)e.currentTarget.style.background='#0a0a0a'}}>
@@ -1479,7 +1498,7 @@ function ClientBriefDetail() {
                             Dış Ses
                           </button>
                         </div>
-                        <div style={{fontSize:'13px',color:'#999',textAlign:'center',marginTop:'6px'}}>{aiChildren.filter(c => c.ai_video_status === 'completed' || c.status === 'delivered').length > 0 ? `~5 dakika · ${creditSettings?.credit_ai_express_generate || 1} kredi` : `~5 dakika · İlk deneme ücretsiz · ${creditSettings?.credit_ai_express || 1} kredi satın alma`}</div>
+                        <div style={{fontSize:'13px',color:'#999',textAlign:'center',marginTop:'6px'}}>{aiChildren.filter(c => c.ai_video_status === 'completed' || c.status === 'delivered').length > 0 ? `~${expressHQ ? '10' : '5'} dakika · ${creditSettings?.credit_ai_express_generate || 1} kredi` : `~${expressHQ ? '10' : '5'} dakika · İlk deneme ücretsiz · ${creditSettings?.credit_ai_express || 1} kredi satın alma`}</div>
                       </div>
                     )}
                   </div>}
@@ -1689,9 +1708,13 @@ function ClientBriefDetail() {
                 <AIUGCTab briefId={id} brief={brief} clientUser={clientUser} autoPlayVideoId={searchParams.get('video') || undefined} onVideoCountChange={(count) => setUgcVideoCount(count)} />
               )}
 
+              {activeTab === 'animation' && brief && (
+                <AIAnimationTab briefId={id} brief={brief} clientUser={clientUser} onVideoCountChange={(count) => setAnimationVideoCount(count)} />
+              )}
+
               {/* ═══ SUMMARY TAB ═══ */}
               {activeTab === 'summary' && brief && (
-                <CampaignSummaryTab brief={brief} companyName={companyName} videos={videos} aiChildren={aiChildren} cpsChildren={cpsChildren} ugcVideos={ugcVideosForSummary} onRefresh={loadData}
+                <CampaignSummaryTab brief={brief} companyName={companyName} videos={videos} aiChildren={aiChildren} cpsChildren={cpsChildren} ugcVideos={ugcVideosForSummary} animationVideos={animationVideosForSummary} onRefresh={loadData}
                   captionText={captionText} setCaptionText={setCaptionText} savedCaption={savedCaption} captionLoading={captionLoading} captionToast={captionToast}
                   onGenerateCaption={generateCaption} onCaptionAction={handleCaptionAction} onRegenerateConfirm={() => setShowRegenerateConfirm(true)} />
               )}
