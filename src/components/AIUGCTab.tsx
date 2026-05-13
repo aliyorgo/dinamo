@@ -125,17 +125,13 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
 
   // Global polling — processing video varsa 8sn'de bir tüm listeyi fresh fetch
   const hasProcessingVideos = ugcVideos.some(v => v.status === 'queued' || v.status === 'generating')
-  console.log('[ugc-debug] hasProcessingVideos:', hasProcessingVideos, '| videos:', ugcVideos.map(v => `${v.id?.slice(0,8)}:${v.status}`).join(', '))
   useEffect(() => {
-    if (!hasProcessingVideos) { console.log('[ugc-debug] No processing videos, polling OFF'); return }
-    console.log('[ugc-debug] Polling STARTED (8s interval)')
+    if (!hasProcessingVideos) return
     const poll = setInterval(async () => {
-      console.log('[ugc-debug] Polling tick — fetching DB...')
-      const { data, error } = await supabase.from('ugc_videos').select('*, personas(name, slug)').eq('brief_id', briefId).order('created_at', { ascending: true })
-      console.log('[ugc-debug] DB returned:', data?.length, 'videos, statuses:', data?.map(v => `${v.id?.slice(0,8)}:${v.status}`).join(', '), error ? `ERROR: ${error.message}` : '')
+      const { data } = await supabase.from('ugc_videos').select('*, personas(name, slug)').eq('brief_id', briefId).order('created_at', { ascending: true })
       if (data) setUgcVideos(data)
     }, 8000)
-    return () => { console.log('[ugc-debug] Polling STOPPED'); clearInterval(poll) }
+    return () => clearInterval(poll)
   }, [hasProcessingVideos])
 
   // Timer-based stage progression for processing videos
@@ -329,12 +325,9 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
         // Poll
         const poll = setInterval(async () => {
           const { data: v } = await supabase.from('ugc_videos').select('*, personas(name, slug)').eq('id', genData.ugc_video_id).single()
-          console.log('[ugc-debug] Inline poll:', genData.ugc_video_id?.slice(0,8), '→', v?.status)
-          if (v && (v.status === 'ready' || v.status === 'failed')) { clearInterval(poll); console.log('[ugc-debug] Inline poll DONE:', v.status); setHighlightId(genData.ugc_video_id); setTimeout(() => setHighlightId(null), 1500); setUgcVideos(prev => prev.map(x => x.id === genData.ugc_video_id ? v : x)); setGenerating(false) }
+          if (v && (v.status === 'ready' || v.status === 'failed')) { clearInterval(poll); setHighlightId(genData.ugc_video_id); setTimeout(() => setHighlightId(null), 1500); setUgcVideos(prev => prev.map(x => x.id === genData.ugc_video_id ? v : x)); setGenerating(false) }
           else if (v && v.status !== 'queued') { setUgcVideos(prev => prev.map(x => x.id === genData.ugc_video_id ? v : x)) }
         }, 10000)
-        // Optimistic add to end of list
-        console.log('[ugc-debug] Optimistic add:', genData.ugc_video_id?.slice(0,8), 'status: queued')
         setUgcVideos(prev => [...prev, { id: genData.ugc_video_id, status: 'queued', persona_id: selectedPersona, personas: personas.find(p => p.id === selectedPersona), created_at: new Date().toISOString() }])
       } else { setMsg(genData.error || 'Üretim başarısız') }
     } catch { setMsg('Bağlantı hatası') }
