@@ -615,10 +615,10 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
             return (
               <>
                 <div style={{ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#22c55e', fontWeight: '500', marginBottom: '10px', visibility: isRecommended ? 'visible' : 'hidden' }}>ÖNERİLEN PERSONA</div>
-                <div style={{ display: 'flex', gap: '30px', alignItems: 'stretch', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: '30px', alignItems: 'stretch' }}>
                   {/* Left: persona image */}
-                  <div style={{ width: '210px', flexShrink: 0, alignSelf: 'stretch' }}>
-                    <div style={{ position: 'relative', width: '210px', height: '100%', minHeight: '210px', background: '#f5f4f0', overflow: 'hidden', opacity: personaFading ? 0 : 1, transition: 'opacity 300ms ease-in-out' }}>
+                  <div style={{ width: '210px', flexShrink: 0 }}>
+                    <div style={{ position: 'relative', width: '210px', height: '100%', minHeight: '280px', background: '#f5f4f0', overflow: 'hidden', opacity: personaFading ? 0 : 1, transition: 'opacity 300ms ease-in-out' }}>
                       {p.thumbnail_url ? <img src={p.thumbnail_url} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', fontSize: '52px', color: '#ccc' }}>{p.name[0]}</span>}
                       <span className="rounded-br" style={{ position: 'absolute', top: 0, left: 0, fontSize: '11px', fontWeight: '700', color: '#0a0a0a', background: 'rgba(255,255,255,0.95)', padding: '5px 11px' }}>{p.name}</span>
                       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.5), rgba(0,0,0,0))', padding: '24px 12px 10px' }}>
