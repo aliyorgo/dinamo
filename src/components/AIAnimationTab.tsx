@@ -410,7 +410,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
               <div style={{ width: '210px', height: '210px', flexShrink: 0 }}>
                 <div style={{ position: 'relative', width: '210px', height: '210px', background: '#f5f4f0', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {getStyleIcon(selectedStyleInfo) ? <img src={getStyleIcon(selectedStyleInfo)} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} /> : <span style={{ fontSize: '52px', color: '#ccc' }}>{getStyleLabel(selectedStyleInfo)?.[0]}</span>}
-                  <span style={{ position: 'absolute', top: 0, left: 0, fontSize: '11px', fontWeight: '700', color: '#0a0a0a', background: 'rgba(255,255,255,0.95)', padding: '5px 11px', textTransform: 'uppercase' }}>{getStyleLabel(selectedStyleInfo)}</span>
+                  <span className="rounded-br" style={{ position: 'absolute', top: 0, left: 0, fontSize: '11px', fontWeight: '700', color: '#0a0a0a', background: 'rgba(255,255,255,0.95)', padding: '5px 11px', textTransform: 'uppercase' }}>{getStyleLabel(selectedStyleInfo)}</span>
                   {selectedStyleInfo.description_tr && <div style={{ position: 'absolute', bottom: '10px', left: '10px', right: '10px', color: '#fff', fontSize: '11px', lineHeight: 1.3, textShadow: '0 1px 4px rgba(0,0,0,0.7)' }}>{selectedStyleInfo.description_tr}</div>}
                 </div>
               </div>
