@@ -725,22 +725,22 @@ function ClientBriefDetail() {
             const expressVisible = brief?.clients?.ai_video_enabled !== false && featureFlags.aiExpressGlobal
             const ugcVisible = brief?.clients?.ugc_enabled !== false && featureFlags.ugcGlobal
             const animationVisible = featureFlags.animationGlobal
-            const tabs = [
+            const mainTabs = [
               {key:'hybrid' as const, label:'Ana Video'},
               {key:'cps' as const, label:'CPS'},
-              ...(expressVisible ? [{key:'express' as const, label:'AI Express'}] : []),
-              ...(ugcVisible ? [{key:'ugc' as const, label:'AI Persona'}] : []),
-              ...(animationVisible ? [{key:'animation' as const, label:'AI Animation'}] : []),
-              ...(hasSummary ? [{key:'summary' as const, label:'Kampanya Özeti'}] : []),
+              ...(expressVisible ? [{key:'express' as const, label:'Express'}] : []),
+              ...(ugcVisible ? [{key:'ugc' as const, label:'Persona'}] : []),
+              ...(animationVisible ? [{key:'animation' as const, label:'Animasyon'}] : []),
             ]
-            return tabs.map((t,ti)=>{
+            const summaryTab = hasSummary ? {key:'summary' as const, label:'Kampanya Özeti'} : null
+            const renderTab = (t: any, ti: number, total: number) => {
               const isActive = activeTab === t.key
               const isSummary = t.key === 'summary'
               return (
                 <button key={t.key} onClick={()=>setActiveTab(t.key)}
-                  style={{padding:'12px 24px',border:'none',borderBottom:isActive?(isSummary?'2px solid #f5a623':'2px solid #0a0a0a'):'2px solid transparent',borderRight:ti<tabs.length-1?'1px solid rgba(0,0,0,0.06)':'none',background:isActive?(isSummary?'rgba(245,166,35,0.06)':'#0a0a0a'):'#fff',color:isActive?(isSummary?'#0a0a0a':'#fff'):'#555',fontSize:'14px',fontWeight:isSummary?'400':'600',cursor:'pointer',transition:'all 0.15s'}}
-                  onMouseEnter={e=>{if(!isActive)e.currentTarget.style.background='#f5f5f5'}}
-                  onMouseLeave={e=>{if(!isActive)e.currentTarget.style.background='#fff'}}>
+                  style={{padding:'8px 16px',border:'none',borderBottom:isActive?(isSummary?'2px solid #f5a623':'2px solid #0a0a0a'):'2px solid transparent',borderRight:ti<total-1?'1px solid rgba(0,0,0,0.06)':'none',background:isActive?(isSummary?'transparent':'#0a0a0a'):(isSummary?'transparent':'#fff'),color:isActive?(isSummary?'#0a0a0a':'#fff'):'#555',fontSize:'12px',fontWeight:isSummary?'400':'600',cursor:'pointer',transition:'all 0.15s'}}
+                  onMouseEnter={e=>{if(!isActive&&!isSummary)e.currentTarget.style.background='#f5f5f5'}}
+                  onMouseLeave={e=>{if(!isActive&&!isSummary)e.currentTarget.style.background=isSummary?'transparent':'#fff'}}>
                   {t.label}
                   {t.key==='express' && <span style={{marginLeft:'4px',fontSize:'9px',padding:'1px 5px',background:'#1DB81D',color:'#fff',fontWeight:'600',verticalAlign:'middle'}}>Beta</span>}
                   {t.key==='ugc' && <span style={{marginLeft:'4px',fontSize:'9px',padding:'1px 5px',background:'#1DB81D',color:'#fff',fontWeight:'600',verticalAlign:'middle'}}>Beta</span>}
@@ -751,7 +751,13 @@ function ClientBriefDetail() {
                   {t.key==='animation' && animationVideoCount > 0 && <span style={{marginLeft:'6px',fontSize:'10px',color:'#8b5cf6',fontWeight:'600'}}>{animationVideoCount}</span>}
                 </button>
               )
-            })
+            }
+            return (
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',width:'100%'}}>
+                <div style={{display:'flex'}}>{mainTabs.map((t,ti)=>renderTab(t,ti,mainTabs.length))}</div>
+                {summaryTab && <div>{renderTab(summaryTab,0,1)}</div>}
+              </div>
+            )
           })()}
         </div>
 
