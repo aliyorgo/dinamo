@@ -148,9 +148,9 @@ export default function ClientDashboard() {
           setVideoMap(map)
         }
 
-        // Notifications
-        const { data: notifs } = await supabase.from('notifications').select('*').eq('client_user_id', clientUserId).order('created_at', { ascending: false }).limit(10)
-        setNotifications(notifs || [])
+        // Notifications (tablo henuz yok, feature beklemede)
+        // const { data: notifs } = await supabase.from('notifications').select('*').eq('client_user_id', clientUserId).order('created_at', { ascending: false }).limit(10)
+        // setNotifications(notifs || [])
 
         // Stats
         const { data: txns } = await supabase.from('credit_transactions').select('amount').eq('client_id', clientId).lt('amount', 0)
@@ -253,7 +253,8 @@ export default function ClientDashboard() {
   }, [clientId])
 
   async function markNotifRead(id: string) {
-    await supabase.from('notifications').update({ is_read: true }).eq('id', id)
+    // notifications tablo henuz yok
+    // await supabase.from('notifications').update({ is_read: true }).eq('id', id)
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n))
   }
 

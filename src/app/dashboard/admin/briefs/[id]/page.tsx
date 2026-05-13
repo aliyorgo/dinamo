@@ -130,8 +130,9 @@ export default function AdminBriefDetail() {
       if (pb.shared_fields) setSharedFields(pb.shared_fields)
       setShowAssignForm(false)
     } else { setShowAssignForm(true) }
-    const { data: notes } = await supabase.from('brief_notes').select('*, users:created_by(name)').eq('brief_id', id).order('created_at', { ascending: false })
-    setAdminNotes(notes || [])
+    // brief_notes tablo henuz yok
+    // const { data: notes } = await supabase.from('brief_notes').select('*, users:created_by(name)').eq('brief_id', id).order('created_at', { ascending: false })
+    // setAdminNotes(notes || [])
     const { data: insp } = await supabase.from('brief_inspirations').select('*').eq('brief_id', id).order('created_at', { ascending: false })
     setInspirations(insp || [])
     // CPS children
@@ -235,7 +236,7 @@ export default function AdminBriefDetail() {
   }
   async function toggleStar(inspId: string, current: boolean) { await supabase.from('brief_inspirations').update({ is_starred: !current }).eq('id', inspId); setInspirations(prev => prev.map(i => i.id === inspId ? { ...i, is_starred: !current } : i)) }
   async function handleAnswerForClient(qId: string) { if (!answerText.trim()) return; await supabase.from('brief_questions').update({ answer: answerText, answered_at: new Date().toISOString() }).eq('id', qId); setAnswerEditing(null); setAnswerText(''); loadData() }
-  async function handleAddNote() { if (!newNote.trim()) return; const { data: { session } } = await supabase.auth.getSession(); const user = session?.user; await supabase.from('brief_notes').insert({ brief_id: id, note: newNote, created_by: user?.id }); setNewNote(''); const { data: notes } = await supabase.from('brief_notes').select('*, users:created_by(name)').eq('brief_id', id).order('created_at', { ascending: false }); setAdminNotes(notes || []) }
+  async function handleAddNote() { /* brief_notes tablo henuz yok */ }
   function toggleSharedField(f: string) { setSharedFields(prev => prev.includes(f) ? prev.filter(x => x !== f) : [...prev, f]) }
   async function handleApprove(submissionId: string) {
     setLoading(true); setMsg(''); const { data: { session } } = await supabase.auth.getSession(); const user = session?.user
