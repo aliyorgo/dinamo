@@ -637,7 +637,7 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
                     </div>
                   ) : (
                     <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-                      <textarea value={scriptText} onChange={e => { if (e.target.value.length <= UGC_MAX_CHARS) setScriptText(e.target.value) }} onBlur={() => { if (!selectedPersona || scriptText === readScript(ugcScripts, selectedPersona)) return; const updated = { ...ugcScripts, [String(selectedPersona)]: scriptText }; setUgcScripts(updated); persistUgcScripts(updated) }} placeholder={scriptLoading ? 'Üretiliyor...' : 'Bu persona için konuşma metni henüz üretilmedi. Butona basın veya buraya yazın.'} style={{ width: '100%', flex: 1, minHeight: '80px', fontSize: '13px', color: '#0a0a0a', lineHeight: 1.6, border: '1px solid #e5e4db', padding: '10px 12px', resize: 'none', boxSizing: 'border-box' }} />
+                      <textarea value={scriptText} onChange={e => { if (e.target.value.length <= UGC_MAX_CHARS) setScriptText(e.target.value) }} onBlur={() => { if (!selectedPersona || scriptText === readScript(ugcScripts, selectedPersona)) return; const updated = { ...ugcScripts, [String(selectedPersona)]: scriptText }; setUgcScripts(updated); persistUgcScripts(updated) }} placeholder={scriptLoading ? 'Üretiliyor...' : 'Bu persona için konuşma metni henüz üretilmedi. Butona basın veya buraya yazın.'} style={{ width: '100%', flex: 1, minHeight: '80px', fontSize: '28px', color: '#0a0a0a', lineHeight: 1.4, border: '1px solid #e5e4db', padding: '10px 12px', resize: 'none', boxSizing: 'border-box' }} />
                       {(() => {
                         const isTextEmpty = !scriptText.trim()
                         const isLoading = scriptLoading || generating
@@ -660,9 +660,10 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
                           }
                         }
                         return (
-                          <button onClick={onClick} disabled={disabled} style={{ width: '100%', padding: '10px 12px', marginTop: '10px', background: disabled ? '#ccc' : '#0a0a0a', color: '#fff', border: 'none', fontSize: '13px', fontWeight: '600', cursor: disabled ? 'default' : 'pointer', flexShrink: 0 }}>
-                            {label}<span style={{ display: 'block', fontSize: '10px', fontWeight: '400', opacity: 0.5, marginTop: '2px' }}>~3 dakika</span>
-                          </button>
+                          <>
+                            <button onClick={onClick} disabled={disabled} style={{ width: '100%', padding: '12px', marginTop: '10px', background: disabled ? '#ccc' : '#0a0a0a', color: '#fff', border: 'none', fontSize: '13px', fontWeight: '600', cursor: disabled ? 'default' : 'pointer', flexShrink: 0 }}>{label}</button>
+                            {!isTextEmpty && <div style={{ fontSize: '13px', color: '#999', textAlign: 'center', marginTop: '6px' }}>~3 dakika</div>}
+                          </>
                         )
                       })()}
                     </div>
