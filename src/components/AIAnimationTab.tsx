@@ -401,11 +401,14 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
           </div>
         ) : selectedStyleInfo ? (
           <div style={{ opacity: styleFading ? 0 : 1, transition: 'opacity 300ms ease-in-out' }}>
-            <div style={{ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#8b5cf6', fontWeight: '500', marginBottom: '10px', visibility: selectedStyle === suggestedSlug ? 'visible' : 'hidden' }}>ONERILEN ANIMASYON</div>
-            <div style={{ display: 'flex', gap: '30px', alignItems: 'stretch', flexWrap: 'wrap' }}>
-              {/* Left: style image — Persona pattern (210px, full height) */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '10px' }}>
+              <div style={{ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#8b5cf6', fontWeight: '500', visibility: selectedStyle === suggestedSlug ? 'visible' : 'hidden' }}>ÖNERİLEN ANİMASYON</div>
+              <span style={{ fontSize: '13px', fontWeight: '500', color: wordCount > 30 ? '#ef4444' : wordCount >= 25 ? '#22c55e' : wordCount >= 15 ? '#f59e0b' : '#888' }}>{wordCount} / 30</span>
+            </div>
+            <div style={{ display: 'flex', gap: '30px', alignItems: 'stretch' }}>
+              {/* Left: style image */}
               <div style={{ width: '210px', flexShrink: 0 }}>
-                <div style={{ position: 'relative', width: '210px', height: '210px', background: '#f5f4f0', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ position: 'relative', width: '210px', height: '100%', minHeight: '280px', background: '#f5f4f0', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {getStyleIcon(selectedStyleInfo) ? <img src={getStyleIcon(selectedStyleInfo)} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} /> : <span style={{ fontSize: '52px', color: '#ccc' }}>{getStyleLabel(selectedStyleInfo)?.[0]}</span>}
                   <span style={{ position: 'absolute', top: 0, left: 0, fontSize: '11px', fontWeight: '700', color: '#0a0a0a', background: 'rgba(255,255,255,0.95)', padding: '5px 11px' }}>{getStyleLabel(selectedStyleInfo)}</span>
                   {selectedStyleInfo.description_tr && (
@@ -423,10 +426,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
                 </div>
               ) : (
                 <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '13px', fontWeight: '500', color: wordCount > 30 ? '#ef4444' : wordCount >= 25 ? '#22c55e' : wordCount >= 15 ? '#f59e0b' : '#888' }}>{wordCount} / 30</span>
-                  </div>
-                  <textarea value={voiceoverText} onChange={e => setVoiceoverText(e.target.value)} onBlur={() => { if (voiceoverText.trim() && selectedStyle && voiceoverText !== (styleVoiceovers[selectedStyle] || '')) persistAnimVoiceovers({ ...styleVoiceovers, [selectedStyle]: voiceoverText.trim() }, selectedStyle) }} placeholder={voiceoverLoading ? 'Uretiliyor...' : 'Bu stil icin dis ses metni henuz uretilmedi. Butona basin veya buraya yazin.'} style={{ width: '100%', flex: 1, minHeight: '80px', fontSize: '13px', color: '#0a0a0a', lineHeight: 1.6, border: '1px solid #e5e4db', padding: '10px 12px', resize: 'none', boxSizing: 'border-box' }} />
+                  <textarea value={voiceoverText} onChange={e => setVoiceoverText(e.target.value)} onBlur={() => { if (voiceoverText.trim() && selectedStyle && voiceoverText !== (styleVoiceovers[selectedStyle] || '')) persistAnimVoiceovers({ ...styleVoiceovers, [selectedStyle]: voiceoverText.trim() }, selectedStyle) }} placeholder={voiceoverLoading ? 'Üretiliyor...' : 'Bu stil için dış ses metni henüz üretilmedi. Butona basın veya buraya yazın.'} style={{ width: '100%', flex: 1, minHeight: '80px', fontSize: '22px', color: '#0a0a0a', lineHeight: 1.5, border: '1px solid #e5e4db', padding: '10px 12px', resize: 'none', boxSizing: 'border-box' }} />
                   {(() => {
                     const isTextEmpty = !voiceoverText.trim()
                     const isLoading = voiceoverLoading || generating
