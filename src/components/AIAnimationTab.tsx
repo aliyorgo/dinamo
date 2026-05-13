@@ -260,7 +260,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
           </button>
           {settingsSaved && <span style={{ fontSize: '10px', color: '#22c55e', fontWeight: '500' }}>Kaydedildi</span>}
         </div>
-        <div style={{ display: 'inline-flex', padding: '4px 10px', background: '#f5f4f0', border: 'none', fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: totalCreditsUsed > 0 ? '#0a0a0a' : '#9ca3af', flexShrink: 0, whiteSpace: 'nowrap' }}>{totalCreditsUsed} KREDİ</div>
+        <div style={{ display: 'inline-flex', padding: '6px 14px', border: '1px solid #0a0a0a', fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '500', color: totalCreditsUsed > 0 ? '#0a0a0a' : '#9ca3af', flexShrink: 0, whiteSpace: 'nowrap' }}>{totalCreditsUsed} KREDİ</div>
       </div>
 
       {/* INFO PANEL — Express pattern */}
