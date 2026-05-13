@@ -232,7 +232,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
     })
   }
 
-  if (loading) return <div style={{ padding: '40px', textAlign: 'center', color: '#888', fontSize: '13px' }}>Yükleniyor...</div>
+  if (loading) return <div style={{ padding: '40px', textAlign: 'center', color: '#888', fontSize: '13px', minHeight: '500px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Yükleniyor...</div>
 
   const totalCount = animationVideos.filter(v => v.status !== 'failed').length
   const soldCount = animationVideos.filter(v => v.status === 'sold').length
