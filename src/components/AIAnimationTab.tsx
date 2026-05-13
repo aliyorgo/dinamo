@@ -430,12 +430,11 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
                   {(() => {
                     const isTextEmpty = !voiceoverText.trim()
                     const isLoading = voiceoverLoading || generating
-                    const label = isLoading ? 'URETILIYOR...' : isTextEmpty ? 'DIS SES METNI YAZ' : (totalCount === 0 ? 'URET (UCRETSIZ)' : 'URET (1 KREDI)')
+                    const label = isLoading ? 'ÜRETİLİYOR...' : isTextEmpty ? 'DIŞ SES METNİ YAZ' : (totalCount === 0 ? 'ÜRET (ÜCRETSİZ · ~5 DAKİKA)' : 'ÜRET (1 KREDİ · ~5 DAKİKA)')
                     const disabled = isLoading || !selectedStyle || (!isTextEmpty && credits < 1)
                     const onClick = () => { if (isTextEmpty) handleGenerateVoiceover(); else handleGenerate() }
                     return <button onClick={onClick} disabled={disabled} style={{ width: '100%', padding: '12px', marginTop: '10px', background: disabled ? '#ccc' : '#0a0a0a', color: '#fff', border: 'none', fontSize: '13px', fontWeight: '600', cursor: disabled ? 'default' : 'pointer' }}>{label}</button>
                   })()}
-                  <div style={{ fontSize: '13px', color: '#999', textAlign: 'center', marginTop: '6px' }}>~5 dakika</div>
                 </div>
               )}
             </div>

@@ -642,7 +642,7 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
                         const isTextEmpty = !scriptText.trim()
                         const isLoading = scriptLoading || generating
                         const completedCount = ugcVideos.filter(v => v.status !== 'failed').length
-                        const label = isLoading ? 'ÜRETİLİYOR...' : isTextEmpty ? 'KONUŞMA METNİ YAZ' : (completedCount === 0 ? 'ÜRET (ÜCRETSİZ)' : 'ÜRET (1 KREDİ)')
+                        const label = isLoading ? 'ÜRETİLİYOR...' : isTextEmpty ? 'KONUŞMA METNİ YAZ' : (completedCount === 0 ? 'ÜRET (ÜCRETSİZ · ~3 DAKİKA)' : 'ÜRET (1 KREDİ · ~3 DAKİKA)')
                         const disabled = isLoading || !selectedPersona || (!isTextEmpty && (clientUser?.allocated_credits || 0) < 1)
                         const onClick = async () => {
                           if (isTextEmpty) {
@@ -662,7 +662,6 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
                         return (
                           <>
                             <button onClick={onClick} disabled={disabled} style={{ width: '100%', padding: '12px', marginTop: '10px', background: disabled ? '#ccc' : '#0a0a0a', color: '#fff', border: 'none', fontSize: '13px', fontWeight: '600', cursor: disabled ? 'default' : 'pointer', flexShrink: 0 }}>{label}</button>
-                            {!isTextEmpty && <div style={{ fontSize: '13px', color: '#999', textAlign: 'center', marginTop: '6px' }}>~3 dakika</div>}
                           </>
                         )
                       })()}
