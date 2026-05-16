@@ -11,6 +11,7 @@ import { logClientActivity } from '@/lib/log-client'
 import { pauseOtherVideos } from '@/lib/video-playback'
 import AIUGCTab from '@/components/AIUGCTab'
 import AIAnimationTab from '@/components/AIAnimationTab'
+import PremiumVersionSelector from '@/components/PremiumVersionSelector'
 import { downloadFile } from '@/lib/download-helper'
 import { useCredits } from '@/lib/credits'
 import { useClientContext } from '../../layout'
@@ -1514,6 +1515,19 @@ function ClientBriefDetail() {
                       </div>
                     )}
                   </div>}
+                </div>
+              )}
+
+              {/* ═══ PREMIUM TVC SECTION (inside Express tab) ═══ */}
+              {brief && clientUser && (
+                <div style={{marginTop:'24px',borderTop:'1px solid #e5e5e5',paddingTop:'16px'}}>
+                  <div style={{fontSize:'12px',fontWeight:600,color:'#0a0a0a',marginBottom:'8px',letterSpacing:'0.5px',textTransform:'uppercase'}}>Premium TVC</div>
+                  <PremiumVersionSelector
+                    briefId={id as string}
+                    clientUserId={clientUser.id}
+                    premiumStatus={brief.premium_status || null}
+                    onStatusChange={(s) => setBrief((prev: any) => ({ ...prev, premium_status: s }))}
+                  />
                 </div>
               )}
 
