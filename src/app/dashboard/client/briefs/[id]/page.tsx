@@ -1518,20 +1518,7 @@ function ClientBriefDetail() {
                 </div>
               )}
 
-              {/* ═══ PREMIUM TVC SECTION (inside Express tab) ═══ */}
-              {brief && clientUser && (
-                {/* Premium V1 UI disabled — Premium V2 is now default engine
-                <div style={{marginTop:'24px',borderTop:'1px solid #e5e5e5',paddingTop:'16px'}}>
-                  <div style={{fontSize:'12px',fontWeight:600,color:'#0a0a0a',marginBottom:'8px',letterSpacing:'0.5px',textTransform:'uppercase'}}>Premium TVC</div>
-                  <PremiumVersionSelector
-                    briefId={id as string}
-                    clientUserId={clientUser.id}
-                    premiumStatus={brief.premium_status || null}
-                    onStatusChange={(s) => setBrief((prev: any) => ({ ...prev, premium_status: s }))}
-                  />
-                </div>
-                */}
-              )}
+              {/* ═══ PREMIUM TVC SECTION — disabled, Premium V2 is now default engine ═══ */}
 
               </>}
 
