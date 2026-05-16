@@ -28,6 +28,7 @@ export default function PremiumVersionSelector({ briefId, clientUserId, premiumS
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState(premiumStatus || 'idle')
   const [error, setError] = useState('')
+  const [premiumVideoUrl, setPremiumVideoUrl] = useState<string | null>(null)
 
   useEffect(() => {
     if (status === 'versions_ready' || status === 'version_selected' || status === 'shots_in_progress' || status === 'final_ready') {
@@ -36,11 +37,12 @@ export default function PremiumVersionSelector({ briefId, clientUserId, premiumS
   }, [status])
 
   useEffect(() => {
-    if (!premiumStatus || premiumStatus === 'pending' || premiumStatus === 'generating_versions') {
+    const shouldPoll = !status || status === 'pending' || status === 'generating_versions' || status === 'version_selected' || status === 'shots_in_progress' || (status === 'final_ready' && !premiumVideoUrl)
+    if (shouldPoll) {
       const interval = setInterval(pollStatus, 5000)
       return () => clearInterval(interval)
     }
-  }, [premiumStatus])
+  }, [status, premiumVideoUrl])
 
   async function pollStatus() {
     const res = await fetch(`/api/premium/status?brief_id=${briefId}`)
@@ -49,6 +51,7 @@ export default function PremiumVersionSelector({ briefId, clientUserId, premiumS
       setStatus(data.premium_status)
       onStatusChange?.(data.premium_status)
     }
+    if (data.premium_video_url) setPremiumVideoUrl(data.premium_video_url)
   }
 
   async function loadVersions() {
@@ -159,11 +162,20 @@ export default function PremiumVersionSelector({ briefId, clientUserId, premiumS
     )
   }
 
-  // Final ready
+  // Final ready — show video player
   if (status === 'final_ready') {
     return (
-      <div style={{ padding: '24px', textAlign: 'center' }}>
-        <div style={{ fontSize: '14px', color: '#16a34a', fontWeight: 600 }}>Premium video hazir!</div>
+      <div style={{ padding: '16px' }}>
+        <div style={{ fontSize: '13px', fontWeight: 600, color: '#16a34a', marginBottom: '12px' }}>Premium TVC Hazir</div>
+        {premiumVideoUrl ? (
+          <video
+            controls
+            style={{ width: '100%', maxHeight: '400px', borderRadius: '8px', background: '#000' }}
+            src={premiumVideoUrl}
+          />
+        ) : (
+          <div style={{ fontSize: '12px', color: '#888' }}>Video yukleniyor...</div>
+        )}
       </div>
     )
   }
