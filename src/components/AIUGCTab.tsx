@@ -117,11 +117,13 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
 
   useEffect(() => { loadData() }, [briefId])
 
-  // Notify parent of video count changes (for tab label)
+  // Notify parent of video count changes (for tab label) — skip initial empty state to prevent blink
   useEffect(() => {
-    const count = ugcVideos.filter(v => v.status !== 'failed').length
-    onVideoCountChange?.(count)
-  }, [ugcVideos])
+    if (!loading) {
+      const count = ugcVideos.filter(v => v.status !== 'failed').length
+      onVideoCountChange?.(count)
+    }
+  }, [ugcVideos, loading])
 
   // Global polling — processing video varsa 8sn'de bir tüm listeyi fresh fetch
   const hasProcessingVideos = ugcVideos.some(v => v.status === 'queued' || v.status === 'generating')

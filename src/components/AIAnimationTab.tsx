@@ -60,10 +60,13 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
 
   useEffect(() => { loadData() }, [briefId])
 
+  // Skip initial empty state callback to prevent counter blink on tab switch
   useEffect(() => {
-    const count = animationVideos.filter(v => v.status !== 'failed').length
-    onVideoCountChange?.(count)
-  }, [animationVideos])
+    if (!loading) {
+      const count = animationVideos.filter(v => v.status !== 'failed').length
+      onVideoCountChange?.(count)
+    }
+  }, [animationVideos, loading])
 
   // Polling
   const hasProcessing = animationVideos.some(v => v.status === 'queued' || v.status === 'generating')
