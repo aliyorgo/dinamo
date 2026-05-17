@@ -734,45 +734,60 @@ function ClientBriefDetail() {
           </div>
         </div>
 
-        {/* TABS */}
-        <div style={{display:'flex',gap:0,background:'#fff',paddingLeft:'28px',borderBottom:'1px solid rgba(0,0,0,0.08)'}}>
+        {/* TABS — 2 GROUP LAYOUT */}
+        <div style={{display:'flex',alignItems:'flex-end',gap:0,paddingLeft:'28px',paddingBottom:'0',background:'#fff'}}>
           {(() => {
-            const hasSummary = aiChildren.length > 0 || cpsChildren.length > 0 || !!brief?.static_images_url || ugcVideosForSummary.length > 0
             const expressVisible = brief?.clients?.ai_video_enabled !== false && featureFlags.aiExpressGlobal
             const ugcVisible = brief?.clients?.ugc_enabled !== false && featureFlags.ugcGlobal
             const animationVisible = featureFlags.animationGlobal
             const trendVisible = featureFlags.trendGlobal
-            const mainTabs = [
-              {key:'hybrid' as const, label:'Ana Video'},
-              {key:'cps' as const, label:'CPS'},
-              ...(expressVisible ? [{key:'express' as const, label:'Express'}] : []),
-              ...(ugcVisible ? [{key:'ugc' as const, label:'Persona'}] : []),
-              ...(animationVisible ? [{key:'animation' as const, label:'Animasyon'}] : []),
-              ...(trendVisible ? [{key:'trend' as const, label:'Trend'}] : []),
-            ]
-            const summaryTab = hasSummary ? {key:'summary' as const, label:'Kampanya Özeti'} : null
-            const renderTab = (t: any, ti: number, total: number) => {
-              const isActive = activeTab === t.key
-              const isSummary = t.key === 'summary'
-              return (
-                <button key={t.key} onClick={()=>setActiveTab(t.key)}
-                  style={{padding:'8px 16px',minWidth:isSummary?undefined:'90px',border:'none',borderBottom:isActive?(isSummary?'2px solid #f5a623':'2px solid #0a0a0a'):'2px solid transparent',borderRight:ti<total-1?'1px solid rgba(0,0,0,0.06)':'none',background:isActive?(isSummary?'transparent':'#0a0a0a'):(isSummary?'transparent':'#fff'),color:isActive?(isSummary?'#0a0a0a':'#fff'):'#555',fontSize:'12px',fontWeight:isSummary?'400':'600',cursor:'pointer',transition:'all 0.15s'}}
-                  onMouseEnter={e=>{if(!isActive&&!isSummary)e.currentTarget.style.background='#f5f5f5'}}
-                  onMouseLeave={e=>{if(!isActive&&!isSummary)e.currentTarget.style.background=isSummary?'transparent':'#fff'}}>
-                  {t.label}
-                  {t.key==='ugc' && <span style={{marginLeft:'6px',fontSize:'10px',color:'#3b82f6',fontWeight:'600'}}>{ugcVideoCount || 0}</span>}
-                  {t.key==='express' && <span style={{marginLeft:'6px',fontSize:'10px',color:'#1DB81D',fontWeight:'600'}}>{aiChildren.filter(c=>c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout').length}</span>}
-                  {t.key==='cps' && <span style={{marginLeft:'6px',fontSize:'10px',color:'#3b82f6',fontWeight:'600'}}>{cpsChildren.length}</span>}
-                  {t.key==='animation' && <span style={{marginLeft:'6px',fontSize:'10px',color:'#8b5cf6',fontWeight:'600'}}>{animationVideoCount || 0}</span>}
-                  {t.key==='trend' && <span style={{marginLeft:'6px',fontSize:'10px',color:'#FF0050',fontWeight:'600'}}>{trendVideoCount || 0}</span>}
-                </button>
-              )
-            }
+            const hasSummary = aiChildren.length > 0 || cpsChildren.length > 0 || !!brief?.static_images_url || ugcVideosForSummary.length > 0
+            const aiStudioTabs = [
+              expressVisible && {key:'express',label:'EXPRESS',count:aiChildren.filter(c=>c.express_engine!=='trend'&&c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout').length},
+              ugcVisible && {key:'ugc',label:'PERSONA',count:ugcVideoCount},
+              animationVisible && {key:'animation',label:'ANİMASYON',count:animationVideoCount},
+              trendVisible && {key:'trend',label:'TREND',count:trendVideoCount},
+            ].filter(Boolean) as {key:string,label:string,count:number}[]
             return (
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',width:'100%'}}>
-                <div style={{display:'flex'}}>{mainTabs.map((t,ti)=>renderTab(t,ti,mainTabs.length))}</div>
-                {summaryTab && <div>{renderTab(summaryTab,0,1)}</div>}
-              </div>
+              <>
+                {/* BRIEF TO VIDEO GROUP */}
+                <div style={{display:'flex',flexDirection:'column',alignItems:'flex-start'}}>
+                  <div style={{paddingLeft:'14px',marginBottom:'6px'}}>
+                    <span style={{fontSize:'10px',fontWeight:500,color:'#888',letterSpacing:'2.5px',textTransform:'uppercase'}}>Brief to Video</span>
+                  </div>
+                  <div style={{display:'flex',gap:0,borderBottom:'1.5px solid #000'}}>
+                    {[{key:'hybrid',label:'ANA VİDEO',count:null},{key:'cps',label:'CPS',count:cpsChildren.length}].map(tab=>{
+                      const isActive = activeTab === tab.key
+                      return <button key={tab.key} onClick={()=>setActiveTab(tab.key as any)} style={{padding:'8px 14px',fontSize:'12px',fontWeight:isActive?500:400,color:isActive?'#000':'#666',letterSpacing:'1px',background:isActive?'rgba(0,0,0,0.04)':'transparent',border:'none',cursor:'pointer',borderRadius:'4px 4px 0 0'}}>{tab.label}{tab.count!==null&&tab.count>0&&<span style={{color:'#1DB81D',fontWeight:500,marginLeft:'4px'}}>{tab.count}</span>}</button>
+                    })}
+                  </div>
+                </div>
+
+                {/* DIVIDER */}
+                <div style={{width:'1px',height:'48px',background:'rgba(0,0,0,0.15)',margin:'0 20px'}}></div>
+
+                {/* AI STUDIO GROUP */}
+                <div style={{display:'flex',flexDirection:'column',alignItems:'flex-start'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'6px',paddingLeft:'14px'}}>
+                    <span style={{fontSize:'10px',fontWeight:500,color:'#000',letterSpacing:'2.5px',textTransform:'uppercase'}}>AI Studio</span>
+                    <span style={{fontSize:'8px',padding:'1px 6px',border:'1px solid #1DB81D',color:'#1DB81D',borderRadius:'10px',fontWeight:500,letterSpacing:'0.5px'}}>BETA</span>
+                  </div>
+                  <div style={{display:'flex',gap:0,borderBottom:'1.5px solid #1DB81D'}}>
+                    {aiStudioTabs.map(tab=>{
+                      const isActive = activeTab === tab.key
+                      return <button key={tab.key} onClick={()=>setActiveTab(tab.key as any)} style={{padding:'8px 14px',fontSize:'12px',fontWeight:isActive?500:400,color:isActive?'#000':'#666',letterSpacing:'1px',background:isActive?'rgba(29,184,29,0.05)':'transparent',border:'none',cursor:'pointer',borderRadius:'4px 4px 0 0'}}>{tab.label}{tab.count>0&&<span style={{color:'#1DB81D',fontWeight:500,marginLeft:'4px'}}>{tab.count}</span>}</button>
+                    })}
+                  </div>
+                </div>
+
+                {/* SUMMARY (far right) */}
+                {hasSummary && (
+                  <>
+                    <div style={{flex:1}}></div>
+                    <button onClick={()=>setActiveTab('summary')} style={{padding:'8px 14px',fontSize:'11px',fontWeight:activeTab==='summary'?500:400,color:activeTab==='summary'?'#f5a623':'#888',letterSpacing:'1px',background:'transparent',border:'none',borderBottom:activeTab==='summary'?'2px solid #f5a623':'2px solid transparent',cursor:'pointer'}}>KAMPANYA ÖZETİ</button>
+                  </>
+                )}
+              </>
             )
           })()}
         </div>
