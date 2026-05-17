@@ -370,6 +370,7 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
       {/* HEADER ROW */}
       <div style={{ display: 'flex', flexWrap: 'nowrap', alignItems: 'center', marginBottom: '16px', gap: '8px' }}>
         <div ref={panelButtonsRef} style={{ display: 'contents' }}>
+        <span style={{fontSize:'9px',padding:'2px 6px',background:'#1DB81D',color:'#fff',fontWeight:'600',marginRight:'8px',borderRadius:'2px',letterSpacing:'0.5px'}}>BETA</span>
         <button onClick={toggleInfo} title="AI Persona Hakkında"
           onMouseEnter={e => { e.currentTarget.style.background = '#0a0a0a'; e.currentTarget.style.color = '#fff' }}
           onMouseLeave={e => { e.currentTarget.style.background = '#f5f4f0'; e.currentTarget.style.color = '#888' }}

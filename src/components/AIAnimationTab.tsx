@@ -252,6 +252,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
       {/* HEADER — Express pattern */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+          <span style={{fontSize:'9px',padding:'2px 6px',background:'#1DB81D',color:'#fff',fontWeight:'600',marginRight:'8px',borderRadius:'2px',letterSpacing:'0.5px'}}>BETA</span>
           <button onClick={() => { setInfoOpen(p => !p); setSettingsOpen(false) }} onMouseEnter={e=>{e.currentTarget.style.background='#0a0a0a';e.currentTarget.style.color='#fff'}} onMouseLeave={e=>{e.currentTarget.style.background='#f5f4f0';e.currentTarget.style.color='#888'}} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '4px 10px', background: '#f5f4f0', border: 'none', fontSize: '11px', color: '#888', cursor: 'pointer', transition: 'all 0.15s', flexShrink: 0 }}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>Bilgi
           </button>
