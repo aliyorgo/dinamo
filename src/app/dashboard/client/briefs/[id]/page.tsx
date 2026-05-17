@@ -147,8 +147,12 @@ function ClientBriefDetail() {
   const [ugcVideosForSummary, setUgcVideosForSummary] = useState<any[]>([])
   const [ugcVideoCount, setUgcVideoCount] = useState(0)
   const [animationVideoCount, setAnimationVideoCount] = useState(0)
+  const [trendChildren, setTrendChildren] = useState<any[]>([])
+  const [trendVideoCount, setTrendVideoCount] = useState(0)
+  const [trendInfoOpen, setTrendInfoOpen] = useState(false)
+  const [trendSettingsOpen, setTrendSettingsOpen] = useState(false)
   const [animationVideosForSummary, setAnimationVideosForSummary] = useState<any[]>([])
-  const [activeTab, setActiveTab] = useState<'hybrid'|'cps'|'express'|'ugc'|'animation'|'summary'>(searchParams.get('tab') === 'express' ? 'express' : searchParams.get('tab') === 'ugc' ? 'ugc' : searchParams.get('tab') === 'animation' ? 'animation' : searchParams.get('tab') === 'cps' ? 'cps' : searchParams.get('tab') === 'summary' ? 'summary' : 'hybrid')
+  const [activeTab, setActiveTab] = useState<'hybrid'|'cps'|'express'|'ugc'|'animation'|'trend'|'summary'>(searchParams.get('tab') === 'express' ? 'express' : searchParams.get('tab') === 'ugc' ? 'ugc' : searchParams.get('tab') === 'animation' ? 'animation' : searchParams.get('tab') === 'cps' ? 'cps' : searchParams.get('tab') === 'summary' ? 'summary' : 'hybrid')
 
   // DEBUG: Seedance prompt modal (gecici)
   const [debugPrompt, setDebugPrompt] = useState<{director: string; prompt: string} | null>(null)
@@ -304,6 +308,11 @@ function ClientBriefDetail() {
     // Total Animation count for tab label
     const { count: animTotal } = await supabase.from('animation_videos').select('id', { count: 'exact', head: true }).eq('brief_id', id).neq('status', 'failed')
     setAnimationVideoCount(animTotal || 0)
+    // Trend children + count
+    const { data: tc } = await supabase.from('briefs').select('id, campaign_name, status, format, ai_video_status, ai_video_url, ai_video_error, created_at, completed_at, ai_feedbacks, ai_express_settings_snapshot, ai_feedback_summary, express_engine').eq('root_campaign_id', rootId).eq('express_engine', 'trend').order('created_at', { ascending: true })
+    setTrendChildren(tc || [])
+    const { count: trendTotal } = await supabase.from('briefs').select('id', { count: 'exact', head: true }).eq('root_campaign_id', rootId).eq('express_engine', 'trend').neq('ai_video_status', 'failed')
+    setTrendVideoCount(trendTotal || 0)
     // Animation videos for summary
     const { data: animVids } = await supabase.from('animation_videos')
       .select('id, final_url, created_at, version, status, style_slug, animation_styles(label)')
@@ -732,12 +741,14 @@ function ClientBriefDetail() {
             const expressVisible = brief?.clients?.ai_video_enabled !== false && featureFlags.aiExpressGlobal
             const ugcVisible = brief?.clients?.ugc_enabled !== false && featureFlags.ugcGlobal
             const animationVisible = featureFlags.animationGlobal
+            const trendVisible = featureFlags.trendGlobal
             const mainTabs = [
               {key:'hybrid' as const, label:'Ana Video'},
               {key:'cps' as const, label:'CPS'},
               ...(expressVisible ? [{key:'express' as const, label:'Express'}] : []),
               ...(ugcVisible ? [{key:'ugc' as const, label:'Persona'}] : []),
               ...(animationVisible ? [{key:'animation' as const, label:'Animasyon'}] : []),
+              ...(trendVisible ? [{key:'trend' as const, label:'Trend'}] : []),
             ]
             const summaryTab = hasSummary ? {key:'summary' as const, label:'Kampanya Özeti'} : null
             const renderTab = (t: any, ti: number, total: number) => {
@@ -753,6 +764,7 @@ function ClientBriefDetail() {
                   {t.key==='express' && <span style={{marginLeft:'6px',fontSize:'10px',color:'#1DB81D',fontWeight:'600'}}>{aiChildren.filter(c=>c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout').length}</span>}
                   {t.key==='cps' && <span style={{marginLeft:'6px',fontSize:'10px',color:'#3b82f6',fontWeight:'600'}}>{cpsChildren.length}</span>}
                   {t.key==='animation' && <span style={{marginLeft:'6px',fontSize:'10px',color:'#8b5cf6',fontWeight:'600'}}>{animationVideoCount || 0}</span>}
+                  {t.key==='trend' && <span style={{marginLeft:'6px',fontSize:'10px',color:'#FF0050',fontWeight:'600'}}>{trendVideoCount || 0}</span>}
                 </button>
               )
             }
@@ -1726,6 +1738,68 @@ function ClientBriefDetail() {
 
               {activeTab === 'animation' && brief && (
                 <AIAnimationTab briefId={id} brief={brief} clientUser={clientUser} autoPlayVideoId={searchParams.get('videoId') || undefined} onVideoCountChange={(count) => setAnimationVideoCount(count)} />
+              )}
+
+              {/* ═══ TREND TAB ═══ */}
+              {activeTab === 'trend' && brief && clientUser && (
+                <div>
+                  {/* TREND HEADER */}
+                  <div style={{display:'flex',flexWrap:'nowrap',alignItems:'center',marginBottom:'12px',gap:'8px'}}>
+                    <span style={{fontSize:'9px',padding:'2px 6px',background:'#1DB81D',color:'#fff',fontWeight:'600',marginRight:'8px',borderRadius:'2px',letterSpacing:'0.5px'}}>BETA</span>
+                    <button onClick={()=>{setTrendInfoOpen(p=>!p);setTrendSettingsOpen(false)}} onMouseEnter={e=>{e.currentTarget.style.background='#0a0a0a';e.currentTarget.style.color='#fff'}} onMouseLeave={e=>{e.currentTarget.style.background='#f5f4f0';e.currentTarget.style.color='#888'}} style={{display:'inline-flex',alignItems:'center',gap:'4px',padding:'4px 10px',background:'#f5f4f0',border:'none',fontSize:'11px',color:'#888',cursor:'pointer',transition:'all 0.15s',flexShrink:0}}>Bilgi</button>
+                    <button onClick={()=>{setTrendSettingsOpen(p=>!p);setTrendInfoOpen(false)}} onMouseEnter={e=>{e.currentTarget.style.background='#0a0a0a';e.currentTarget.style.color='#fff'}} onMouseLeave={e=>{e.currentTarget.style.background='#f5f4f0';e.currentTarget.style.color='#888'}} style={{display:'inline-flex',alignItems:'center',gap:'4px',padding:'4px 10px',background:'#f5f4f0',border:'none',fontSize:'11px',color:'#888',cursor:'pointer',transition:'all 0.15s',flexShrink:0}}>Ayarlar</button>
+                    <div style={{flex:1}} />
+                    <div style={{display:'inline-flex',padding:'6px 14px',border:'1px solid #FF0050',fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'#FF0050',flexShrink:0,whiteSpace:'nowrap'}}>{trendVideoCount} VİDEO</div>
+                  </div>
+
+                  {/* TREND BİLGİ PANELİ */}
+                  {trendInfoOpen && (
+                    <div style={{marginBottom:'16px',padding:'16px',background:'#fafaf7',borderRadius:'8px',fontSize:'12px',color:'#555',lineHeight:1.6}}>
+                      Trend video TikTok native creator stilinde uretilir. 9:16 dikey format, 7-15 saniye suresinde, marka rengi dahil edilmis atmosferde. Her uretim farkli TikTok formatindan bir varyasyon cikarir. Voiceover Turkce creator tonunda, son 3 saniyede TikTok native CTA overlay gorunur.
+                    </div>
+                  )}
+
+                  {/* TREND AYARLAR PANELİ */}
+                  {trendSettingsOpen && (
+                    <div style={{marginBottom:'16px',padding:'16px',background:'#fafaf7',borderRadius:'8px',fontSize:'12px',color:'#555',lineHeight:1.6}}>
+                      Bu surumde Trend ayarlari otomatik. Format secimi, karakter ve mekan AI tarafindan brief'e gore belirlenir.
+                    </div>
+                  )}
+
+                  {/* ÜRET BUTONU */}
+                  <div style={{marginBottom:'16px'}}>
+                    <button onClick={async()=>{
+                      try {
+                        const res = await fetch('/api/trend/generate', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({brief_id:id,client_user_id:clientUser.id}) })
+                        const data = await res.json()
+                        if (data.child_brief) { setTrendChildren(prev=>[...prev,data.child_brief]); setTrendVideoCount(prev=>prev+1) }
+                      } catch {}
+                    }} style={{padding:'14px 28px',background:'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'13px',fontWeight:'600',cursor:'pointer'}}
+                      onMouseEnter={e=>{e.currentTarget.style.background='#FF0050'}}
+                      onMouseLeave={e=>{e.currentTarget.style.background='#0a0a0a'}}>
+                      {trendChildren.filter(c=>c.ai_video_status!=='failed').length === 0 ? 'TREND URET (UCRETSIZ)' : 'Yeni Trend Uret'}
+                    </button>
+                  </div>
+
+                  {/* TREND CHILDREN VİDEO KARTLARI */}
+                  {trendChildren.map((child,idx)=>{
+                    const hasVideo = child.ai_video_url
+                    const isProcessing = child.status === 'ai_processing' && !child.ai_video_url
+                    return (
+                      <div key={child.id} style={{marginBottom:'12px',padding:'12px',border:'1px solid #e5e5e5',borderRadius:'8px'}}>
+                        <div style={{fontSize:'11px',color:'#888',marginBottom:'6px'}}>Trend #{idx+1} {child.ai_express_settings_snapshot?.selected_format_slug && <span style={{marginLeft:'6px',fontSize:'9px',padding:'1px 5px',background:'#FF0050',color:'#fff',borderRadius:'2px'}}>{child.ai_express_settings_snapshot.selected_format_slug}</span>}</div>
+                        {hasVideo && (
+                          <video src={child.ai_video_url} controls preload="metadata" style={{width:'100%',maxWidth:'300px',aspectRatio:'9/16',objectFit:'contain',background:'#000',borderRadius:'6px',display:'block'}} />
+                        )}
+                        {isProcessing && (
+                          <div style={{width:'200px',aspectRatio:'9/16',background:'#f5f4f0',borderRadius:'6px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'11px',color:'#888'}}>Uretiliyor...</div>
+                        )}
+                        {child.ai_video_error && <div style={{fontSize:'11px',color:'#dc2626',marginTop:'4px'}}>{child.ai_video_error}</div>}
+                        {child.ai_feedback_summary && <div style={{fontSize:'11px',color:'#555',marginTop:'6px',borderLeft:'2px solid #d4d2cc',paddingLeft:'8px'}}>{child.ai_feedback_summary}</div>}
+                      </div>
+                    )
+                  })}
+                </div>
               )}
 
               {/* ═══ SUMMARY TAB ═══ */}
