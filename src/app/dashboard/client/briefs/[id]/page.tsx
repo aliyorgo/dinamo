@@ -746,12 +746,9 @@ function ClientBriefDetail() {
                   onMouseEnter={e=>{if(!isActive&&!isSummary)e.currentTarget.style.background='#f5f5f5'}}
                   onMouseLeave={e=>{if(!isActive&&!isSummary)e.currentTarget.style.background=isSummary?'transparent':'#fff'}}>
                   {t.label}
-                  {t.key==='express' && <span style={{marginLeft:'4px',fontSize:'9px',padding:'1px 5px',background:'#1DB81D',color:'#fff',fontWeight:'600',verticalAlign:'middle'}}>Beta</span>}
-                  {t.key==='ugc' && <span style={{marginLeft:'4px',fontSize:'9px',padding:'1px 5px',background:'#1DB81D',color:'#fff',fontWeight:'600',verticalAlign:'middle'}}>Beta</span>}
                   {t.key==='ugc' && <span style={{marginLeft:'6px',fontSize:'10px',color:'#3b82f6',fontWeight:'600'}}>{ugcVideoCount || 0}</span>}
                   {t.key==='express' && <span style={{marginLeft:'6px',fontSize:'10px',color:'#1DB81D',fontWeight:'600'}}>{aiChildren.filter(c=>c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout').length}</span>}
                   {t.key==='cps' && <span style={{marginLeft:'6px',fontSize:'10px',color:'#3b82f6',fontWeight:'600'}}>{cpsChildren.length}</span>}
-                  {t.key==='animation' && <span style={{marginLeft:'4px',fontSize:'9px',padding:'1px 5px',background:'#1DB81D',color:'#fff',fontWeight:'600',verticalAlign:'middle'}}>Beta</span>}
                   {t.key==='animation' && <span style={{marginLeft:'6px',fontSize:'10px',color:'#8b5cf6',fontWeight:'600'}}>{animationVideoCount || 0}</span>}
                 </button>
               )
@@ -1236,6 +1233,7 @@ function ClientBriefDetail() {
               {/* AI EXPRESS HEADER ROW: [info] ... [kredi] */}
               <div style={{display:'flex',flexWrap:'nowrap',alignItems:'center',marginBottom:'12px',gap:'8px'}}>
                 <div ref={expressPanelBtnsRef} style={{display:'contents'}}>
+                <span style={{fontSize:'9px',padding:'2px 6px',background:'#1DB81D',color:'#fff',fontWeight:'600',borderRadius:'2px',letterSpacing:'0.5px'}}>BETA</span>
                 <button onClick={toggleExpressInfo} title="AI Express Hakkında"
                   onMouseEnter={e=>{e.currentTarget.style.background='#0a0a0a';e.currentTarget.style.color='#fff'}}
                   onMouseLeave={e=>{e.currentTarget.style.background='#f5f4f0';e.currentTarget.style.color='#888'}}
