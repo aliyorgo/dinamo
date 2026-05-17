@@ -301,6 +301,9 @@ function ClientBriefDetail() {
     // Total UGC count for tab label
     const { count: ugcTotal } = await supabase.from('ugc_videos').select('id', { count: 'exact', head: true }).eq('brief_id', id).neq('status', 'failed')
     setUgcVideoCount(ugcTotal || 0)
+    // Total Animation count for tab label
+    const { count: animTotal } = await supabase.from('animation_videos').select('id', { count: 'exact', head: true }).eq('brief_id', id).neq('status', 'failed')
+    setAnimationVideoCount(animTotal || 0)
     // Animation videos for summary
     const { data: animVids } = await supabase.from('animation_videos')
       .select('id, final_url, created_at, version, status, style_slug, animation_styles(label)')
