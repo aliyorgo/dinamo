@@ -436,10 +436,10 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
                   {(() => {
                     const isTextEmpty = !voiceoverText.trim()
                     const isLoading = voiceoverLoading || generating
-                    const label = isLoading ? 'ÜRETİLİYOR...' : isTextEmpty ? 'DIŞ SES METNİ YAZ' : (totalCount === 0 ? 'ÜRET (ÜCRETSİZ · ~5 DAKİKA)' : 'ÜRET (1 KREDİ · ~5 DAKİKA)')
+                    const label = isLoading ? 'ÜRETİLİYOR...' : isTextEmpty ? 'DIŞ SES METNİ YAZ' : (totalCount === 0 ? 'ANİMASYON ÜRET (ÜCRETSİZ · ~5 DAKİKA)' : 'ANİMASYON ÜRET (1 KREDİ · ~5 DAKİKA)')
                     const disabled = isLoading || !selectedStyle || (!isTextEmpty && credits < 1)
                     const onClick = () => { if (isTextEmpty) handleGenerateVoiceover(); else handleGenerate() }
-                    return <button onClick={onClick} disabled={disabled} style={{ width: '100%', padding: '12px', marginTop: '10px', background: disabled ? '#ccc' : '#0a0a0a', color: '#fff', border: 'none', fontSize: '13px', fontWeight: '600', cursor: disabled ? 'default' : 'pointer' }}>{label}</button>
+                    return <button className="dinamo-generate-btn" onClick={onClick} disabled={disabled} style={{ width: '100%', padding: '14px', marginTop: '10px', background: disabled ? '#ccc' : '#0a0a0a', color: '#fff', border: 'none', borderRadius: '2px', fontSize: '13px', fontWeight: 600, cursor: disabled ? 'not-allowed' : 'pointer' }}>{label}</button>
                   })()}
                 </div>
               )}

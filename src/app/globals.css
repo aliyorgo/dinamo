@@ -328,3 +328,7 @@ select:focus {
 .dinamo-signout:hover {
   color: #FF4444;
 }
+
+.dinamo-generate-btn:not(:disabled):hover {
+  background: #1DB81D !important;
+}

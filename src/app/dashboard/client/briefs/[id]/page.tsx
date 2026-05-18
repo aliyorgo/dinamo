@@ -1526,11 +1526,9 @@ function ClientBriefDetail() {
                     ) : (
                       <div>
                         <div style={{display:'flex',gap:'8px'}}>
-                          <button onClick={()=>handleStudioGenerate('character')} disabled={(clientUser?.allocated_credits||0)<1}
-                            style={{flex:1,padding:'14px',background:(clientUser?.allocated_credits||0)<1?'#ccc':'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'13px',fontWeight:'600',cursor:(clientUser?.allocated_credits||0)<1?'default':'pointer',transition:'background 0.15s',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}
-                            onMouseEnter={e=>{if((clientUser?.allocated_credits||0)>=1)e.currentTarget.style.background='#1DB81D'}}
-                            onMouseLeave={e=>{if((clientUser?.allocated_credits||0)>=1)e.currentTarget.style.background='#0a0a0a'}}>
-                            {(() => { const cc = aiChildren.filter(c => c.ai_video_status !== 'failed' && c.ai_video_status !== 'timeout' && c.ai_video_status !== null).length; return cc === 0 ? 'ÜRET (ÜCRETSİZ)' : `Yeni Versiyon Üret (${creditSettings?.credit_ai_express_generate || 1} KREDİ)` })()}
+                          <button className="dinamo-generate-btn" onClick={()=>handleStudioGenerate('character')} disabled={(clientUser?.allocated_credits||0)<1&&aiChildren.filter(c=>c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout'&&c.ai_video_status!==null).length>0}
+                            style={{flex:1,padding:'14px',background:((clientUser?.allocated_credits||0)<1&&aiChildren.filter(c=>c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout'&&c.ai_video_status!==null).length>0)?'#ccc':'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'13px',fontWeight:600,cursor:((clientUser?.allocated_credits||0)<1&&aiChildren.filter(c=>c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout'&&c.ai_video_status!==null).length>0)?'not-allowed':'pointer',transition:'background 0.15s',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}>
+                            {(() => { const cc = aiChildren.filter(c => c.ai_video_status !== 'failed' && c.ai_video_status !== 'timeout' && c.ai_video_status !== null).length; return cc === 0 ? `EXPRESS ÜRET (ÜCRETSİZ · ~${expressHQ?'10':'5'} DAKİKA)` : `EXPRESS ÜRET (${creditSettings?.credit_ai_express_generate || 1} KREDİ · ~${expressHQ?'10':'5'} DAKİKA)` })()}
                           </button>
                           <button onClick={()=>{setVoiceoverText(brief?.voiceover_text||'');setVoiceoverModalOpen(true)}}
                             style={{width:'90px',padding:'14px 0',background:'#fff',color:'#3a3a3a',border:'1px solid #d4d2cc',borderRadius:'2px',fontSize:'12px',fontWeight:'500',cursor:'pointer',transition:'background 0.15s'}}
@@ -1539,7 +1537,6 @@ function ClientBriefDetail() {
                             Dış Ses
                           </button>
                         </div>
-                        <div style={{fontSize:'13px',color:'#999',textAlign:'center',marginTop:'6px'}}>{aiChildren.filter(c => c.ai_video_status === 'completed' || c.status === 'delivered').length > 0 ? `~${expressHQ ? '10' : '5'} dakika · ${creditSettings?.credit_ai_express_generate || 1} kredi` : `~${expressHQ ? '10' : '5'} dakika · İlk deneme ücretsiz · ${creditSettings?.credit_ai_express || 1} kredi satın alma`}</div>
                       </div>
                     )}
                   </div>}
@@ -1784,16 +1781,14 @@ function ClientBriefDetail() {
 
                   {/* ÜRET BUTONU */}
                   <div style={{marginBottom:'16px'}}>
-                    <button disabled={(clientUser?.allocated_credits||0)<1&&trendChildren.filter(c=>c.ai_video_status!=='failed').length>0} onClick={async()=>{
+                    <button className="dinamo-generate-btn" disabled={(clientUser?.allocated_credits||0)<1&&trendChildren.filter(c=>c.ai_video_status!=='failed').length>0} onClick={async()=>{
                       try {
                         const res = await fetch('/api/trend/generate', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({brief_id:id,client_user_id:clientUser.id}) })
                         const data = await res.json()
                         if (data.child_brief) { setTrendChildren(prev=>[...prev,data.child_brief]); setTrendVideoCount(prev=>prev+1) }
                       } catch {}
-                    }} style={{padding:'10px 24px',background:((clientUser?.allocated_credits||0)<1&&trendChildren.filter(c=>c.ai_video_status!=='failed').length>0)?'#ccc':'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'12px',fontWeight:500,letterSpacing:'0.5px',cursor:((clientUser?.allocated_credits||0)<1&&trendChildren.filter(c=>c.ai_video_status!=='failed').length>0)?'default':'pointer',textTransform:'uppercase' as const}}
-                      onMouseEnter={e=>{if(e.currentTarget.style.background!=='rgb(204, 204, 204)')e.currentTarget.style.background='#1DB81D'}}
-                      onMouseLeave={e=>{if(e.currentTarget.style.background!=='rgb(204, 204, 204)')e.currentTarget.style.background='#0a0a0a'}}>
-                      {trendChildren.filter(c=>c.ai_video_status!=='failed').length === 0 ? 'TREND ÜRET (ÜCRETSİZ)' : 'YENİ TREND ÜRET (1 KREDİ)'}
+                    }} style={{padding:'14px 28px',background:((clientUser?.allocated_credits||0)<1&&trendChildren.filter(c=>c.ai_video_status!=='failed').length>0)?'#ccc':'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'13px',fontWeight:600,cursor:((clientUser?.allocated_credits||0)<1&&trendChildren.filter(c=>c.ai_video_status!=='failed').length>0)?'not-allowed':'pointer'}}>
+                      {trendChildren.filter(c=>c.ai_video_status!=='failed').length === 0 ? 'TREND ÜRET (ÜCRETSİZ · ~4 DAKİKA)' : 'TREND ÜRET (1 KREDİ · ~4 DAKİKA)'}
                     </button>
                   </div>
 
