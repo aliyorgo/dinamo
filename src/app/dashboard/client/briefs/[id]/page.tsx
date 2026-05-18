@@ -1771,12 +1771,13 @@ function ClientBriefDetail() {
                   )}
 
                   {/* AKTİF TREND BANNER */}
-                  <div style={{background:'#5d4ec3',borderRadius:'8px',padding:'14px 18px',margin:'0 0 16px 0',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-                    <div style={{flex:1}}>
-                      <h2 style={{color:'#fff',fontSize:'16px',fontWeight:500,margin:0,letterSpacing:'-0.2px'}}>Pankart Pop</h2>
-                      <div style={{color:'rgba(255,255,255,0.7)',fontSize:'12px',marginTop:'4px',maxWidth:'500px',lineHeight:1.4}}>Marka renginde bir warehouse, robotik isiklar, hiphop ritmi. Dansla mesaji tek karede birlestirdik.</div>
+                  <div style={{margin:'0 0 16px 0'}}>
+                    <h2 style={{color:'#5d4ec3',fontSize:'24px',fontWeight:600,margin:0,letterSpacing:'-0.3px'}}>Pankart Hop</h2>
+                    <div style={{display:'flex',alignItems:'center',gap:'6px',marginTop:'6px'}}>
+                      <span style={{fontSize:'8px',padding:'3px 8px',background:'rgba(93,78,195,0.12)',color:'#5d4ec3',borderRadius:'2px',fontWeight:500,letterSpacing:'0.8px'}}>AKTIF TREND</span>
+                      <span style={{fontSize:'8px',padding:'3px 8px',background:'#1DB81D',color:'#fff',borderRadius:'2px',fontWeight:500,letterSpacing:'0.8px'}}>BETA</span>
                     </div>
-                    <span style={{fontSize:'8px',padding:'3px 8px',background:'rgba(255,255,255,0.18)',color:'#fff',borderRadius:'2px',fontWeight:500,letterSpacing:'0.8px',flexShrink:0}}>AKTIF TREND</span>
+                    <div style={{color:'var(--color-text-secondary)',fontSize:'14px',marginTop:'8px',lineHeight:1.5}}>Genc, dinamik, dramatik. Marka renkli isik oyunlariyla kurate ettigimiz hiphop-pankart formati.</div>
                   </div>
 
                   {/* ÜRET BUTONU */}
@@ -1827,7 +1828,7 @@ function ClientBriefDetail() {
                             {isPurchased && <span style={{fontSize:'9px',color:'#1DB81D',fontWeight:'600'}}>&#10003; Satin Alindi</span>}
                             {isProcessing && <span style={{fontSize:'9px',fontWeight:'500',display:'inline-flex',alignItems:'center',gap:'4px'}}><span style={{width:'6px',height:'6px',background:'#4ade80',display:'inline-block',borderRadius:'50%',animation:'pulse 1.5s ease infinite'}}></span><span style={{color:'#0a0a0a'}}>Uretiliyor</span> <span style={{color:'#6b6b66'}}>(~4 dakika)</span></span>}
                             {isFailed && <span style={{fontSize:'9px',color:'#ef4444',fontWeight:'500'}}>Basarisiz</span>}
-                            <span style={{marginLeft:'6px',fontSize:'9px',padding:'2px 6px',background:'#e8e1ff',color:'#5d4ec3',borderRadius:'3px',letterSpacing:'0.5px',fontWeight:500}}>PANKART POP</span>
+                            <span style={{marginLeft:'6px',fontSize:'9px',padding:'2px 6px',background:'#e8e1ff',color:'#5d4ec3',borderRadius:'3px',letterSpacing:'0.5px',fontWeight:500}}>PANKART HOP</span>
                           </div>
                           <div style={{fontSize:'11px',color:'#888',marginBottom:'10px'}}>{new Date(child.created_at).toLocaleDateString('tr-TR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}{child.completed_at && <><span style={{margin:'0 8px',color:'#ccc'}}>|</span><span style={{color:'#aaa'}}>{formatDuration(child.created_at, child.completed_at)}</span></>}</div>
                           {hasVideo && !isFailed && (
