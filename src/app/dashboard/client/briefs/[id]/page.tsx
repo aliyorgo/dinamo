@@ -1760,7 +1760,7 @@ function ClientBriefDetail() {
                     <span style={{fontSize:'9px',padding:'2px 6px',background:'#1DB81D',color:'#fff',fontWeight:'600',marginRight:'8px',borderRadius:'2px',letterSpacing:'0.5px'}}>BETA</span>
                     <button onClick={()=>{setTrendInfoOpen(p=>!p);setTrendSettingsOpen(false)}} onMouseEnter={e=>{e.currentTarget.style.background='#0a0a0a';e.currentTarget.style.color='#fff'}} onMouseLeave={e=>{e.currentTarget.style.background='#f5f4f0';e.currentTarget.style.color='#888'}} style={{display:'inline-flex',alignItems:'center',gap:'4px',padding:'4px 10px',background:'#f5f4f0',border:'none',fontSize:'11px',color:'#888',cursor:'pointer',transition:'all 0.15s',flexShrink:0}}>Bilgi</button>
                     <div style={{flex:1}} />
-                    <div style={{display:'inline-flex',padding:'6px 14px',border:'1px solid #1DB81D',fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'#1DB81D',flexShrink:0,whiteSpace:'nowrap'}}>{clientUser?.allocated_credits || 0} KREDİ</div>
+                    {(() => { const genCount = trendChildren.filter(c=>c.ai_video_status!=='failed').length; const purchaseCount = trendChildren.filter(c=>c.status==='delivered').length; const total = Math.max(0, genCount - 1) + purchaseCount; return <div style={{display:'inline-flex',padding:'6px 14px',border:'1px solid #1DB81D',fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:total > 0 ? '#1DB81D' : '#9ca3af',flexShrink:0,whiteSpace:'nowrap'}}>{total} KREDİ</div> })()}
                   </div>
 
                   {/* TREND BİLGİ PANELİ */}
@@ -1794,32 +1794,63 @@ function ClientBriefDetail() {
 
                   {/* TREND CHILDREN VİDEO KARTLARI */}
                   {trendChildren.map((child,idx)=>{
-                    const hasVideo = child.ai_video_url
-                    const isProcessing = child.status === 'ai_processing' && !child.ai_video_url
+                    const hasVideo = !!child.ai_video_url
+                    const isPurchased = child.status === 'delivered'
+                    const isFailed = !isPurchased && (child.ai_video_status === 'failed' || child.ai_video_status === 'timeout')
+                    const isProcessing = child.status === 'ai_processing' && !hasVideo && !isFailed
                     return (
-                      <div key={child.id} style={{marginBottom:'12px',padding:'12px',border:'1px solid #e5e5e5',borderRadius:'8px'}}>
-                        <div style={{fontSize:'11px',color:'#888',marginBottom:'6px'}}>Trend #{idx+1} <span style={{marginLeft:'6px',fontSize:'9px',padding:'2px 6px',background:'#e8e1ff',color:'#5d4ec3',borderRadius:'3px',letterSpacing:'0.5px'}}>PANKART POP</span></div>
-                        <div style={{fontSize:'11px',color:'#888',marginBottom:'6px'}}>{new Date(child.created_at).toLocaleDateString('tr-TR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}{child.completed_at && <><span style={{margin:'0 8px',color:'#ccc'}}>|</span><span style={{color:'#aaa'}}>{formatDuration(child.created_at, child.completed_at)}</span></>}</div>
-                        {hasVideo && (
-                          <video src={child.ai_video_url} controls preload="metadata" style={{width:'100%',maxWidth:'300px',aspectRatio:'9/16',objectFit:'contain',background:'#000',borderRadius:'6px',display:'block'}} />
-                        )}
-                        {child.ai_express_settings_snapshot?.placard_text && (
-                          <div style={{fontSize:'11px',color:'#5d4ec3',marginTop:'6px',fontWeight:500}}>{'📋'} {child.ai_express_settings_snapshot.placard_text}</div>
-                        )}
-                        {hasVideo && child.status !== 'delivered' && (
-                          <div style={{marginTop:'8px',display:'flex',alignItems:'center',gap:'8px'}}>
-                            <button onClick={()=>handleStudioPurchase(child)} disabled={(clientUser?.allocated_credits||0)<(creditSettings?.credit_ai_express||1)} className="btn btn-accent" style={{padding:'6px 16px'}}>SATIN AL</button>
-                            <span style={{fontSize:'13px',color:'#888'}}>{creditSettings?.credit_ai_express||1} kredi</span>
+                      <div key={child.id} style={{display:'flex',gap:'14px',padding:'14px',marginBottom:'8px',border:'1px solid var(--color-border-tertiary)',background:'#fff',alignItems:'flex-start',transition:'background 0.15s'}}
+                        onMouseEnter={e=>{e.currentTarget.style.background='var(--color-background-secondary)'}}
+                        onMouseLeave={e=>{e.currentTarget.style.background='#fff'}}>
+                        {/* Video */}
+                        <div style={{width:'200px',aspectRatio:'9/16',background:'#0a0a0a',flexShrink:0,position:'relative',overflow:'hidden'}}>
+                          {hasVideo ? (
+                            <video src={child.ai_video_url} controls preload="metadata" style={{width:'100%',height:'100%',objectFit:'contain',display:'block'}} />
+                          ) : isProcessing ? (
+                            <div style={{width:'100%',height:'100%',position:'relative',overflow:'hidden',background:'#ebe9e3'}}>
+                              <div style={{position:'relative',width:'100%',height:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center'}}>
+                                <img src="/dinamo_logo.png" alt="" style={{width:'80px',objectFit:'contain',display:'block',animation:'pulse 1.8s ease-in-out infinite'}} />
+                                <div style={{fontSize:'10px',fontWeight:'500',letterSpacing:'0.1em',color:'#888',marginTop:'2px',animation:'pulse 1.5s ease infinite'}}>CALISIYORUM</div>
+                              </div>
+                            </div>
+                          ) : (
+                            <div style={{width:'100%',height:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'6px'}}>
+                              <span style={{fontSize:'20px',color:'#555'}}>&#9888;</span>
+                              <span style={{fontSize:'10px',color:'#999',fontWeight:'500'}}>Uretilemedi</span>
+                            </div>
+                          )}
+                        </div>
+                        {/* Info */}
+                        <div style={{flex:1,minWidth:0,paddingTop:'4px'}}>
+                          <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'4px'}}>
+                            <span style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>V{idx+1}</span>
+                            {isPurchased && <span style={{fontSize:'9px',color:'#1DB81D',fontWeight:'600'}}>&#10003; Satin Alindi</span>}
+                            {isProcessing && <span style={{fontSize:'9px',fontWeight:'500',display:'inline-flex',alignItems:'center',gap:'4px'}}><span style={{width:'6px',height:'6px',background:'#4ade80',display:'inline-block',borderRadius:'50%',animation:'pulse 1.5s ease infinite'}}></span><span style={{color:'#0a0a0a'}}>Uretiliyor</span> <span style={{color:'#6b6b66'}}>(~4 dakika)</span></span>}
+                            {isFailed && <span style={{fontSize:'9px',color:'#ef4444',fontWeight:'500'}}>Basarisiz</span>}
+                            <span style={{marginLeft:'6px',fontSize:'9px',padding:'2px 6px',background:'#e8e1ff',color:'#5d4ec3',borderRadius:'3px',letterSpacing:'0.5px',fontWeight:500}}>PANKART POP</span>
                           </div>
-                        )}
-                        {hasVideo && child.status === 'delivered' && (
-                          <div style={{marginTop:'8px',fontSize:'11px',color:'#1DB81D',fontWeight:500}}>Satın alındı</div>
-                        )}
-                        {isProcessing && (
-                          <div style={{width:'200px',aspectRatio:'9/16',background:'#f5f4f0',borderRadius:'6px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'11px',color:'#888'}}>Uretiliyor...</div>
-                        )}
-                        {child.ai_video_error && <div style={{fontSize:'11px',color:'#dc2626',marginTop:'4px'}}>{child.ai_video_error}</div>}
-                        {child.ai_feedback_summary && <div style={{fontSize:'11px',color:'#555',marginTop:'6px',borderLeft:'2px solid #d4d2cc',paddingLeft:'8px'}}>{child.ai_feedback_summary}</div>}
+                          <div style={{fontSize:'11px',color:'#888',marginBottom:'10px'}}>{new Date(child.created_at).toLocaleDateString('tr-TR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}{child.completed_at && <><span style={{margin:'0 8px',color:'#ccc'}}>|</span><span style={{color:'#aaa'}}>{formatDuration(child.created_at, child.completed_at)}</span></>}</div>
+                          {hasVideo && !isFailed && (
+                            <div style={{display:'flex',gap:'6px',flexWrap:'wrap',marginBottom:'8px'}}>
+                              {isPurchased ? (
+                                <button onClick={()=>downloadFile(child.ai_video_url, `dinamo_${slugify(companyName)}_trend_v${idx+1}.mp4`)}
+                                  style={{fontSize:'11px',color:'#0a0a0a',background:'none',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'6px',padding:'5px 12px',display:'inline-flex',alignItems:'center',gap:'4px',cursor:'pointer'}}>
+                                  <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M8 2v9M4 8l4 4 4-4" stroke="#0a0a0a" strokeWidth="1.5" strokeLinecap="round"/><path d="M2 13h12" stroke="#0a0a0a" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                                  Indir
+                                </button>
+                              ) : (
+                                <>
+                                  <button onClick={()=>handleStudioPurchase(child)} disabled={(clientUser?.allocated_credits||0)<(creditSettings?.credit_ai_express||1)} className="btn btn-accent" style={{padding:'6px 16px'}}>SATIN AL</button>
+                                  <span style={{fontSize:'13px',color:'#888'}}>{creditSettings?.credit_ai_express||1} kredi</span>
+                                </>
+                              )}
+                            </div>
+                          )}
+                          {child.ai_express_settings_snapshot?.placard_text && (
+                            <div style={{padding:'6px 10px',background:'rgba(0,0,0,0.03)',borderRadius:'3px',fontSize:'11px',color:'#666',marginBottom:'6px'}}>Pankart: <em>&quot;{child.ai_express_settings_snapshot.placard_text}&quot;</em></div>
+                          )}
+                          {child.ai_video_error && <div style={{fontSize:'11px',color:'#dc2626',marginTop:'4px'}}>{child.ai_video_error}</div>}
+                        </div>
                       </div>
                     )
                   })}
