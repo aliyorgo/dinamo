@@ -1780,19 +1780,6 @@ function ClientBriefDetail() {
                     <div style={{color:'var(--color-text-secondary)',fontSize:'14px',marginTop:'8px',lineHeight:1.5}}>Genc, dinamik, dramatik. Marka renkli isik oyunlariyla kurate ettigimiz hiphop-pankart formati.</div>
                   </div>
 
-                  {/* ÜRET BUTONU */}
-                  <div style={{marginBottom:'16px'}}>
-                    <button className="dinamo-generate-btn" disabled={(clientUser?.allocated_credits||0)<1&&trendChildren.filter(c=>c.ai_video_status!=='failed').length>0} onClick={async()=>{
-                      try {
-                        const res = await fetch('/api/trend/generate', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({brief_id:id,client_user_id:clientUser.id}) })
-                        const data = await res.json()
-                        if (data.child_brief) { setTrendChildren(prev=>[...prev,data.child_brief]); setTrendVideoCount(prev=>prev+1) }
-                      } catch {}
-                    }} style={{padding:'14px 28px',background:((clientUser?.allocated_credits||0)<1&&trendChildren.filter(c=>c.ai_video_status!=='failed').length>0)?'#ccc':'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'13px',fontWeight:600,cursor:((clientUser?.allocated_credits||0)<1&&trendChildren.filter(c=>c.ai_video_status!=='failed').length>0)?'not-allowed':'pointer'}}>
-                      {trendChildren.filter(c=>c.ai_video_status!=='failed').length === 0 ? 'TREND ÜRET (ÜCRETSİZ · ~4 DAKİKA)' : 'TREND ÜRET (1 KREDİ · ~4 DAKİKA)'}
-                    </button>
-                  </div>
-
                   {/* TREND CHILDREN VİDEO KARTLARI */}
                   {trendChildren.map((child,idx)=>{
                     const hasVideo = !!child.ai_video_url
@@ -1855,6 +1842,19 @@ function ClientBriefDetail() {
                       </div>
                     )
                   })}
+
+                  {/* ÜRET BUTONU (en altta) */}
+                  <div style={{marginTop:'16px'}}>
+                    <button className="dinamo-generate-btn" disabled={(clientUser?.allocated_credits||0)<1&&trendChildren.filter(c=>c.ai_video_status!=='failed').length>0} onClick={async()=>{
+                      try {
+                        const res = await fetch('/api/trend/generate', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({brief_id:id,client_user_id:clientUser.id}) })
+                        const data = await res.json()
+                        if (data.child_brief) { setTrendChildren(prev=>[...prev,data.child_brief]); setTrendVideoCount(prev=>prev+1) }
+                      } catch {}
+                    }} style={{padding:'14px 28px',background:((clientUser?.allocated_credits||0)<1&&trendChildren.filter(c=>c.ai_video_status!=='failed').length>0)?'#ccc':'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'13px',fontWeight:600,cursor:((clientUser?.allocated_credits||0)<1&&trendChildren.filter(c=>c.ai_video_status!=='failed').length>0)?'not-allowed':'pointer'}}>
+                      {trendChildren.filter(c=>c.ai_video_status!=='failed').length === 0 ? 'TREND ÜRET (ÜCRETSİZ · ~4 DAKİKA)' : 'TREND ÜRET (1 KREDİ · ~4 DAKİKA)'}
+                    </button>
+                  </div>
                 </div>
               )}
 
