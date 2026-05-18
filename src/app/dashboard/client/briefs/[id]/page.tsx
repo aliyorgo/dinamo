@@ -1772,11 +1772,11 @@ function ClientBriefDetail() {
 
                   {/* AKTİF TREND BANNER */}
                   <div style={{background:'#5d4ec3',borderRadius:'8px',padding:'14px 18px',margin:'0 0 16px 0',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-                    <h2 style={{color:'#fff',fontSize:'16px',fontWeight:500,margin:0,letterSpacing:'-0.2px'}}>Pankart Pop</h2>
-                    <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
-                      <span style={{fontSize:'8px',padding:'3px 8px',background:'rgba(255,255,255,0.18)',color:'#fff',borderRadius:'2px',fontWeight:500,letterSpacing:'0.8px'}}>AKTIF TREND</span>
-                      <span style={{fontSize:'8px',padding:'3px 8px',background:'rgba(255,255,255,0.18)',color:'#fff',borderRadius:'2px',letterSpacing:'0.8px'}}>BETA</span>
+                    <div style={{flex:1}}>
+                      <h2 style={{color:'#fff',fontSize:'16px',fontWeight:500,margin:0,letterSpacing:'-0.2px'}}>Pankart Pop</h2>
+                      <div style={{color:'rgba(255,255,255,0.7)',fontSize:'12px',marginTop:'4px',maxWidth:'500px',lineHeight:1.4}}>Marka renginde bir warehouse, robotik isiklar, hiphop ritmi. Dansla mesaji tek karede birlestirdik.</div>
                     </div>
+                    <span style={{fontSize:'8px',padding:'3px 8px',background:'rgba(255,255,255,0.18)',color:'#fff',borderRadius:'2px',fontWeight:500,letterSpacing:'0.8px',flexShrink:0}}>AKTIF TREND</span>
                   </div>
 
                   {/* ÜRET BUTONU */}
