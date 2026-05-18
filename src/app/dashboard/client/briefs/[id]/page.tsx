@@ -1770,7 +1770,7 @@ function ClientBriefDetail() {
                   {/* TREND BİLGİ PANELİ */}
                   {trendInfoOpen && (
                     <div style={{marginBottom:'16px',padding:'16px',background:'#fafaf7',borderRadius:'8px',fontSize:'12px',color:'#555',lineHeight:1.6}}>
-                      Trend video TikTok native creator stilinde uretilir. 9:16 dikey format, 7-15 saniye suresinde, marka rengi dahil edilmis atmosferde. Her uretim farkli TikTok formatindan bir varyasyon cikarir. Voiceover Turkce creator tonunda, son 3 saniyede TikTok native CTA overlay gorunur.
+                      Pankart Pop: Marka sloganli pankartla acilir, hiphop koreografi, marka logosuna flip ile biter. Kling 3.0 i2v, 9:16 dikey, 10 saniye, native audio. Brief'e gore AI slogan uretir, marka rengi + fontu pankarta yansir.
                     </div>
                   )}
 
@@ -1780,6 +1780,15 @@ function ClientBriefDetail() {
                       Bu surumde Trend ayarlari otomatik. Format secimi, karakter ve mekan AI tarafindan brief'e gore belirlenir.
                     </div>
                   )}
+
+                  {/* AKTİF TREND BANNER */}
+                  <div style={{background:'#5d4ec3',borderRadius:'8px',padding:'14px 18px',margin:'0 0 16px 0',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                    <h2 style={{color:'#fff',fontSize:'16px',fontWeight:500,margin:0,letterSpacing:'-0.2px'}}>Pankart Pop</h2>
+                    <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
+                      <span style={{fontSize:'8px',padding:'3px 8px',background:'rgba(255,255,255,0.18)',color:'#fff',borderRadius:'2px',fontWeight:500,letterSpacing:'0.8px'}}>AKTIF TREND</span>
+                      <span style={{fontSize:'8px',padding:'3px 8px',background:'rgba(255,255,255,0.18)',color:'#fff',borderRadius:'2px',letterSpacing:'0.8px'}}>BETA</span>
+                    </div>
+                  </div>
 
                   {/* ÜRET BUTONU */}
                   <div style={{marginBottom:'16px'}}>
@@ -1802,9 +1811,12 @@ function ClientBriefDetail() {
                     const isProcessing = child.status === 'ai_processing' && !child.ai_video_url
                     return (
                       <div key={child.id} style={{marginBottom:'12px',padding:'12px',border:'1px solid #e5e5e5',borderRadius:'8px'}}>
-                        <div style={{fontSize:'11px',color:'#888',marginBottom:'6px'}}>Trend #{idx+1} {child.ai_express_settings_snapshot?.selected_format_slug && <span style={{marginLeft:'6px',fontSize:'9px',padding:'1px 5px',background:'#FF0050',color:'#fff',borderRadius:'2px'}}>{child.ai_express_settings_snapshot.selected_format_slug}</span>}</div>
+                        <div style={{fontSize:'11px',color:'#888',marginBottom:'6px'}}>Trend #{idx+1} <span style={{marginLeft:'6px',fontSize:'9px',padding:'2px 6px',background:'#e8e1ff',color:'#5d4ec3',borderRadius:'3px',letterSpacing:'0.5px'}}>PANKART POP</span></div>
                         {hasVideo && (
                           <video src={child.ai_video_url} controls preload="metadata" style={{width:'100%',maxWidth:'300px',aspectRatio:'9/16',objectFit:'contain',background:'#000',borderRadius:'6px',display:'block'}} />
+                        )}
+                        {child.ai_express_settings_snapshot?.placard_text && (
+                          <div style={{fontSize:'11px',color:'#5d4ec3',marginTop:'6px',fontWeight:500}}>{'📋'} {child.ai_express_settings_snapshot.placard_text}</div>
                         )}
                         {isProcessing && (
                           <div style={{width:'200px',aspectRatio:'9/16',background:'#f5f4f0',borderRadius:'6px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'11px',color:'#888'}}>Uretiliyor...</div>
