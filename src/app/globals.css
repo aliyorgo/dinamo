@@ -332,3 +332,7 @@ select:focus {
 .dinamo-generate-btn:not(:disabled):hover {
   background: #1DB81D !important;
 }
+.dinamo-generate-btn:disabled {
+  background: #ccc !important;
+  cursor: not-allowed !important;
+}
