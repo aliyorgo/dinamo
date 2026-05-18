@@ -1766,7 +1766,7 @@ function ClientBriefDetail() {
                   {/* TREND BİLGİ PANELİ */}
                   {trendInfoOpen && (
                     <div style={{marginBottom:'16px',padding:'16px',background:'#fafaf7',borderRadius:'8px',fontSize:'12px',color:'#555',lineHeight:1.6}}>
-                      Pankart Pop: Marka sloganli pankartla acilir, hiphop koreografi, marka logosuna flip ile biter. Kling 3.0 i2v, 9:16 dikey, 10 saniye, native audio. Brief'e gore AI slogan uretir, marka rengi + fontu pankarta yansir.
+                      Markanız için DCC yönetmenleri tarafından kürate edilen butik trend formatları, farklı AI modelleri kullanılarak brief'inizle ilişkili olarak hayata geçiyor.
                     </div>
                   )}
 
