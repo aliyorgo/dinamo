@@ -1762,22 +1762,14 @@ function ClientBriefDetail() {
                   <div style={{display:'flex',flexWrap:'nowrap',alignItems:'center',marginBottom:'12px',gap:'8px'}}>
                     <span style={{fontSize:'9px',padding:'2px 6px',background:'#1DB81D',color:'#fff',fontWeight:'600',marginRight:'8px',borderRadius:'2px',letterSpacing:'0.5px'}}>BETA</span>
                     <button onClick={()=>{setTrendInfoOpen(p=>!p);setTrendSettingsOpen(false)}} onMouseEnter={e=>{e.currentTarget.style.background='#0a0a0a';e.currentTarget.style.color='#fff'}} onMouseLeave={e=>{e.currentTarget.style.background='#f5f4f0';e.currentTarget.style.color='#888'}} style={{display:'inline-flex',alignItems:'center',gap:'4px',padding:'4px 10px',background:'#f5f4f0',border:'none',fontSize:'11px',color:'#888',cursor:'pointer',transition:'all 0.15s',flexShrink:0}}>Bilgi</button>
-                    <button onClick={()=>{setTrendSettingsOpen(p=>!p);setTrendInfoOpen(false)}} onMouseEnter={e=>{e.currentTarget.style.background='#0a0a0a';e.currentTarget.style.color='#fff'}} onMouseLeave={e=>{e.currentTarget.style.background='#f5f4f0';e.currentTarget.style.color='#888'}} style={{display:'inline-flex',alignItems:'center',gap:'4px',padding:'4px 10px',background:'#f5f4f0',border:'none',fontSize:'11px',color:'#888',cursor:'pointer',transition:'all 0.15s',flexShrink:0}}>Ayarlar</button>
                     <div style={{flex:1}} />
-                    <div style={{display:'inline-flex',padding:'6px 14px',border:'1px solid #FF0050',fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'#FF0050',flexShrink:0,whiteSpace:'nowrap'}}>{trendVideoCount} VİDEO</div>
+                    <div style={{display:'inline-flex',padding:'6px 14px',border:'1px solid #1DB81D',fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:'#1DB81D',flexShrink:0,whiteSpace:'nowrap'}}>{clientUser?.allocated_credits || 0} KREDİ</div>
                   </div>
 
                   {/* TREND BİLGİ PANELİ */}
                   {trendInfoOpen && (
                     <div style={{marginBottom:'16px',padding:'16px',background:'#fafaf7',borderRadius:'8px',fontSize:'12px',color:'#555',lineHeight:1.6}}>
                       Pankart Pop: Marka sloganli pankartla acilir, hiphop koreografi, marka logosuna flip ile biter. Kling 3.0 i2v, 9:16 dikey, 10 saniye, native audio. Brief'e gore AI slogan uretir, marka rengi + fontu pankarta yansir.
-                    </div>
-                  )}
-
-                  {/* TREND AYARLAR PANELİ */}
-                  {trendSettingsOpen && (
-                    <div style={{marginBottom:'16px',padding:'16px',background:'#fafaf7',borderRadius:'8px',fontSize:'12px',color:'#555',lineHeight:1.6}}>
-                      Bu surumde Trend ayarlari otomatik. Format secimi, karakter ve mekan AI tarafindan brief'e gore belirlenir.
                     </div>
                   )}
 
@@ -1792,16 +1784,16 @@ function ClientBriefDetail() {
 
                   {/* ÜRET BUTONU */}
                   <div style={{marginBottom:'16px'}}>
-                    <button onClick={async()=>{
+                    <button disabled={(clientUser?.allocated_credits||0)<1&&trendChildren.filter(c=>c.ai_video_status!=='failed').length>0} onClick={async()=>{
                       try {
                         const res = await fetch('/api/trend/generate', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({brief_id:id,client_user_id:clientUser.id}) })
                         const data = await res.json()
                         if (data.child_brief) { setTrendChildren(prev=>[...prev,data.child_brief]); setTrendVideoCount(prev=>prev+1) }
                       } catch {}
-                    }} style={{padding:'14px 28px',background:'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'13px',fontWeight:'600',cursor:'pointer'}}
-                      onMouseEnter={e=>{e.currentTarget.style.background='#FF0050'}}
-                      onMouseLeave={e=>{e.currentTarget.style.background='#0a0a0a'}}>
-                      {trendChildren.filter(c=>c.ai_video_status!=='failed').length === 0 ? 'TREND URET (UCRETSIZ)' : 'Yeni Trend Uret'}
+                    }} style={{padding:'10px 24px',background:((clientUser?.allocated_credits||0)<1&&trendChildren.filter(c=>c.ai_video_status!=='failed').length>0)?'#ccc':'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'12px',fontWeight:500,letterSpacing:'0.5px',cursor:((clientUser?.allocated_credits||0)<1&&trendChildren.filter(c=>c.ai_video_status!=='failed').length>0)?'default':'pointer',textTransform:'uppercase' as const}}
+                      onMouseEnter={e=>{if(e.currentTarget.style.background!=='rgb(204, 204, 204)')e.currentTarget.style.background='#1DB81D'}}
+                      onMouseLeave={e=>{if(e.currentTarget.style.background!=='rgb(204, 204, 204)')e.currentTarget.style.background='#0a0a0a'}}>
+                      {trendChildren.filter(c=>c.ai_video_status!=='failed').length === 0 ? 'TREND ÜRET (ÜCRETSİZ)' : 'YENİ TREND ÜRET (1 KREDİ)'}
                     </button>
                   </div>
 
@@ -1812,11 +1804,21 @@ function ClientBriefDetail() {
                     return (
                       <div key={child.id} style={{marginBottom:'12px',padding:'12px',border:'1px solid #e5e5e5',borderRadius:'8px'}}>
                         <div style={{fontSize:'11px',color:'#888',marginBottom:'6px'}}>Trend #{idx+1} <span style={{marginLeft:'6px',fontSize:'9px',padding:'2px 6px',background:'#e8e1ff',color:'#5d4ec3',borderRadius:'3px',letterSpacing:'0.5px'}}>PANKART POP</span></div>
+                        <div style={{fontSize:'11px',color:'#888',marginBottom:'6px'}}>{new Date(child.created_at).toLocaleDateString('tr-TR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}{child.completed_at && <><span style={{margin:'0 8px',color:'#ccc'}}>|</span><span style={{color:'#aaa'}}>{formatDuration(child.created_at, child.completed_at)}</span></>}</div>
                         {hasVideo && (
                           <video src={child.ai_video_url} controls preload="metadata" style={{width:'100%',maxWidth:'300px',aspectRatio:'9/16',objectFit:'contain',background:'#000',borderRadius:'6px',display:'block'}} />
                         )}
                         {child.ai_express_settings_snapshot?.placard_text && (
                           <div style={{fontSize:'11px',color:'#5d4ec3',marginTop:'6px',fontWeight:500}}>{'📋'} {child.ai_express_settings_snapshot.placard_text}</div>
+                        )}
+                        {hasVideo && child.status !== 'delivered' && (
+                          <div style={{marginTop:'8px',display:'flex',alignItems:'center',gap:'8px'}}>
+                            <button onClick={()=>handleStudioPurchase(child)} disabled={(clientUser?.allocated_credits||0)<(creditSettings?.credit_ai_express||1)} className="btn btn-accent" style={{padding:'6px 16px'}}>SATIN AL</button>
+                            <span style={{fontSize:'13px',color:'#888'}}>{creditSettings?.credit_ai_express||1} kredi</span>
+                          </div>
+                        )}
+                        {hasVideo && child.status === 'delivered' && (
+                          <div style={{marginTop:'8px',fontSize:'11px',color:'#1DB81D',fontWeight:500}}>Satın alındı</div>
                         )}
                         {isProcessing && (
                           <div style={{width:'200px',aspectRatio:'9/16',background:'#f5f4f0',borderRadius:'6px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'11px',color:'#888'}}>Uretiliyor...</div>
