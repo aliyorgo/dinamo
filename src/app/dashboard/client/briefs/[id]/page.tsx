@@ -1775,7 +1775,6 @@ function ClientBriefDetail() {
                     <h2 style={{color:'#5d4ec3',fontSize:'24px',fontWeight:600,margin:0,letterSpacing:'-0.3px'}}>Pankart Hop</h2>
                     <div style={{display:'flex',alignItems:'center',gap:'6px',marginTop:'6px'}}>
                       <span style={{fontSize:'8px',padding:'3px 8px',background:'rgba(93,78,195,0.12)',color:'#5d4ec3',borderRadius:'2px',fontWeight:500,letterSpacing:'0.8px'}}>AKTIF TREND</span>
-                      <span style={{fontSize:'8px',padding:'3px 8px',background:'#1DB81D',color:'#fff',borderRadius:'2px',fontWeight:500,letterSpacing:'0.8px'}}>BETA</span>
                     </div>
                     <div style={{color:'var(--color-text-secondary)',fontSize:'14px',marginTop:'8px',lineHeight:1.5}}>Genc, dinamik, dramatik. Marka renkli isik oyunlariyla kurate ettigimiz hiphop-pankart formati.</div>
                   </div>
@@ -1851,7 +1850,7 @@ function ClientBriefDetail() {
                         const data = await res.json()
                         if (data.child_brief) { setTrendChildren(prev=>[...prev,data.child_brief]); setTrendVideoCount(prev=>prev+1) }
                       } catch {}
-                    }} style={{padding:'14px 28px',background:((clientUser?.allocated_credits||0)<1&&trendChildren.filter(c=>c.ai_video_status!=='failed').length>0)?'#ccc':'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'13px',fontWeight:600,cursor:((clientUser?.allocated_credits||0)<1&&trendChildren.filter(c=>c.ai_video_status!=='failed').length>0)?'not-allowed':'pointer'}}>
+                    }} style={{width:'100%',padding:'14px',background:((clientUser?.allocated_credits||0)<1&&trendChildren.filter(c=>c.ai_video_status!=='failed').length>0)?'#ccc':'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'13px',fontWeight:600,cursor:((clientUser?.allocated_credits||0)<1&&trendChildren.filter(c=>c.ai_video_status!=='failed').length>0)?'not-allowed':'pointer'}}>
                       {trendChildren.filter(c=>c.ai_video_status!=='failed').length === 0 ? 'TREND ÜRET (ÜCRETSİZ · ~4 DAKİKA)' : 'TREND ÜRET (1 KREDİ · ~4 DAKİKA)'}
                     </button>
                   </div>
