@@ -57,6 +57,7 @@ export default function ClientDashboard() {
   const [ugcCountMap, setUgcCountMap] = useState<Record<string, number>>({})
   const [animReadyMap, setAnimReadyMap] = useState<Record<string, any[]>>({})
   const [animCountMap, setAnimCountMap] = useState<Record<string, number>>({})
+  const [trendCountMap, setTrendCountMap] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
   // Notifications
   const [notifications, setNotifications] = useState<any[]>([])
@@ -145,6 +146,19 @@ export default function ClientDashboard() {
           const acMap: Record<string, number> = {}
           animAll?.forEach((v: any) => { acMap[v.brief_id] = (acMap[v.brief_id] || 0) + 1 })
           setAnimCountMap(acMap)
+
+          // Trend children count per brief
+          const { data: trendKids } = await supabase.from('briefs')
+            .select('id, parent_brief_id, root_campaign_id, ai_video_status')
+            .eq('client_id', clientId)
+            .eq('express_engine', 'trend')
+            .neq('ai_video_status', 'failed')
+          const tcMap: Record<string, number> = {}
+          trendKids?.forEach((k: any) => {
+            const key = k.root_campaign_id || k.parent_brief_id
+            if (key) tcMap[key] = (tcMap[key] || 0) + 1
+          })
+          setTrendCountMap(tcMap)
         }
 
         const withVideoIds = (b || []).filter(br => ['delivered','approved'].includes(br.status)).map(br => br.id)
@@ -294,6 +308,10 @@ export default function ClientDashboard() {
       const animFailed = b.animation_status === 'failed'
       const animCount = animCountMap[b.id] || 0
       indicators.push({ label: `ANİMASYON${animCount > 0 ? ` · ${animCount}` : ''}`, pulse: animProcessing, error: animFailed, tab: 'animation' })
+    }
+    const trendCount = trendCountMap[b.root_campaign_id] || trendCountMap[b.id] || 0
+    if (trendCount > 0) {
+      indicators.push({ label: `TREND · ${trendCount}`, tab: 'trend' })
     }
     if (b.static_image_files || b.static_images_url) indicators.push({ label: 'GÖRSEL' })
     return indicators
