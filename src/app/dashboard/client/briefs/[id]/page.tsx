@@ -1795,15 +1795,18 @@ function ClientBriefDetail() {
                             <video src={child.ai_video_url} controls preload="metadata" style={{width:'100%',height:'100%',objectFit:'contain',display:'block'}} />
                           ) : isProcessing ? (
                             <div style={{width:'100%',height:'100%',position:'relative',overflow:'hidden',background:'#ebe9e3'}}>
-                              <div style={{position:'relative',width:'100%',height:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center'}}>
-                                <img src="/dinamo_logo.png" alt="" style={{width:'80px',objectFit:'contain',display:'block',animation:'pulse 1.8s ease-in-out infinite'}} />
-                                <div style={{fontSize:'10px',fontWeight:'500',letterSpacing:'0.1em',color:'#888',marginTop:'2px',animation:'pulse 1.5s ease infinite'}}>CALISIYORUM</div>
+                              <video src="/videos/dinamo_static_progress.mp4" autoPlay muted loop playsInline style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',zIndex:0}} />
+                              <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.35)',zIndex:1}} />
+                              <div style={{position:'relative',zIndex:2,width:'100%',height:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center'}}>
+                                <img src="/dinamo_logo.png" alt="" style={{width:'115px',objectFit:'contain',display:'block',animation:'pulse 1.8s ease-in-out infinite'}} />
+                                <div style={{fontSize:'10px',fontWeight:'500',letterSpacing:'0.1em',color:'#fff',marginTop:'2px',animation:'pulse 1.5s ease infinite'}}>ÇALIŞIYOR</div>
                               </div>
                             </div>
                           ) : (
                             <div style={{width:'100%',height:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'6px'}}>
                               <span style={{fontSize:'20px',color:'#555'}}>&#9888;</span>
-                              <span style={{fontSize:'10px',color:'#999',fontWeight:'500'}}>Uretilemedi</span>
+                              <span style={{fontSize:'10px',color:'#999',fontWeight:'500'}}>Üretilemedi</span>
+                              <span style={{fontSize:'8px',color:'#555'}}>Geçici sistem hatası</span>
                             </div>
                           )}
                         </div>
