@@ -742,12 +742,14 @@ function ClientBriefDetail() {
             const animationVisible = featureFlags.animationGlobal
             const trendVisible = featureFlags.trendGlobal
             const hasSummary = aiChildren.length > 0 || cpsChildren.length > 0 || !!brief?.static_images_url || ugcVideosForSummary.length > 0
+            const expressProcessing = aiChildren.some(c=>c.express_engine!=='trend'&&c.status==='ai_processing'&&!c.ai_video_url&&c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout')
+            const trendProcessing = trendChildren.some(c=>c.status==='ai_processing'&&!c.ai_video_url&&c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout')
             const aiStudioTabs = [
-              expressVisible && {key:'express',label:'EXPRESS',count:aiChildren.filter(c=>c.express_engine!=='trend'&&c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout').length},
-              ugcVisible && {key:'ugc',label:'PERSONA',count:ugcVideoCount},
-              animationVisible && {key:'animation',label:'ANİMASYON',count:animationVideoCount},
-              trendVisible && {key:'trend',label:'TREND',count:trendVideoCount},
-            ].filter(Boolean) as {key:string,label:string,count:number}[]
+              expressVisible && {key:'express',label:'EXPRESS',count:aiChildren.filter(c=>c.express_engine!=='trend'&&c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout').length,processing:expressProcessing},
+              ugcVisible && {key:'ugc',label:'PERSONA',count:ugcVideoCount,processing:false},
+              animationVisible && {key:'animation',label:'ANİMASYON',count:animationVideoCount,processing:false},
+              trendVisible && {key:'trend',label:'TREND',count:trendVideoCount,processing:trendProcessing},
+            ].filter(Boolean) as {key:string,label:string,count:number,processing:boolean}[]
             return (
               <>
                 {/* BRIEF TO VIDEO GROUP */}
@@ -775,7 +777,7 @@ function ClientBriefDetail() {
                   <div style={{display:'flex',gap:0,borderBottom:'1.5px solid #1DB81D'}}>
                     {aiStudioTabs.map(tab=>{
                       const isActive = activeTab === tab.key
-                      return <button key={tab.key} onClick={()=>setActiveTab(tab.key as any)} style={{padding:'8px 14px',fontSize:'12px',fontWeight:isActive?500:400,color:isActive?'#000':'#666',letterSpacing:'1px',background:isActive?'rgba(29,184,29,0.05)':'transparent',border:'none',cursor:'pointer',borderRadius:'4px 4px 0 0'}}>{tab.label}{tab.count>0&&<span style={{color:'#1DB81D',fontWeight:500,marginLeft:'4px'}}>{tab.count}</span>}</button>
+                      return <button key={tab.key} onClick={()=>setActiveTab(tab.key as any)} style={{padding:'8px 14px',fontSize:'12px',fontWeight:isActive?500:400,color:isActive?'#000':'#666',letterSpacing:'1px',background:isActive?'rgba(29,184,29,0.05)':'transparent',border:'none',cursor:'pointer',borderRadius:'4px 4px 0 0',display:'inline-flex',alignItems:'center',gap:'6px'}}>{tab.label}{tab.count>0&&<span style={{color:'#1DB81D',fontWeight:500}}>{tab.count}</span>}{tab.processing&&<span style={{width:'6px',height:'6px',background:'#4ade80',borderRadius:'50%',display:'inline-block',animation:'pulse 1.5s ease infinite'}}></span>}</button>
                     })}
                   </div>
                 </div>
