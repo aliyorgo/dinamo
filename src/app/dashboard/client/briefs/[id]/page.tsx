@@ -1761,7 +1761,13 @@ function ClientBriefDetail() {
                   {/* TREND HEADER */}
                   <div style={{display:'flex',flexWrap:'nowrap',alignItems:'center',marginBottom:'12px',gap:'8px'}}>
                     <span style={{fontSize:'9px',padding:'2px 6px',background:'#1DB81D',color:'#fff',fontWeight:'600',marginRight:'8px',borderRadius:'2px',letterSpacing:'0.5px'}}>BETA</span>
-                    <button onClick={()=>{setTrendInfoOpen(p=>!p);setTrendSettingsOpen(false)}} onMouseEnter={e=>{e.currentTarget.style.background='#0a0a0a';e.currentTarget.style.color='#fff'}} onMouseLeave={e=>{e.currentTarget.style.background='#f5f4f0';e.currentTarget.style.color='#888'}} style={{display:'inline-flex',alignItems:'center',gap:'4px',padding:'4px 10px',background:'#f5f4f0',border:'none',fontSize:'11px',color:'#888',cursor:'pointer',transition:'all 0.15s',flexShrink:0}}>Bilgi</button>
+                    <button onClick={()=>{setTrendInfoOpen(p=>!p);setTrendSettingsOpen(false)}} onMouseEnter={e=>{e.currentTarget.style.background='#0a0a0a';e.currentTarget.style.color='#fff'}} onMouseLeave={e=>{e.currentTarget.style.background='#f5f4f0';e.currentTarget.style.color='#888'}} style={{display:'inline-flex',alignItems:'center',gap:'4px',padding:'4px 10px',background:'#f5f4f0',border:'none',fontSize:'11px',color:'#888',cursor:'pointer',transition:'all 0.15s',flexShrink:0}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>Bilgi</button>
+                    <div style={{display:'flex',alignItems:'center',gap:'6px'}} title="1.85:1 sinema formati — letterbox, yatay uretim">
+                      <span style={{fontSize:'10px',color:'#888'}}>CINEMA MODE</span>
+                      <button onClick={()=>setTrendCinema(!trendCinema)} style={{width:'36px',height:'20px',border:'none',cursor:'pointer',background:trendCinema?'#22c55e':'#ddd',position:'relative',transition:'background 0.2s',flexShrink:0}}>
+                        <span className="dot" style={{position:'absolute',top:'2px',left:trendCinema?'18px':'2px',width:'16px',height:'16px',background:'#fff',transition:'left 0.2s'}} />
+                      </button>
+                    </div>
                     <div style={{flex:1}} />
                     {(() => { const genCount = trendChildren.filter(c=>c.ai_video_status!=='failed').length; const purchaseCount = trendChildren.filter(c=>c.status==='delivered').length; const total = Math.max(0, genCount - 1) + purchaseCount; return <div style={{display:'inline-flex',padding:'6px 14px',border:'1px solid #1DB81D',fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:total > 0 ? '#1DB81D' : '#9ca3af',flexShrink:0,whiteSpace:'nowrap'}}>{total} KREDİ</div> })()}
                   </div>
@@ -1848,14 +1854,8 @@ function ClientBriefDetail() {
                     )
                   })}
 
-                  {/* CINEMA TOGGLE + ÜRET BUTONU */}
+                  {/* ÜRET BUTONU */}
                   <div style={{marginTop:'16px'}}>
-                    <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'10px'}} title="Sinematik üretim — daha detaylı, üretim biraz daha uzun">
-                      <span style={{fontSize:'10px',color:'#888'}}>CINEMA</span>
-                      <button onClick={()=>setTrendCinema(!trendCinema)} style={{width:'36px',height:'20px',border:'none',cursor:'pointer',background:trendCinema?'#22c55e':'#ddd',position:'relative',transition:'background 0.2s',flexShrink:0}}>
-                        <span className="dot" style={{position:'absolute',top:'2px',left:trendCinema?'18px':'2px',width:'16px',height:'16px',background:'#fff',transition:'left 0.2s'}} />
-                      </button>
-                    </div>
                     <button className="dinamo-generate-btn" disabled={(clientUser?.allocated_credits||0)<1&&trendChildren.filter(c=>c.ai_video_status!=='failed').length>0} onClick={async()=>{
                       try {
                         const res = await fetch('/api/trend/generate', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({brief_id:id,client_user_id:clientUser.id,cinema_mode:trendCinema}) })
