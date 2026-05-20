@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     client_user_id,
     brief_type: 'express_clone',
     express_engine: cinema_mode ? 'trend_cinema' : 'trend',
-    format: '9:16',
+    format: cinema_mode ? '16:9' : '9:16',
     message: brief.message || '',
     voiceover_text: brief.voiceover_text,
     voiceover_gender: brief.voiceover_gender,
