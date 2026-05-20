@@ -117,6 +117,7 @@ function ClientBriefDetail() {
   const [showAiGenerate, setShowAiGenerate] = useState(false)
   const [aiGenerating, setAiGenerating] = useState(false)
   const [expressHQ, setExpressHQ] = useState(false)
+  const [trendCinema, setTrendCinema] = useState(false)
   const [expressInfoOpen, setExpressInfoOpen] = useState(false)
   const [cpsInfoOpen, setCpsInfoOpen] = useState(false)
   const [expressSettingsOpen, setExpressSettingsOpen] = useState(false)
@@ -1847,11 +1848,17 @@ function ClientBriefDetail() {
                     )
                   })}
 
-                  {/* ÜRET BUTONU (en altta) */}
+                  {/* CINEMA TOGGLE + ÜRET BUTONU */}
                   <div style={{marginTop:'16px'}}>
+                    <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'10px'}} title="Sinematik üretim — daha detaylı, üretim biraz daha uzun">
+                      <span style={{fontSize:'10px',color:'#888'}}>CINEMA</span>
+                      <button onClick={()=>setTrendCinema(!trendCinema)} style={{width:'36px',height:'20px',border:'none',cursor:'pointer',background:trendCinema?'#22c55e':'#ddd',position:'relative',transition:'background 0.2s',flexShrink:0}}>
+                        <span className="dot" style={{position:'absolute',top:'2px',left:trendCinema?'18px':'2px',width:'16px',height:'16px',background:'#fff',transition:'left 0.2s'}} />
+                      </button>
+                    </div>
                     <button className="dinamo-generate-btn" disabled={(clientUser?.allocated_credits||0)<1&&trendChildren.filter(c=>c.ai_video_status!=='failed').length>0} onClick={async()=>{
                       try {
-                        const res = await fetch('/api/trend/generate', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({brief_id:id,client_user_id:clientUser.id}) })
+                        const res = await fetch('/api/trend/generate', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({brief_id:id,client_user_id:clientUser.id,cinema_mode:trendCinema}) })
                         const data = await res.json()
                         if (data.child_brief) { setTrendChildren(prev=>[...prev,data.child_brief]); setTrendVideoCount(prev=>prev+1) }
                       } catch {}
