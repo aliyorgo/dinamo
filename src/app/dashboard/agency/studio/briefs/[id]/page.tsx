@@ -173,7 +173,7 @@ export default function AgencyBriefDetailPage() {
                         <span style={{ fontSize: '10px', color: '#888' }}>{sub.submitted_at ? new Date(sub.submitted_at).toLocaleDateString('tr-TR') : ''}</span>
                       </div>
                       {sub.video_url && (
-                        <video src={sub.video_url} controls style={{ width: '100%', maxHeight: '360px', borderRadius: '8px', background: '#000' }} />
+                        <video src={sub.video_url} controls controlsList="nodownload noplaybackrate" disablePictureInPicture style={{ width: '100%', maxHeight: '360px', borderRadius: '8px', background: '#000' }} />
                       )}
                     </div>
                   ))}

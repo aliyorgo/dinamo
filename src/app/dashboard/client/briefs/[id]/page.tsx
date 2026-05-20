@@ -892,7 +892,7 @@ function ClientBriefDetail() {
                       <div style={{flex:1,minWidth:0}}>
                         <div style={{borderRadius:'12px',overflow:'hidden',position:'relative',maxWidth:aspect.maxW,margin:briefFormat==='16:9'?'0':'0 auto'}}>
                           <div style={{paddingTop:aspect.padding,position:'relative'}}>
-                            <video controls autoPlay onPlay={e=>pauseOtherVideos(e.currentTarget)} style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',borderRadius:'12px'}}>
+                            <video controls controlsList="nodownload noplaybackrate" disablePictureInPicture autoPlay onPlay={e=>pauseOtherVideos(e.currentTarget)} style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',borderRadius:'12px'}}>
                               <source src={brief.ai_video_url} />
                             </video>
                           </div>
@@ -955,7 +955,7 @@ function ClientBriefDetail() {
                   {/* VIDEO */}
                   <div style={{flex:1,minWidth:0}}>
                       <div style={{borderRadius:'12px',overflow:'hidden',position:'relative',maxWidth:aspect.maxW,margin:briefFormat==='16:9'?'0':'0 auto'}}>
-                        <video ref={videoRef} key={currentVideo.id} controls
+                        <video ref={videoRef} key={currentVideo.id} controls controlsList="nodownload noplaybackrate" disablePictureInPicture
                           onPlay={e=>pauseOtherVideos(e.currentTarget)}
                           onTimeUpdate={()=>{if(videoRef.current) setCurrentTime(videoRef.current.currentTime)}}
                           style={{width:'100%',height:'auto',display:'block',borderRadius:'12px'}}>
@@ -1369,7 +1369,7 @@ function ClientBriefDetail() {
                         <div style={{width:((f)=>f==='16:9'?'360px':f==='1:1'?'300px':f==='4:5'?'240px':'200px')(child.format||briefFormat||'9:16'),aspectRatio:(child.format||'9:16').replace(':','/'),background:'#0a0a0a',flexShrink:0,position:'relative',overflow:'hidden'}}>
                           {hasVideo ? (
                             <>
-                              <video key={child.ai_video_url} src={child.ai_video_url} controls preload="metadata"
+                              <video key={child.ai_video_url} src={child.ai_video_url} controls controlsList="nodownload noplaybackrate" disablePictureInPicture preload="metadata"
                                 onPlay={e => { pauseOtherVideos(e.currentTarget); markAiChildViewed(child.id) }}
                                 style={{width:'100%',height:'100%',objectFit:'contain',display:'block'}} />
                               {!isPurchased && <img src="/dinamo_logo.png" alt="" style={{position:'absolute',top:'14px',left:'14px',width:'60px',opacity:0.65,pointerEvents:'none'}} />}
@@ -1692,7 +1692,7 @@ function ClientBriefDetail() {
                             <div style={{marginBottom:'12px'}}>
                               {hasVideo ? (
                                 <div style={{aspectRatio:(child.format||briefFormat).replace(':','/'),overflow:'hidden',background:'#0a0a0a'}}>
-                                  <video src={childVideo.video_url} controls playsInline preload="metadata" onPlay={e=>pauseOtherVideos(e.currentTarget)} style={{width:'100%',height:'100%',objectFit:'contain',background:'black'}} />
+                                  <video src={childVideo.video_url} controls controlsList="nodownload noplaybackrate" disablePictureInPicture playsInline preload="metadata" onPlay={e=>pauseOtherVideos(e.currentTarget)} style={{width:'100%',height:'100%',objectFit:'contain',background:'black'}} />
                                 </div>
                               ) : (
                                 <VideoLoadingBox aspect={child.format||briefFormat} size="small" label={statusLabel[child.status]||child.status} sublabel="" />
@@ -1739,7 +1739,7 @@ function ClientBriefDetail() {
                   <div style={{background:'#fff',border:'0.5px solid rgba(0,0,0,0.1)',borderRadius:'12px',padding:'16px',marginBottom:'16px'}}>
                     <div style={{fontSize:'11px',color:'#888',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'10px'}}>Referans — Ana Video</div>
                     <div style={{maxWidth:'200px'}}>
-                      <video src={currentVideo.video_url} controls playsInline preload="metadata" onPlay={e=>pauseOtherVideos(e.currentTarget)} style={{width:'100%',borderRadius:'8px',objectFit:'contain',background:'black'}} />
+                      <video src={currentVideo.video_url} controls controlsList="nodownload noplaybackrate" disablePictureInPicture playsInline preload="metadata" onPlay={e=>pauseOtherVideos(e.currentTarget)} style={{width:'100%',borderRadius:'8px',objectFit:'contain',background:'black'}} />
                     </div>
                   </div>
                 )}
@@ -1801,7 +1801,7 @@ function ClientBriefDetail() {
                         {/* Video */}
                         <div style={{width:((f: string)=>f==='16:9'?'360px':f==='1:1'?'300px':f==='4:5'?'240px':'200px')(child.format||'9:16'),aspectRatio:(child.format||'9:16').replace(':','/'),background:'#0a0a0a',flexShrink:0,position:'relative',overflow:'hidden'}}>
                           {hasVideo ? (
-                            <video src={child.ai_video_url} controls preload="metadata" style={{width:'100%',height:'100%',objectFit:'contain',display:'block'}} />
+                            <video src={child.ai_video_url} controls controlsList="nodownload noplaybackrate" disablePictureInPicture preload="metadata" style={{width:'100%',height:'100%',objectFit:'contain',display:'block'}} />
                           ) : isProcessing ? (
                             <div style={{width:'100%',height:'100%',position:'relative',overflow:'hidden',background:'#ebe9e3'}}>
                               <video src="/videos/dinamo_static_progress.mp4" autoPlay muted loop playsInline style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',zIndex:0}} />

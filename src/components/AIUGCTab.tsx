@@ -481,7 +481,7 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
                   </div>
                 ) : hasVideo ? (
                   <>
-                    <video src={video.final_url} controls preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'contain', backgroundColor: 'black' }} onPlay={e => { pauseOtherVideos(e.currentTarget); markUgcVideoViewed(video.id) }} />
+                    <video src={video.final_url} controls controlsList="nodownload noplaybackrate" disablePictureInPicture preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'contain', backgroundColor: 'black' }} onPlay={e => { pauseOtherVideos(e.currentTarget); markUgcVideoViewed(video.id) }} />
                     {!isPurchased && <img src="/dinamo_logo.png" alt="" style={{ position: 'absolute', top: '14px', left: '14px', width: '60px', opacity: 0.65, pointerEvents: 'none' }} />}
                   </>
                 ) : isProcessing ? (

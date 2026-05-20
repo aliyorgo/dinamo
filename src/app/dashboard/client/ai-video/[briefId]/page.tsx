@@ -390,7 +390,7 @@ export default function AiVideoPage() {
               {aiVideoUrl && (
                 <div>
                   <div style={{borderRadius:'12px',overflow:'hidden',background:'#0a0a0a',marginBottom:'16px'}}>
-                    <video controls autoPlay style={{width:'100%',maxHeight:'580px',display:'block'}}>
+                    <video controls controlsList="nodownload noplaybackrate" disablePictureInPicture autoPlay style={{width:'100%',maxHeight:'580px',display:'block'}}>
                       <source src={aiVideoUrl} />
                     </video>
                   </div>

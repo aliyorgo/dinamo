@@ -569,7 +569,7 @@ export default function CreatorJobDetail() {
         <div onClick={() => setPlayerUrl(null)} onKeyDown={e => { if (e.key === 'Escape') setPlayerUrl(null) }} tabIndex={0} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <button onClick={() => setPlayerUrl(null)} style={{ position: 'absolute', top: '20px', right: '20px', width: '32px', height: '32px', border: '1px solid rgba(255,255,255,0.3)', background: 'transparent', color: '#fff', fontSize: '18px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 201 }}>×</button>
           <div onClick={e => e.stopPropagation()} style={{ maxWidth: '90vw', maxHeight: '90vh' }}>
-            <video controls autoPlay playsInline preload="metadata" style={{ maxWidth: '90vw', maxHeight: '90vh', display: 'block' }}><source src={playerUrl} /></video>
+            <video controls controlsList="nodownload noplaybackrate" disablePictureInPicture autoPlay playsInline preload="metadata" style={{ maxWidth: '90vw', maxHeight: '90vh', display: 'block' }}><source src={playerUrl} /></video>
           </div>
         </div>
       )}

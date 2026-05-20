@@ -702,7 +702,7 @@ export default function AdminBriefDetail() {
                     <Badge status={s.status === 'pending' ? 'submitted' : s.status === 'producer_approved' || s.status === 'admin_approved' ? 'delivered' : s.status === 'revision_requested' ? 'revision' : 'submitted'} />
                   </div>
                   <div style={{ padding: '16px 18px' }}>
-                    <video ref={s.id === submissions[0]?.id ? videoRef : undefined} controls style={{ width: '100%', maxHeight: '500px', objectFit: 'contain', background: '#000', display: 'block' }}><source src={s.video_url} /></video>
+                    <video ref={s.id === submissions[0]?.id ? videoRef : undefined} controls controlsList="nodownload noplaybackrate" disablePictureInPicture style={{ width: '100%', maxHeight: '500px', objectFit: 'contain', background: '#000', display: 'block' }}><source src={s.video_url} /></video>
                   </div>
                   {(s.status === 'pending' || s.status === 'producer_approved') && (
                     <div style={{ padding: '0 18px 16px' }}>
@@ -812,7 +812,7 @@ export default function AdminBriefDetail() {
                                   <span style={{ fontSize: '11px', fontWeight: '500' }}>V{sub.version}</span>
                                   <Badge status={sub.status === 'pending' ? 'submitted' : sub.status === 'admin_approved' ? 'delivered' : sub.status === 'revision_requested' ? 'revision' : 'submitted'} />
                                 </div>
-                                <video controls style={{ width: '100%', maxHeight: '200px', objectFit: 'contain', background: '#000', display: 'block', marginBottom: '6px' }}><source src={sub.video_url} /></video>
+                                <video controls controlsList="nodownload noplaybackrate" disablePictureInPicture style={{ width: '100%', maxHeight: '200px', objectFit: 'contain', background: '#000', display: 'block', marginBottom: '6px' }}><source src={sub.video_url} /></video>
                                 {(sub.status === 'pending' || sub.status === 'producer_approved') && (
                                   <div>
                                     <button onClick={() => approveCpsSubmission(child.id, sub.id)} disabled={loading} className="btn" style={{ padding: '4px 10px', fontSize: '10px', width: '100%', marginBottom: '4px' }}>ONAYLA</button>
@@ -846,7 +846,7 @@ export default function AdminBriefDetail() {
                     </div>
                     {aiOpen[child.id] && (
                       <div style={{ marginTop: '12px' }}>
-                        {child.ai_video_url && <video controls style={{ width: '100%', maxHeight: '400px', objectFit: 'contain', background: '#000', display: 'block', marginBottom: '8px' }}><source src={child.ai_video_url} /></video>}
+                        {child.ai_video_url && <video controls controlsList="nodownload noplaybackrate" disablePictureInPicture style={{ width: '100%', maxHeight: '400px', objectFit: 'contain', background: '#000', display: 'block', marginBottom: '8px' }}><source src={child.ai_video_url} /></video>}
                         {(child.ai_video_status === 'failed' || child.ai_video_status === 'timeout') && (
                           <div style={{ padding: '12px', background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.2)', marginBottom: '8px' }}>
                             <div style={{ fontSize: '12px', fontWeight: '500', color: '#ef4444', marginBottom: '4px' }}>Üretim Başarısız</div>
@@ -874,7 +874,7 @@ export default function AdminBriefDetail() {
                 </div>
                 {personaOpen && (
                   <div style={{ marginTop: '12px' }}>
-                    {ugcVideo.final_url && <video controls onClick={e => e.stopPropagation()} style={{ width: '100%', maxHeight: '300px', objectFit: 'contain', background: '#000', display: 'block' }}><source src={ugcVideo.final_url} /></video>}
+                    {ugcVideo.final_url && <video controls controlsList="nodownload noplaybackrate" disablePictureInPicture onClick={e => e.stopPropagation()} style={{ width: '100%', maxHeight: '300px', objectFit: 'contain', background: '#000', display: 'block' }}><source src={ugcVideo.final_url} /></video>}
                     {ugcVideo.persona_id && <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', marginTop: '8px' }}>Persona #{ugcVideo.persona_id}</div>}
                   </div>
                 )}
@@ -912,7 +912,7 @@ export default function AdminBriefDetail() {
                           </div>
                           {av.completed_at && <span style={{ fontSize: '10px', color: 'var(--color-text-tertiary)' }}>{new Date(av.completed_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}</span>}
                         </div>
-                        {av.final_url && <video controls style={{ width: '100%', maxHeight: '300px', objectFit: 'contain', background: '#000', display: 'block', marginBottom: '6px' }}><source src={av.final_url} /></video>}
+                        {av.final_url && <video controls controlsList="nodownload noplaybackrate" disablePictureInPicture style={{ width: '100%', maxHeight: '300px', objectFit: 'contain', background: '#000', display: 'block', marginBottom: '6px' }}><source src={av.final_url} /></video>}
                         {av.error_message && <div style={{ fontSize: '11px', color: '#ef4444', marginTop: '4px' }}>{av.error_message}</div>}
                         {av.feedback_summary && <div style={{ fontSize: '11px', color: '#6b6b66', fontFamily: 'monospace', marginTop: '4px' }}>{av.feedback_summary}</div>}
                       </div>
