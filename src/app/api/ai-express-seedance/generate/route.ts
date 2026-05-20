@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     client_id: brief.client_id,
     client_user_id,
     brief_type: 'express_clone',
-    express_engine: 'premium_v2',
+    express_engine: 'kling',
     format: brief.format,
     message: ideaContext + (brief.message || ''),
     voiceover_text: brief.voiceover_text,

@@ -116,7 +116,6 @@ function ClientBriefDetail() {
   const [selectedAiIdx, setSelectedAiIdx] = useState<number>(0)
   const [showAiGenerate, setShowAiGenerate] = useState(false)
   const [aiGenerating, setAiGenerating] = useState(false)
-  const [expressHQ, setExpressHQ] = useState(false)
   const [trendCinema, setTrendCinema] = useState(false)
   const [expressInfoOpen, setExpressInfoOpen] = useState(false)
   const [cpsInfoOpen, setCpsInfoOpen] = useState(false)
@@ -431,7 +430,7 @@ function ClientBriefDetail() {
     setShowAiGenerate(false)
     setAiError('')
     try {
-      const res = await fetch('/api/ai-express-seedance/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: id, client_user_id: clientUser.id, express_engine: expressHQ ? 'seedance_hq' : 'seedance' }) })
+      const res = await fetch('/api/ai-express-seedance/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: id, client_user_id: clientUser.id }) })
       const data = await res.json()
       if (!res.ok) { setAiError(data.error || 'Üretim başarısız'); setAiGenerating(false); return }
       if (data.child_brief) {
@@ -1282,12 +1281,6 @@ function ClientBriefDetail() {
                   Ayarlar
                 </button>
                 </div>
-                <div style={{display:'flex',alignItems:'center',gap:'6px',marginLeft:'8px'}} title="720p daha keskin, üretim biraz daha uzun sürer">
-                  <span style={{fontSize:'10px',color:'#888'}}>HQ</span>
-                  <button onClick={()=>setExpressHQ(!expressHQ)} style={{width:'36px',height:'20px',border:'none',cursor:'pointer',background:expressHQ?'#22c55e':'#ddd',position:'relative',transition:'background 0.2s',flexShrink:0}}>
-                    <span className="dot" style={{position:'absolute',top:'2px',left:expressHQ?'18px':'2px',width:'16px',height:'16px',background:'#fff',transition:'left 0.2s'}} />
-                  </button>
-                </div>
                 <div style={{flex:1}} />
                 {(() => { const total = aiChildren.length + aiChildren.filter(c => c.status === 'delivered').length * 2; return <div style={{display:'inline-flex',padding:'6px 14px',border:'1px solid #0a0a0a',fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',color:total > 0 ? '#0a0a0a' : '#9ca3af',flexShrink:0,whiteSpace:'nowrap'}}>{total} KREDİ</div> })()}
               </div>
@@ -1531,7 +1524,7 @@ function ClientBriefDetail() {
                         <div style={{display:'flex',gap:'8px'}}>
                           <button className="dinamo-generate-btn" onClick={()=>handleStudioGenerate('character')} disabled={(clientUser?.allocated_credits||0)<1&&aiChildren.filter(c=>c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout'&&c.ai_video_status!==null).length>0}
                             style={{flex:1,padding:'14px',background:((clientUser?.allocated_credits||0)<1&&aiChildren.filter(c=>c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout'&&c.ai_video_status!==null).length>0)?'#ccc':'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'13px',fontWeight:600,cursor:((clientUser?.allocated_credits||0)<1&&aiChildren.filter(c=>c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout'&&c.ai_video_status!==null).length>0)?'not-allowed':'pointer',transition:'background 0.15s',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}>
-                            {(() => { const cc = aiChildren.filter(c => c.ai_video_status !== 'failed' && c.ai_video_status !== 'timeout' && c.ai_video_status !== null).length; return cc === 0 ? `EXPRESS ÜRET (ÜCRETSİZ · ~${expressHQ?'10':'5'} DAKİKA)` : `EXPRESS ÜRET (${creditSettings?.credit_ai_express_generate || 1} KREDİ · ~${expressHQ?'10':'5'} DAKİKA)` })()}
+                            {(() => { const cc = aiChildren.filter(c => c.ai_video_status !== 'failed' && c.ai_video_status !== 'timeout' && c.ai_video_status !== null).length; return cc === 0 ? 'EXPRESS ÜRET (ÜCRETSİZ · ~5 DAKİKA)' : `EXPRESS ÜRET (${creditSettings?.credit_ai_express_generate || 1} KREDİ · ~5 DAKİKA)` })()}
                           </button>
                           <button onClick={()=>{setVoiceoverText(brief?.voiceover_text||'');setVoiceoverModalOpen(true)}}
                             style={{width:'90px',padding:'14px 0',background:'#fff',color:'#3a3a3a',border:'1px solid #d4d2cc',borderRadius:'2px',fontSize:'12px',fontWeight:'500',cursor:'pointer',transition:'background 0.15s'}}
