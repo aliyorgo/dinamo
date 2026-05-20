@@ -33,6 +33,14 @@ Brief:
 
 Her konsept icin title (baslik), concept (detayli aciklama, 2-3 cumle), approach (gorsel yaklasim) ver.
 
+URETIM KISITLARI — fikirler bu kisitlara UYGUN olmali:
+- Video 15 saniye, yapay zeka (Kling 3.0) ile uretilecek — gercekci, cekilebilir sahneler oner.
+- Video 6 sahnelik akistan olusur — fikrin 6 sahneye bolunebilir bir akisi olsun.
+- Markanin logosu, urunu, yazi, fiyat ekranda GORUNMEZ — fikir duygu/atmosfer/karakter uzerine kurulu olmali.
+- Karakterler KONUSMAZ — diyalog yok, gorsel anlatim esas.
+- Asiri karmasik sahnelerden (kalabalik, cok ozne) kacin — yapay zeka tutarliligi zorlanir.
+- Mekan gercekci (Turkiye ortami tercih).
+
 SADECE JSON formatinda don, baska metin yazma:
 {"inspirations":[{"title":"...","concept":"...","approach":"..."}]}`
 
