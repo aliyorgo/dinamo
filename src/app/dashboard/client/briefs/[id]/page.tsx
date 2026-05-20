@@ -310,9 +310,9 @@ function ClientBriefDetail() {
     const { count: animTotal } = await supabase.from('animation_videos').select('id', { count: 'exact', head: true }).eq('brief_id', id).neq('status', 'failed')
     setAnimationVideoCount(animTotal || 0)
     // Trend children + count
-    const { data: tc } = await supabase.from('briefs').select('id, campaign_name, status, format, ai_video_status, ai_video_url, ai_video_error, created_at, completed_at, ai_feedbacks, ai_express_settings_snapshot, ai_feedback_summary, express_engine').eq('root_campaign_id', rootId).eq('express_engine', 'trend').order('created_at', { ascending: true })
+    const { data: tc } = await supabase.from('briefs').select('id, campaign_name, status, format, ai_video_status, ai_video_url, ai_video_error, created_at, completed_at, ai_feedbacks, ai_express_settings_snapshot, ai_feedback_summary, express_engine').eq('root_campaign_id', rootId).in('express_engine', ['trend', 'trend_cinema']).order('created_at', { ascending: true })
     setTrendChildren(tc || [])
-    const { count: trendTotal } = await supabase.from('briefs').select('id', { count: 'exact', head: true }).eq('root_campaign_id', rootId).eq('express_engine', 'trend').neq('ai_video_status', 'failed')
+    const { count: trendTotal } = await supabase.from('briefs').select('id', { count: 'exact', head: true }).eq('root_campaign_id', rootId).in('express_engine', ['trend', 'trend_cinema']).neq('ai_video_status', 'failed')
     setTrendVideoCount(trendTotal || 0)
     // Animation videos for summary
     const { data: animVids } = await supabase.from('animation_videos')
@@ -743,10 +743,10 @@ function ClientBriefDetail() {
             const animationVisible = featureFlags.animationGlobal
             const trendVisible = featureFlags.trendGlobal
             const hasSummary = aiChildren.length > 0 || cpsChildren.length > 0 || !!brief?.static_images_url || ugcVideosForSummary.length > 0
-            const expressProcessing = aiChildren.some(c=>c.express_engine!=='trend'&&c.status==='ai_processing'&&!c.ai_video_url&&c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout')
+            const expressProcessing = aiChildren.some(c=>c.express_engine!=='trend'&&c.express_engine!=='trend_cinema'&&c.status==='ai_processing'&&!c.ai_video_url&&c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout')
             const trendProcessing = trendChildren.some(c=>c.status==='ai_processing'&&!c.ai_video_url&&c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout')
             const aiStudioTabs = [
-              expressVisible && {key:'express',label:'EXPRESS',count:aiChildren.filter(c=>c.express_engine!=='trend'&&c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout').length,processing:expressProcessing},
+              expressVisible && {key:'express',label:'EXPRESS',count:aiChildren.filter(c=>c.express_engine!=='trend'&&c.express_engine!=='trend_cinema'&&c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout').length,processing:expressProcessing},
               ugcVisible && {key:'ugc',label:'PERSONA',count:ugcVideoCount,processing:false},
               animationVisible && {key:'animation',label:'ANİMASYON',count:animationVideoCount,processing:false},
               trendVisible && {key:'trend',label:'TREND',count:trendVideoCount,processing:trendProcessing},

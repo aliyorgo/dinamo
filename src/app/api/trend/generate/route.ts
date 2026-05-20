@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   const rootId = brief.root_campaign_id || brief_id
 
   // Count Trend children for credit calc
-  const { count: completedCount } = await supabase.from('briefs').select('id', { count: 'exact', head: true }).eq('root_campaign_id', rootId).eq('express_engine', 'trend').not('ai_video_status', 'in', '("failed","timeout")').not('ai_video_status', 'is', null)
+  const { count: completedCount } = await supabase.from('briefs').select('id', { count: 'exact', head: true }).eq('root_campaign_id', rootId).in('express_engine', ['trend', 'trend_cinema']).not('ai_video_status', 'in', '("failed","timeout")').not('ai_video_status', 'is', null)
   const cc = completedCount || 0
   const creditCost = cc === 0 ? 0 : await getCreditCost('credit_ai_express_generate', 1)
 
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Count existing Trend children for naming
-  const { count: existingCount } = await supabase.from('briefs').select('id', { count: 'exact', head: true }).eq('root_campaign_id', rootId).eq('express_engine', 'trend')
+  const { count: existingCount } = await supabase.from('briefs').select('id', { count: 'exact', head: true }).eq('root_campaign_id', rootId).in('express_engine', ['trend', 'trend_cinema'])
   const trendNum = (existingCount || 0) + 1
   const baseName = brief.campaign_name?.replace(/\s*—\s*Trend #\d+$/, '').replace(/\s*—\s*Full AI #\d+$/, '').replace(/\s*—\s*\d+$/, '') || brief.campaign_name
 
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     client_id: brief.client_id,
     client_user_id,
     brief_type: 'express_clone',
-    express_engine: 'trend',
+    express_engine: cinema_mode ? 'trend_cinema' : 'trend',
     format: '9:16',
     message: brief.message || '',
     voiceover_text: brief.voiceover_text,
@@ -55,7 +55,6 @@ export async function POST(req: NextRequest) {
     status: 'ai_processing',
     ai_video_status: 'processing_concept',
     credit_cost: creditCost,
-    ...(cinema_mode ? { ai_express_settings: { cinema_mode: true } } : {}),
   }).select('id, campaign_name, status, format, ai_video_status, ai_video_url, created_at, express_engine').single()
 
   if (insErr) return NextResponse.json({ error: insErr.message }, { status: 500 })
