@@ -58,6 +58,7 @@ export default function ClientDashboard() {
   const [animReadyMap, setAnimReadyMap] = useState<Record<string, any[]>>({})
   const [animCountMap, setAnimCountMap] = useState<Record<string, number>>({})
   const [trendCountMap, setTrendCountMap] = useState<Record<string, number>>({})
+  const [trendReadyMap, setTrendReadyMap] = useState<Record<string, any[]>>({})
   const [loading, setLoading] = useState(true)
   // Notifications
   const [notifications, setNotifications] = useState<any[]>([])
@@ -147,11 +148,11 @@ export default function ClientDashboard() {
           animAll?.forEach((v: any) => { acMap[v.brief_id] = (acMap[v.brief_id] || 0) + 1 })
           setAnimCountMap(acMap)
 
-          // Trend children count per brief
+          // Trend children (count + ready cards)
           const { data: trendKids } = await supabase.from('briefs')
-            .select('id, parent_brief_id, root_campaign_id, ai_video_status')
+            .select('id, parent_brief_id, root_campaign_id, ai_video_status, ai_video_url, campaign_name, created_at, completed_at, ai_express_viewed_at, format, express_engine')
             .eq('client_id', clientId)
-            .eq('express_engine', 'trend')
+            .in('express_engine', ['trend', 'trend_cinema'])
             .neq('ai_video_status', 'failed')
           const tcMap: Record<string, number> = {}
           trendKids?.forEach((k: any) => {
@@ -159,6 +160,14 @@ export default function ClientDashboard() {
             if (key) tcMap[key] = (tcMap[key] || 0) + 1
           })
           setTrendCountMap(tcMap)
+
+          // Trend ready (completed + video_url + unviewed)
+          const trMap: Record<string, any[]> = {}
+          trendKids?.filter((k: any) => k.ai_video_url && k.ai_video_status === 'completed' && !k.ai_express_viewed_at).forEach((k: any) => {
+            const key = k.root_campaign_id || k.parent_brief_id
+            if (key) { if (!trMap[key]) trMap[key] = []; trMap[key].push(k) }
+          })
+          setTrendReadyMap(trMap)
         }
 
         const withVideoIds = (b || []).filter(br => ['delivered','approved'].includes(br.status)).map(br => br.id)
@@ -388,8 +397,15 @@ export default function ClientDashboard() {
   })
   const animReadyCount = animReadyList.reduce((s, r) => s + r.videos.length, 0)
 
-  // Merged AI ready items (Express + UGC + Animation), sorted by completed_at DESC
-  const allAiReady: { type: 'express' | 'ugc' | 'animation'; parent: any; item: any; versionNum?: string; versionPart?: string }[] = []
+  // Trend ready for cards
+  const trendReadyList: { parent: any; children: any[] }[] = []
+  nonDrafts.forEach(b => {
+    const kids = trendReadyMap[b.root_campaign_id] || trendReadyMap[b.id] || []
+    if (kids.length > 0) trendReadyList.push({ parent: b, children: kids })
+  })
+
+  // Merged AI ready items (Express + UGC + Animation + Trend), sorted by completed_at DESC
+  const allAiReady: { type: 'express' | 'ugc' | 'animation' | 'trend'; parent: any; item: any; versionNum?: string; versionPart?: string }[] = []
   aiExpressReady.forEach(({ parent, children }) => children.forEach((kid: any, i: number) => {
     const versionPart = kid.campaign_name?.split('—')[1]?.trim() || ''
     const versionNum = versionPart.match(/#(\d+)/)?.[1] || String(i + 1)
@@ -400,6 +416,11 @@ export default function ClientDashboard() {
   }))
   animReadyList.forEach(({ brief: parent, videos }) => videos.forEach((vid: any) => {
     allAiReady.push({ type: 'animation', parent, item: vid })
+  }))
+  trendReadyList.forEach(({ parent, children }) => children.forEach((kid: any, i: number) => {
+    const versionPart = kid.campaign_name?.split('—')[1]?.trim() || ''
+    const versionNum = versionPart.match(/#(\d+)/)?.[1] || String(i + 1)
+    allAiReady.push({ type: 'trend', parent, item: kid, versionNum, versionPart })
   }))
   allAiReady.sort((a, b) => {
     const aT = new Date(a.item.completed_at || a.item.created_at).getTime()
@@ -672,12 +693,12 @@ export default function ClientDashboard() {
               {/* 3) AI HAZIR (Express + UGC birleşik, son biten ilk) */}
               {allAiReadyCount > 0 && (
                 <div>
-                  <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',marginBottom:'10px'}}>{(() => { const ec = allAiReady.filter(r => r.type === 'express').length; const uc = allAiReady.filter(r => r.type === 'ugc').length; const ac = allAiReady.filter(r => r.type === 'animation').length; const parts: any[] = []; if (ec > 0) parts.push(<span key="e" style={{color:'#4ade80'}}>AI EXPRESS · {ec}</span>); if (uc > 0) parts.push(<span key="u" style={{color:'#3b82f6'}}>AI PERSONA · {uc}</span>); if (ac > 0) parts.push(<span key="a" style={{color:'#8b5cf6'}}>ANIMASYON · {ac}</span>); return parts.reduce((acc: any[], p, i) => i === 0 ? [p] : [...acc, <span key={`s${i}`} style={{color:'#aaa',margin:'0 8px'}}>+</span>, p], []) })()}</div>
+                  <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',fontWeight:'500',marginBottom:'10px'}}>{(() => { const ec = allAiReady.filter(r => r.type === 'express').length; const uc = allAiReady.filter(r => r.type === 'ugc').length; const ac = allAiReady.filter(r => r.type === 'animation').length; const tc = allAiReady.filter(r => r.type === 'trend').length; const parts: any[] = []; if (ec > 0) parts.push(<span key="e" style={{color:'#4ade80'}}>AI EXPRESS · {ec}</span>); if (uc > 0) parts.push(<span key="u" style={{color:'#3b82f6'}}>AI PERSONA · {uc}</span>); if (ac > 0) parts.push(<span key="a" style={{color:'#8b5cf6'}}>ANIMASYON · {ac}</span>); if (tc > 0) parts.push(<span key="t" style={{color:'#5d4ec3'}}>TREND · {tc}</span>); return parts.reduce((acc: any[], p, i) => i === 0 ? [p] : [...acc, <span key={`s${i}`} style={{color:'#aaa',margin:'0 8px'}}>+</span>, p], []) })()}</div>
                   <div className="ai-grid" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'10px'}}>
                     {allAiReady.map(({ type, parent, item, versionNum }) => {
-                      const thumbUrl = type === 'express' ? item.ai_video_url : item.final_url
-                      const borderColor = type === 'animation' ? '#8b5cf6' : type === 'ugc' ? '#3b82f6' : '#4ade80'
-                      const navUrl = type === 'express' ? `/dashboard/client/briefs/${parent.id}?tab=express&ai_child=${item.id}` : type === 'animation' ? `/dashboard/client/briefs/${parent.id}?tab=animation&videoId=${item.id}` : `/dashboard/client/briefs/${parent.id}?tab=ugc&video=${item.id}`
+                      const thumbUrl = type === 'express' || type === 'trend' ? item.ai_video_url : item.final_url
+                      const borderColor = type === 'animation' ? '#8b5cf6' : type === 'ugc' ? '#3b82f6' : type === 'trend' ? '#5d4ec3' : '#4ade80'
+                      const navUrl = type === 'express' ? `/dashboard/client/briefs/${parent.id}?tab=express&ai_child=${item.id}` : type === 'trend' ? `/dashboard/client/briefs/${parent.id}?tab=trend` : type === 'animation' ? `/dashboard/client/briefs/${parent.id}?tab=animation&videoId=${item.id}` : `/dashboard/client/briefs/${parent.id}?tab=ugc&video=${item.id}`
                       return (
                       <div key={item.id} onClick={() => router.push(navUrl)}
                         style={{padding:'12px 14px',background:'#fff',borderLeft:`3px solid ${borderColor}`,border:'1px solid #e5e4db',cursor:'pointer',position:'relative',display:'flex',alignItems:'center',gap:'10px'}}>
@@ -686,7 +707,7 @@ export default function ClientDashboard() {
                         <div className="dot" style={{position:'absolute',top:'8px',right:'8px',width:'8px',height:'8px',background:borderColor}} />
                         <div style={{fontSize:'12px',fontWeight:'500',color:'#0a0a0a'}}>{parent.campaign_name}</div>
                         <div style={{fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'#888',marginTop:'3px'}}>
-                          {type === 'express' ? <>EXPRESS<span style={{margin:'0 8px',color:'#ccc'}}>|</span>VERSİYON {versionNum}</> : type === 'animation' ? <>ANIMASYON<span style={{margin:'0 8px',color:'#ccc'}}>|</span>{item.animation_styles?.label || item.style_slug}{item.version ? ` V${item.version}` : ''}</> : <>PERSONA<span style={{margin:'0 8px',color:'#ccc'}}>|</span>{item.personas?.name || 'Video'}</>}
+                          {type === 'express' ? <>EXPRESS<span style={{margin:'0 8px',color:'#ccc'}}>|</span>VERSİYON {versionNum}</> : type === 'trend' ? <>TREND<span style={{margin:'0 8px',color:'#ccc'}}>|</span>VERSİYON {versionNum}</> : type === 'animation' ? <>ANIMASYON<span style={{margin:'0 8px',color:'#ccc'}}>|</span>{item.animation_styles?.label || item.style_slug}{item.version ? ` V${item.version}` : ''}</> : <>PERSONA<span style={{margin:'0 8px',color:'#ccc'}}>|</span>{item.personas?.name || 'Video'}</>}
                           {item.completed_at && <><span style={{margin:'0 8px',color:'#ccc'}}>|</span><span style={{color:'#aaa',textTransform:'none'}}>{formatDuration(item.created_at, item.completed_at)}</span></>}
                         </div>
                       </div>
