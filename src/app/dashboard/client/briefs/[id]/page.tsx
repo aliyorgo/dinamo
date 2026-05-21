@@ -152,7 +152,7 @@ function ClientBriefDetail() {
   const [trendInfoOpen, setTrendInfoOpen] = useState(false)
   const [trendSettingsOpen, setTrendSettingsOpen] = useState(false)
   const [animationVideosForSummary, setAnimationVideosForSummary] = useState<any[]>([])
-  const [activeTab, setActiveTab] = useState<'hybrid'|'cps'|'express'|'ugc'|'animation'|'trend'|'summary'>(searchParams.get('tab') === 'express' ? 'express' : searchParams.get('tab') === 'ugc' ? 'ugc' : searchParams.get('tab') === 'animation' ? 'animation' : searchParams.get('tab') === 'cps' ? 'cps' : searchParams.get('tab') === 'summary' ? 'summary' : 'hybrid')
+  const [activeTab, setActiveTab] = useState<'hybrid'|'cps'|'express'|'ugc'|'animation'|'trend'|'summary'>(searchParams.get('tab') === 'express' ? 'express' : searchParams.get('tab') === 'ugc' ? 'ugc' : searchParams.get('tab') === 'animation' ? 'animation' : searchParams.get('tab') === 'trend' ? 'trend' : searchParams.get('tab') === 'cps' ? 'cps' : searchParams.get('tab') === 'summary' ? 'summary' : 'hybrid')
 
   // DEBUG: Seedance prompt modal (gecici)
   const [debugPrompt, setDebugPrompt] = useState<{director: string; prompt: string} | null>(null)
@@ -188,6 +188,7 @@ function ClientBriefDetail() {
   }, [expressInfoOpen, expressSettingsOpen, expressPanelLastMove])
 
   const aiChildParam = searchParams.get('ai_child')
+  const trendChildParam = searchParams.get('trend_child')
   const [briefExpanded, setBriefExpanded] = useState(false)
   const [autoGenerateTriggered, setAutoGenerateTriggered] = useState(false)
   const [cpsChildren, setCpsChildren] = useState<any[]>([])
@@ -214,6 +215,14 @@ function ClientBriefDetail() {
     setAiChildren(prev => prev.map(c => c.id === childId ? { ...c, ai_express_viewed_at: new Date().toISOString() } : c))
   }
 
+  // Mark individual Trend child as viewed
+  async function markTrendChildViewed(childId: string) {
+    const child = trendChildren.find((c: any) => c.id === childId)
+    if (!child || child.ai_express_viewed_at) return
+    await supabase.from('briefs').update({ ai_express_viewed_at: new Date().toISOString() }).eq('id', childId)
+    setTrendChildren((prev: any[]) => prev.map(c => c.id === childId ? { ...c, ai_express_viewed_at: new Date().toISOString() } : c))
+  }
+
   // Auto-scroll + autoplay for ai_child param (once only)
   const aiChildScrolledRef = useRef(false)
   useEffect(() => {
@@ -228,6 +237,21 @@ function ClientBriefDetail() {
       }, 300)
     }
   }, [aiChildParam, activeTab, aiChildren.length])
+
+  // Auto-scroll + autoplay for trend_child param
+  const trendChildScrolledRef = useRef(false)
+  useEffect(() => {
+    if (trendChildScrolledRef.current || !trendChildParam || activeTab !== 'trend' || trendChildren.length === 0) return
+    const el = document.getElementById(`trend-child-${trendChildParam}`)
+    if (el) {
+      trendChildScrolledRef.current = true
+      setTimeout(() => {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        const video = el.querySelector('video') as HTMLVideoElement
+        if (video) video.play().catch(() => {})
+      }, 300)
+    }
+  }, [trendChildParam, activeTab, trendChildren.length])
 
   // Refetch on summary tab activation + window focus
   useEffect(() => { if (activeTab === 'summary') loadData() }, [activeTab])
@@ -1788,13 +1812,13 @@ function ClientBriefDetail() {
                     const isFailed = !isPurchased && (child.ai_video_status === 'failed' || child.ai_video_status === 'timeout')
                     const isProcessing = child.status === 'ai_processing' && !hasVideo && !isFailed
                     return (
-                      <div key={child.id} style={{display:'flex',gap:'14px',padding:'14px',marginBottom:'8px',border:'1px solid var(--color-border-tertiary)',background:'#fff',alignItems:'flex-start',transition:'background 0.15s'}}
+                      <div key={child.id} id={`trend-child-${child.id}`} style={{display:'flex',gap:'14px',padding:'14px',marginBottom:'8px',border:'1px solid var(--color-border-tertiary)',background:'#fff',alignItems:'flex-start',transition:'background 0.15s'}}
                         onMouseEnter={e=>{e.currentTarget.style.background='var(--color-background-secondary)'}}
                         onMouseLeave={e=>{e.currentTarget.style.background='#fff'}}>
                         {/* Video */}
                         <div style={{width:((f: string)=>f==='16:9'?'360px':f==='1:1'?'300px':f==='4:5'?'240px':'200px')(child.format||'9:16'),aspectRatio:(child.format||'9:16').replace(':','/'),background:'#0a0a0a',flexShrink:0,position:'relative',overflow:'hidden'}}>
                           {hasVideo ? (
-                            <video src={child.ai_video_url} controls controlsList="nodownload noplaybackrate" disablePictureInPicture preload="metadata" style={{width:'100%',height:'100%',objectFit:'contain',display:'block'}} />
+                            <video key={child.ai_video_url} src={child.ai_video_url} controls controlsList="nodownload noplaybackrate" disablePictureInPicture preload="metadata" onPlay={e => { pauseOtherVideos(e.currentTarget); markTrendChildViewed(child.id) }} style={{width:'100%',height:'100%',objectFit:'contain',display:'block'}} />
                           ) : isProcessing ? (
                             <div style={{width:'100%',height:'100%',position:'relative',overflow:'hidden',background:'#ebe9e3'}}>
                               <video src="/videos/dinamo_static_progress.mp4" autoPlay muted loop playsInline style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',zIndex:0}} />

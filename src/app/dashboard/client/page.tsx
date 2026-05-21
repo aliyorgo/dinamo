@@ -698,7 +698,7 @@ export default function ClientDashboard() {
                     {allAiReady.map(({ type, parent, item, versionNum }) => {
                       const thumbUrl = type === 'express' || type === 'trend' ? item.ai_video_url : item.final_url
                       const borderColor = type === 'animation' ? '#8b5cf6' : type === 'ugc' ? '#3b82f6' : type === 'trend' ? '#5d4ec3' : '#4ade80'
-                      const navUrl = type === 'express' ? `/dashboard/client/briefs/${parent.id}?tab=express&ai_child=${item.id}` : type === 'trend' ? `/dashboard/client/briefs/${parent.id}?tab=trend` : type === 'animation' ? `/dashboard/client/briefs/${parent.id}?tab=animation&videoId=${item.id}` : `/dashboard/client/briefs/${parent.id}?tab=ugc&video=${item.id}`
+                      const navUrl = type === 'express' ? `/dashboard/client/briefs/${parent.id}?tab=express&ai_child=${item.id}` : type === 'trend' ? `/dashboard/client/briefs/${parent.id}?tab=trend&trend_child=${item.id}` : type === 'animation' ? `/dashboard/client/briefs/${parent.id}?tab=animation&videoId=${item.id}` : `/dashboard/client/briefs/${parent.id}?tab=ugc&video=${item.id}`
                       return (
                       <div key={item.id} onClick={() => router.push(navUrl)}
                         style={{padding:'12px 14px',background:'#fff',borderLeft:`3px solid ${borderColor}`,border:'1px solid #e5e4db',cursor:'pointer',position:'relative',display:'flex',alignItems:'center',gap:'10px'}}>
