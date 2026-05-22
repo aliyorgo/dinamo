@@ -1798,11 +1798,11 @@ function ClientBriefDetail() {
 
                   {/* AKTİF TREND BANNER */}
                   <div style={{margin:'0 0 16px 0'}}>
-                    <h2 style={{color:'#5d4ec3',fontSize:'24px',fontWeight:600,margin:0,letterSpacing:'-0.3px'}}>Pankart Hop</h2>
+                    <h2 style={{color:'#5d4ec3',fontSize:'24px',fontWeight:600,margin:0,letterSpacing:'-0.3px'}}>Bana Bak</h2>
                     <div style={{display:'flex',alignItems:'center',gap:'6px',marginTop:'6px'}}>
-                      <span style={{fontSize:'8px',padding:'3px 8px',background:'rgba(93,78,195,0.12)',color:'#5d4ec3',borderRadius:'2px',fontWeight:500,letterSpacing:'0.8px'}}>AKTIF TREND</span>
+                      <span style={{fontSize:'8px',padding:'3px 8px',background:'rgba(93,78,195,0.12)',color:'#5d4ec3',borderRadius:'2px',fontWeight:500,letterSpacing:'0.8px'}}>AKTİF TREND</span>
                     </div>
-                    <div style={{color:'var(--color-text-secondary)',fontSize:'14px',marginTop:'8px',lineHeight:1.5}}>Genc, dinamik, dramatik. Marka renkli isik oyunlariyla kurate ettigimiz hiphop-pankart formati.</div>
+                    <div style={{color:'var(--color-text-secondary)',fontSize:'14px',marginTop:'8px',lineHeight:1.5}}>Genç, dinamik, çekici, şehirli. Bu formatta hiphop dansıyla brief'inizi bir araya getirdik. Yönetmen: Ege Tül</div>
                   </div>
 
                   {/* TREND CHILDREN VİDEO KARTLARI */}
