@@ -45,6 +45,12 @@ function readScript(scripts: Record<string, any>, personaId: number | string): s
   return ''
 }
 
+function readOverlayText(scripts: Record<string, any>, personaId: number | string): string {
+  const val = scripts?.[String(personaId)]
+  if (val && typeof val === 'object' && typeof val.overlay_text === 'string') return val.overlay_text
+  return ''
+}
+
 export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPlayVideoId, onVideoCountChange }: Props) {
   // Data — local brief copy for lock updates
   const [brief, setBrief] = useState<any>(briefProp)
@@ -67,6 +73,7 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
   const [hoveredPersona, setHoveredPersona] = useState<string | null>(null)
   const [staticImageModal, setStaticImageModal] = useState<{ briefId: string; videoUrl: string; ugcVideoId?: string } | null>(null)
   const [scriptText, setScriptText] = useState('')
+  const [overlayText, setOverlayText] = useState('')
   const [scriptLoading, setScriptLoading] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [ugcScripts, setUgcScripts] = useState<Record<string, any>>({})
@@ -201,6 +208,7 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
     if (defaultPersona) {
       const dbScript = readScript(scripts, defaultPersona)
       if (dbScript) setScriptText(dbScript)
+      setOverlayText(readOverlayText(scripts, defaultPersona))
     }
     setLoading(false)
   }
@@ -223,8 +231,9 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
           const data = await res.json()
           if (data.dialogue) {
             setScriptText(data.dialogue)
+            setOverlayText(data.overlay_text || '')
             setChangesSummary(data.changes_summary || '')
-            const updated = { ...ugcScriptsRef.current, [String(selectedPersona)]: data.dialogue }
+            const updated = { ...ugcScriptsRef.current, [String(selectedPersona)]: { dialogue: data.dialogue, overlay_text: data.overlay_text || '' } }
             setUgcScripts(updated)
             persistUgcScripts(updated)
           }
@@ -311,8 +320,9 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
           finalScript = scriptData.dialogue
           finalSummary = scriptData.changes_summary || ''
           setScriptText(finalScript)
+          setOverlayText(scriptData.overlay_text || readOverlayText(ugcScripts, selectedPersona))
           setChangesSummary(finalSummary)
-          const updated = { ...ugcScripts, [String(selectedPersona)]: finalScript }
+          const updated = { ...ugcScripts, [String(selectedPersona)]: { dialogue: finalScript, overlay_text: scriptData.overlay_text || readOverlayText(ugcScripts, selectedPersona) } }
           setUgcScripts(updated)
           persistUgcScripts(updated)
         }
@@ -640,7 +650,7 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
                     </div>
                   ) : (
                     <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-                      <textarea value={scriptText} onChange={e => { if (e.target.value.length <= UGC_MAX_CHARS) setScriptText(e.target.value) }} onBlur={() => { if (!selectedPersona || scriptText === readScript(ugcScripts, selectedPersona)) return; const updated = { ...ugcScripts, [String(selectedPersona)]: scriptText }; setUgcScripts(updated); persistUgcScripts(updated) }} placeholder={scriptLoading ? 'Üretiliyor...' : 'Bu persona için konuşma metni henüz üretilmedi. Butona basın veya buraya yazın.'} style={{ width: '100%', flex: 1, minHeight: '80px', fontSize: '22px', color: '#0a0a0a', lineHeight: 1.5, border: '1px solid #e5e4db', padding: '10px 12px', resize: 'none', boxSizing: 'border-box' }} />
+                      <textarea value={scriptText} onChange={e => { if (e.target.value.length <= UGC_MAX_CHARS) setScriptText(e.target.value) }} onBlur={() => { if (!selectedPersona || scriptText === readScript(ugcScripts, selectedPersona)) return; const updated = { ...ugcScripts, [String(selectedPersona)]: { dialogue: scriptText, overlay_text: readOverlayText(ugcScripts, selectedPersona) } }; setUgcScripts(updated); persistUgcScripts(updated) }} placeholder={scriptLoading ? 'Üretiliyor...' : 'Bu persona için konuşma metni henüz üretilmedi. Butona basın veya buraya yazın.'} style={{ width: '100%', flex: 1, minHeight: '80px', fontSize: '22px', color: '#0a0a0a', lineHeight: 1.5, border: '1px solid #e5e4db', padding: '10px 12px', resize: 'none', boxSizing: 'border-box' }} />
                       {(() => {
                         const isTextEmpty = !scriptText.trim()
                         const isLoading = scriptLoading || generating
@@ -654,7 +664,7 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
                             try {
                               const res = await fetch('/api/ugc/generate-script', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: selectedPersona, use_product: false, settings, previous_feedbacks: feedbacks }) })
                               const data = await res.json()
-                              if (data.dialogue) { setScriptText(data.dialogue); setChangesSummary(data.changes_summary || ''); const updated = { ...ugcScripts, [String(selectedPersona)]: data.dialogue }; setUgcScripts(updated); persistUgcScripts(updated) }
+                              if (data.dialogue) { setScriptText(data.dialogue); setOverlayText(data.overlay_text || ''); setChangesSummary(data.changes_summary || ''); const updated = { ...ugcScripts, [String(selectedPersona)]: { dialogue: data.dialogue, overlay_text: data.overlay_text || '' } }; setUgcScripts(updated); persistUgcScripts(updated) }
                               else { setMsg(data.error || 'Script üretilemedi') }
                             } catch { setMsg('Bağlantı hatası') }
                             setScriptLoading(false)
@@ -679,7 +689,7 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
           <div style={{ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#a0a09a', marginBottom: '12px', marginTop: '20px', fontWeight: '500', transition: 'opacity 0.2s', minHeight: '15px' }}>{hoveredPersona ? hoveredPersona.toUpperCase() : 'PERSONA SEÇ'}</div>
           <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', overflowY: 'visible', padding: '10px 0' }}>
             {personas.map(p => (
-              <div key={p.id} title={p.name} onClick={() => { if (p.id === selectedPersona) return; setPersonaFading(true); setTimeout(() => { setSelectedPersona(p.id); setScriptText(readScript(ugcScripts, p.id)); supabase.from('briefs').update({ ugc_selected_persona_id: p.id }).eq('id', briefId); setPersonaFading(false) }, 150) }} style={{ flexShrink: 0, cursor: 'pointer', opacity: selectedPersona === p.id ? 1 : 0.6, transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.15)'; setHoveredPersona(p.name) }} onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; setHoveredPersona(null) }}>
+              <div key={p.id} title={p.name} onClick={() => { if (p.id === selectedPersona) return; setPersonaFading(true); setTimeout(() => { setSelectedPersona(p.id); setScriptText(readScript(ugcScripts, p.id)); setOverlayText(readOverlayText(ugcScripts, p.id)); supabase.from('briefs').update({ ugc_selected_persona_id: p.id }).eq('id', briefId); setPersonaFading(false) }, 150) }} style={{ flexShrink: 0, cursor: 'pointer', opacity: selectedPersona === p.id ? 1 : 0.6, transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.15)'; setHoveredPersona(p.name) }} onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; setHoveredPersona(null) }}>
                 <div className="dot" style={{ width: '52px', height: '52px', background: '#f5f4f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', border: selectedPersona === p.id ? '2px solid #3b82f6' : '1px solid #e5e4db', overflow: 'hidden', transition: 'border-color 0.15s' }}>
                   {p.thumbnail_url ? <img src={p.thumbnail_url} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} className="dot" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : p.name[0]}
                 </div>
