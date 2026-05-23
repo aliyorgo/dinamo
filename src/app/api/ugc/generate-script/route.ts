@@ -61,13 +61,13 @@ OVERLAY TEXT KURALLARI:
 - Iki tondan RASTGELE birini sec: (a) KISISEL DENEYIM: "Bu sene fark ettim ki...", "Denedim, gercekten..." (b) MERAK/HOOK: "Sunu gormeden yapmayin", "Bunu kaydedin"
 - Bu personanin (${persona.name}) karakterine ve tonuna uygun yaz.
 - Kampanyaya/urune NET gonderme yap ama bagirma.
-- KISA: maksimum 12 kelime.
+- KISA: maksimum 7 kelime.
 - YAZIM: Normal Turkce yazim. Cumle ilk harfi buyuk, ozel isimler buyuk harfle. Tamami kucuk harf YAZMA.
 - Dialogue ile AYNI cumleyi tekrarlama — overlay text farkli, tamamlayici olsun.
 
 CRITICAL: Output MUST be ONLY raw JSON. First character: '{'. Last character: '}'. No markdown, no backticks, no explanation.
 
-FORMAT: {"dialogue":"140-155 char Türkçe metin","overlay_text":"max 12 kelime ekran yazisi"${feedbackBlock ? ',"changes_summary":"Müşteri yorumunda isteneni nasıl uyguladığının 1-2 cümlelik doğal Türkçe özeti. Geçmiş zaman kullan. Renk adı yaz, hex kod yazma. Max 150 karakter. ASLA feedback kelimesi kullanma, yorum de. Örnek: Yorumunuzdaki erkek karakter isteği uygulandı, sahne dış mekana taşındı."' : ''}}`
+FORMAT: {"dialogue":"140-155 char Türkçe metin","overlay_text":"max 7 kelime ekran yazisi"${feedbackBlock ? ',"changes_summary":"Müşteri yorumunda isteneni nasıl uyguladığının 1-2 cümlelik doğal Türkçe özeti. Geçmiş zaman kullan. Renk adı yaz, hex kod yazma. Max 150 karakter. ASLA feedback kelimesi kullanma, yorum de. Örnek: Yorumunuzdaki erkek karakter isteği uygulandı, sahne dış mekana taşındı."' : ''}}`
 
   const messages: any[] = [
     { role: 'user', content: `Brief: ${brief.campaign_name}\nMesaj: ${brief.message || ''}\nHedef Kitle: ${brief.target_audience || ''}\nCTA: ${brief.cta || ''}\n\nDialogue'da emoji yok, sadece Türkçe metin.\n\nJSON:` },
