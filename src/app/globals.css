@@ -76,8 +76,8 @@ body {
   100% { background-position: 0% 50%; }
 }
 @keyframes dinamoPulseGlow {
-  0%, 100% { opacity: 0.4; transform: scale(0.95); }
-  50% { opacity: 1; transform: scale(1.08); }
+  0%, 100% { opacity: 0.25; transform: scale(0.9); }
+  50% { opacity: 0.85; transform: scale(1.15); }
 }
 @keyframes dinamoShimmer {
   0% { background-position: 150% 0; }
