@@ -85,10 +85,10 @@ body {
 }
 @keyframes dinamoScanline {
   0%   { transform: translateY(-120%); opacity: 0; }
-  82%  { transform: translateY(-120%); opacity: 0; }
-  84%  { opacity: 1; }
-  92%  { transform: translateY(520%);  opacity: 1; }
-  94%  { opacity: 0; }
+  88%  { transform: translateY(-120%); opacity: 0; }
+  89%  { opacity: 1; }
+  95%  { transform: translateY(520%);  opacity: 1; }
+  97%  { opacity: 0; }
   100% { transform: translateY(520%);  opacity: 0; }
 }
 
