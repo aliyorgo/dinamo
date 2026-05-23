@@ -334,12 +334,13 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
                     {!isPurchased && <img src="/dinamo_logo.png" alt="" style={{ position: 'absolute', top: '14px', left: '14px', width: '60px', opacity: 0.65, pointerEvents: 'none' }} />}
                   </>
                 ) : isProcessing ? (
-                  <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', background: '#ebe9e3' }}>
-                    <video src="/videos/dinamo_static_progress.mp4" autoPlay muted loop playsInline style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0 }} />
-                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1 }} />
-                    <div style={{ position: 'relative', zIndex: 2, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
+                    <div style={{ position: 'absolute', inset: 0, zIndex: 0, background: 'linear-gradient(135deg, #2a2a32 0%, #3d3d4a 25%, #4a4456 50%, #3d3d4a 75%, #2a2a32 100%)', backgroundSize: '300% 300%', animation: 'dinamoGradient 6s ease infinite' }} />
+                    <div style={{ position: 'absolute', inset: 0, zIndex: 1, background: 'radial-gradient(circle at 50% 45%, rgba(255,255,255,0.18) 0%, transparent 55%)', animation: 'dinamoPulseGlow 2.6s ease-in-out infinite' }} />
+                    <div style={{ position: 'absolute', inset: 0, zIndex: 2, background: 'linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.22) 50%, transparent 65%)', backgroundSize: '300% 100%', animation: 'dinamoShimmer 2.8s ease-in-out infinite' }} />
+                    <div style={{ position: 'relative', zIndex: 3, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                       <img src="/dinamo_logo.png" alt="" style={{ width: '115px', objectFit: 'contain', display: 'block', animation: 'pulse 1.8s ease-in-out infinite' }} />
-                      <div style={{ fontSize: '10px', fontWeight: '500', letterSpacing: '0.1em', color: '#fff', marginTop: '2px', animation: 'pulse 1.5s ease infinite' }}>CALISIYOR</div>
+                      <div style={{ fontSize: '10px', fontWeight: '500', letterSpacing: '0.1em', color: '#fff', marginTop: '2px', animation: 'pulse 1.5s ease infinite' }}>ÇALIŞIYOR</div>
                     </div>
                   </div>
                 ) : null}
