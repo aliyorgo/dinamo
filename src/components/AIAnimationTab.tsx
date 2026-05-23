@@ -291,18 +291,22 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
             <div style={{ fontSize: '14px', fontWeight: '600', color: '#0a0a0a' }}>AI Animation Ayarları{settingsSaved && <span style={{ fontSize: '11px', color: '#22c55e', marginLeft: '12px', fontWeight: '500' }}>✓ Kaydedildi</span>}</div>
             <button onClick={() => setSettingsOpen(false)} style={{ width: '24px', height: '24px', border: 'none', background: 'none', cursor: 'pointer', fontSize: '16px', color: '#888', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={e => { e.currentTarget.style.color = '#0a0a0a' }} onMouseLeave={e => { e.currentTarget.style.color = '#888' }}>×</button>
           </div>
-          {[
-            { key: 'logo_enabled' as const, title: 'Logo', desc: 'Video sonunda marka logosu göster' },
-            { key: 'cta_enabled' as const, title: 'CTA', desc: 'Video sonunda CTA yazısı göster' },
-            { key: 'packshot_enabled' as const, title: 'Packshot', desc: 'Video sonuna packshot ekle' },
-          ].map(item => (
-            <div key={item.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: item.key !== 'packshot_enabled' ? '1px solid #e5e4db' : 'none' }}>
-              <div><div style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>{item.title}</div><div style={{ fontSize: '11px', color: '#888' }}>{item.desc}</div></div>
-              <button onClick={() => toggleAnimSetting(item.key)} style={{ width: '36px', height: '20px', border: 'none', cursor: 'pointer', background: animSettings[item.key] ? '#22c55e' : '#ddd', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
-                <span className="dot" style={{ position: 'absolute', top: '2px', left: animSettings[item.key] ? '18px' : '2px', width: '16px', height: '16px', background: '#fff', transition: 'left 0.2s' }} />
-              </button>
-            </div>
-          ))}
+          {(() => {
+            const briefAspect = (brief?.format || '9:16').replace(':', 'x')
+            const hasClientPackshot = !!(brief?.clients?.packshots?.[briefAspect])
+            return [
+              { key: 'logo_enabled' as const, title: 'Logo', desc: 'Video sonunda marka logosu göster', disabled: false },
+              { key: 'cta_enabled' as const, title: 'CTA', desc: 'Video sonunda CTA yazısı göster', disabled: false },
+              { key: 'packshot_enabled' as const, title: 'Packshot', desc: hasClientPackshot ? 'Video sonuna packshot ekle' : 'Packshot yüklü değil', disabled: !hasClientPackshot },
+            ].map(item => (
+              <div key={item.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: item.key !== 'packshot_enabled' ? '1px solid #e5e4db' : 'none', opacity: item.disabled ? 0.4 : 1 }}>
+                <div><div style={{ fontSize: '13px', fontWeight: '500', color: '#0a0a0a' }}>{item.title}</div><div style={{ fontSize: '11px', color: '#888' }}>{item.desc}</div></div>
+                <button onClick={() => !item.disabled && toggleAnimSetting(item.key)} style={{ width: '36px', height: '20px', border: 'none', cursor: item.disabled ? 'not-allowed' : 'pointer', background: animSettings[item.key] && !item.disabled ? '#22c55e' : '#ddd', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
+                  <span className="dot" style={{ position: 'absolute', top: '2px', left: animSettings[item.key] && !item.disabled ? '18px' : '2px', width: '16px', height: '16px', background: '#fff', transition: 'left 0.2s' }} />
+                </button>
+              </div>
+            ))
+          })()}
         </div>
       )}
 

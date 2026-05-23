@@ -281,7 +281,7 @@ function ClientBriefDetail() {
     setClientUser(cu)
     setCompanyName((cu as any)?.clients?.company_name || '')
     setLegalName((cu as any)?.clients?.legal_name || '')
-    const { data: b } = await supabase.from('briefs').select('*, clients(ai_video_enabled, ugc_enabled)').eq('id', id).single()
+    const { data: b } = await supabase.from('briefs').select('*, clients(ai_video_enabled, ugc_enabled, packshots)').eq('id', id).single()
     setBrief(b)
     // Aspect-aware packshot: ONLY check packshots JSONB for this brief's aspect (no legacy fallback in UI)
     const clientPackshots = (cu as any)?.clients?.packshots || {}
