@@ -76,18 +76,12 @@ body {
   100% { background-position: 0% 50%; }
 }
 @keyframes dinamoPulseGlow {
-  0%   { opacity: 0.3;  transform: scale(0.94); }
-  35%  { opacity: 0.95; transform: scale(1.14); }
-  55%  { opacity: 0.5;  transform: scale(1.04); }
-  80%  { opacity: 0.85; transform: scale(1.12); }
-  100% { opacity: 0.3;  transform: scale(0.94); }
+  0%, 100% { opacity: 0.45; transform: scale(0.85); }
+  50%      { opacity: 1;    transform: scale(1.2); }
 }
-@keyframes dinamoStatic {
-  0%   { transform: translate(0,0); }
-  25%  { transform: translate(-2%,1%); }
-  50%  { transform: translate(1%,-2%); }
-  75%  { transform: translate(-1%,2%); }
-  100% { transform: translate(2%,-1%); }
+@keyframes dinamoGlowCore {
+  0%, 100% { opacity: 0.5; transform: scale(0.9); }
+  45%      { opacity: 0.9; transform: scale(1.15); }
 }
 
 /* Default border color */
