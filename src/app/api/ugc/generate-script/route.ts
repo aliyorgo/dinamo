@@ -54,9 +54,20 @@ KURALLAR:
 - Emoji yasak, sadece düz Türkçe metin.
 - Doğal Türkçe, persona tonuna sadık.
 
+━━━ OVERLAY TEXT (EKRAN YAZISI) ━━━
+Dialogue'dan AYRI olarak, videonun ustune basilacak kisa bir ekran yazisi (overlay_text) uret. Bu yazi seslendirilmez — sadece ekranda gorunur.
+OVERLAY TEXT KURALLARI:
+- TikTok icerik ureticisi agzindan, samimi ve dogal. Reklam dili KULLANMA.
+- Iki tondan RASTGELE birini sec: (a) KISISEL DENEYIM: "Bu sene fark ettim ki...", "Denedim, gercekten..." (b) MERAK/HOOK: "Sunu gormeden yapmayin", "Bunu kaydedin"
+- Bu personanin (${persona.name}) karakterine ve tonuna uygun yaz.
+- Kampanyaya/urune NET gonderme yap ama bagirma.
+- KISA: maksimum 12 kelime.
+- YAZIM: Normal Turkce yazim. Cumle ilk harfi buyuk, ozel isimler buyuk harfle. Tamami kucuk harf YAZMA.
+- Dialogue ile AYNI cumleyi tekrarlama — overlay text farkli, tamamlayici olsun.
+
 CRITICAL: Output MUST be ONLY raw JSON. First character: '{'. Last character: '}'. No markdown, no backticks, no explanation.
 
-FORMAT: {"dialogue":"140-155 char Türkçe metin"${feedbackBlock ? ',"changes_summary":"Müşteri yorumunda isteneni nasıl uyguladığının 1-2 cümlelik doğal Türkçe özeti. Geçmiş zaman kullan. Renk adı yaz, hex kod yazma. Max 150 karakter. ASLA feedback kelimesi kullanma, yorum de. Örnek: Yorumunuzdaki erkek karakter isteği uygulandı, sahne dış mekana taşındı."' : ''}}`
+FORMAT: {"dialogue":"140-155 char Türkçe metin","overlay_text":"max 12 kelime ekran yazisi"${feedbackBlock ? ',"changes_summary":"Müşteri yorumunda isteneni nasıl uyguladığının 1-2 cümlelik doğal Türkçe özeti. Geçmiş zaman kullan. Renk adı yaz, hex kod yazma. Max 150 karakter. ASLA feedback kelimesi kullanma, yorum de. Örnek: Yorumunuzdaki erkek karakter isteği uygulandı, sahne dış mekana taşındı."' : ''}}`
 
   const messages: any[] = [
     { role: 'user', content: `Brief: ${brief.campaign_name}\nMesaj: ${brief.message || ''}\nHedef Kitle: ${brief.target_audience || ''}\nCTA: ${brief.cta || ''}\n\nDialogue'da emoji yok, sadece Türkçe metin.\n\nJSON:` },
@@ -126,7 +137,7 @@ FORMAT: {"dialogue":"140-155 char Türkçe metin"${feedbackBlock ? ',"changes_su
     }
   }
 
-  return NextResponse.json({ dialogue: script.dialogue, changes_summary: script.changes_summary || '' })
+  return NextResponse.json({ dialogue: script.dialogue, overlay_text: script.overlay_text || '', changes_summary: script.changes_summary || '' })
   } catch (err: any) {
     console.error('[GENERATE-SCRIPT] FATAL:', err.message, err.stack)
     return NextResponse.json({ error: err.message }, { status: 500 })
