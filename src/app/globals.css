@@ -83,6 +83,14 @@ body {
   0%, 100% { opacity: 0.5; transform: scale(0.9); }
   45%      { opacity: 0.9; transform: scale(1.15); }
 }
+@keyframes dinamoScanline {
+  0%   { transform: translateY(-120%); opacity: 0; }
+  82%  { transform: translateY(-120%); opacity: 0; }
+  84%  { opacity: 1; }
+  92%  { transform: translateY(520%);  opacity: 1; }
+  94%  { opacity: 0; }
+  100% { transform: translateY(520%);  opacity: 0; }
+}
 
 /* Default border color */
 *, *::before, *::after {
