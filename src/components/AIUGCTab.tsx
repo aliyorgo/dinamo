@@ -4,6 +4,7 @@ import { getSupabaseBrowser } from '@/lib/supabase-browser'
 import { UGCSettings, DEFAULT_SETTINGS } from './UGCSettingsModal'
 import { UGC_MAX_CHARS } from '@/lib/ai-ugc-rules'
 import { generateUgcCertificatePDF } from '@/lib/generate-certificate'
+import ProcessingPlaceholder from '@/components/ProcessingPlaceholder'
 import { downloadFile } from '@/lib/download-helper'
 import { pauseOtherVideos } from '@/lib/video-playback'
 import StaticImageGeneratorModal from '@/components/StaticImageGeneratorModal'
@@ -495,14 +496,7 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
                     {!isPurchased && <img src="/dinamo_logo.png" alt="" style={{ position: 'absolute', top: '14px', left: '14px', width: '60px', opacity: 0.65, pointerEvents: 'none' }} />}
                   </>
                 ) : isProcessing ? (
-                  <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', background: '#ebe9e3' }}>
-                    <video src="/videos/dinamo_static_progress.mp4" autoPlay muted loop playsInline style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0 }} />
-                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1 }} />
-                    <div style={{ position: 'relative', zIndex: 2, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                      <img src="/dinamo_logo.png" alt="" style={{ width: '115px', objectFit: 'contain', display: 'block', animation: 'pulse 1.8s ease-in-out infinite' }} />
-                      <div style={{ fontSize: '10px', fontWeight: '500', letterSpacing: '0.1em', color: '#fff', marginTop: '2px', animation: 'pulse 1.5s ease infinite' }}>ÇALIŞIYOR</div>
-                    </div>
-                  </div>
+                  <ProcessingPlaceholder />
                 ) : (
                   <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                     <span style={{ fontSize: '20px', color: '#555' }}>&#9888;</span>

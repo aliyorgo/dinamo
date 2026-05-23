@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { getSupabaseBrowser } from '@/lib/supabase-browser'
 import { downloadFile } from '@/lib/download-helper'
 import { pauseOtherVideos } from '@/lib/video-playback'
+import ProcessingPlaceholder from '@/components/ProcessingPlaceholder'
 import { generateCertificatePDF } from '@/lib/generate-certificate'
 
 const supabase = getSupabaseBrowser()
@@ -334,17 +335,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
                     {!isPurchased && <img src="/dinamo_logo.png" alt="" style={{ position: 'absolute', top: '14px', left: '14px', width: '60px', opacity: 0.65, pointerEvents: 'none' }} />}
                   </>
                 ) : isProcessing ? (
-                  <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
-                    <div style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'linear-gradient(135deg, #2a2a32 0%, #3d3d4a 25%, #4a4456 50%, #3d3d4a 75%, #2a2a32 100%)', backgroundSize: '300% 300%', animation: 'dinamoGradient 6s ease infinite' }} />
-                    <div style={{ position: 'absolute', inset: 0, zIndex: 1, backgroundImage: 'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0.08) 35%, transparent 70%)', animation: 'dinamoPulseGlow 4s ease-in-out infinite' }} />
-                    <div style={{ position: 'absolute', inset: 0, zIndex: 2, backgroundImage: 'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.35) 0%, transparent 40%)', animation: 'dinamoGlowCore 5.5s ease-in-out infinite' }} />
-                    <div style={{ position: 'absolute', inset: 0, zIndex: 3, backgroundImage: 'radial-gradient(ellipse at 50% 50%, transparent 45%, rgba(0,0,0,0.38) 85%, rgba(0,0,0,0.6) 100%)', pointerEvents: 'none' as const }} />
-                    <div style={{ position: 'absolute', left: 0, right: 0, height: '18%', zIndex: 4, backgroundImage: 'linear-gradient(to bottom, transparent 0%, rgba(46,213,115,0.0) 30%, rgba(46,213,115,0.6) 50%, rgba(46,213,115,0.0) 70%, transparent 100%)', animation: 'dinamoScanline 4s ease-in infinite', pointerEvents: 'none' as const }} />
-                    <div style={{ position: 'relative', zIndex: 5, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                      <img src="/dinamo_logo.png" alt="" style={{ width: '115px', objectFit: 'contain', display: 'block', animation: 'pulse 1.8s ease-in-out infinite' }} />
-                      <div style={{ fontSize: '10px', fontWeight: '500', letterSpacing: '0.1em', color: '#fff', marginTop: '2px', animation: 'pulse 1.5s ease infinite' }}>ÇALIŞIYOR</div>
-                    </div>
-                  </div>
+                  <ProcessingPlaceholder />
                 ) : null}
               </div>
               {/* Details */}

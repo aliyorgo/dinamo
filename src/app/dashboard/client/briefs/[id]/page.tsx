@@ -15,6 +15,7 @@ import PremiumVersionSelector from '@/components/PremiumVersionSelector'
 import { downloadFile } from '@/lib/download-helper'
 import { useCredits } from '@/lib/credits'
 import { useClientContext } from '../../layout'
+import ProcessingPlaceholder from '@/components/ProcessingPlaceholder'
 
 const supabase = getSupabaseBrowser()
 
@@ -961,13 +962,7 @@ function ClientBriefDetail() {
                 // PROCESSING
                 return (
                   <div style={{position:'relative',overflow:'hidden',border:'1px solid #d4d2cc',marginBottom:'16px',background:'#ebe9e3',maxWidth:aspect.maxW,margin:briefFormat==='16:9'?'0 0 16px':'0 auto 16px',aspectRatio:briefFormat.replace(':','/')}}>
-                    <video src="/videos/dinamo_static_progress.mp4" autoPlay muted loop playsInline style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',zIndex:0}} />
-                    <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.35)',zIndex:1}} />
-                    <div style={{position:'relative',zIndex:2,width:'100%',height:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center'}}>
-                      <img src="/dinamo_logo.png" alt="" style={{width:'154px',objectFit:'contain',display:'block',animation:'pulse 1.8s ease-in-out infinite'}} />
-                      <div style={{fontSize:'13px',fontWeight:'500',letterSpacing:'0.1em',color:'#fff',marginTop:'2px',animation:'pulse 1.5s ease infinite'}}>ÇALIŞIYOR</div>
-                      <div style={{fontSize:'11px',color:'rgba(255,255,255,0.6)',textAlign:'center',lineHeight:1.5,marginTop:'8px'}}>1-2 dakika sürebilir, hazır olunca otomatik görünecek</div>
-                    </div>
+                    <ProcessingPlaceholder logoSize={154} fontSize={13} subtitle="1-2 dakika sürebilir, hazır olunca otomatik görünecek" />
                   </div>
                 )
               })()}
@@ -1392,14 +1387,7 @@ function ClientBriefDetail() {
                               {!isPurchased && <img src="/dinamo_logo.png" alt="" style={{position:'absolute',top:'14px',left:'14px',width:'60px',opacity:0.65,pointerEvents:'none'}} />}
                             </>
                           ) : isProcessing ? (
-                            <div style={{width:'100%',height:'100%',position:'relative',overflow:'hidden',background:'#ebe9e3'}}>
-                              <video src="/videos/dinamo_static_progress.mp4" autoPlay muted loop playsInline style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',zIndex:0}} />
-                              <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.35)',zIndex:1}} />
-                              <div style={{position:'relative',zIndex:2,width:'100%',height:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center'}}>
-                                <img src="/dinamo_logo.png" alt="" style={{width:'115px',objectFit:'contain',display:'block',animation:'pulse 1.8s ease-in-out infinite'}} />
-                                <div style={{fontSize:'10px',fontWeight:'500',letterSpacing:'0.1em',color:'#fff',marginTop:'2px',animation:'pulse 1.5s ease infinite'}}>ÇALIŞIYOR</div>
-                              </div>
-                            </div>
+                            <ProcessingPlaceholder />
                           ) : (
                             <div style={{width:'100%',height:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'6px'}}>
                               <span style={{fontSize:'20px',color:'#555'}}>&#9888;</span>
@@ -1820,14 +1808,7 @@ function ClientBriefDetail() {
                           {hasVideo ? (
                             <video key={child.ai_video_url} src={child.ai_video_url} controls controlsList="nodownload noplaybackrate" disablePictureInPicture preload="metadata" onPlay={e => { pauseOtherVideos(e.currentTarget); markTrendChildViewed(child.id) }} style={{width:'100%',height:'100%',objectFit:'contain',display:'block'}} />
                           ) : isProcessing ? (
-                            <div style={{width:'100%',height:'100%',position:'relative',overflow:'hidden',background:'#ebe9e3'}}>
-                              <video src="/videos/dinamo_static_progress.mp4" autoPlay muted loop playsInline style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',zIndex:0}} />
-                              <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.35)',zIndex:1}} />
-                              <div style={{position:'relative',zIndex:2,width:'100%',height:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center'}}>
-                                <img src="/dinamo_logo.png" alt="" style={{width:'115px',objectFit:'contain',display:'block',animation:'pulse 1.8s ease-in-out infinite'}} />
-                                <div style={{fontSize:'10px',fontWeight:'500',letterSpacing:'0.1em',color:'#fff',marginTop:'2px',animation:'pulse 1.5s ease infinite'}}>ÇALIŞIYOR</div>
-                              </div>
-                            </div>
+                            <ProcessingPlaceholder />
                           ) : (
                             <div style={{width:'100%',height:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'6px'}}>
                               <span style={{fontSize:'20px',color:'#555'}}>&#9888;</span>
