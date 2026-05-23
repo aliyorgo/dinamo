@@ -335,10 +335,12 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
                   </>
                 ) : isProcessing ? (
                   <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
+                    <svg style={{ position: 'absolute', width: 0, height: 0 }} aria-hidden="true"><filter id="dinamoTvStatic"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="1" stitchTiles="stitch" result="noise" /><feColorMatrix in="noise" type="saturate" values="0" /></filter></svg>
                     <div style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'linear-gradient(135deg, #2a2a32 0%, #3d3d4a 25%, #4a4456 50%, #3d3d4a 75%, #2a2a32 100%)', backgroundSize: '300% 300%', animation: 'dinamoGradient 6s ease infinite' }} />
-                    <div style={{ position: 'absolute', inset: 0, zIndex: 1, backgroundImage: 'radial-gradient(circle at 50% 45%, rgba(255,255,255,0.18) 0%, transparent 55%)', animation: 'dinamoPulseGlow 2.6s ease-in-out infinite' }} />
-                    <div style={{ position: 'absolute', inset: 0, zIndex: 2, backgroundImage: 'linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.22) 50%, transparent 65%)', backgroundSize: '300% 100%', animation: 'dinamoShimmer 2.8s ease-in-out infinite' }} />
-                    <div style={{ position: 'relative', zIndex: 3, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ position: 'absolute', inset: '-5%', zIndex: 1, filter: 'url(#dinamoTvStatic)', opacity: 0.22, mixBlendMode: 'overlay' as const, animation: 'dinamoStatic 0.4s steps(4) infinite' }} />
+                    <div style={{ position: 'absolute', inset: 0, zIndex: 2, backgroundImage: 'radial-gradient(circle at 50% 45%, rgba(255,255,255,0.40) 0%, rgba(255,255,255,0.12) 30%, transparent 65%)', animation: 'dinamoPulseGlow 2.0s ease-in-out infinite' }} />
+                    <div style={{ position: 'absolute', inset: 0, zIndex: 3, backgroundImage: 'radial-gradient(ellipse at 50% 50%, transparent 35%, rgba(0,0,0,0.55) 85%, rgba(0,0,0,0.8) 100%)', pointerEvents: 'none' as const }} />
+                    <div style={{ position: 'relative', zIndex: 4, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                       <img src="/dinamo_logo.png" alt="" style={{ width: '115px', objectFit: 'contain', display: 'block', animation: 'pulse 1.8s ease-in-out infinite' }} />
                       <div style={{ fontSize: '10px', fontWeight: '500', letterSpacing: '0.1em', color: '#fff', marginTop: '2px', animation: 'pulse 1.5s ease infinite' }}>ÇALIŞIYOR</div>
                     </div>
