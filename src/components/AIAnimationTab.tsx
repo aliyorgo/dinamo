@@ -225,15 +225,20 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
     await supabase.from('animation_videos').update({ viewed_at: new Date().toISOString() }).eq('id', videoId).is('viewed_at', null)
   }
 
-  function toggleAnimSetting(key: 'logo_enabled' | 'cta_enabled' | 'packshot_enabled') {
-    setAnimSettings(prev => {
-      const next = { ...prev, [key]: !prev[key] }
-      if (key === 'packshot_enabled' && next.packshot_enabled) next.logo_enabled = false
-      if (key === 'logo_enabled' && next.logo_enabled) next.packshot_enabled = false
-      supabase.from('briefs').update({ animation_settings: next }).eq('id', briefId)
-      setSettingsSaved(true); setTimeout(() => setSettingsSaved(false), 1500)
-      return next
-    })
+  async function toggleAnimSetting(key: 'logo_enabled' | 'cta_enabled' | 'packshot_enabled') {
+    const prev = animSettings
+    const next = { ...prev, [key]: !prev[key] }
+    if (key === 'packshot_enabled' && next.packshot_enabled) next.logo_enabled = false
+    if (key === 'logo_enabled' && next.logo_enabled) next.packshot_enabled = false
+    setAnimSettings(next) // optimistic
+    const { data, error } = await supabase.from('briefs').update({ animation_settings: next }).eq('id', briefId).select('animation_settings')
+    if (error || !data?.length) {
+      console.error('[animation] Ayar kaydedilemedi:', error?.message || '0 satır güncellendi')
+      setAnimSettings(prev) // rollback
+      return
+    }
+    console.log('[animation] Ayar kaydedildi:', next)
+    setSettingsSaved(true); setTimeout(() => setSettingsSaved(false), 1500)
   }
 
   if (loading) return <div style={{ padding: '40px', textAlign: 'center', color: '#888', fontSize: '13px', minHeight: '500px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Yükleniyor...</div>
