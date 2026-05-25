@@ -399,6 +399,30 @@ function ClientBriefDetail() {
     return () => clearInterval(poll)
   }, [aiChildren.some(c => c.status === 'ai_processing' && !c.ai_video_url)])
 
+  // Poll Trend children for status updates (Express pattern)
+  useEffect(() => {
+    const hasProcessing = trendChildren.some((c: any) => c.status === 'ai_processing' && !c.ai_video_url)
+    if (!hasProcessing || trendChildren.length === 0) return
+    const allIds = trendChildren.map((c: any) => c.id)
+    const poll = setInterval(async () => {
+      const { data } = await supabase.from('briefs').select('id, status, format, ai_video_status, ai_video_url, ai_video_error, ai_feedback_summary, completed_at').in('id', allIds)
+      if (!data) return
+      setTrendChildren((prev: any[]) => {
+        let changed = false
+        const next = prev.map((c: any) => {
+          const u = data.find((d: any) => d.id === c.id)
+          if (u && (u.status !== c.status || u.ai_video_status !== c.ai_video_status || u.ai_video_url !== c.ai_video_url)) {
+            changed = true
+            return { ...c, ...u }
+          }
+          return c
+        })
+        return changed ? next : prev
+      })
+    }, 3000)
+    return () => clearInterval(poll)
+  }, [trendChildren.some((c: any) => c.status === 'ai_processing' && !c.ai_video_url)])
+
   // Timer-based auto-advance for processing children — setTimeout chain
   useEffect(() => {
     const processing = aiChildren.filter(c => c.status === 'ai_processing' && !c.ai_video_url)
