@@ -35,7 +35,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
 
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null)
   const [voiceoverText, setVoiceoverText] = useState('')
-  const [styleVoiceovers, setStyleVoiceovers] = useState<Record<string, string>>({})
+  // styleVoiceovers kaldırıldı — tek ortak voiceover (voiceoverText state)
   const [voiceoverLoading, setVoiceoverLoading] = useState(false)
   const [animationVideos, setAnimationVideos] = useState<any[]>([])
   const [generating, setGenerating] = useState(false)
@@ -108,7 +108,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
     const [stylesRes, { data: videos }, { data: fb }] = await Promise.all([
       fetch(`/api/animation/styles?client_id=${brief?.client_id || ''}`).then(r => r.json()),
       supabase.from('animation_videos').select('*, animation_styles(label, icon_path)').eq('brief_id', briefId).order('created_at', { ascending: true }),
-      supabase.from('briefs').select('animation_feedbacks, last_animation_style, animation_voiceovers, animation_settings').eq('id', briefId).single(),
+      supabase.from('briefs').select('animation_feedbacks, last_animation_style, voiceover_text, animation_settings').eq('id', briefId).single(),
     ])
     setStyles(stylesRes.styles || [])
     setHasMascot(stylesRes.hasMascot || false)
@@ -119,23 +119,18 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
     if (fb?.animation_settings) setAnimSettings({ logo_enabled: true, cta_enabled: true, packshot_enabled: false, ...fb.animation_settings })
 
     const stickyStyle = fb?.last_animation_style
-    const voiceovers = fb?.animation_voiceovers || {}
-    setStyleVoiceovers(voiceovers)
+    const stickyVo = fb?.voiceover_text || ''
 
-    if (stickyStyle) {
-      setSelectedStyle(stickyStyle)
-      const cachedVo = voiceovers[stickyStyle]
-      if (cachedVo) {
-        setSuggestedSlug(stickyStyle)
-        setVoiceoverText(cachedVo)
-        suggestedRef.current = true
-        setLoading(false)
-        return
-      }
+    if (stickyStyle) setSelectedStyle(stickyStyle)
+    if (stickyVo) {
+      setVoiceoverText(stickyVo)
+      suggestedRef.current = true
+      setLoading(false)
+      return
     }
     setLoading(false)
 
-    // No sticky voiceover for current style → Claude suggest (first time only)
+    // No voiceover yet → Claude suggest (first time only)
     if (!suggestedRef.current && (stylesRes.styles || []).length > 0) {
       suggestedRef.current = true
       setSuggestLoading(true)
@@ -145,22 +140,18 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
         if (sd.suggestedStyleSlug) {
           setSuggestedSlug(sd.suggestedStyleSlug)
           if (!stickyStyle) setSelectedStyle(sd.suggestedStyleSlug)
-          if (sd.voiceoverText) {
-            const newVo = { ...voiceovers, [sd.suggestedStyleSlug]: sd.voiceoverText }
-            persistAnimVoiceovers(newVo, sd.suggestedStyleSlug)
-          }
         }
-        if (sd.voiceoverText) setVoiceoverText(sd.voiceoverText)
+        if (sd.voiceoverText) {
+          setVoiceoverText(sd.voiceoverText)
+          persistVoiceover(sd.voiceoverText)
+        }
       } catch {}
       setSuggestLoading(false)
     }
   }
 
-  async function persistAnimVoiceovers(newVo: Record<string, string>, styleSlug?: string) {
-    setStyleVoiceovers(newVo)
-    const updates: any = { animation_voiceovers: newVo }
-    if (styleSlug) updates.last_animation_style = styleSlug
-    await supabase.from('briefs').update(updates).eq('id', briefId)
+  async function persistVoiceover(text: string) {
+    await supabase.from('briefs').update({ voiceover_text: text }).eq('id', briefId)
   }
 
   function persistStyleOnly(styleSlug: string) {
@@ -173,7 +164,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
     try {
       const res = await fetch('/api/animation/generate-voiceover', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, style_slug: selectedStyle }) })
       const data = await res.json()
-      if (data.voiceoverText && selectedStyle) { setVoiceoverText(data.voiceoverText); persistAnimVoiceovers({ ...styleVoiceovers, [selectedStyle]: data.voiceoverText }, selectedStyle) }
+      if (data.voiceoverText) { setVoiceoverText(data.voiceoverText); persistVoiceover(data.voiceoverText) }
     } catch {}
     setVoiceoverLoading(false)
   }
@@ -437,7 +428,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
                 </div>
               ) : (
                 <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-                  <textarea value={voiceoverText} onChange={e => setVoiceoverText(e.target.value)} onBlur={() => { if (voiceoverText.trim() && selectedStyle && voiceoverText !== (styleVoiceovers[selectedStyle] || '')) persistAnimVoiceovers({ ...styleVoiceovers, [selectedStyle]: voiceoverText.trim() }, selectedStyle) }} placeholder={voiceoverLoading ? 'Üretiliyor...' : 'Bu stil için dış ses metni henüz üretilmedi. Butona basın veya buraya yazın.'} style={{ width: '100%', flex: 1, minHeight: '80px', fontSize: '22px', color: '#0a0a0a', lineHeight: 1.5, border: '1px solid #e5e4db', padding: '10px 12px', resize: 'none', boxSizing: 'border-box' }} />
+                  <textarea value={voiceoverText} onChange={e => setVoiceoverText(e.target.value)} onBlur={() => { if (voiceoverText.trim()) persistVoiceover(voiceoverText.trim()) }} placeholder={voiceoverLoading ? 'Üretiliyor...' : 'Bu stil için dış ses metni henüz üretilmedi. Butona basın veya buraya yazın.'} style={{ width: '100%', flex: 1, minHeight: '80px', fontSize: '22px', color: '#0a0a0a', lineHeight: 1.5, border: '1px solid #e5e4db', padding: '10px 12px', resize: 'none', boxSizing: 'border-box' }} />
                   {(() => {
                     const isTextEmpty = !voiceoverText.trim()
                     const isLoading = voiceoverLoading || generating
@@ -462,10 +453,9 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
 
           const styleClick = (slug: string) => {
             if (slug === selectedStyle) return
-            const cachedVo = styleVoiceovers[slug] || ''
-            setStyleFading(true); setVoiceoverText('')
+            setStyleFading(true)
             persistStyleOnly(slug)
-            setTimeout(() => { setSelectedStyle(slug); setVoiceoverText(cachedVo); setStyleFading(false) }, 150)
+            setTimeout(() => { setSelectedStyle(slug); setStyleFading(false) }, 150)
           }
 
           return (
