@@ -118,7 +118,7 @@ function ClientBriefDetail() {
   const [showAiGenerate, setShowAiGenerate] = useState(false)
   const [aiGenerating, setAiGenerating] = useState(false)
   const [trendCinema, setTrendCinema] = useState(false)
-  const [trendFormat, setTrendFormat] = useState<'banabak' | 'amandikkat'>('banabak')
+  const [trendFormat, setTrendFormat] = useState<'banabak' | 'amandikkat' | 'dansdansdans'>('banabak')
   const [expressInfoOpen, setExpressInfoOpen] = useState(false)
   const [cpsInfoOpen, setCpsInfoOpen] = useState(false)
   const [expressSettingsOpen, setExpressSettingsOpen] = useState(false)
@@ -335,9 +335,9 @@ function ClientBriefDetail() {
     const { count: animTotal } = await supabase.from('animation_videos').select('id', { count: 'exact', head: true }).eq('brief_id', id).neq('status', 'failed')
     setAnimationVideoCount(animTotal || 0)
     // Trend children + count
-    const { data: tc } = await supabase.from('briefs').select('id, campaign_name, status, format, ai_video_status, ai_video_url, ai_video_error, created_at, completed_at, ai_feedbacks, ai_express_settings_snapshot, ai_feedback_summary, express_engine').eq('root_campaign_id', rootId).in('express_engine', ['trend', 'trend_cinema', 'trend_oops']).order('created_at', { ascending: true })
+    const { data: tc } = await supabase.from('briefs').select('id, campaign_name, status, format, ai_video_status, ai_video_url, ai_video_error, created_at, completed_at, ai_feedbacks, ai_express_settings_snapshot, ai_feedback_summary, express_engine').eq('root_campaign_id', rootId).in('express_engine', ['trend', 'trend_cinema', 'trend_oops', 'trend_dans']).order('created_at', { ascending: true })
     setTrendChildren(tc || [])
-    const { count: trendTotal } = await supabase.from('briefs').select('id', { count: 'exact', head: true }).eq('root_campaign_id', rootId).in('express_engine', ['trend', 'trend_cinema', 'trend_oops']).neq('ai_video_status', 'failed')
+    const { count: trendTotal } = await supabase.from('briefs').select('id', { count: 'exact', head: true }).eq('root_campaign_id', rootId).in('express_engine', ['trend', 'trend_cinema', 'trend_oops', 'trend_dans']).neq('ai_video_status', 'failed')
     setTrendVideoCount(trendTotal || 0)
     // Animation videos for summary
     const { data: animVids } = await supabase.from('animation_videos')
@@ -792,10 +792,10 @@ function ClientBriefDetail() {
             const animationVisible = featureFlags.animationGlobal
             const trendVisible = featureFlags.trendGlobal
             const hasSummary = aiChildren.length > 0 || cpsChildren.length > 0 || !!brief?.static_images_url || ugcVideosForSummary.length > 0
-            const expressProcessing = aiChildren.some(c=>c.express_engine!=='trend'&&c.express_engine!=='trend_cinema'&&c.express_engine!=='trend_oops'&&c.status==='ai_processing'&&!c.ai_video_url&&c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout')
+            const expressProcessing = aiChildren.some(c=>c.express_engine!=='trend'&&c.express_engine!=='trend_cinema'&&c.express_engine!=='trend_oops'&&c.express_engine!=='trend_dans'&&c.status==='ai_processing'&&!c.ai_video_url&&c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout')
             const trendProcessing = trendChildren.some(c=>c.status==='ai_processing'&&!c.ai_video_url&&c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout')
             const aiStudioTabs = [
-              expressVisible && {key:'express',label:'EXPRESS',count:aiChildren.filter(c=>c.express_engine!=='trend'&&c.express_engine!=='trend_cinema'&&c.express_engine!=='trend_oops'&&c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout').length,processing:expressProcessing},
+              expressVisible && {key:'express',label:'EXPRESS',count:aiChildren.filter(c=>c.express_engine!=='trend'&&c.express_engine!=='trend_cinema'&&c.express_engine!=='trend_oops'&&c.express_engine!=='trend_dans'&&c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout').length,processing:expressProcessing},
               ugcVisible && {key:'ugc',label:'PERSONA',count:ugcVideoCount,processing:false},
               animationVisible && {key:'animation',label:'ANİMASYON',count:animationVideoCount,processing:false},
               trendVisible && {key:'trend',label:'TREND',count:trendVideoCount,processing:trendProcessing},
@@ -1815,6 +1815,7 @@ function ClientBriefDetail() {
                       {[
                         { key: 'banabak' as const, title: 'Bana Bak', desc: 'Hiphop dans, dinamik · Yönetmen: Ege Tül · Müzik: DFX', video: '/videos/banabak_banner.mp4' },
                         { key: 'amandikkat' as const, title: 'Aman Dikkat', desc: 'Kazalar, sürprizler · Yönetmen: Ediz Saran · Müzik: Tolga Suna', video: '/videos/oops_banner.mp4' },
+                        { key: 'dansdansdans' as const, title: 'Dans Dans Dans', desc: 'Dans dans dans · Yönetmen: Ali Yorgancıoğlu · Müzik: Ali Yorgancıoğlu', video: '/videos/dansdansdans.mp4' },
                       ].map(fmt => {
                         const selected = trendFormat === fmt.key
                         return (
