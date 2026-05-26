@@ -1813,8 +1813,8 @@ function ClientBriefDetail() {
                   <div style={{margin:'0 0 16px 0'}}>
                     <div style={{display:'flex',gap:'8px'}}>
                       {[
-                        { key: 'banabak' as const, title: 'Bana Bak', desc: 'Hiphop dans, dinamik', video: '/videos/banabak_banner.mp4' },
-                        { key: 'amandikkat' as const, title: 'Aman Dikkat', desc: 'Kazalar, sürprizler', video: '/videos/oops_banner.mp4' },
+                        { key: 'banabak' as const, title: 'Bana Bak', desc: 'Hiphop dans, dinamik · Yönetmen: Ege Tül · Müzik: DFX', video: '/videos/banabak_banner.mp4' },
+                        { key: 'amandikkat' as const, title: 'Aman Dikkat', desc: 'Kazalar, sürprizler · Yönetmen: Ediz Saran · Müzik: Tolga Suna', video: '/videos/oops_banner.mp4' },
                       ].map(fmt => {
                         const selected = trendFormat === fmt.key
                         return (
