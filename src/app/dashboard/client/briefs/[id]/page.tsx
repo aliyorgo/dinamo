@@ -1870,16 +1870,16 @@ function ClientBriefDetail() {
 
                   {/* FORMAT SEÇİMİ — Video Banner Seçici */}
                   <div style={{marginBottom:'5px'}}>
-                    <div style={{display:'flex',gap:0}}>
+                    <div style={{display:'flex',flexWrap:'wrap',gap:0}}>
                       {[
                         { key: 'banabak' as const, title: 'Bana Bak', desc: 'Şehirli, dinamik, modern bir format.', credit: 'Yönetmen: Ali Yorgancıoğlu · Müzik: DFX', video: '/videos/banabak2.mp4' },
-                        { key: 'amandikkat' as const, title: 'Ooops', desc: 'Spor, komedi, sürpriz. Mesajınızla doğal bir şekilde uyum sağlıyor.', credit: 'Yönetmen: Tolga Suna · Müzik: Tolga Suna', video: '/videos/oops_banner.mp4' },
+                        { key: 'amandikkat' as const, title: 'Ooops', desc: 'Spor, komedi, sürpriz. Mesajınızla iç içe.', credit: 'Yönetmen: Tolga Suna · Müzik: Tolga Suna', video: '/videos/oops_banner.mp4' },
                         { key: 'dansdansdans' as const, title: 'Dans Dans Dans', desc: 'Genç ve eğlenceli, stilize bir UGC video formatı.', credit: 'Yönetmen: Ege Tül · Müzik: DFX', video: '/videos/dansdansdans.mp4' },
                         { key: 'goktengelen' as const, title: 'Gökten Gelen', desc: 'Hollywood tarzı bir trailer. Gizemli, merak uyandırıcı.', credit: 'Yönetmen: Ilgar Öztürk · Müzik: DFX', video: null },
                       ].map(fmt => {
                         const selected = trendFormat === fmt.key
                         return (
-                          <div key={fmt.key} onClick={() => setTrendFormat(fmt.key)} style={{flex:1,position:'relative',cursor:'pointer',overflow:'hidden',transition:'all 0.2s'}}>
+                          <div key={fmt.key} onClick={() => setTrendFormat(fmt.key)} style={{width:'50%',position:'relative',cursor:'pointer',overflow:'hidden',transition:'all 0.2s'}}>
                             {fmt.video ? <video autoPlay muted playsInline loop src={fmt.video} style={{width:'100%',height:'auto',display:'block'}} /> : <div style={{width:'100%',aspectRatio:'864/150',background:'#555'}} />}
                             {!selected && <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.45)',zIndex:1,pointerEvents:'none'}} />}
                             <div style={{position:'absolute',inset:0,zIndex:2,display:'flex',flexDirection:'column',justifyContent:'flex-start',padding:'4px 12px'}}>
