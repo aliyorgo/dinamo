@@ -821,7 +821,7 @@ function ClientBriefDetail() {
                 {/* AI STUDIO GROUP */}
                 <div style={{display:'flex',flexDirection:'column',alignItems:'flex-start'}}>
                   <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'6px',paddingLeft:'14px'}}>
-                    <span style={{fontSize:'10px',fontWeight:500,color:'#000',letterSpacing:'2.5px',textTransform:'uppercase'}}>AI Studio</span>
+                    <span style={{fontSize:'10px',fontWeight:500,color:'#000',letterSpacing:'2.5px'}}>AI STUDIO</span>
                     <span style={{fontSize:'8px',padding:'1px 6px',border:'1px solid #1DB81D',color:'#1DB81D',borderRadius:'10px',fontWeight:500,letterSpacing:'0.5px'}}>BETA</span>
                   </div>
                   <div style={{display:'flex',gap:0,borderBottom:'1.5px solid #1DB81D'}}>
