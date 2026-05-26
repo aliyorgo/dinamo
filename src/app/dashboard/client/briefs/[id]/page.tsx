@@ -1826,6 +1826,7 @@ function ClientBriefDetail() {
                               <div style={{color:'rgba(255,255,255,0.85)',fontSize:'10px',lineHeight:1.3,textShadow:'0 1px 3px rgba(0,0,0,0.6)'}}>{fmt.desc}</div>
                               <div style={{color:'rgba(255,255,255,0.65)',fontSize:'10px',lineHeight:1.3,fontStyle:'italic',textShadow:'0 1px 3px rgba(0,0,0,0.6)'}}>{fmt.credit}</div>
                             </div>
+                            {selected && <div style={{position:'absolute',top:6,right:6,width:10,height:10,borderRadius:'50%',background:'#5d4ec3',zIndex:2}} />}
                           </div>
                         )
                       })}
