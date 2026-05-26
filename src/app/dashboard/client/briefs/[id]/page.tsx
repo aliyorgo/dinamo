@@ -1883,9 +1883,9 @@ function ClientBriefDetail() {
                             {fmt.video ? <video autoPlay muted playsInline loop src={fmt.video} data-banner="true" style={{width:'100%',height:'auto',display:'block'}} /> : <div style={{width:'100%',aspectRatio:'864/150',background:'#555'}} />}
                             {!selected && <div data-darken style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.65)',zIndex:1,pointerEvents:'none',transition:'opacity 0.2s'}} />}
                             <div style={{position:'absolute',inset:0,zIndex:2,display:'flex',flexDirection:'column',justifyContent:'flex-start',padding:'4px 12px'}}>
-                              <div style={{color:'#fff',fontSize:'16px',fontWeight:700,letterSpacing:'-0.2px',textShadow:'0 1px 4px rgba(0,0,0,0.7)'}}>{fmt.title}</div>
-                              <div style={{color:'rgba(255,255,255,0.85)',fontSize:'12px',lineHeight:1.3,textShadow:'0 1px 3px rgba(0,0,0,0.6)'}}>{fmt.desc}</div>
-                              <div style={{color:'rgba(255,255,255,0.65)',fontSize:'12px',lineHeight:1.3,fontStyle:'italic',textShadow:'0 1px 3px rgba(0,0,0,0.6)'}}>{fmt.credit}</div>
+                              <div style={{color:'#fff',fontSize:'18px',fontWeight:700,letterSpacing:'-0.2px',textShadow:'0 1px 4px rgba(0,0,0,0.7)'}}>{fmt.title}</div>
+                              <div style={{color:'rgba(255,255,255,0.85)',fontSize:'13px',lineHeight:1.3,textShadow:'0 1px 3px rgba(0,0,0,0.6)'}}>{fmt.desc}</div>
+                              <div style={{color:'rgba(255,255,255,0.65)',fontSize:'13px',lineHeight:1.3,fontStyle:'italic',textShadow:'0 1px 3px rgba(0,0,0,0.6)'}}>{fmt.credit}</div>
                             </div>
                             {selected && <span style={{position:'absolute',top:0,right:0,zIndex:3,fontSize:'8px',padding:'3px 8px',background:'rgba(46,213,115,0.92)',color:'#fff',fontWeight:500,letterSpacing:'0.5px'}}>Üretilecek Trend</span>}
                           </div>
