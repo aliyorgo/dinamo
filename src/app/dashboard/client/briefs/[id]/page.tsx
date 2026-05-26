@@ -1813,9 +1813,9 @@ function ClientBriefDetail() {
                   <div style={{margin:'0 0 16px 0'}}>
                     <div style={{display:'flex',gap:0}}>
                       {[
-                        { key: 'banabak' as const, title: 'Bana Bak', desc: 'Hiphop dans, dinamik · Yönetmen: Ege Tül · Müzik: DFX', video: '/videos/banabak2.mp4' },
-                        { key: 'amandikkat' as const, title: 'Aman Dikkat', desc: 'Kazalar, sürprizler · Yönetmen: Ediz Saran · Müzik: Tolga Suna', video: '/videos/oops_banner.mp4' },
-                        { key: 'dansdansdans' as const, title: 'Dans Dans Dans', desc: 'Dans dans dans · Yönetmen: Ali Yorgancıoğlu · Müzik: Ali Yorgancıoğlu', video: '/videos/dansdansdans.mp4' },
+                        { key: 'banabak' as const, title: 'Bana Bak', desc: 'Hiphop dans, dinamik', credit: 'Yönetmen: Ege Tül · Müzik: DFX', video: '/videos/banabak2.mp4' },
+                        { key: 'amandikkat' as const, title: 'Aman Dikkat', desc: 'Kazalar, sürprizler', credit: 'Yönetmen: Ediz Saran · Müzik: Tolga Suna', video: '/videos/oops_banner.mp4' },
+                        { key: 'dansdansdans' as const, title: 'Dans Dans Dans', desc: 'Dans dans dans', credit: 'Yönetmen: Ali Yorgancıoğlu · Müzik: Ali Yorgancıoğlu', video: '/videos/dansdansdans.mp4' },
                       ].map(fmt => {
                         const selected = trendFormat === fmt.key
                         return (
@@ -1824,6 +1824,7 @@ function ClientBriefDetail() {
                             <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',justifyContent:'flex-start',padding:'8px 12px'}}>
                               <div style={{color:'#fff',fontSize:'14px',fontWeight:700,letterSpacing:'-0.2px',textShadow:'0 1px 4px rgba(0,0,0,0.7)'}}>{fmt.title}</div>
                               <div style={{color:'rgba(255,255,255,0.85)',fontSize:'10px',lineHeight:1.3,textShadow:'0 1px 3px rgba(0,0,0,0.6)'}}>{fmt.desc}</div>
+                              <div style={{color:'rgba(255,255,255,0.65)',fontSize:'10px',lineHeight:1.3,fontStyle:'italic',textShadow:'0 1px 3px rgba(0,0,0,0.6)'}}>{fmt.credit}</div>
                             </div>
                           </div>
                         )
