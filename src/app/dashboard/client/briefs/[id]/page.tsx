@@ -1872,7 +1872,7 @@ function ClientBriefDetail() {
                   <div style={{marginBottom:'5px'}}>
                     <div style={{display:'flex',flexWrap:'wrap',gap:'5px'}}>
                       {[
-                        { key: 'banabak' as const, title: 'Bana Bak', desc: 'Şehirli, dinamik, modern bir format.', credit: 'Yönetmen: Ali Yorgancıoğlu · Müzik: DFX', video: '/videos/banabak2.mp4' },
+                        { key: 'banabak' as const, title: 'Bana Bak', desc: 'Şehirli, dinamik, modern bir format.', credit: 'Yönetmen: Ali Yorgancıoğlu · Müzik: DFX', video: '/videos/banabak3.mp4' },
                         { key: 'amandikkat' as const, title: 'Ooops', desc: 'Spor, komedi, sürpriz. Mesajınızla iç içe.', credit: 'Yönetmen: Tolga Suna · Müzik: Tolga Suna', video: '/videos/oops_banner.mp4' },
                         { key: 'dansdansdans' as const, title: 'Dans Dans Dans', desc: 'Genç ve eğlenceli, stilize bir UGC video formatı.', credit: 'Yönetmen: Ege Tül · Müzik: DFX', video: '/videos/dansdansdans.mp4' },
                         { key: 'goktengelen' as const, title: 'Gökten Gelen', desc: 'Hollywood tarzı bir trailer. Gizemli, merak uyandırıcı.', credit: 'Yönetmen: Ilgar Öztürk · Müzik: DFX', video: null },
