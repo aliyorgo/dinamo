@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   const rootId = brief.root_campaign_id || brief_id
 
   // Count Trend children for credit calc
-  const { count: completedCount } = await supabase.from('briefs').select('id', { count: 'exact', head: true }).eq('root_campaign_id', rootId).in('express_engine', ['trend', 'trend_cinema', 'trend_oops', 'trend_dans']).not('ai_video_status', 'in', '("failed","timeout")').not('ai_video_status', 'is', null)
+  const { count: completedCount } = await supabase.from('briefs').select('id', { count: 'exact', head: true }).eq('root_campaign_id', rootId).in('express_engine', ['trend', 'trend_cinema', 'trend_oops', 'trend_dans', 'trend_gokten']).not('ai_video_status', 'in', '("failed","timeout")').not('ai_video_status', 'is', null)
   const cc = completedCount || 0
   const creditCost = cc === 0 ? 0 : await getCreditCost('credit_ai_express_generate', 1)
 
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Count existing Trend children for naming
-  const { count: existingCount } = await supabase.from('briefs').select('id', { count: 'exact', head: true }).eq('root_campaign_id', rootId).in('express_engine', ['trend', 'trend_cinema', 'trend_oops', 'trend_dans'])
+  const { count: existingCount } = await supabase.from('briefs').select('id', { count: 'exact', head: true }).eq('root_campaign_id', rootId).in('express_engine', ['trend', 'trend_cinema', 'trend_oops', 'trend_dans', 'trend_gokten'])
   const trendNum = (existingCount || 0) + 1
   const baseName = brief.campaign_name?.replace(/\s*—\s*Trend #\d+$/, '').replace(/\s*—\s*Full AI #\d+$/, '').replace(/\s*—\s*\d+$/, '') || brief.campaign_name
 
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     client_id: brief.client_id,
     client_user_id,
     brief_type: 'express_clone',
-    express_engine: format_type === 'amandikkat' ? 'trend_oops' : format_type === 'dansdansdans' ? 'trend_dans' : cinema_mode ? 'trend_cinema' : 'trend',
+    express_engine: format_type === 'amandikkat' ? 'trend_oops' : format_type === 'dansdansdans' ? 'trend_dans' : format_type === 'goktengelen' ? 'trend_gokten' : cinema_mode ? 'trend_cinema' : 'trend',
     format: cinema_mode ? '16:9' : '9:16',
     message: brief.message || '',
     voiceover_text: brief.voiceover_text,

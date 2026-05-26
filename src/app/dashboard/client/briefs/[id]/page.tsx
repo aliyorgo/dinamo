@@ -118,7 +118,7 @@ function ClientBriefDetail() {
   const [showAiGenerate, setShowAiGenerate] = useState(false)
   const [aiGenerating, setAiGenerating] = useState(false)
   const [trendCinema, setTrendCinema] = useState(false)
-  const [trendFormat, setTrendFormat] = useState<'banabak' | 'amandikkat' | 'dansdansdans'>('banabak')
+  const [trendFormat, setTrendFormat] = useState<'banabak' | 'amandikkat' | 'dansdansdans' | 'goktengelen'>('banabak')
   const [expressInfoOpen, setExpressInfoOpen] = useState(false)
   const [cpsInfoOpen, setCpsInfoOpen] = useState(false)
   const [expressSettingsOpen, setExpressSettingsOpen] = useState(false)
@@ -335,9 +335,9 @@ function ClientBriefDetail() {
     const { count: animTotal } = await supabase.from('animation_videos').select('id', { count: 'exact', head: true }).eq('brief_id', id).neq('status', 'failed')
     setAnimationVideoCount(animTotal || 0)
     // Trend children + count
-    const { data: tc } = await supabase.from('briefs').select('id, campaign_name, status, format, ai_video_status, ai_video_url, ai_video_error, created_at, completed_at, ai_feedbacks, ai_express_settings_snapshot, ai_feedback_summary, express_engine').eq('root_campaign_id', rootId).in('express_engine', ['trend', 'trend_cinema', 'trend_oops', 'trend_dans']).order('created_at', { ascending: true })
+    const { data: tc } = await supabase.from('briefs').select('id, campaign_name, status, format, ai_video_status, ai_video_url, ai_video_error, created_at, completed_at, ai_feedbacks, ai_express_settings_snapshot, ai_feedback_summary, express_engine').eq('root_campaign_id', rootId).in('express_engine', ['trend', 'trend_cinema', 'trend_oops', 'trend_dans', 'trend_gokten']).order('created_at', { ascending: true })
     setTrendChildren(tc || [])
-    const { count: trendTotal } = await supabase.from('briefs').select('id', { count: 'exact', head: true }).eq('root_campaign_id', rootId).in('express_engine', ['trend', 'trend_cinema', 'trend_oops', 'trend_dans']).neq('ai_video_status', 'failed')
+    const { count: trendTotal } = await supabase.from('briefs').select('id', { count: 'exact', head: true }).eq('root_campaign_id', rootId).in('express_engine', ['trend', 'trend_cinema', 'trend_oops', 'trend_dans', 'trend_gokten']).neq('ai_video_status', 'failed')
     setTrendVideoCount(trendTotal || 0)
     // Animation videos for summary
     const { data: animVids } = await supabase.from('animation_videos')
@@ -792,10 +792,10 @@ function ClientBriefDetail() {
             const animationVisible = featureFlags.animationGlobal
             const trendVisible = featureFlags.trendGlobal
             const hasSummary = aiChildren.length > 0 || cpsChildren.length > 0 || !!brief?.static_images_url || ugcVideosForSummary.length > 0
-            const expressProcessing = aiChildren.some(c=>c.express_engine!=='trend'&&c.express_engine!=='trend_cinema'&&c.express_engine!=='trend_oops'&&c.express_engine!=='trend_dans'&&c.status==='ai_processing'&&!c.ai_video_url&&c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout')
+            const expressProcessing = aiChildren.some(c=>c.express_engine!=='trend'&&c.express_engine!=='trend_cinema'&&c.express_engine!=='trend_oops'&&c.express_engine!=='trend_dans'&&c.express_engine!=='trend_gokten'&&c.status==='ai_processing'&&!c.ai_video_url&&c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout')
             const trendProcessing = trendChildren.some(c=>c.status==='ai_processing'&&!c.ai_video_url&&c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout')
             const aiStudioTabs = [
-              expressVisible && {key:'express',label:'EXPRESS',count:aiChildren.filter(c=>c.express_engine!=='trend'&&c.express_engine!=='trend_cinema'&&c.express_engine!=='trend_oops'&&c.express_engine!=='trend_dans'&&c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout').length,processing:expressProcessing},
+              expressVisible && {key:'express',label:'EXPRESS',count:aiChildren.filter(c=>c.express_engine!=='trend'&&c.express_engine!=='trend_cinema'&&c.express_engine!=='trend_oops'&&c.express_engine!=='trend_dans'&&c.express_engine!=='trend_gokten'&&c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout').length,processing:expressProcessing},
               ugcVisible && {key:'ugc',label:'PERSONA',count:ugcVideoCount,processing:false},
               animationVisible && {key:'animation',label:'ANİMASYON',count:animationVideoCount,processing:false},
               trendVisible && {key:'trend',label:'TREND',count:trendVideoCount,processing:trendProcessing},
@@ -1840,7 +1840,7 @@ function ClientBriefDetail() {
                             {isPurchased && <span style={{fontSize:'9px',color:'#1DB81D',fontWeight:'600'}}>&#10003; Satin Alindi</span>}
                             {isProcessing && <span style={{fontSize:'9px',fontWeight:'500',display:'inline-flex',alignItems:'center',gap:'4px'}}><span style={{width:'6px',height:'6px',background:'#4ade80',display:'inline-block',borderRadius:'50%',animation:'pulse 1.5s ease infinite'}}></span><span style={{color:'#0a0a0a'}}>Uretiliyor</span> <span style={{color:'#6b6b66'}}>(~4 dakika)</span></span>}
                             {isFailed && <span style={{fontSize:'9px',color:'#ef4444',fontWeight:'500'}}>Basarisiz</span>}
-                            <span style={{marginLeft:'6px',fontSize:'9px',padding:'2px 6px',background:'#e8e1ff',color:'#5d4ec3',borderRadius:'3px',letterSpacing:'0.5px',fontWeight:500,textTransform:'uppercase'}}>{child.express_engine==='trend_oops'?'Ooops':child.express_engine==='trend_dans'?'Dans Dans Dans':'Bana Bak'}</span>
+                            <span style={{marginLeft:'6px',fontSize:'9px',padding:'2px 6px',background:'#e8e1ff',color:'#5d4ec3',borderRadius:'3px',letterSpacing:'0.5px',fontWeight:500,textTransform:'uppercase'}}>{child.express_engine==='trend_oops'?'Ooops':child.express_engine==='trend_dans'?'Dans Dans Dans':child.express_engine==='trend_gokten'?'Gökten Gelen':'Bana Bak'}</span>
                           </div>
                           <div style={{fontSize:'11px',color:'#888',marginBottom:'10px'}}>{new Date(child.created_at).toLocaleDateString('tr-TR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}{child.completed_at && <><span style={{margin:'0 8px',color:'#ccc'}}>|</span><span style={{color:'#aaa'}}>{formatDuration(child.created_at, child.completed_at)}</span></>}</div>
                           {hasVideo && !isFailed && (
@@ -1875,11 +1875,12 @@ function ClientBriefDetail() {
                         { key: 'banabak' as const, title: 'Bana Bak', desc: 'Şehirli, dinamik, modern bir format.', credit: 'Yönetmen: Ali Yorgancıoğlu · Müzik: DFX', video: '/videos/banabak2.mp4' },
                         { key: 'amandikkat' as const, title: 'Ooops', desc: 'Spor, komedi, sürpriz. Mesajınızla doğal bir şekilde uyum sağlıyor.', credit: 'Yönetmen: Tolga Suna · Müzik: Tolga Suna', video: '/videos/oops_banner.mp4' },
                         { key: 'dansdansdans' as const, title: 'Dans Dans Dans', desc: 'Genç ve eğlenceli, stilize bir UGC video formatı.', credit: 'Yönetmen: Ege Tül · Müzik: DFX', video: '/videos/dansdansdans.mp4' },
+                        { key: 'goktengelen' as const, title: 'Gökten Gelen', desc: 'Hollywood tarzı bir trailer. Gizemli, merak uyandırıcı.', credit: 'Yönetmen: Ilgar Öztürk · Müzik: DFX', video: null },
                       ].map(fmt => {
                         const selected = trendFormat === fmt.key
                         return (
                           <div key={fmt.key} onClick={() => setTrendFormat(fmt.key)} style={{flex:1,position:'relative',cursor:'pointer',overflow:'hidden',transition:'all 0.2s'}}>
-                            <video autoPlay muted playsInline loop src={fmt.video} style={{width:'100%',height:'auto',display:'block'}} />
+                            {fmt.video ? <video autoPlay muted playsInline loop src={fmt.video} style={{width:'100%',height:'auto',display:'block'}} /> : <div style={{width:'100%',aspectRatio:'864/150',background:'#555'}} />}
                             {!selected && <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.45)',zIndex:1,pointerEvents:'none'}} />}
                             <div style={{position:'absolute',inset:0,zIndex:2,display:'flex',flexDirection:'column',justifyContent:'flex-start',padding:'4px 12px'}}>
                               <div style={{color:'#fff',fontSize:'14px',fontWeight:700,letterSpacing:'-0.2px',textShadow:'0 1px 4px rgba(0,0,0,0.7)'}}>{fmt.title}</div>
