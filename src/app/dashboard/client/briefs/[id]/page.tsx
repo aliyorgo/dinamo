@@ -1842,7 +1842,7 @@ function ClientBriefDetail() {
                         onMouseEnter={e=>{e.currentTarget.style.background='var(--color-background-secondary)'}}
                         onMouseLeave={e=>{e.currentTarget.style.background='#fff'}}>
                         {/* Video */}
-                        <div style={{width:((f: string)=>f==='16:9'?'360px':f==='1:1'?'300px':f==='4:5'?'240px':'200px')(child.format||'9:16'),aspectRatio:(child.format||'9:16').replace(':','/'),background:'#0a0a0a',flexShrink:0,position:'relative',overflow:'hidden'}}>
+                        <div style={{width:((f: string)=>f==='16:9'?'360px':f==='1:1'?'300px':f==='4:5'?'240px':'200px')(child.format||'9:16'),aspectRatio:child.format==='16:9'?'1920/1038':(child.format||'9:16').replace(':','/'),background:'#0a0a0a',flexShrink:0,position:'relative',overflow:'hidden'}}>
                           {hasVideo ? (
                             <video key={child.ai_video_url} src={child.ai_video_url} controls controlsList="nodownload noplaybackrate" disablePictureInPicture preload="metadata" onPlay={e => { pauseOtherVideos(e.currentTarget); markTrendChildViewed(child.id) }} style={{width:'100%',height:'100%',objectFit:'contain',display:'block'}} />
                           ) : isProcessing ? (
