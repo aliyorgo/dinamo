@@ -1821,11 +1821,10 @@ function ClientBriefDetail() {
                         return (
                           <div key={fmt.key} onClick={() => setTrendFormat(fmt.key)} style={{flex:1,position:'relative',cursor:'pointer',overflow:'hidden',opacity:selected?1:0.6,transition:'all 0.2s'}}>
                             <video autoPlay muted playsInline loop src={fmt.video} style={{width:'100%',height:'auto',display:'block'}} />
-                            <div style={{position:'absolute',inset:0,backgroundImage:'linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.1) 60%, transparent 100%)',display:'flex',flexDirection:'column',justifyContent:'flex-end',padding:'8px 12px'}}>
+                            <div style={{position:'absolute',inset:0,backgroundImage:'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.1) 50%, transparent 100%)',display:'flex',flexDirection:'column',justifyContent:'flex-start',padding:'8px 12px'}}>
                               <div style={{color:'#fff',fontSize:'14px',fontWeight:700,letterSpacing:'-0.2px'}}>{fmt.title}</div>
                               <div style={{color:'rgba(255,255,255,0.75)',fontSize:'10px',lineHeight:1.3}}>{fmt.desc}</div>
                             </div>
-                            {selected && <span style={{position:'absolute',top:0,right:0,zIndex:2,fontSize:'8px',padding:'3px 8px',background:'rgba(93,78,195,0.92)',color:'#fff',fontWeight:500,letterSpacing:'0.8px'}}>AKTİF TREND</span>}
                           </div>
                         )
                       })}
