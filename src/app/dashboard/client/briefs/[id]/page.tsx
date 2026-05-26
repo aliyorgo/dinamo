@@ -1809,26 +1809,28 @@ function ClientBriefDetail() {
                     </div>
                   )}
 
-                  {/* FORMAT SEÇİMİ + AKTİF TREND BANNER */}
+                  {/* FORMAT SEÇİMİ — Video Banner Seçici */}
                   <div style={{margin:'0 0 16px 0'}}>
                     <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'10px'}}>
-                      <select value={trendFormat} onChange={e => setTrendFormat(e.target.value as any)} style={{fontSize:'13px',padding:'6px 12px',border:'1px solid #d4d2cc',background:'#fff',color:'#0a0a0a',fontWeight:500,cursor:'pointer'}}>
-                        <option value="banabak">Bana Bak</option>
-                        <option value="amandikkat">Aman Dikkat</option>
-                      </select>
                       <span style={{fontSize:'8px',padding:'3px 8px',background:'rgba(93,78,195,0.12)',color:'#5d4ec3',borderRadius:'2px',fontWeight:500,letterSpacing:'0.8px'}}>AKTİF TREND</span>
                     </div>
-                    {trendFormat === 'banabak' ? (
-                      <>
-                        <h2 style={{color:'#5d4ec3',fontSize:'24px',fontWeight:600,margin:0,letterSpacing:'-0.3px'}}>Bana Bak</h2>
-                        <div style={{color:'var(--color-text-secondary)',fontSize:'14px',marginTop:'8px',lineHeight:1.5}}>Genç, dinamik, çekici, şehirli. Bu formatta hiphop dansıyla brief'inizi bir araya getirdik. Yönetmen: Ege Tül</div>
-                      </>
-                    ) : (
-                      <>
-                        <h2 style={{color:'#e74c3c',fontSize:'24px',fontWeight:600,margin:0,letterSpacing:'-0.3px'}}>Aman Dikkat</h2>
-                        <div style={{color:'var(--color-text-secondary)',fontSize:'14px',marginTop:'8px',lineHeight:1.5}}>Kazalar, sürprizler, beklenmedik anlar. Kısa, etkili, paylaşılabilir.</div>
-                      </>
-                    )}
+                    <div style={{display:'flex',gap:'8px'}}>
+                      {[
+                        { key: 'banabak' as const, title: 'Bana Bak', desc: 'Hiphop dans, dinamik', video: '/videos/banabak_banner.mp4' },
+                        { key: 'amandikkat' as const, title: 'Aman Dikkat', desc: 'Kazalar, sürprizler', video: '/videos/oops_banner.mp4' },
+                      ].map(fmt => {
+                        const selected = trendFormat === fmt.key
+                        return (
+                          <div key={fmt.key} onClick={() => setTrendFormat(fmt.key)} style={{flex:1,position:'relative',cursor:'pointer',overflow:'hidden',border:selected?'2px solid #5d4ec3':'2px solid transparent',opacity:selected?1:0.6,transition:'all 0.2s'}}>
+                            <video ref={el => { if (el) { if (selected) { el.play().catch(()=>{}) } else { el.pause() } } }} src={fmt.video} muted playsInline loop style={{width:'100%',height:'auto',display:'block'}} />
+                            <div style={{position:'absolute',inset:0,backgroundImage:'linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.1) 60%, transparent 100%)',display:'flex',flexDirection:'column',justifyContent:'flex-end',padding:'8px 12px'}}>
+                              <div style={{color:'#fff',fontSize:'14px',fontWeight:700,letterSpacing:'-0.2px'}}>{fmt.title}</div>
+                              <div style={{color:'rgba(255,255,255,0.75)',fontSize:'10px',lineHeight:1.3}}>{fmt.desc}</div>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
                   </div>
 
                   {/* TREND CHILDREN VİDEO KARTLARI */}
