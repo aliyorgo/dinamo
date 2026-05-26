@@ -1811,14 +1811,14 @@ function ClientBriefDetail() {
 
                   {/* FORMAT SEÇİMİ — Video Banner Seçici */}
                   <div style={{margin:'0 0 16px 0'}}>
-                    <div style={{display:'flex',gap:'8px'}}>
+                    <div style={{display:'flex',gap:0}}>
                       {[
                         { key: 'banabak' as const, title: 'Bana Bak', desc: 'Hiphop dans, dinamik · Yönetmen: Ege Tül · Müzik: DFX', video: '/videos/banabak_banner.mp4' },
                         { key: 'amandikkat' as const, title: 'Aman Dikkat', desc: 'Kazalar, sürprizler · Yönetmen: Ediz Saran · Müzik: Tolga Suna', video: '/videos/oops_banner.mp4' },
                       ].map(fmt => {
                         const selected = trendFormat === fmt.key
                         return (
-                          <div key={fmt.key} onClick={() => setTrendFormat(fmt.key)} style={{flex:1,position:'relative',cursor:'pointer',overflow:'hidden',border:selected?'2px solid #5d4ec3':'2px solid transparent',opacity:selected?1:0.6,transition:'all 0.2s'}}>
+                          <div key={fmt.key} onClick={() => setTrendFormat(fmt.key)} style={{flex:1,position:'relative',cursor:'pointer',overflow:'hidden',opacity:selected?1:0.6,transition:'all 0.2s'}}>
                             <video ref={el => { if (el) { if (selected) { el.play().catch(()=>{}) } else { el.pause() } } }} src={fmt.video} muted playsInline loop style={{width:'100%',height:'auto',display:'block'}} />
                             <div style={{position:'absolute',inset:0,backgroundImage:'linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.1) 60%, transparent 100%)',display:'flex',flexDirection:'column',justifyContent:'flex-end',padding:'8px 12px'}}>
                               <div style={{color:'#fff',fontSize:'14px',fontWeight:700,letterSpacing:'-0.2px'}}>{fmt.title}</div>
