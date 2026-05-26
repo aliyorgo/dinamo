@@ -1809,30 +1809,6 @@ function ClientBriefDetail() {
                     </div>
                   )}
 
-                  {/* FORMAT SEÇİMİ — Video Banner Seçici */}
-                  <div style={{margin:'0 0 16px 0'}}>
-                    <div style={{display:'flex',gap:0}}>
-                      {[
-                        { key: 'banabak' as const, title: 'Bana Bak', desc: 'Hiphop dans, dinamik', credit: 'Yönetmen: Ege Tül · Müzik: DFX', video: '/videos/banabak2.mp4' },
-                        { key: 'amandikkat' as const, title: 'Aman Dikkat', desc: 'Kazalar, sürprizler', credit: 'Yönetmen: Ediz Saran · Müzik: Tolga Suna', video: '/videos/oops_banner.mp4' },
-                        { key: 'dansdansdans' as const, title: 'Dans Dans Dans', desc: 'Dans dans dans', credit: 'Yönetmen: Ali Yorgancıoğlu · Müzik: Ali Yorgancıoğlu', video: '/videos/dansdansdans.mp4' },
-                      ].map(fmt => {
-                        const selected = trendFormat === fmt.key
-                        return (
-                          <div key={fmt.key} onClick={() => setTrendFormat(fmt.key)} style={{flex:1,position:'relative',cursor:'pointer',overflow:'hidden',opacity:selected?1:0.6,transition:'all 0.2s'}}>
-                            <video autoPlay muted playsInline loop src={fmt.video} style={{width:'100%',height:'auto',display:'block'}} />
-                            <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',justifyContent:'flex-start',padding:'4px 12px'}}>
-                              <div style={{color:'#fff',fontSize:'14px',fontWeight:700,letterSpacing:'-0.2px',textShadow:'0 1px 4px rgba(0,0,0,0.7)'}}>{fmt.title}</div>
-                              <div style={{color:'rgba(255,255,255,0.85)',fontSize:'10px',lineHeight:1.3,textShadow:'0 1px 3px rgba(0,0,0,0.6)'}}>{fmt.desc}</div>
-                              <div style={{color:'rgba(255,255,255,0.65)',fontSize:'10px',lineHeight:1.3,fontStyle:'italic',textShadow:'0 1px 3px rgba(0,0,0,0.6)'}}>{fmt.credit}</div>
-                            </div>
-                            {selected && <div style={{position:'absolute',top:6,right:6,width:10,height:10,borderRadius:'50%',background:'#4ade80',zIndex:2}} />}
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-
                   {/* TREND CHILDREN VİDEO KARTLARI */}
                   {trendChildren.map((child,idx)=>{
                     const hasVideo = !!child.ai_video_url
@@ -1892,8 +1868,32 @@ function ClientBriefDetail() {
                     )
                   })}
 
+                  {/* FORMAT SEÇİMİ — Video Banner Seçici */}
+                  <div style={{marginBottom:'5px'}}>
+                    <div style={{display:'flex',gap:0}}>
+                      {[
+                        { key: 'banabak' as const, title: 'Bana Bak', desc: 'Hiphop dans, dinamik', credit: 'Yönetmen: Ege Tül · Müzik: DFX', video: '/videos/banabak2.mp4' },
+                        { key: 'amandikkat' as const, title: 'Aman Dikkat', desc: 'Kazalar, sürprizler', credit: 'Yönetmen: Ediz Saran · Müzik: Tolga Suna', video: '/videos/oops_banner.mp4' },
+                        { key: 'dansdansdans' as const, title: 'Dans Dans Dans', desc: 'Dans dans dans', credit: 'Yönetmen: Ali Yorgancıoğlu · Müzik: Ali Yorgancıoğlu', video: '/videos/dansdansdans.mp4' },
+                      ].map(fmt => {
+                        const selected = trendFormat === fmt.key
+                        return (
+                          <div key={fmt.key} onClick={() => setTrendFormat(fmt.key)} style={{flex:1,position:'relative',cursor:'pointer',overflow:'hidden',opacity:selected?1:0.6,transition:'all 0.2s'}}>
+                            <video autoPlay muted playsInline loop src={fmt.video} style={{width:'100%',height:'auto',display:'block'}} />
+                            <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',justifyContent:'flex-start',padding:'4px 12px'}}>
+                              <div style={{color:'#fff',fontSize:'14px',fontWeight:700,letterSpacing:'-0.2px',textShadow:'0 1px 4px rgba(0,0,0,0.7)'}}>{fmt.title}</div>
+                              <div style={{color:'rgba(255,255,255,0.85)',fontSize:'10px',lineHeight:1.3,textShadow:'0 1px 3px rgba(0,0,0,0.6)'}}>{fmt.desc}</div>
+                              <div style={{color:'rgba(255,255,255,0.65)',fontSize:'10px',lineHeight:1.3,fontStyle:'italic',textShadow:'0 1px 3px rgba(0,0,0,0.6)'}}>{fmt.credit}</div>
+                            </div>
+                            {selected && <div style={{position:'absolute',top:6,right:6,width:10,height:10,borderRadius:'50%',background:'#4ade80',zIndex:2}} />}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+
                   {/* ÜRET BUTONU */}
-                  <div style={{marginTop:'16px'}}>
+                  <div>
                     <button className="dinamo-generate-btn" disabled={(clientUser?.allocated_credits||0)<1&&trendChildren.filter(c=>c.ai_video_status!=='failed').length>0} onClick={async()=>{
                       try {
                         const res = await fetch('/api/trend/generate', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({brief_id:id,client_user_id:clientUser.id,cinema_mode:trendCinema,format_type:trendFormat}) })
