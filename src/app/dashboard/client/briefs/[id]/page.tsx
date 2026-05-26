@@ -1811,9 +1811,6 @@ function ClientBriefDetail() {
 
                   {/* FORMAT SEÇİMİ — Video Banner Seçici */}
                   <div style={{margin:'0 0 16px 0'}}>
-                    <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'10px'}}>
-                      <span style={{fontSize:'8px',padding:'3px 8px',background:'rgba(93,78,195,0.12)',color:'#5d4ec3',borderRadius:'2px',fontWeight:500,letterSpacing:'0.8px'}}>AKTİF TREND</span>
-                    </div>
                     <div style={{display:'flex',gap:'8px'}}>
                       {[
                         { key: 'banabak' as const, title: 'Bana Bak', desc: 'Hiphop dans, dinamik', video: '/videos/banabak_banner.mp4' },
@@ -1827,6 +1824,7 @@ function ClientBriefDetail() {
                               <div style={{color:'#fff',fontSize:'14px',fontWeight:700,letterSpacing:'-0.2px'}}>{fmt.title}</div>
                               <div style={{color:'rgba(255,255,255,0.75)',fontSize:'10px',lineHeight:1.3}}>{fmt.desc}</div>
                             </div>
+                            {selected && <span style={{position:'absolute',top:0,left:0,zIndex:2,fontSize:'8px',padding:'3px 8px',background:'rgba(93,78,195,0.92)',color:'#fff',fontWeight:500,letterSpacing:'0.8px'}}>AKTİF TREND</span>}
                           </div>
                         )
                       })}
