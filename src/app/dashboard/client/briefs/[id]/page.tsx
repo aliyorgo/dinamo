@@ -1878,9 +1878,10 @@ function ClientBriefDetail() {
                       ].map(fmt => {
                         const selected = trendFormat === fmt.key
                         return (
-                          <div key={fmt.key} onClick={() => setTrendFormat(fmt.key)} style={{flex:1,position:'relative',cursor:'pointer',overflow:'hidden',opacity:selected?1:0.6,transition:'all 0.2s'}}>
+                          <div key={fmt.key} onClick={() => setTrendFormat(fmt.key)} style={{flex:1,position:'relative',cursor:'pointer',overflow:'hidden',transition:'all 0.2s'}}>
                             <video autoPlay muted playsInline loop src={fmt.video} style={{width:'100%',height:'auto',display:'block'}} />
-                            <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',justifyContent:'flex-start',padding:'4px 12px'}}>
+                            {!selected && <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.45)',zIndex:1,pointerEvents:'none'}} />}
+                            <div style={{position:'absolute',inset:0,zIndex:2,display:'flex',flexDirection:'column',justifyContent:'flex-start',padding:'4px 12px'}}>
                               <div style={{color:'#fff',fontSize:'14px',fontWeight:700,letterSpacing:'-0.2px',textShadow:'0 1px 4px rgba(0,0,0,0.7)'}}>{fmt.title}</div>
                               <div style={{color:'rgba(255,255,255,0.85)',fontSize:'10px',lineHeight:1.3,textShadow:'0 1px 3px rgba(0,0,0,0.6)'}}>{fmt.desc}</div>
                               <div style={{color:'rgba(255,255,255,0.65)',fontSize:'10px',lineHeight:1.3,fontStyle:'italic',textShadow:'0 1px 3px rgba(0,0,0,0.6)'}}>{fmt.credit}</div>
