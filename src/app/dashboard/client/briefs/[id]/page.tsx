@@ -1880,7 +1880,7 @@ function ClientBriefDetail() {
                         const selected = trendFormat === fmt.key
                         return (
                           <div key={fmt.key} onClick={() => setTrendFormat(fmt.key)} style={{width:'50%',position:'relative',cursor:'pointer',overflow:'hidden',transition:'all 0.2s'}}>
-                            {fmt.video ? <video autoPlay muted playsInline loop src={fmt.video} style={{width:'100%',height:'auto',display:'block'}} /> : <div style={{width:'100%',aspectRatio:'864/150',background:'#555'}} />}
+                            {fmt.video ? <video autoPlay muted playsInline loop src={fmt.video} data-banner="true" style={{width:'100%',height:'auto',display:'block'}} /> : <div style={{width:'100%',aspectRatio:'864/150',background:'#555'}} />}
                             {!selected && <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.45)',zIndex:1,pointerEvents:'none'}} />}
                             <div style={{position:'absolute',inset:0,zIndex:2,display:'flex',flexDirection:'column',justifyContent:'flex-start',padding:'4px 12px'}}>
                               <div style={{color:'#fff',fontSize:'14px',fontWeight:700,letterSpacing:'-0.2px',textShadow:'0 1px 4px rgba(0,0,0,0.7)'}}>{fmt.title}</div>
