@@ -1874,14 +1874,14 @@ function ClientBriefDetail() {
                       {[
                         { key: 'banabak' as const, title: 'Bana Bak', desc: 'Şehirli, dinamik, modern bir format.', credit: 'Yönetmen: Ali Yorgancıoğlu · Müzik: DFX', video: '/videos/banabak3.mp4' },
                         { key: 'amandikkat' as const, title: 'Ooops', desc: 'Spor, komedi, sürpriz. Mesajınızla iç içe.', credit: 'Yönetmen: Tolga Suna · Müzik: Tolga Suna', video: '/videos/oops_banner.mp4' },
-                        { key: 'dansdansdans' as const, title: 'Dans Dans Dans', desc: 'Genç ve eğlenceli, stilize bir UGC video formatı.', credit: 'Yönetmen: Ege Tül · Müzik: DFX', video: '/videos/dansdansdans.mp4' },
                         { key: 'goktengelen' as const, title: 'Gökten Gelen', desc: 'Hollywood tarzı bir trailer. Gizemli, merak uyandırıcı.', credit: 'Yönetmen: Ilgar Öztürk · Müzik: DFX', video: '/videos/gokdengelen.mp4' },
+                        { key: 'dansdansdans' as const, title: 'Dans Dans Dans', desc: 'Genç ve eğlenceli, stilize bir UGC video formatı.', credit: 'Yönetmen: Ege Tül · Müzik: DFX', video: '/videos/dansdansdans.mp4' },
                       ].map(fmt => {
                         const selected = trendFormat === fmt.key
                         return (
                           <div key={fmt.key} onClick={() => setTrendFormat(fmt.key)} onMouseEnter={e => { const layer = e.currentTarget.querySelector('[data-darken]') as HTMLElement; if (layer) layer.style.opacity = '0' }} onMouseLeave={e => { const layer = e.currentTarget.querySelector('[data-darken]') as HTMLElement; if (layer) layer.style.opacity = '1' }} style={{width:'calc(50% - 2.5px)',position:'relative',cursor:'pointer',overflow:'hidden',transition:'all 0.2s'}}>
                             {fmt.video ? <video autoPlay muted playsInline loop src={fmt.video} data-banner="true" style={{width:'100%',height:'auto',display:'block'}} /> : <div style={{width:'100%',aspectRatio:'864/150',background:'#555'}} />}
-                            {!selected && <div data-darken style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.45)',zIndex:1,pointerEvents:'none',transition:'opacity 0.2s'}} />}
+                            {!selected && <div data-darken style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.65)',zIndex:1,pointerEvents:'none',transition:'opacity 0.2s'}} />}
                             <div style={{position:'absolute',inset:0,zIndex:2,display:'flex',flexDirection:'column',justifyContent:'flex-start',padding:'4px 12px'}}>
                               <div style={{color:'#fff',fontSize:'14px',fontWeight:700,letterSpacing:'-0.2px',textShadow:'0 1px 4px rgba(0,0,0,0.7)'}}>{fmt.title}</div>
                               <div style={{color:'rgba(255,255,255,0.85)',fontSize:'10px',lineHeight:1.3,textShadow:'0 1px 3px rgba(0,0,0,0.6)'}}>{fmt.desc}</div>
