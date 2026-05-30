@@ -1881,15 +1881,16 @@ function ClientBriefDetail() {
                         return (
                           <div key={fmt.key} onClick={() => setTrendFormat(fmt.key)} onMouseEnter={e => { const layer = e.currentTarget.querySelector('[data-darken]') as HTMLElement; if (layer) layer.style.opacity = '0' }} onMouseLeave={e => { const layer = e.currentTarget.querySelector('[data-darken]') as HTMLElement; if (layer) layer.style.opacity = '1' }} style={{flex:1,position:'relative',cursor:'pointer',overflow:'hidden',transition:'all 0.2s'}}>
                             <video autoPlay muted playsInline loop src={fmt.video} data-banner="true" style={{width:'100%',aspectRatio:'1',objectFit:'cover',display:'block'}} />
-                            {!selected && <div data-darken style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.65)',zIndex:1,pointerEvents:'none',transition:'opacity 0.2s'}} />}
-                            <div style={{position:'absolute',inset:0,zIndex:2,display:'flex',flexDirection:'column',justifyContent:'space-between',padding:'6px 10px'}}>
+                            <div style={{position:'absolute',bottom:0,left:0,right:0,height:'45%',backgroundImage:'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%)',pointerEvents:'none',zIndex:1}} />
+                            {!selected && <div data-darken style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.65)',zIndex:2,pointerEvents:'none',transition:'opacity 0.2s'}} />}
+                            <div style={{position:'absolute',inset:0,zIndex:3,display:'flex',flexDirection:'column',justifyContent:'space-between',padding:'6px 10px'}}>
                               <div style={{color:'#fff',fontSize:'18px',fontWeight:700,letterSpacing:'-0.2px',textShadow:'0 1px 4px rgba(0,0,0,0.7)'}}>{fmt.title}</div>
                               <div>
                                 <div style={{color:'rgba(255,255,255,0.65)',fontSize:'11px',lineHeight:1.2,fontStyle:'italic',textShadow:'0 1px 3px rgba(0,0,0,0.6)'}}>{fmt.director}</div>
                                 <div style={{color:'rgba(255,255,255,0.65)',fontSize:'11px',lineHeight:1.2,fontStyle:'italic',textShadow:'0 1px 3px rgba(0,0,0,0.6)'}}>{fmt.music}</div>
                               </div>
                             </div>
-                            {selected && <span style={{position:'absolute',top:0,right:0,zIndex:3,fontSize:'8px',padding:'3px 8px',background:'rgba(46,213,115,0.92)',color:'#fff',fontWeight:500,letterSpacing:'0.5px'}}>Üretilecek Trend</span>}
+                            {selected && <span style={{position:'absolute',top:0,right:0,zIndex:4,fontSize:'8px',padding:'3px 8px',background:'rgba(46,213,115,0.92)',color:'#fff',fontWeight:500,letterSpacing:'0.5px'}}>Üretilecek Trend</span>}
                           </div>
                         )
                       })}
