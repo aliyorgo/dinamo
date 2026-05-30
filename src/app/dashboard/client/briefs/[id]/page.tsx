@@ -119,6 +119,7 @@ function ClientBriefDetail() {
   const [aiGenerating, setAiGenerating] = useState(false)
   const [trendCinema, setTrendCinema] = useState(false)
   const [trendFormat, setTrendFormat] = useState<'banabak' | 'amandikkat' | 'dansdansdans' | 'goktengelen'>('banabak')
+  const [trendCtaEdits, setTrendCtaEdits] = useState<Record<string, string>>({})
   const [expressInfoOpen, setExpressInfoOpen] = useState(false)
   const [cpsInfoOpen, setCpsInfoOpen] = useState(false)
   const [expressSettingsOpen, setExpressSettingsOpen] = useState(false)
@@ -335,7 +336,7 @@ function ClientBriefDetail() {
     const { count: animTotal } = await supabase.from('animation_videos').select('id', { count: 'exact', head: true }).eq('brief_id', id).neq('status', 'failed')
     setAnimationVideoCount(animTotal || 0)
     // Trend children + count
-    const { data: tc } = await supabase.from('briefs').select('id, campaign_name, status, format, ai_video_status, ai_video_url, ai_video_error, created_at, completed_at, ai_feedbacks, ai_express_settings_snapshot, ai_feedback_summary, express_engine').eq('root_campaign_id', rootId).in('express_engine', ['trend', 'trend_cinema', 'trend_oops', 'trend_dans', 'trend_gokten']).order('created_at', { ascending: true })
+    const { data: tc } = await supabase.from('briefs').select('id, campaign_name, status, format, ai_video_status, ai_video_url, ai_video_error, created_at, completed_at, ai_feedbacks, ai_express_settings_snapshot, ai_feedback_summary, express_engine, cta_text, kling_video_url, revision_count').eq('root_campaign_id', rootId).in('express_engine', ['trend', 'trend_cinema', 'trend_oops', 'trend_dans', 'trend_gokten']).order('created_at', { ascending: true })
     setTrendChildren(tc || [])
     const { count: trendTotal } = await supabase.from('briefs').select('id', { count: 'exact', head: true }).eq('root_campaign_id', rootId).in('express_engine', ['trend', 'trend_cinema', 'trend_oops', 'trend_dans', 'trend_gokten']).neq('ai_video_status', 'failed')
     setTrendVideoCount(trendTotal || 0)
@@ -402,11 +403,11 @@ function ClientBriefDetail() {
 
   // Poll Trend children for status updates (Express pattern)
   useEffect(() => {
-    const hasProcessing = trendChildren.some((c: any) => c.status === 'ai_processing' && !c.ai_video_url)
+    const hasProcessing = trendChildren.some((c: any) => (c.status === 'ai_processing' && !c.ai_video_url) || c.ai_video_status === 'revising' || c.ai_video_status === 'revising_claimed')
     if (!hasProcessing || trendChildren.length === 0) return
     const allIds = trendChildren.map((c: any) => c.id)
     const poll = setInterval(async () => {
-      const { data } = await supabase.from('briefs').select('id, status, format, ai_video_status, ai_video_url, ai_video_error, ai_feedback_summary, completed_at').in('id', allIds)
+      const { data } = await supabase.from('briefs').select('id, status, format, ai_video_status, ai_video_url, ai_video_error, ai_feedback_summary, completed_at, cta_text, revision_count').in('id', allIds)
       if (!data) return
       setTrendChildren((prev: any[]) => {
         let changed = false
@@ -422,7 +423,7 @@ function ClientBriefDetail() {
       })
     }, 3000)
     return () => clearInterval(poll)
-  }, [trendChildren.some((c: any) => c.status === 'ai_processing' && !c.ai_video_url)])
+  }, [trendChildren.some((c: any) => (c.status === 'ai_processing' && !c.ai_video_url) || c.ai_video_status === 'revising' || c.ai_video_status === 'revising_claimed')])
 
   // Timer-based auto-advance for processing children — setTimeout chain
   useEffect(() => {
@@ -1860,6 +1861,28 @@ function ClientBriefDetail() {
                             </div>
                           )}
                           {child.ai_video_error && <div style={{fontSize:'11px',color:'#dc2626',marginTop:'4px'}}>{child.ai_video_error}</div>}
+                          {/* CTA Revize */}
+                          {child.kling_video_url && hasVideo && !isFailed && (() => {
+                            const isRevising = child.ai_video_status === 'revising' || child.ai_video_status === 'revising_claimed'
+                            const editedCta = trendCtaEdits[child.id] ?? child.cta_text ?? ''
+                            const unchanged = editedCta.trim() === (child.cta_text || '').trim()
+                            return (
+                              <div style={{marginTop:'10px',padding:'8px 0',borderTop:'1px solid #eee'}}>
+                                <div style={{fontSize:'10px',color:'#888',marginBottom:'4px',fontWeight:500}}>CTA{child.revision_count > 0 ? ` (${child.revision_count}x revize)` : ''}</div>
+                                <textarea value={editedCta} onChange={e => setTrendCtaEdits(prev => ({...prev, [child.id]: e.target.value}))} disabled={isRevising} maxLength={200} rows={2} style={{width:'100%',fontSize:'11px',padding:'6px 8px',border:'1px solid #e5e4db',resize:'none',boxSizing:'border-box',opacity:isRevising?0.5:1}} />
+                                <button disabled={isRevising || unchanged || !editedCta.trim()} onClick={async () => {
+                                  try {
+                                    const res = await fetch('/api/trend/revise', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ briefId: child.id, newCtaText: editedCta.trim() }) })
+                                    const data = await res.json()
+                                    if (!res.ok) { alert(data.error || 'Hata'); return }
+                                    setTrendChildren((prev: any[]) => prev.map(c => c.id === child.id ? {...c, ai_video_status: 'revising', cta_text: editedCta.trim()} : c))
+                                  } catch { alert('Bağlantı hatası') }
+                                }} style={{marginTop:'4px',padding:'4px 12px',fontSize:'10px',fontWeight:500,background:isRevising?'#ddd':'#0a0a0a',color:'#fff',border:'none',cursor:isRevising||unchanged?'not-allowed':'pointer'}}>
+                                  {isRevising ? 'Revize ediliyor...' : 'Revize Et'}
+                                </button>
+                              </div>
+                            )
+                          })()}
                         </div>
                       </div>
                     )
