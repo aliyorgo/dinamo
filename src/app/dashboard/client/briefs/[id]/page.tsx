@@ -1833,6 +1833,12 @@ function ClientBriefDetail() {
                               <span style={{fontSize:'8px',color:'#555'}}>Geçici sistem hatası</span>
                             </div>
                           )}
+                          {(child.ai_video_status === 'revising' || child.ai_video_status === 'revising_claimed') && (
+                            <div style={{position:'absolute',inset:0,zIndex:10,background:'rgba(0,0,0,0.65)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'8px'}}>
+                              <div style={{width:28,height:28,border:'3px solid rgba(255,255,255,0.2)',borderTop:'3px solid #fff',borderRadius:'50%',animation:'spin 1s linear infinite'}} />
+                              <div style={{fontSize:'12px',color:'#fff',fontWeight:500}}>Revize ediliyor...</div>
+                            </div>
+                          )}
                         </div>
                         {/* Sağ: Info + CTA Revize */}
                         <div style={{flex:1,minWidth:0,paddingTop:'4px',display:'flex',flexDirection:'column'}}>
