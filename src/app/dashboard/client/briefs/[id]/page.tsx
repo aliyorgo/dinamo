@@ -1859,9 +1859,6 @@ function ClientBriefDetail() {
                               )}
                             </div>
                           )}
-                          {child.ai_express_settings_snapshot?.placard_text && (
-                            <div style={{padding:'6px 10px',background:'rgba(0,0,0,0.03)',borderRadius:'3px',fontSize:'11px',color:'#666',marginBottom:'6px'}}>Pankart: <em>&quot;{child.ai_express_settings_snapshot.placard_text}&quot;</em></div>
-                          )}
                           {child.ai_video_error && <div style={{fontSize:'11px',color:'#dc2626',marginTop:'4px'}}>{child.ai_video_error}</div>}
                         </div>
                       </div>
