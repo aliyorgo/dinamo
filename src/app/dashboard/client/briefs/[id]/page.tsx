@@ -1820,32 +1820,62 @@ function ClientBriefDetail() {
                       <div key={child.id} id={`trend-child-${child.id}`} style={{display:'flex',gap:'14px',padding:'14px',marginBottom:'8px',border:'1px solid var(--color-border-tertiary)',background:'#fff',alignItems:'flex-start',transition:'background 0.15s'}}
                         onMouseEnter={e=>{e.currentTarget.style.background='var(--color-background-secondary)'}}
                         onMouseLeave={e=>{e.currentTarget.style.background='#fff'}}>
-                        {/* Video */}
-                        <div style={{width:((f: string)=>f==='16:9'?'360px':f==='1:1'?'300px':f==='4:5'?'240px':'200px')(child.format||'9:16'),aspectRatio:child.format==='16:9'?'1920/1038':(child.format||'9:16').replace(':','/'),background:'#0a0a0a',flexShrink:0,position:'relative',overflow:'hidden'}}>
-                          {hasVideo ? (
-                            <video key={child.ai_video_url} src={child.ai_video_url} controls controlsList="nodownload noplaybackrate" disablePictureInPicture preload="metadata" onPlay={e => { pauseOtherVideos(e.currentTarget); markTrendChildViewed(child.id) }} style={{width:'100%',height:'100%',objectFit:'contain',display:'block'}} />
-                          ) : isProcessing ? (
-                            <ProcessingPlaceholder />
-                          ) : (
-                            <div style={{width:'100%',height:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'6px'}}>
-                              <span style={{fontSize:'20px',color:'#555'}}>&#9888;</span>
-                              <span style={{fontSize:'10px',color:'#999',fontWeight:'500'}}>Üretilemedi</span>
-                              <span style={{fontSize:'8px',color:'#555'}}>Geçici sistem hatası</span>
-                            </div>
-                          )}
+                        {/* Sol: Video + CTA Revize */}
+                        <div style={{width:((f: string)=>f==='16:9'?'360px':f==='1:1'?'300px':f==='4:5'?'240px':'200px')(child.format||'9:16'),flexShrink:0}}>
+                          <div style={{aspectRatio:child.format==='16:9'?'1920/1038':(child.format||'9:16').replace(':','/'),background:'#0a0a0a',position:'relative',overflow:'hidden'}}>
+                            {hasVideo ? (
+                              <video key={child.ai_video_url} src={child.ai_video_url} controls controlsList="nodownload noplaybackrate" disablePictureInPicture preload="metadata" onPlay={e => { pauseOtherVideos(e.currentTarget); markTrendChildViewed(child.id) }} style={{width:'100%',height:'100%',objectFit:'contain',display:'block'}} />
+                            ) : isProcessing ? (
+                              <ProcessingPlaceholder />
+                            ) : (
+                              <div style={{width:'100%',height:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'6px'}}>
+                                <span style={{fontSize:'20px',color:'#555'}}>&#9888;</span>
+                                <span style={{fontSize:'10px',color:'#999',fontWeight:'500'}}>Üretilemedi</span>
+                                <span style={{fontSize:'8px',color:'#555'}}>Geçici sistem hatası</span>
+                              </div>
+                            )}
+                          </div>
+                          {child.kling_video_url && hasVideo && !isFailed && (() => {
+                            const isRevising = child.ai_video_status === 'revising' || child.ai_video_status === 'revising_claimed'
+                            const ctaFallback = child.cta_text || child.ai_express_settings_snapshot?.placard_text || child.ai_express_settings_snapshot?.voiceover_blocks?.block3 || child.ai_express_settings_snapshot?.cta_text || ''
+                            const editedCta = trendCtaEdits[child.id] ?? ctaFallback
+                            const unchanged = editedCta.trim() === ctaFallback.trim()
+                            return (
+                              <div style={{marginTop:'8px'}}>
+                                <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'4px'}}>
+                                  <span style={{fontSize:'12px',fontWeight:600,color:'#0a0a0a'}}>Hızlı CTA Revize</span>
+                                  <span style={{fontSize:'10px',fontStyle:'italic',color:'#bbb'}}>~ 15 sn</span>
+                                </div>
+                                <div style={{display:'flex',borderRadius:'8px',border:'1px solid #e0dfd8',overflow:'hidden',opacity:isRevising?0.5:1,transition:'opacity 0.2s'}}>
+                                  <input value={editedCta} onChange={e => setTrendCtaEdits(prev => ({...prev, [child.id]: e.target.value}))} disabled={isRevising} maxLength={200} placeholder="CTA metni..." style={{flex:1,fontSize:'11px',padding:'7px 10px',border:'none',outline:'none',background:'#fff',color:'#0a0a0a',minWidth:0}} />
+                                  <button disabled={isRevising || unchanged || !editedCta.trim()} onClick={async () => {
+                                    try {
+                                      const res = await fetch('/api/trend/revise', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ briefId: child.id, newCtaText: editedCta.trim() }) })
+                                      const data = await res.json()
+                                      if (!res.ok) { alert(data.error || 'Hata'); return }
+                                      setTrendChildren((prev: any[]) => prev.map(c => c.id === child.id ? {...c, ai_video_status: 'revising', cta_text: editedCta.trim()} : c))
+                                    } catch { alert('Bağlantı hatası') }
+                                  }} style={{padding:'7px 12px',background:isRevising||unchanged?'#e5e4db':'#22c55e',color:'#fff',border:'none',borderLeft:'1px solid #e0dfd8',cursor:isRevising||unchanged?'not-allowed':'pointer',transition:'background 0.15s',display:'flex',alignItems:'center'}}>
+                                    {isRevising ? <span style={{width:12,height:12,border:'2px solid #999',borderTop:'2px solid transparent',borderRadius:'50%',animation:'spin 0.8s linear infinite',display:'inline-block'}} /> : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>}
+                                  </button>
+                                </div>
+                              </div>
+                            )
+                          })()}
+                          {!child.kling_video_url && hasVideo && !isFailed && <div style={{marginTop:'6px',fontSize:'9px',color:'#ccc',fontStyle:'italic'}}>Bu video revize edilemiyor (eski sürüm)</div>}
                         </div>
-                        {/* Info */}
+                        {/* Sağ: Info */}
                         <div style={{flex:1,minWidth:0,paddingTop:'4px'}}>
-                          <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'4px'}}>
+                          <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'6px'}}>
                             <span style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>V{idx+1}</span>
                             {isPurchased && <span style={{fontSize:'9px',color:'#1DB81D',fontWeight:'600'}}>&#10003; Satin Alindi</span>}
                             {isProcessing && <span style={{fontSize:'9px',fontWeight:'500',display:'inline-flex',alignItems:'center',gap:'4px'}}><span style={{width:'6px',height:'6px',background:'#4ade80',display:'inline-block',borderRadius:'50%',animation:'pulse 1.5s ease infinite'}}></span><span style={{color:'#0a0a0a'}}>Uretiliyor</span> <span style={{color:'#6b6b66'}}>(~4 dakika)</span></span>}
                             {isFailed && <span style={{fontSize:'9px',color:'#ef4444',fontWeight:'500'}}>Basarisiz</span>}
                             <span style={{marginLeft:'6px',fontSize:'9px',padding:'2px 6px',background:'#e8e1ff',color:'#5d4ec3',borderRadius:'3px',letterSpacing:'0.5px',fontWeight:500,textTransform:'uppercase'}}>{child.express_engine==='trend_oops'?'Top Sektirme':child.express_engine==='trend_dans'?'O Zaman Dans':child.express_engine==='trend_gokten'?'Gökten Gelen':'Bana Bak'}</span>
                           </div>
-                          <div style={{fontSize:'11px',color:'#888',marginBottom:'10px'}}>{new Date(child.created_at).toLocaleDateString('tr-TR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}{child.completed_at && <><span style={{margin:'0 8px',color:'#ccc'}}>|</span><span style={{color:'#aaa'}}>{formatDuration(child.created_at, child.completed_at)}</span></>}</div>
+                          <div style={{fontSize:'11px',color:'#888',marginBottom:'14px'}}>{new Date(child.created_at).toLocaleDateString('tr-TR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}{child.completed_at && <><span style={{margin:'0 8px',color:'#ccc'}}>|</span><span style={{color:'#aaa'}}>{formatDuration(child.created_at, child.completed_at)}</span></>}</div>
                           {hasVideo && !isFailed && (
-                            <div style={{display:'flex',gap:'6px',flexWrap:'wrap',marginBottom:'8px'}}>
+                            <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
                               {isPurchased ? (
                                 <button onClick={()=>downloadFile(child.ai_video_url, `dinamo_${slugify(companyName)}_trend_v${idx+1}.mp4`)}
                                   style={{fontSize:'11px',color:'#0a0a0a',background:'none',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'6px',padding:'5px 12px',display:'inline-flex',alignItems:'center',gap:'4px',cursor:'pointer'}}>
@@ -1860,37 +1890,7 @@ function ClientBriefDetail() {
                               )}
                             </div>
                           )}
-                          {child.ai_video_error && <div style={{fontSize:'11px',color:'#dc2626',marginTop:'4px'}}>{child.ai_video_error}</div>}
-                          {!child.kling_video_url && hasVideo && !isFailed && <div style={{marginTop:'8px',fontSize:'10px',color:'#bbb',fontStyle:'italic'}}>Bu video revize edilemiyor (eski sürüm)</div>}
-                          {/* CTA Revize */}
-                          {child.kling_video_url && hasVideo && !isFailed && (() => {
-                            const isRevising = child.ai_video_status === 'revising' || child.ai_video_status === 'revising_claimed'
-                            const ctaFallback = child.cta_text || child.ai_express_settings_snapshot?.placard_text || child.ai_express_settings_snapshot?.voiceover_blocks?.block3 || child.ai_express_settings_snapshot?.cta_text || ''
-                            const editedCta = trendCtaEdits[child.id] ?? ctaFallback
-                            const unchanged = editedCta.trim() === ctaFallback.trim()
-                            return (
-                              <div style={{marginTop:'10px'}}>
-                                <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'5px'}}>
-                                  <span style={{fontSize:'14px',fontWeight:600,color:'#0a0a0a'}}>Hızlı CTA Revize</span>
-                                  <span style={{fontSize:'11px',fontStyle:'italic',color:'#aaa'}}>~ 15 sn</span>
-                                  {child.revision_count > 0 && <span style={{fontSize:'9px',color:'#999'}}>({child.revision_count}x)</span>}
-                                </div>
-                                <div style={{display:'flex',borderRadius:'10px',border:'1px solid #e5e4db',overflow:'hidden',opacity:isRevising?0.6:1,transition:'opacity 0.2s'}}>
-                                  <input value={editedCta} onChange={e => setTrendCtaEdits(prev => ({...prev, [child.id]: e.target.value}))} disabled={isRevising} maxLength={200} placeholder="CTA metni..." style={{flex:1,fontSize:'12px',padding:'8px 12px',border:'none',outline:'none',background:'transparent',color:'#0a0a0a'}} />
-                                  <button disabled={isRevising || unchanged || !editedCta.trim()} onClick={async () => {
-                                    try {
-                                      const res = await fetch('/api/trend/revise', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ briefId: child.id, newCtaText: editedCta.trim() }) })
-                                      const data = await res.json()
-                                      if (!res.ok) { alert(data.error || 'Hata'); return }
-                                      setTrendChildren((prev: any[]) => prev.map(c => c.id === child.id ? {...c, ai_video_status: 'revising', cta_text: editedCta.trim()} : c))
-                                    } catch { alert('Bağlantı hatası') }
-                                  }} style={{padding:'8px 14px',fontSize:'11px',fontWeight:600,background:isRevising||unchanged?'#e5e4db':'#0a0a0a',color:isRevising||unchanged?'#999':'#fff',border:'none',borderLeft:'1px solid #e5e4db',cursor:isRevising||unchanged?'not-allowed':'pointer',whiteSpace:'nowrap',transition:'background 0.15s'}}>
-                                    {isRevising ? '...' : '→'}
-                                  </button>
-                                </div>
-                              </div>
-                            )
-                          })()}
+                          {child.ai_video_error && <div style={{fontSize:'11px',color:'#dc2626',marginTop:'8px'}}>{child.ai_video_error}</div>}
                         </div>
                       </div>
                     )
