@@ -1872,10 +1872,10 @@ function ClientBriefDetail() {
                   <div style={{marginBottom:'5px'}}>
                     <div style={{display:'flex',gap:'5px'}}>
                       {[
-                        { key: 'banabak' as const, title: 'Bana Bak', desc: 'Şehirli, dinamik, modern bir format.', video: '/videos/trend01.mp4' },
-                        { key: 'amandikkat' as const, title: 'Top Sektirme', desc: 'Spor, komedi, sürpriz. Mesajınızla iç içe.', video: '/videos/trend02.mp4' },
-                        { key: 'dansdansdans' as const, title: 'O Zaman Dans', desc: 'Genç ve eğlenceli, stilize bir UGC video formatı.', video: '/videos/trend03.mp4' },
-                        { key: 'goktengelen' as const, title: 'Gökten Gelen', desc: 'Hollywood tarzı bir trailer. Gizemli, merak uyandırıcı.', video: '/videos/trend04.mp4' },
+                        { key: 'banabak' as const, title: 'Bana Bak', director: 'Yönetmen: Ali Yorgancıoğlu', music: 'Müzik: DFX', video: '/videos/trend01.mp4' },
+                        { key: 'amandikkat' as const, title: 'Top Sektirme', director: 'Yönetmen: Tolga Suna', music: 'Müzik: Tolga Suna', video: '/videos/trend02.mp4' },
+                        { key: 'dansdansdans' as const, title: 'O Zaman Dans', director: 'Yönetmen: Ege Tül', music: 'Müzik: DFX', video: '/videos/trend03.mp4' },
+                        { key: 'goktengelen' as const, title: 'Gökten Gelen', director: 'Yönetmen: Ilgar Öztürk', music: 'Müzik: DFX', video: '/videos/trend04.mp4' },
                       ].map(fmt => {
                         const selected = trendFormat === fmt.key
                         return (
@@ -1884,7 +1884,10 @@ function ClientBriefDetail() {
                             {!selected && <div data-darken style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.65)',zIndex:1,pointerEvents:'none',transition:'opacity 0.2s'}} />}
                             <div style={{position:'absolute',inset:0,zIndex:2,display:'flex',flexDirection:'column',justifyContent:'space-between',padding:'6px 10px'}}>
                               <div style={{color:'#fff',fontSize:'18px',fontWeight:700,letterSpacing:'-0.2px',textShadow:'0 1px 4px rgba(0,0,0,0.7)'}}>{fmt.title}</div>
-                              <div style={{color:'rgba(255,255,255,0.85)',fontSize:'12px',lineHeight:1.3,textShadow:'0 1px 3px rgba(0,0,0,0.6)'}}>{fmt.desc}</div>
+                              <div>
+                                <div style={{color:'rgba(255,255,255,0.65)',fontSize:'11px',lineHeight:1.2,fontStyle:'italic',textShadow:'0 1px 3px rgba(0,0,0,0.6)'}}>{fmt.director}</div>
+                                <div style={{color:'rgba(255,255,255,0.65)',fontSize:'11px',lineHeight:1.2,fontStyle:'italic',textShadow:'0 1px 3px rgba(0,0,0,0.6)'}}>{fmt.music}</div>
+                              </div>
                             </div>
                             {selected && <span style={{position:'absolute',top:0,right:0,zIndex:3,fontSize:'8px',padding:'3px 8px',background:'rgba(46,213,115,0.92)',color:'#fff',fontWeight:500,letterSpacing:'0.5px'}}>Üretilecek Trend</span>}
                           </div>
