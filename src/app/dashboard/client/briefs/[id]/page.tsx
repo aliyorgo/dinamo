@@ -1870,7 +1870,11 @@ function ClientBriefDetail() {
                             const unchanged = editedCta.trim() === ctaFallback.trim()
                             return (
                               <div style={{marginTop:'10px'}}>
-                                <div style={{fontSize:'9px',color:'#999',marginBottom:'3px',letterSpacing:'0.5px'}}>CTA{child.revision_count > 0 ? ` · ${child.revision_count}x revize` : ''}</div>
+                                <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'5px'}}>
+                                  <span style={{fontSize:'14px',fontWeight:600,color:'#0a0a0a'}}>Hızlı CTA Revize</span>
+                                  <span style={{fontSize:'11px',fontStyle:'italic',color:'#aaa'}}>~ 15 sn</span>
+                                  {child.revision_count > 0 && <span style={{fontSize:'9px',color:'#999'}}>({child.revision_count}x)</span>}
+                                </div>
                                 <div style={{display:'flex',borderRadius:'10px',border:'1px solid #e5e4db',overflow:'hidden',opacity:isRevising?0.6:1,transition:'opacity 0.2s'}}>
                                   <input value={editedCta} onChange={e => setTrendCtaEdits(prev => ({...prev, [child.id]: e.target.value}))} disabled={isRevising} maxLength={200} placeholder="CTA metni..." style={{flex:1,fontSize:'12px',padding:'8px 12px',border:'none',outline:'none',background:'transparent',color:'#0a0a0a'}} />
                                   <button disabled={isRevising || unchanged || !editedCta.trim()} onClick={async () => {
