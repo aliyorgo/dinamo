@@ -1864,22 +1864,25 @@ function ClientBriefDetail() {
                           {/* CTA Revize */}
                           {child.kling_video_url && hasVideo && !isFailed && (() => {
                             const isRevising = child.ai_video_status === 'revising' || child.ai_video_status === 'revising_claimed'
-                            const editedCta = trendCtaEdits[child.id] ?? child.cta_text ?? ''
-                            const unchanged = editedCta.trim() === (child.cta_text || '').trim()
+                            const ctaFallback = child.cta_text || child.ai_express_settings_snapshot?.placard_text || child.ai_express_settings_snapshot?.voiceover_blocks?.block3 || child.ai_express_settings_snapshot?.cta_text || ''
+                            const editedCta = trendCtaEdits[child.id] ?? ctaFallback
+                            const unchanged = editedCta.trim() === ctaFallback.trim()
                             return (
-                              <div style={{marginTop:'10px',padding:'8px 0',borderTop:'1px solid #eee'}}>
-                                <div style={{fontSize:'10px',color:'#888',marginBottom:'4px',fontWeight:500}}>CTA{child.revision_count > 0 ? ` (${child.revision_count}x revize)` : ''}</div>
-                                <textarea value={editedCta} onChange={e => setTrendCtaEdits(prev => ({...prev, [child.id]: e.target.value}))} disabled={isRevising} maxLength={200} rows={2} style={{width:'100%',fontSize:'11px',padding:'6px 8px',border:'1px solid #e5e4db',resize:'none',boxSizing:'border-box',opacity:isRevising?0.5:1}} />
-                                <button disabled={isRevising || unchanged || !editedCta.trim()} onClick={async () => {
-                                  try {
-                                    const res = await fetch('/api/trend/revise', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ briefId: child.id, newCtaText: editedCta.trim() }) })
-                                    const data = await res.json()
-                                    if (!res.ok) { alert(data.error || 'Hata'); return }
-                                    setTrendChildren((prev: any[]) => prev.map(c => c.id === child.id ? {...c, ai_video_status: 'revising', cta_text: editedCta.trim()} : c))
-                                  } catch { alert('Bağlantı hatası') }
-                                }} style={{marginTop:'4px',padding:'4px 12px',fontSize:'10px',fontWeight:500,background:isRevising?'#ddd':'#0a0a0a',color:'#fff',border:'none',cursor:isRevising||unchanged?'not-allowed':'pointer'}}>
-                                  {isRevising ? 'Revize ediliyor...' : 'Revize Et'}
-                                </button>
+                              <div style={{marginTop:'10px'}}>
+                                <div style={{fontSize:'9px',color:'#999',marginBottom:'3px',letterSpacing:'0.5px'}}>CTA{child.revision_count > 0 ? ` · ${child.revision_count}x revize` : ''}</div>
+                                <div style={{display:'flex',borderRadius:'10px',border:'1px solid #e5e4db',overflow:'hidden',opacity:isRevising?0.6:1,transition:'opacity 0.2s'}}>
+                                  <input value={editedCta} onChange={e => setTrendCtaEdits(prev => ({...prev, [child.id]: e.target.value}))} disabled={isRevising} maxLength={200} placeholder="CTA metni..." style={{flex:1,fontSize:'12px',padding:'8px 12px',border:'none',outline:'none',background:'transparent',color:'#0a0a0a'}} />
+                                  <button disabled={isRevising || unchanged || !editedCta.trim()} onClick={async () => {
+                                    try {
+                                      const res = await fetch('/api/trend/revise', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ briefId: child.id, newCtaText: editedCta.trim() }) })
+                                      const data = await res.json()
+                                      if (!res.ok) { alert(data.error || 'Hata'); return }
+                                      setTrendChildren((prev: any[]) => prev.map(c => c.id === child.id ? {...c, ai_video_status: 'revising', cta_text: editedCta.trim()} : c))
+                                    } catch { alert('Bağlantı hatası') }
+                                  }} style={{padding:'8px 14px',fontSize:'11px',fontWeight:600,background:isRevising||unchanged?'#e5e4db':'#0a0a0a',color:isRevising||unchanged?'#999':'#fff',border:'none',borderLeft:'1px solid #e5e4db',cursor:isRevising||unchanged?'not-allowed':'pointer',whiteSpace:'nowrap',transition:'background 0.15s'}}>
+                                    {isRevising ? '...' : '→'}
+                                  </button>
+                                </div>
                               </div>
                             )
                           })()}
