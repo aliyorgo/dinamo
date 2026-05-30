@@ -1883,12 +1883,10 @@ function ClientBriefDetail() {
                             <video autoPlay muted playsInline loop src={fmt.video} data-banner="true" style={{width:'100%',aspectRatio:'1',objectFit:'cover',display:'block'}} />
                             <div style={{position:'absolute',bottom:0,left:0,right:0,height:'45%',backgroundImage:'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%)',pointerEvents:'none',zIndex:1}} />
                             {!selected && <div data-darken style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.65)',zIndex:2,pointerEvents:'none',transition:'opacity 0.2s'}} />}
-                            <div style={{position:'absolute',inset:0,zIndex:3,display:'flex',flexDirection:'column',justifyContent:'space-between',padding:'6px 10px'}}>
-                              <div style={{color:'#fff',fontSize:'18px',fontWeight:700,letterSpacing:'-0.2px',textShadow:'0 1px 4px rgba(0,0,0,0.7)'}}>{fmt.title}</div>
-                              <div>
-                                <div style={{color:'rgba(255,255,255,0.65)',fontSize:'11px',lineHeight:1.2,fontStyle:'italic',textShadow:'0 1px 3px rgba(0,0,0,0.6)'}}>{fmt.director}</div>
-                                <div style={{color:'rgba(255,255,255,0.65)',fontSize:'11px',lineHeight:1.2,fontStyle:'italic',textShadow:'0 1px 3px rgba(0,0,0,0.6)'}}>{fmt.music}</div>
-                              </div>
+                            <div style={{position:'absolute',inset:0,zIndex:3,display:'flex',flexDirection:'column',justifyContent:'flex-end',padding:'6px 10px'}}>
+                              <div style={{color:'#fff',fontSize:'17px',fontWeight:700,letterSpacing:'-0.2px',textShadow:'0 1px 4px rgba(0,0,0,0.7)',marginBottom:'2px'}}>{fmt.title}</div>
+                              <div style={{color:'rgba(255,255,255,0.65)',fontSize:'11px',lineHeight:1.2,fontStyle:'italic',textShadow:'0 1px 3px rgba(0,0,0,0.6)'}}>{fmt.director}</div>
+                              <div style={{color:'rgba(255,255,255,0.65)',fontSize:'11px',lineHeight:1.2,fontStyle:'italic',textShadow:'0 1px 3px rgba(0,0,0,0.6)'}}>{fmt.music}</div>
                             </div>
                             {selected && <span style={{position:'absolute',top:0,right:0,zIndex:4,fontSize:'8px',padding:'3px 8px',background:'rgba(46,213,115,0.92)',color:'#fff',fontWeight:500,letterSpacing:'0.5px'}}>Üretilecek Trend</span>}
                           </div>
