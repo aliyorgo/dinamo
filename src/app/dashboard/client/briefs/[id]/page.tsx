@@ -1861,6 +1861,7 @@ function ClientBriefDetail() {
                             </div>
                           )}
                           {child.ai_video_error && <div style={{fontSize:'11px',color:'#dc2626',marginTop:'4px'}}>{child.ai_video_error}</div>}
+                          {!child.kling_video_url && hasVideo && !isFailed && <div style={{marginTop:'8px',fontSize:'10px',color:'#bbb',fontStyle:'italic'}}>Bu video revize edilemiyor (eski sürüm)</div>}
                           {/* CTA Revize */}
                           {child.kling_video_url && hasVideo && !isFailed && (() => {
                             const isRevising = child.ai_video_status === 'revising' || child.ai_video_status === 'revising_claimed'
