@@ -1888,7 +1888,7 @@ function ClientBriefDetail() {
                               <div style={{color:'rgba(255,255,255,0.65)',fontSize:'11px',lineHeight:1.2,fontStyle:'italic',textShadow:'0 1px 3px rgba(0,0,0,0.6)'}}>{fmt.director}</div>
                               <div style={{color:'rgba(255,255,255,0.65)',fontSize:'11px',lineHeight:1.2,fontStyle:'italic',textShadow:'0 1px 3px rgba(0,0,0,0.6)'}}>{fmt.music}</div>
                             </div>
-                            {selected && <span style={{position:'absolute',top:0,right:0,zIndex:4,fontSize:'8px',padding:'3px 8px',background:'rgba(46,213,115,0.92)',color:'#fff',fontWeight:500,letterSpacing:'0.5px'}}>Üretilecek Trend</span>}
+                            {selected && <div style={{position:'absolute',top:6,right:6,zIndex:4,width:22,height:22,borderRadius:'50%',background:'rgba(46,213,115,0.92)',display:'flex',alignItems:'center',justifyContent:'center'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="5 12 10 17 19 7" /></svg></div>}
                           </div>
                         )
                       })}
