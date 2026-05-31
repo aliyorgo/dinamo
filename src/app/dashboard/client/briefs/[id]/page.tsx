@@ -310,7 +310,7 @@ function ClientBriefDetail() {
     // AI clones for this campaign (root_campaign_id based)
     const rootId = b?.root_campaign_id || b?.id
     const { data: aiKids } = await supabase.from('briefs')
-      .select('id, campaign_name, status, format, ai_video_status, ai_video_url, ai_video_error, product_image_url, created_at, completed_at, ai_feedbacks, static_images_url, static_image_files, ai_express_viewed_at, ai_express_settings_snapshot, ai_feedback_summary, express_engine, pre_cta_video_url, cta_text, revision_count')
+      .select('id, campaign_name, status, format, ai_video_status, ai_video_url, ai_video_error, product_image_url, created_at, completed_at, ai_feedbacks, static_images_url, static_image_files, ai_express_viewed_at, ai_express_settings_snapshot, ai_feedback_summary, express_engine, pre_cta_video_url, cta_text, cta, revision_count')
       .eq('root_campaign_id', rootId)
       .like('campaign_name', '%Full AI%')
       .order('created_at', { ascending: true })
@@ -384,7 +384,7 @@ function ClientBriefDetail() {
     if (!hasProcessing || aiChildren.length === 0) return
     const allIds = aiChildren.map(c => c.id)
     const poll = setInterval(async () => {
-      const { data } = await supabase.from('briefs').select('id, status, format, ai_video_status, ai_video_url, ai_video_error, ai_feedback_summary, completed_at, pre_cta_video_url, cta_text, revision_count').in('id', allIds)
+      const { data } = await supabase.from('briefs').select('id, status, format, ai_video_status, ai_video_url, ai_video_error, ai_feedback_summary, completed_at, pre_cta_video_url, cta_text, cta, revision_count').in('id', allIds)
       if (!data) return
       setAiChildren(prev => {
         let changed = false
@@ -1537,7 +1537,7 @@ function ClientBriefDetail() {
                               </div>
                             )
                           })()}
-                          {hasVideo && !isFailed && <CTAReviseBox videoId={child.id} engine="express" currentCtaText={child.cta_text} preCtaVideoUrl={child.pre_cta_video_url} status={child.ai_video_status} ctaEnabled={expressSettings?.cta !== false} onStatusChange={s => setAiChildren(prev => prev.map(c => c.id === child.id ? {...c, ai_video_status: s} : c))} />}
+                          {hasVideo && !isFailed && <CTAReviseBox videoId={child.id} engine="express" currentCtaText={child.cta_text || child.cta || ''} preCtaVideoUrl={child.pre_cta_video_url} status={child.ai_video_status} ctaEnabled={expressSettings?.cta !== false} onStatusChange={s => setAiChildren(prev => prev.map(c => c.id === child.id ? {...c, ai_video_status: s} : c))} />}
                         </div>
                       </div>
                     )
@@ -1885,7 +1885,7 @@ function ClientBriefDetail() {
                               <div style={{marginTop:'auto',paddingTop:'12px'}}>
                                 <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'4px'}}>
                                   <span style={{fontSize:'12px',fontWeight:600,color:'#0a0a0a'}}>Hızlı CTA Revize</span>
-                                  <span style={{fontSize:'10px',fontStyle:'italic',color:'#bbb'}}>~ 15 sn</span>
+                                  <span style={{fontSize:'10px',fontStyle:'italic',color:'#bbb'}}>~ 15 sn - Ücretsiz</span>
                                 </div>
                                 <div style={{display:'flex',borderRadius:'8px',border:'1px solid #e0dfd8',overflow:'hidden',opacity:isRevising?0.5:1,transition:'opacity 0.2s',maxWidth:'400px'}}>
                                   <input value={editedCta} onChange={e => setTrendCtaEdits(prev => ({...prev, [child.id]: e.target.value}))} disabled={isRevising} maxLength={200} placeholder="CTA metni..." style={{flex:1,fontSize:'12px',padding:'8px 12px',border:'none',outline:'none',background:'#fff',color:'#0a0a0a',minWidth:0}} />
