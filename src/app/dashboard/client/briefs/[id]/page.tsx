@@ -1412,6 +1412,12 @@ function ClientBriefDetail() {
                                 onPlay={e => { pauseOtherVideos(e.currentTarget); markAiChildViewed(child.id) }}
                                 style={{width:'100%',height:'100%',objectFit:'contain',display:'block'}} />
                               {!isPurchased && <img src="/dinamo_logo.png" alt="" style={{position:'absolute',top:'14px',left:'14px',width:'60px',opacity:0.65,pointerEvents:'none'}} />}
+                              {(child.ai_video_status === 'revising' || child.ai_video_status === 'revising_claimed') && (
+                                <div style={{position:'absolute',inset:0,zIndex:10,background:'rgba(0,0,0,0.65)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'8px'}}>
+                                  <div style={{width:28,height:28,border:'3px solid rgba(255,255,255,0.2)',borderTop:'3px solid #fff',borderRadius:'50%',animation:'spin 1s linear infinite'}} />
+                                  <div style={{fontSize:'12px',color:'#fff',fontWeight:500}}>Revize ediliyor...</div>
+                                </div>
+                              )}
                             </>
                           ) : isProcessing ? (
                             <ProcessingPlaceholder />
@@ -1891,7 +1897,7 @@ function ClientBriefDetail() {
                                       setTrendChildren((prev: any[]) => prev.map(c => c.id === child.id ? {...c, ai_video_status: 'revising', cta_text: editedCta.trim()} : c))
                                     } catch { alert('Bağlantı hatası') }
                                   }} style={{padding:'8px 14px',background:isRevising||unchanged?'#e5e4db':'#22c55e',color:'#fff',border:'none',borderLeft:'1px solid #e0dfd8',cursor:isRevising||unchanged?'not-allowed':'pointer',transition:'background 0.15s',display:'flex',alignItems:'center'}}>
-                                    {isRevising ? <span style={{width:12,height:12,border:'2px solid #999',borderTop:'2px solid transparent',borderRadius:'50%',animation:'spin 0.8s linear infinite',display:'inline-block'}} /> : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>}
+                                    {isRevising ? <span style={{width:20,height:20,border:'2.5px solid #999',borderTop:'2.5px solid transparent',borderRadius:'50%',animation:'spin 0.8s linear infinite',display:'inline-block'}} /> : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>}
                                   </button>
                                 </div>
                               </div>

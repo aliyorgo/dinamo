@@ -39,7 +39,7 @@ export default function CTAReviseBox({ videoId, engine, currentCtaText, preCtaVi
             onStatusChange?.('revising')
           } catch { alert('Bağlantı hatası') }
         }} style={{padding:'8px 14px',background:isRevising||unchanged?'#e5e4db':'#22c55e',color:'#fff',border:'none',borderLeft:'1px solid #e0dfd8',cursor:isRevising||unchanged?'not-allowed':'pointer',transition:'background 0.15s',display:'flex',alignItems:'center'}}>
-          {isRevising ? <span style={{width:12,height:12,border:'2px solid #999',borderTop:'2px solid transparent',borderRadius:'50%',animation:'spin 0.8s linear infinite',display:'inline-block'}} /> : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>}
+          {isRevising ? <span style={{width:20,height:20,border:'2.5px solid #999',borderTop:'2.5px solid transparent',borderRadius:'50%',animation:'spin 0.8s linear infinite',display:'inline-block'}} /> : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>}
         </button>
       </div>
     </div>

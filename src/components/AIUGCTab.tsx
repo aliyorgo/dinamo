@@ -495,6 +495,12 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
                   <>
                     <video src={video.final_url} controls controlsList="nodownload noplaybackrate" disablePictureInPicture preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'contain', backgroundColor: 'black' }} onPlay={e => { pauseOtherVideos(e.currentTarget); markUgcVideoViewed(video.id) }} />
                     {!isPurchased && <img src="/dinamo_logo.png" alt="" style={{ position: 'absolute', top: '14px', left: '14px', width: '60px', opacity: 0.65, pointerEvents: 'none' }} />}
+                    {(video.status === 'revising' || video.status === 'revising_claimed') && (
+                      <div style={{ position: 'absolute', inset: 0, zIndex: 10, background: 'rgba(0,0,0,0.65)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                        <div style={{ width: 28, height: 28, border: '3px solid rgba(255,255,255,0.2)', borderTop: '3px solid #fff', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                        <div style={{ fontSize: '12px', color: '#fff', fontWeight: 500 }}>Revize ediliyor...</div>
+                      </div>
+                    )}
                   </>
                 ) : isProcessing ? (
                   <ProcessingPlaceholder />
