@@ -5,6 +5,7 @@ import { UGCSettings, DEFAULT_SETTINGS } from './UGCSettingsModal'
 import { UGC_MAX_CHARS } from '@/lib/ai-ugc-rules'
 import { generateUgcCertificatePDF } from '@/lib/generate-certificate'
 import ProcessingPlaceholder from '@/components/ProcessingPlaceholder'
+import CTAReviseBox from '@/components/CTAReviseBox'
 import { downloadFile } from '@/lib/download-helper'
 import { pauseOtherVideos } from '@/lib/video-playback'
 import StaticImageGeneratorModal from '@/components/StaticImageGeneratorModal'
@@ -134,7 +135,7 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
   }, [ugcVideos, loading])
 
   // Global polling — processing video varsa 8sn'de bir tüm listeyi fresh fetch
-  const hasProcessingVideos = ugcVideos.some(v => v.status === 'queued' || v.status === 'generating')
+  const hasProcessingVideos = ugcVideos.some(v => ['queued','generating','revising','revising_claimed'].includes(v.status))
   useEffect(() => {
     if (!hasProcessingVideos) return
     const poll = setInterval(async () => {
@@ -581,6 +582,7 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
                     )}
                   </div>
                 )}
+                {hasVideo && !isFailed && <CTAReviseBox videoId={video.id} engine="persona" currentCtaText={video.cta_text} preCtaVideoUrl={video.pre_cta_video_url} status={video.status} ctaEnabled={settings?.cta !== false} onStatusChange={s => setUgcVideos(prev => prev.map(v => v.id === video.id ? {...v, status: s} : v))} />}
 
                 {/* Lock appearance toggle — anchor based */}
                 {hasVideo && !isFailed && (() => {

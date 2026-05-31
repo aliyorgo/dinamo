@@ -4,6 +4,7 @@ import { getSupabaseBrowser } from '@/lib/supabase-browser'
 import { downloadFile } from '@/lib/download-helper'
 import { pauseOtherVideos } from '@/lib/video-playback'
 import ProcessingPlaceholder from '@/components/ProcessingPlaceholder'
+import CTAReviseBox from '@/components/CTAReviseBox'
 import { generateCertificatePDF } from '@/lib/generate-certificate'
 
 const supabase = getSupabaseBrowser()
@@ -70,7 +71,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
   }, [animationVideos, loading])
 
   // Polling
-  const hasProcessing = animationVideos.some(v => v.status === 'queued' || v.status === 'generating')
+  const hasProcessing = animationVideos.some(v => ['queued','generating','revising','revising_claimed'].includes(v.status))
   useEffect(() => {
     if (!hasProcessing) return
     const poll = setInterval(async () => {
@@ -392,6 +393,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
                     ) : null}
                   </div>
                 )}
+                {hasVideo && !isFailed && <CTAReviseBox videoId={video.id} engine="animation" currentCtaText={video.cta_text} preCtaVideoUrl={video.pre_cta_video_url} status={video.status} ctaEnabled={animSettings?.cta_enabled !== false} onStatusChange={s => setAnimationVideos(prev => prev.map(v => v.id === video.id ? {...v, status: s} : v))} />}
               </div>
             </div>
           )

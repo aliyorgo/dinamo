@@ -16,6 +16,7 @@ import { downloadFile } from '@/lib/download-helper'
 import { useCredits } from '@/lib/credits'
 import { useClientContext } from '../../layout'
 import ProcessingPlaceholder from '@/components/ProcessingPlaceholder'
+import CTAReviseBox from '@/components/CTAReviseBox'
 
 const supabase = getSupabaseBrowser()
 
@@ -309,7 +310,7 @@ function ClientBriefDetail() {
     // AI clones for this campaign (root_campaign_id based)
     const rootId = b?.root_campaign_id || b?.id
     const { data: aiKids } = await supabase.from('briefs')
-      .select('id, campaign_name, status, format, ai_video_status, ai_video_url, ai_video_error, product_image_url, created_at, completed_at, ai_feedbacks, static_images_url, static_image_files, ai_express_viewed_at, ai_express_settings_snapshot, ai_feedback_summary, express_engine')
+      .select('id, campaign_name, status, format, ai_video_status, ai_video_url, ai_video_error, product_image_url, created_at, completed_at, ai_feedbacks, static_images_url, static_image_files, ai_express_viewed_at, ai_express_settings_snapshot, ai_feedback_summary, express_engine, pre_cta_video_url, cta_text, revision_count')
       .eq('root_campaign_id', rootId)
       .like('campaign_name', '%Full AI%')
       .order('created_at', { ascending: true })
@@ -383,7 +384,7 @@ function ClientBriefDetail() {
     if (!hasProcessing || aiChildren.length === 0) return
     const allIds = aiChildren.map(c => c.id)
     const poll = setInterval(async () => {
-      const { data } = await supabase.from('briefs').select('id, status, format, ai_video_status, ai_video_url, ai_video_error, ai_feedback_summary, completed_at').in('id', allIds)
+      const { data } = await supabase.from('briefs').select('id, status, format, ai_video_status, ai_video_url, ai_video_error, ai_feedback_summary, completed_at, pre_cta_video_url, cta_text, revision_count').in('id', allIds)
       if (!data) return
       setAiChildren(prev => {
         let changed = false
@@ -1530,6 +1531,7 @@ function ClientBriefDetail() {
                               </div>
                             )
                           })()}
+                          {hasVideo && !isFailed && <CTAReviseBox videoId={child.id} engine="express" currentCtaText={child.cta_text} preCtaVideoUrl={child.pre_cta_video_url} status={child.ai_video_status} ctaEnabled={expressSettings?.cta !== false} onStatusChange={s => setAiChildren(prev => prev.map(c => c.id === child.id ? {...c, ai_video_status: s} : c))} />}
                         </div>
                       </div>
                     )
