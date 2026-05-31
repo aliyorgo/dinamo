@@ -1888,7 +1888,7 @@ function ClientBriefDetail() {
                                   <span style={{fontSize:'10px',fontStyle:'italic',color:'#bbb'}}>~ 15 sn - Ücretsiz</span>
                                 </div>
                                 <div style={{display:'flex',borderRadius:'8px',border:'1px solid #e0dfd8',overflow:'hidden',opacity:isRevising?0.5:1,transition:'opacity 0.2s',maxWidth:'400px'}}>
-                                  <input value={editedCta} onChange={e => setTrendCtaEdits(prev => ({...prev, [child.id]: e.target.value}))} disabled={isRevising} maxLength={200} placeholder="CTA metni..." style={{flex:1,fontSize:'12px',padding:'8px 12px',border:'none',outline:'none',background:'#fff',color:'#0a0a0a',minWidth:0}} />
+                                  <input value={editedCta} onChange={e => setTrendCtaEdits(prev => ({...prev, [child.id]: e.target.value}))} disabled={isRevising} maxLength={200} autoComplete="off" placeholder="CTA metni..." style={{flex:1,fontSize:'12px',padding:'8px 12px',border:'none',outline:'none',background:'#fff',color:'#0a0a0a',minWidth:0}} />
                                   <button disabled={isRevising || unchanged || !editedCta.trim()} onClick={async () => {
                                     try {
                                       const res = await fetch('/api/trend/revise', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ briefId: child.id, newCtaText: editedCta.trim() }) })
@@ -1929,7 +1929,7 @@ function ClientBriefDetail() {
                               <div style={{color:'rgba(255,255,255,0.65)',fontSize:'11px',lineHeight:1.2,fontStyle:'italic',textShadow:'0 1px 3px rgba(0,0,0,0.6)'}}>{fmt.director}</div>
                               <div style={{color:'rgba(255,255,255,0.65)',fontSize:'11px',lineHeight:1.2,fontStyle:'italic',textShadow:'0 1px 3px rgba(0,0,0,0.6)'}}>{fmt.music}</div>
                             </div>
-                            {selected && <div style={{position:'absolute',top:6,right:6,zIndex:4,width:22,height:22,borderRadius:'50%',background:'rgba(46,213,115,0.92)',display:'flex',alignItems:'center',justifyContent:'center'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="5 12 10 17 19 7" /></svg></div>}
+                            {selected && <svg width="24" height="24" viewBox="0 0 24 24" style={{position:'absolute',top:6,right:6,zIndex:4}}><circle cx="12" cy="12" r="11" fill="rgba(46,213,115,0.92)" /><path d="M7 12 L10.5 15.5 L17 9" stroke="#fff" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>}
                           </div>
                         )
                       })}

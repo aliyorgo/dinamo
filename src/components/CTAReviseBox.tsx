@@ -30,7 +30,7 @@ export default function CTAReviseBox({ videoId, engine, currentCtaText, preCtaVi
         <span style={{fontSize:'10px',fontStyle:'italic',color:'#bbb'}}>~ 15 sn - Ücretsiz</span>
       </div>
       <div style={{display:'flex',borderRadius:'8px',border:'1px solid #e0dfd8',overflow:'hidden',opacity:isRevising?0.5:1,transition:'opacity 0.2s',maxWidth:'400px'}}>
-        <input value={editedCta} onChange={e => setEditedCta(e.target.value)} disabled={isRevising} maxLength={200} placeholder="CTA metni..." style={{flex:1,fontSize:'12px',padding:'8px 12px',border:'none',outline:'none',background:'#fff',color:'#0a0a0a',minWidth:0}} />
+        <input value={editedCta} onChange={e => setEditedCta(e.target.value)} disabled={isRevising} maxLength={200} autoComplete="off" placeholder="CTA metni..." style={{flex:1,fontSize:'12px',padding:'8px 12px',border:'none',outline:'none',background:'#fff',color:'#0a0a0a',minWidth:0}} />
         <button disabled={isRevising || unchanged || !editedCta.trim()} onClick={async () => {
           try {
             const res = await fetch('/api/cta/revise', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ videoId, engine, newCtaText: editedCta.trim() }) })
