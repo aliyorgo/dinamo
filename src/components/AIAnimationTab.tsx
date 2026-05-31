@@ -336,7 +336,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
                     {!isPurchased && <img src="/dinamo_logo.png" alt="" style={{ position: 'absolute', top: '14px', left: '14px', width: '60px', opacity: 0.65, pointerEvents: 'none' }} />}
                     {(video.status === 'revising' || video.status === 'revising_claimed') && (
                       <div style={{ position: 'absolute', inset: 0, zIndex: 10, background: 'rgba(0,0,0,0.65)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                        <div style={{ width: 28, height: 28, border: '3px solid rgba(255,255,255,0.2)', borderTop: '3px solid #fff', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                        <svg width="28" height="28" viewBox="0 0 50 50" style={{ animation: 'spin 1s linear infinite' }}><circle cx="25" cy="25" r="20" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="5" /><circle cx="25" cy="25" r="20" fill="none" stroke="#fff" strokeWidth="5" strokeDasharray="80 50" strokeLinecap="round" /></svg>
                         <div style={{ fontSize: '12px', color: '#fff', fontWeight: 500 }}>Revize ediliyor...</div>
                       </div>
                     )}
