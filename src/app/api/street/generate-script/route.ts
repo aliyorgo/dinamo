@@ -36,10 +36,12 @@ KURALLAR:
 
 VATANDAŞ TİPLERİ:
 - Gerçekçi İstanbul sokak insanı. Çeşitli yaş, cinsiyet, görünüm.
-- Kıyafet, aksesuar, fiziksel özellik detaylı yaz (Veo prompt'a gidecek).
 - 3 vatandaş birbirinden FARKLI tip olsun (genç/orta yaş/yaşlı veya erkek/kadın karışık).
+- KRİTİK: citizen type alanını İNGİLİZCE yaz (video üretim motoruna gidecek görsel tarif). Kıyafet, yaş, fiziksel özellik İngilizce detaylı.
+  Örnek: "Young professional woman in her late 20s, business casual blazer, dark hair pulled back, urban commuter look"
+  YANLIŞ: "Genç İş Kadını (30-35 yaş, minimalist giyim)" ← Türkçe tip YAZMA
 
-TÜM DİYALOGLAR TÜRKÇE (ş, ç, ğ, ı, ö, ü dahil). Doğal günlük konuşma dili.
+DİYALOGLAR TÜRKÇE (ş, ç, ğ, ı, ö, ü dahil). Doğal günlük konuşma dili. Type İNGİLİZCE, dialogue TÜRKÇE.
 
 CRITICAL: Output MUST be ONLY raw JSON. No markdown, no backticks.
 FORMAT:
