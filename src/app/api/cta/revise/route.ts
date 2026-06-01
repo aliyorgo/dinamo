@@ -27,6 +27,12 @@ export async function POST(req: NextRequest) {
       if (!video.pre_cta_video_url) return NextResponse.json({ error: 'Revize için hazırlanmamış' }, { status: 400 })
       if (video.status === 'revising' || video.status === 'revising_claimed') return NextResponse.json({ error: 'Zaten işleniyor' }, { status: 409 })
       await supabase.from('animation_videos').update({ cta_text: newCtaText.trim(), status: 'revising' }).eq('id', videoId)
+    } else if (engine === 'street') {
+      const { data: video } = await supabase.from('street_videos').select('id, pre_cta_video_url, status').eq('id', videoId).single()
+      if (!video) return NextResponse.json({ error: 'Video bulunamadı' }, { status: 404 })
+      if (!video.pre_cta_video_url) return NextResponse.json({ error: 'Revize için hazırlanmamış' }, { status: 400 })
+      if (video.status === 'revising' || video.status === 'revising_claimed') return NextResponse.json({ error: 'Zaten işleniyor' }, { status: 409 })
+      await supabase.from('street_videos').update({ cta_text: newCtaText.trim(), status: 'revising' }).eq('id', videoId)
     } else {
       return NextResponse.json({ error: 'Geçersiz engine' }, { status: 400 })
     }
