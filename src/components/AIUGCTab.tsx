@@ -588,7 +588,7 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
                     )}
                   </div>
                 )}
-                {hasVideo && !isFailed && <CTAReviseBox videoId={video.id} engine="persona" currentCtaText={video.cta_text} preCtaVideoUrl={video.pre_cta_video_url} status={video.status} ctaEnabled={settings?.cta !== false} onStatusChange={s => setUgcVideos(prev => prev.map(v => v.id === video.id ? {...v, status: s} : v))} />}
+                {hasVideo && !isFailed && <CTAReviseBox videoId={video.id} engine="persona" currentCtaText={video.cta_text || brief?.cta || ''} preCtaVideoUrl={video.pre_cta_video_url} status={video.status} ctaEnabled={settings?.cta !== false} onStatusChange={s => setUgcVideos(prev => prev.map(v => v.id === video.id ? {...v, status: s} : v))} />}
 
                 {/* Lock appearance toggle — anchor based */}
                 {hasVideo && !isFailed && (() => {

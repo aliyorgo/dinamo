@@ -399,7 +399,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
                     ) : null}
                   </div>
                 )}
-                {hasVideo && !isFailed && <CTAReviseBox videoId={video.id} engine="animation" currentCtaText={video.cta_text} preCtaVideoUrl={video.pre_cta_video_url} status={video.status} ctaEnabled={animSettings?.cta_enabled !== false} onStatusChange={s => setAnimationVideos(prev => prev.map(v => v.id === video.id ? {...v, status: s} : v))} />}
+                {hasVideo && !isFailed && <CTAReviseBox videoId={video.id} engine="animation" currentCtaText={video.cta_text || brief?.cta || ''} preCtaVideoUrl={video.pre_cta_video_url} status={video.status} ctaEnabled={animSettings?.cta_enabled !== false} onStatusChange={s => setAnimationVideos(prev => prev.map(v => v.id === video.id ? {...v, status: s} : v))} />}
               </div>
             </div>
           )
