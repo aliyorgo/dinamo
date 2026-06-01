@@ -595,7 +595,7 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
                   const isAnchor = brief?.locked_anchor_video_id === video.id
                   return (
                     <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: '#fff', border: '1px solid #e5e4db', maxWidth: '280px' }}>
-                      <span style={{ fontSize: '11px', fontWeight: '500', letterSpacing: '0.08em', textTransform: 'uppercase', color: isAnchor ? '#0a0a0a' : '#3a3a3a' }}>BU TİPİ FİKSLE</span>
+                      <span style={{ fontSize: '11px', fontWeight: '500', letterSpacing: '0.08em', textTransform: 'uppercase', color: isAnchor ? '#0a0a0a' : '#3a3a3a' }}>PERSONAYI SABİTLE</span>
                       <button onClick={async () => {
                         await fetch('/api/ugc/lock-appearance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, video_id: video.id, locked: !isAnchor }) })
                         const { data: fb } = await supabase.from('briefs').select('locked_persona_appearance, locked_anchor_video_id, locked_anchor_persona_id').eq('id', briefId).single()
