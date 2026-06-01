@@ -235,7 +235,7 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
             setScriptText(data.dialogue)
             setOverlayText(data.overlay_text || '')
             setChangesSummary(data.changes_summary || '')
-            const updated = { ...ugcScriptsRef.current, [String(selectedPersona)]: { dialogue: data.dialogue, overlay_text: data.overlay_text || '' } }
+            const updated = { ...ugcScriptsRef.current, [String(selectedPersona)]: { dialogue: data.dialogue, overlay_text: data.overlay_text || '', setup_choice: data.setup_choice || 'selfie_bedroom' } }
             setUgcScripts(updated)
             persistUgcScripts(updated)
           }
@@ -324,7 +324,7 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
           setScriptText(finalScript)
           setOverlayText(scriptData.overlay_text || readOverlayText(ugcScripts, selectedPersona))
           setChangesSummary(finalSummary)
-          const updated = { ...ugcScripts, [String(selectedPersona)]: { dialogue: finalScript, overlay_text: scriptData.overlay_text || readOverlayText(ugcScripts, selectedPersona) } }
+          const updated = { ...ugcScripts, [String(selectedPersona)]: { dialogue: finalScript, overlay_text: scriptData.overlay_text || readOverlayText(ugcScripts, selectedPersona), setup_choice: scriptData.setup_choice || 'selfie_bedroom' } }
           setUgcScripts(updated)
           persistUgcScripts(updated)
         }
@@ -332,7 +332,7 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
     }
 
     try {
-      const scriptPayload = { dialogue: finalScript }
+      const scriptPayload = { dialogue: finalScript, setup_choice: ugcScripts[String(selectedPersona)]?.setup_choice || 'selfie_bedroom' }
       const genRes = await fetch('/api/ugc/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: selectedPersona, use_product: false, script: scriptPayload, settings, changes_summary: finalSummary }) })
       const genData = await genRes.json()
       if (genData.ugc_video_id) {
@@ -652,10 +652,10 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
                     </div>
                   ) : (
                     <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-                      <textarea value={scriptText} onChange={e => { if (e.target.value.length <= UGC_MAX_CHARS) setScriptText(e.target.value) }} onBlur={() => { if (!selectedPersona || scriptText === readScript(ugcScripts, selectedPersona)) return; const updated = { ...ugcScripts, [String(selectedPersona)]: { dialogue: scriptText, overlay_text: readOverlayText(ugcScripts, selectedPersona) } }; setUgcScripts(updated); persistUgcScripts(updated) }} placeholder={scriptLoading ? 'Üretiliyor...' : 'Bu persona için konuşma metni henüz üretilmedi. Butona basın veya buraya yazın.'} style={{ width: '100%', flex: 1, minHeight: '80px', fontSize: '18px', color: '#0a0a0a', lineHeight: 1.5, border: '1px solid #e5e4db', padding: '10px 12px', resize: 'none', boxSizing: 'border-box' }} />
+                      <textarea value={scriptText} onChange={e => { if (e.target.value.length <= UGC_MAX_CHARS) setScriptText(e.target.value) }} onBlur={() => { if (!selectedPersona || scriptText === readScript(ugcScripts, selectedPersona)) return; const updated = { ...ugcScripts, [String(selectedPersona)]: { ...ugcScripts[String(selectedPersona)], dialogue: scriptText, overlay_text: readOverlayText(ugcScripts, selectedPersona) } }; setUgcScripts(updated); persistUgcScripts(updated) }} placeholder={scriptLoading ? 'Üretiliyor...' : 'Bu persona için konuşma metni henüz üretilmedi. Butona basın veya buraya yazın.'} style={{ width: '100%', flex: 1, minHeight: '80px', fontSize: '18px', color: '#0a0a0a', lineHeight: 1.5, border: '1px solid #e5e4db', padding: '10px 12px', resize: 'none', boxSizing: 'border-box' }} />
                       <div style={{ marginTop: '8px' }}>
                         <div style={{ fontSize: '11px', fontWeight: 600, color: '#8a8a82', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Ekran Yazısı</div>
-                        <input type="text" value={overlayText} onChange={e => setOverlayText(e.target.value)} onBlur={() => { if (!selectedPersona || overlayText === readOverlayText(ugcScripts, selectedPersona)) return; const updated = { ...ugcScripts, [String(selectedPersona)]: { dialogue: readScript(ugcScripts, selectedPersona), overlay_text: overlayText } }; setUgcScripts(updated); persistUgcScripts(updated) }} placeholder="Videoda görünecek kısa yazı — üretimde otomatik oluşur" style={{ width: '100%', fontSize: '14px', color: '#0a0a0a', border: '1px solid #e5e4db', padding: '8px 12px', boxSizing: 'border-box' }} />
+                        <input type="text" value={overlayText} onChange={e => setOverlayText(e.target.value)} onBlur={() => { if (!selectedPersona || overlayText === readOverlayText(ugcScripts, selectedPersona)) return; const updated = { ...ugcScripts, [String(selectedPersona)]: { ...ugcScripts[String(selectedPersona)], dialogue: readScript(ugcScripts, selectedPersona), overlay_text: overlayText } }; setUgcScripts(updated); persistUgcScripts(updated) }} placeholder="Videoda görünecek kısa yazı — üretimde otomatik oluşur" style={{ width: '100%', fontSize: '14px', color: '#0a0a0a', border: '1px solid #e5e4db', padding: '8px 12px', boxSizing: 'border-box' }} />
                       </div>
                       {(() => {
                         const isTextEmpty = !scriptText.trim()
@@ -670,7 +670,7 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
                             try {
                               const res = await fetch('/api/ugc/generate-script', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, persona_id: selectedPersona, use_product: false, settings, previous_feedbacks: feedbacks }) })
                               const data = await res.json()
-                              if (data.dialogue) { setScriptText(data.dialogue); setOverlayText(data.overlay_text || ''); setChangesSummary(data.changes_summary || ''); const updated = { ...ugcScripts, [String(selectedPersona)]: { dialogue: data.dialogue, overlay_text: data.overlay_text || '' } }; setUgcScripts(updated); persistUgcScripts(updated) }
+                              if (data.dialogue) { setScriptText(data.dialogue); setOverlayText(data.overlay_text || ''); setChangesSummary(data.changes_summary || ''); const updated = { ...ugcScripts, [String(selectedPersona)]: { dialogue: data.dialogue, overlay_text: data.overlay_text || '', setup_choice: data.setup_choice || 'selfie_bedroom' } }; setUgcScripts(updated); persistUgcScripts(updated) }
                               else { setMsg(data.error || 'Script üretilemedi') }
                             } catch { setMsg('Bağlantı hatası') }
                             setScriptLoading(false)

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getClaudeModel } from '@/lib/claude-model'
+import { SETUP_IDS } from '@/lib/ugc_setups'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
@@ -65,9 +66,40 @@ OVERLAY TEXT KURALLARI:
 - YAZIM: Normal Turkce yazim. Cumle ilk harfi buyuk, ozel isimler buyuk harfle. Tamami kucuk harf YAZMA.
 - Dialogue ile AYNI cumleyi tekrarlama — overlay text farkli, tamamlayici olsun.
 
+━━━ SAHNE/SETUP SEÇİMİ ━━━
+Brief mesajına, ürüne ve personaya bakarak aşağıdaki listeden EN UYGUN setup'ı seç:
+${SETUP_IDS.join(', ')}
+
+Kısa rehber:
+selfie_bedroom: klasik yatak odası selfie, çoğu konuya uyar
+kitchen_propped: yemek, mutfak ürünleri, kahve, evde günlük rutin
+couch_chill: samimi öneri, abonelik, karşılaştırma
+bedroom_night: gece tüyosu, gizli ipucu, romantik/gizemli ton
+bathroom_mirror_getready: kişisel bakım, kozmetik, sabah rutini
+mirror_full_body/mirror_bedroom/mirror_gym: kıyafet, OOTD, fitness/spor outfit
+desk_review: teknoloji, yazılım, ürün incelemesi
+balcony_morning: sakin sabah, kahve, yaşam tarzı
+walking_street/vlog_city_explore: deneyim paylaşımı, yürüyüş vlog
+gopro_walking_wide/gopro_pov_handheld/gopro_outdoor_action: enerjik vlog, geniş açı
+cafe_table: finans, hizmet karşılaştırma, sakin sohbet
+car_selfie: sigorta, otomotiv, hızlı duyuru
+rooftop_view: premium ürün, manzaralı yaşam tarzı
+chair_full_body/couch_full_body/armchair_lifestyle: tam boy, dergi/sponsorlu içerik
+office_desk/office_standing/office_chair_swivel: iş, B2B, kurumsal
+photo_studio_white/product_table_flatlay: kontrollü tanıtım, kozmetik/teknoloji inceleme
+beach_seaside/nature_park/sunset_outdoor: dış mekan, tatil, yaşam tarzı
+gym_break: spor, sağlık, fitness, enerji
+
+SETUP KURALLARI:
+- Ürün/hizmet ile setup uyumlu olsun
+- Persona ile setup uyumlu olsun (Anadolu Baba photo_studio_white seçmez; profesyonel persona gym_break daha az seçer)
+- Setup ID'sini AYNEN listede yazıldığı şekilde döndür (snake_case)
+- Belirsizse selfie_bedroom seç (güvenli default)
+- ÇEŞİTLİLİK: Aynı brief için farklı üretimlerde FARKLI setup'lar seçmeye çalış
+
 CRITICAL: Output MUST be ONLY raw JSON. First character: '{'. Last character: '}'. No markdown, no backticks, no explanation.
 
-FORMAT: {"dialogue":"140-155 char Türkçe metin","overlay_text":"max 7 kelime ekran yazisi"${feedbackBlock ? ',"changes_summary":"Müşteri yorumunda isteneni nasıl uyguladığının 1-2 cümlelik doğal Türkçe özeti. Geçmiş zaman kullan. Renk adı yaz, hex kod yazma. Max 150 karakter. ASLA feedback kelimesi kullanma, yorum de. Örnek: Yorumunuzdaki erkek karakter isteği uygulandı, sahne dış mekana taşındı."' : ''}}`
+FORMAT: {"dialogue":"140-155 char Türkçe metin","overlay_text":"max 7 kelime ekran yazisi","setup_choice":"setup_id_buraya"${feedbackBlock ? ',"changes_summary":"Müşteri yorumunda isteneni nasıl uyguladığının 1-2 cümlelik doğal Türkçe özeti. Geçmiş zaman kullan. Renk adı yaz, hex kod yazma. Max 150 karakter. ASLA feedback kelimesi kullanma, yorum de. Örnek: Yorumunuzdaki erkek karakter isteği uygulandı, sahne dış mekana taşındı."' : ''}}`
 
   const messages: any[] = [
     { role: 'user', content: `Brief: ${brief.campaign_name}\nMesaj: ${brief.message || ''}\nHedef Kitle: ${brief.target_audience || ''}\nCTA: ${brief.cta || ''}\n\nDialogue'da emoji yok, sadece Türkçe metin.\n\nJSON:` },
@@ -137,7 +169,11 @@ FORMAT: {"dialogue":"140-155 char Türkçe metin","overlay_text":"max 7 kelime e
     }
   }
 
-  return NextResponse.json({ dialogue: script.dialogue, overlay_text: script.overlay_text || '', changes_summary: script.changes_summary || '' })
+  // setup_choice validation — gecersizse default'a dus
+  const setupChoice = SETUP_IDS.includes(script.setup_choice) ? script.setup_choice : 'selfie_bedroom'
+  console.log('[GENERATE-SCRIPT] setup_choice:', script.setup_choice, '→', setupChoice)
+
+  return NextResponse.json({ dialogue: script.dialogue, overlay_text: script.overlay_text || '', setup_choice: setupChoice, changes_summary: script.changes_summary || '' })
   } catch (err: any) {
     console.error('[GENERATE-SCRIPT] FATAL:', err.message, err.stack)
     return NextResponse.json({ error: err.message }, { status: 500 })
