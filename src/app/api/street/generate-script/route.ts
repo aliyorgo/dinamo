@@ -26,14 +26,15 @@ MESAJ: ${brief.message || ''}
 CTA: ${brief.cta || ''}
 HEDEF KİTLE: ${brief.target_audience || ''}
 
-KURALLAR:
-- intro_question: maks 12-14 kelime. Host sokakta soru sorar. Doğal, samimi, merak uyandırıcı.
-- citizen_1 dialogue: KESİNLİKLE maks 12 kelime. Kısa pozitif tepki. 4 saniyeye sığmalı.
-- citizen_2 dialogue: KESİNLİKLE maks 13 kelime. Brief detayını paylaşır. 4 saniyeye sığmalı.
-- citizen_3 dialogue: KESİNLİKLE maks 18 kelime. En uzun ama ASLA 18 kelimeyi geçme. 5 saniyeye sığmalı. Eğer içerik uzunsa kısalt — cümle sayısını azalt, her cümleyi 5-6 kelimeyle sınırla.
-- outro_closing: maks 10 kelime. Host sözlü CTA.
+KRİTİK ZORUNLU KURAL — KELIME SAYISI:
+Veo Türkçe seslendirme zamanlama hassas. Kelime sayısını AŞARSAN konuşma hızlanır, anlaşılmaz olur, garip kelimeler çıkar. ZORUNLU UY:
+- intro_question: MAX 12 kelime (4sn süre için). Doğal, samimi, merak uyandırıcı.
+- citizen_1 dialogue: MAX 11 kelime (4sn için). Kısa pozitif tepki.
+- citizen_2 dialogue: MAX 11 kelime (4sn için). Brief detayını paylaşır.
+- citizen_3 dialogue: MAX 16 kelime (5sn için). En uzun ama ASLA 16 kelimeyi geçme.
+- outro_closing: MAX 9 kelime (3sn için). Host sözlü CTA.
 - cta_text: ekrana yazılacak kısa CTA (maks 5 kelime).
-KRİTİK: Kelime sayısını kontrol et. Sınırı aşan dialogue VIDEO'DA BOZUK ÇIKAR.
+Asla aş. Daha kısa OK, daha uzun YASAK. Mesajı kısalt, cümle azalt, fikri sadeleştir.
 
 VATANDAŞ TİPLERİ:
 - Gerçekçi İstanbul sokak insanı. Çeşitli yaş, cinsiyet, görünüm.
