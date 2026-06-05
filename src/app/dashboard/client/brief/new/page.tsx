@@ -596,27 +596,29 @@ function NewBriefPage() {
             </div>
           )}
 
-          {/* AI Studio — 4 TikTok kart */}
+          {/* AI Studio — 4 TikTok kart (siyah bg) */}
           {savedBriefId && (
-            <div style={{marginBottom:'32px'}}>
-              <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'14px'}}>
-                <div style={{fontSize:'16px',fontWeight:'500',color:'#0a0a0a'}}>AI Studio ile Hemen Uret</div>
-                <span style={{fontSize:'9px',padding:'2px 6px',background:'#0a4b1a',color:'#4ade80',borderRadius:'4px',letterSpacing:'0.05em',fontWeight:600}}>BETA</span>
+            <div style={{marginBottom:'32px',background:'#0a0a0a',borderRadius:'12px',padding:'32px 28px 24px'}}>
+              <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'12px',marginBottom:'28px'}}>
+                <div style={{fontSize:'18px',fontWeight:500,color:'#fff',letterSpacing:'-0.01em'}}>AI Studio ile Hemen Uret</div>
+                <span style={{fontSize:'10px',padding:'3px 8px',background:'#0a4b1a',color:'#4ade80',borderRadius:'4px',letterSpacing:'0.05em',fontWeight:600}}>BETA</span>
               </div>
-              <div style={{display:'grid',gridTemplateColumns:'repeat(4, 1fr)',gap:'10px'}}>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(4, 1fr)',gap:'14px'}}>
                 {[
-                  {key:'express',label:'AI EXPRESS',sub:'~5 dakika',video:'/express_v_tn.mp4',tab:'express'},
-                  {key:'ugc',label:'AI PERSONA',sub:'~3 dakika',video:'/ugc_v_tn.mp4',tab:'ugc'},
-                  {key:'animation',label:'AI ANIMATION',sub:'~5 dakika',video:'https://liegyfgignwepqgswxhg.supabase.co/storage/v1/object/public/videos/marketing/ai-animation/a_main_1.mp4',tab:'animation'},
-                  {key:'trend',label:'AI TREND',sub:'~6 dakika',video:'/videos/trend04.mp4',tab:'trend'},
+                  {key:'express',label:'EXPRESS',sub:'~5 dakika',video:'/express_v_tn.mp4',tab:'express'},
+                  {key:'ugc',label:'PERSONA',sub:'~3 dakika',video:'/ugc_v_tn.mp4',tab:'ugc'},
+                  {key:'animation',label:'ANIMATION',sub:'~5 dakika',video:'https://liegyfgignwepqgswxhg.supabase.co/storage/v1/object/public/videos/marketing/ai-animation/a_main_1.mp4',tab:'animation'},
+                  {key:'trend',label:'TREND',sub:'~6 dakika',video:'/videos/trend04.mp4',tab:'trend'},
                 ].map(item=>(
-                  <a key={item.key} href={`/dashboard/client/briefs/${savedBriefId}?tab=${item.tab}`} onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.transform='scale(1.03)';const ov=e.currentTarget.querySelector('[data-hover-ov]') as HTMLElement;if(ov)ov.style.opacity='1'}} onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.transform='scale(1)';const ov=e.currentTarget.querySelector('[data-hover-ov]') as HTMLElement;if(ov)ov.style.opacity='0'}} style={{position:'relative',aspectRatio:'9/16',display:'block',borderRadius:'8px',overflow:'hidden',transition:'transform 0.18s ease',textDecoration:'none'}}>
-                    <video src={item.video} autoPlay muted loop playsInline style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover'}} />
-                    <img src="/overlay2_tiktok.png" alt="" style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',pointerEvents:'none'}} />
-                    <div data-hover-ov="" style={{position:'absolute',inset:0,background:'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)',opacity:0,transition:'opacity 0.2s ease',display:'flex',flexDirection:'column',justifyContent:'flex-end',padding:'10px',color:'#fff',pointerEvents:'none'}}>
-                      <div style={{fontSize:'11px',fontWeight:600,letterSpacing:'0.05em',marginBottom:'2px'}}>{item.label}</div>
-                      <div style={{fontSize:'9px',opacity:0.8}}>{item.sub}</div>
+                  <a key={item.key} href={`/dashboard/client/briefs/${savedBriefId}?tab=${item.tab}`} style={{display:'flex',flexDirection:'column',gap:'10px',textDecoration:'none'}}>
+                    <div onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.transform='scale(1.03)';const ov=e.currentTarget.querySelector('[data-hover-ov]') as HTMLElement;if(ov)ov.style.opacity='1'}} onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.transform='scale(1)';const ov=e.currentTarget.querySelector('[data-hover-ov]') as HTMLElement;if(ov)ov.style.opacity='0'}} style={{position:'relative',aspectRatio:'9/16',borderRadius:'8px',overflow:'hidden',transition:'transform 0.2s ease'}}>
+                      <video src={item.video} autoPlay muted loop playsInline style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover'}} />
+                      <img src="/overlay2_tiktok.png" alt="" style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',pointerEvents:'none'}} />
+                      <div data-hover-ov="" style={{position:'absolute',inset:0,background:'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)',opacity:0,transition:'opacity 0.2s ease',display:'flex',flexDirection:'column',justifyContent:'flex-end',padding:'10px',color:'#fff',pointerEvents:'none'}}>
+                        <div style={{fontSize:'10px',opacity:0.85,letterSpacing:'0.05em'}}>{item.sub}</div>
+                      </div>
                     </div>
+                    <div style={{textAlign:'center',fontSize:'12px',fontWeight:500,color:'#fff',letterSpacing:'0.08em'}}>{item.label}</div>
                   </a>
                 ))}
               </div>
