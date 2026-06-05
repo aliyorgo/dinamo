@@ -532,7 +532,7 @@ export default function HomePage() {
               })}
             </div>
 
-            <div style={{ fontSize: '12px', letterSpacing: '2px', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', marginBottom: '16px', marginTop: '56px' }}>AI Studyo Formatlari</div>
+            <div style={{ fontSize: '12px', letterSpacing: '2px', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', marginBottom: '16px', marginTop: '56px' }}>AI Studio</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
               {[
                 { dur: 'Beta', name: 'AI Express', key: 'credit_ai_express', fallback: 1, prodLabel: '~5 DAKİKA' },
