@@ -66,6 +66,32 @@ export default function ClientDashboard() {
   const [showNotifs, setShowNotifs] = useState(false)
   // Activity
   const [activities, setActivities] = useState<any[]>([])
+  // AI Studio banner auto-rotate
+  const [activeEngine, setActiveEngine] = useState(0)
+  const [engineProgress, setEngineProgress] = useState(0)
+  const engineIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const engineProgressRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const ENGINES = [
+    {title:'Express',headline:'Brief gonderdiniz. Ekip calisirken yapay zeka da calisiyor.',description:'Dinamo AI Express, brief\'inizi okur. Marka tonunu, kurumsal renkleri ve hedef kitleyi analiz eder; 5 dakika icinde fikir, gorsel, Turkce seslendirme ve muzik uretir.',video:'/express_v_tn.mp4'},
+    {title:'Persona',headline:'3 dakikada AI influencer icerigi.',description:'Dinamo AI Persona, briefinizi analiz eder, uygun personayi olusturur ve gercek bir creator izlenimi yaratir. TikTok ve Reels uretimini hizlandirin.',video:'/ugc_v_tn.mp4'},
+    {title:'Animation',headline:'Markanizin maskotunu canlandirin ya da farkli animasyon stillerinde test edin.',description:'Dinamo AI Animation, brief\'inizi analiz eder; sahneyi, karakterleri, Turkce seslendirmeyi ve muzigi uretir. Studyo maliyetine girmeden fikrinizi deneyin.',video:'https://liegyfgignwepqgswxhg.supabase.co/storage/v1/object/public/videos/marketing/ai-animation/a_main_1.mp4'},
+    {title:'Trend',headline:'Profesyonel yonetmenler tarafindan curate edilmis hazir video formatlari.',description:'Telifi alinmis ozel muzikler, trendleri takip eden fikirler. Hizli, kaliteli ve tahmin edilebilir icerikler icin ideal.',video:'/videos/trend04.mp4'},
+  ]
+  const ROTATE_MS = 6000
+  useEffect(() => {
+    engineIntervalRef.current = setInterval(() => { setActiveEngine(p => (p + 1) % 4); setEngineProgress(0) }, ROTATE_MS)
+    return () => { if (engineIntervalRef.current) clearInterval(engineIntervalRef.current) }
+  }, [])
+  useEffect(() => {
+    setEngineProgress(0)
+    engineProgressRef.current = setInterval(() => { setEngineProgress(p => Math.min(p + 100 / (ROTATE_MS / 60), 100)) }, 60)
+    return () => { if (engineProgressRef.current) clearInterval(engineProgressRef.current) }
+  }, [activeEngine])
+  function handleEngineClick(idx: number) {
+    setActiveEngine(idx); setEngineProgress(0)
+    if (engineIntervalRef.current) clearInterval(engineIntervalRef.current)
+    engineIntervalRef.current = setInterval(() => { setActiveEngine(p => (p + 1) % 4); setEngineProgress(0) }, ROTATE_MS)
+  }
   // Stats
   const [totalSpent, setTotalSpent] = useState(0)
   const [aiProduced, setAiProduced] = useState(0)
@@ -594,30 +620,30 @@ export default function ClientDashboard() {
                     ))}
                   </div>
 
-                  {/* AI Studio info bolumu */}
-                  <div style={{marginTop:'64px',marginBottom:'32px',paddingTop:'48px',borderTop:'1px solid var(--color-border-tertiary)'}}>
-                    <div style={{textAlign:'center',marginBottom:'32px'}}>
+                  {/* AI Studio banner — auto-rotate */}
+                  <div style={{marginTop:'80px',marginBottom:'32px',paddingTop:'64px',borderTop:'1px solid var(--color-border-tertiary)'}}>
+                    <div style={{textAlign:'center',marginBottom:'48px'}}>
                       <div style={{fontSize:'11px',letterSpacing:'2px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'12px'}}>AI STUDIO</div>
-                      <h2 style={{fontSize:'22px',fontWeight:500,color:'var(--color-text-primary)',marginBottom:'10px',letterSpacing:'-0.01em'}}>Brief gonderdikten sonra uretim sizin elinizde</h2>
-                      <p style={{fontSize:'14px',color:'var(--color-text-secondary)',lineHeight:1.6,maxWidth:'560px',margin:'0 auto'}}>Ilk briefinizi olusturduktan sonra AI Studyosu acilir. Dort farkli motor ile saniyeler icinde videolar uretebilirsiniz.</p>
+                      <h2 style={{fontSize:'28px',fontWeight:500,color:'var(--color-text-primary)',marginBottom:'12px',letterSpacing:'-0.02em'}}>Brief gonderdikten sonra uretim sizin elinizde</h2>
+                      <p style={{fontSize:'15px',color:'var(--color-text-secondary)',lineHeight:1.6,maxWidth:'580px',margin:'0 auto'}}>Ilk briefinizi olusturduktan sonra AI Studyosu acilir. Dort farkli motorla iceriklerinizi saniyeler icinde uretebilirsiniz.</p>
                     </div>
-                    <div style={{display:'grid',gridTemplateColumns:'repeat(4, 1fr)',gap:'12px'}}>
-                      {[
-                        {title:'Express',desc:'Hizli AI video, yonlendirmenize uygun uretilir',video:'/express_v_tn.mp4'},
-                        {title:'Persona',desc:'AI influencer\'lar kampanyayi anlatsin',video:'/ugc_v_tn.mp4'},
-                        {title:'Animation',desc:'Animasyon uretin. Marka maskotunuzu kullanin',video:'https://liegyfgignwepqgswxhg.supabase.co/storage/v1/object/public/videos/marketing/ai-animation/a_main_1.mp4'},
-                        {title:'Trend',desc:'Yonetmenler tarafindan olusturulmus hazir formatlar',video:'/videos/trend04.mp4'},
-                      ].map(item=>(
-                        <div key={item.title} style={{background:'#fff',border:'1px solid #0a0a0a',overflow:'hidden',cursor:'default'}}>
-                          <div style={{position:'relative',aspectRatio:'9/16',overflow:'hidden',background:'#000'}}>
-                            <video src={item.video} autoPlay muted loop playsInline style={{width:'100%',height:'100%',objectFit:'cover'}} />
-                          </div>
-                          <div style={{padding:'14px 14px 16px'}}>
-                            <div style={{fontSize:'14px',fontWeight:600,color:'var(--color-text-primary)',marginBottom:'6px'}}>{item.title}</div>
-                            <div style={{fontSize:'12px',color:'var(--color-text-secondary)',lineHeight:1.5}}>{item.desc}</div>
-                          </div>
+                    <div style={{display:'grid',gridTemplateColumns:'380px 1fr',gap:'56px',alignItems:'center',background:'#fafaf8',border:'1px solid var(--color-border-tertiary)',padding:'32px',minHeight:'480px'}}>
+                      <div style={{position:'relative',aspectRatio:'9/16',overflow:'hidden',background:'#000'}}>
+                        {ENGINES.map((eng,idx)=>(<video key={eng.title} src={eng.video} autoPlay muted loop playsInline style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',opacity:activeEngine===idx?1:0,transition:'opacity 600ms ease'}} />))}
+                      </div>
+                      <div style={{position:'relative',minHeight:'280px'}}>
+                        {ENGINES.map((eng,idx)=>(<div key={eng.title} style={{position:idx===0?'relative':'absolute',top:0,left:0,right:0,opacity:activeEngine===idx?1:0,transition:'opacity 600ms ease',pointerEvents:activeEngine===idx?'auto':'none'}}>
+                          <div style={{fontSize:'11px',letterSpacing:'2px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'16px'}}>{eng.title}</div>
+                          <h3 style={{fontSize:'26px',fontWeight:500,color:'var(--color-text-primary)',marginBottom:'20px',lineHeight:1.3,letterSpacing:'-0.01em'}}>{eng.headline}</h3>
+                          <p style={{fontSize:'15px',color:'var(--color-text-secondary)',lineHeight:1.7}}>{eng.description}</p>
+                        </div>))}
+                        <div style={{marginTop:'40px',display:'flex',gap:'12px',alignItems:'center'}}>
+                          {ENGINES.map((eng,idx)=>(<button key={eng.title} onClick={()=>handleEngineClick(idx)} style={{flex:1,padding:'8px 0',background:'transparent',border:'none',cursor:'pointer',textAlign:'left',position:'relative'}}>
+                            <div style={{fontSize:'12px',fontWeight:activeEngine===idx?600:400,color:activeEngine===idx?'var(--color-text-primary)':'var(--color-text-tertiary)',marginBottom:'8px',transition:'color 300ms ease'}}>{eng.title}</div>
+                            <div style={{height:'2px',background:'var(--color-border-tertiary)',position:'relative',overflow:'hidden'}}><div style={{position:'absolute',left:0,top:0,bottom:0,width:activeEngine===idx?`${engineProgress}%`:(idx<activeEngine?'100%':'0%'),background:'#1db81d',transition:activeEngine===idx?'width 60ms linear':'none'}} /></div>
+                          </button>))}
                         </div>
-                      ))}
+                      </div>
                     </div>
                     <div style={{textAlign:'center',marginTop:'24px',fontSize:'12px',color:'var(--color-text-tertiary)'}}>Ilk briefinizi olusturduktan sonra bu ozelliklere erisim acilir</div>
                   </div>
