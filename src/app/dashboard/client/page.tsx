@@ -153,7 +153,7 @@ export default function ClientDashboard() {
           const { data: trendKids } = await supabase.from('briefs')
             .select('id, parent_brief_id, root_campaign_id, ai_video_status, ai_video_url, campaign_name, created_at, completed_at, ai_express_viewed_at, format, express_engine')
             .eq('client_id', clientId)
-            .in('express_engine', ['trend', 'trend_cinema'])
+            .in('express_engine', ['trend', 'trend_cinema', 'trend_oops', 'trend_dans', 'trend_gokten'])
             .neq('ai_video_status', 'failed')
           const tcMap: Record<string, number> = {}
           trendKids?.forEach((k: any) => {
