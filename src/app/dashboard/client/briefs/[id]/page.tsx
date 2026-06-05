@@ -1406,6 +1406,7 @@ function ClientBriefDetail() {
                 <div style={{background:'#fff',border:'1px solid var(--color-border-tertiary)',padding:'20px 24px',marginBottom:'16px'}}>
 
                   {/* Version list */}
+                  {aiChildren.length === 0 && <div style={{textAlign:'center',padding:'20px',color:'#888',fontSize:'13px'}}>Henuz video uretilmedi. Asagidan uret butonuna basin.</div>}
                   {aiChildren.map((child, idx) => {
                     const hasVideo = !!child.ai_video_url
                     const isPurchased = child.status === 'delivered'
@@ -1830,6 +1831,7 @@ function ClientBriefDetail() {
                   )}
 
                   {/* TREND CHILDREN VİDEO KARTLARI */}
+                  {trendChildren.length === 0 && <div style={{textAlign:'center',padding:'20px',color:'#888',fontSize:'13px'}}>Henuz video uretilmedi. Asagidan trend formati secin ve uretin.</div>}
                   {trendChildren.map((child,idx)=>{
                     const hasVideo = !!child.ai_video_url
                     const isPurchased = child.status === 'delivered'
