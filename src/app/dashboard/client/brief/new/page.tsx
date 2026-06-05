@@ -603,7 +603,7 @@ function NewBriefPage() {
             {savedBriefId && (
               <a href={`/dashboard/client/briefs/${savedBriefId}?tab=cps`} style={{textDecoration:'none',background:'#fff',border:'1px solid #0a0a0a',padding:'20px 18px',display:'flex',flexDirection:'column',cursor:'pointer',transition:'background 0.15s'}}
                 onMouseEnter={e=>{e.currentTarget.style.background='var(--color-background-secondary)'}} onMouseLeave={e=>{e.currentTarget.style.background='#fff'}}>
-                <div style={{fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'8px'}}>PAKET</div>
+                <div style={{fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'8px'}}>PERFORMANS</div>
                 <div style={{fontSize:'15px',fontWeight:'500',color:'var(--color-text-primary)',marginBottom:'6px'}}>CPS Baslat</div>
                 <div style={{fontSize:'12px',color:'var(--color-text-secondary)',lineHeight:1.5,flex:1}}>Farkli yaratici yonler paketi</div>
               </a>
