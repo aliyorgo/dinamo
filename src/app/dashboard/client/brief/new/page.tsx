@@ -630,8 +630,9 @@ function NewBriefPage() {
                   {key:'trend',label:'TREND',sub:'~6 dakika',desc:'Yonetmenler tarafindan olusturulmus hazir formatlar.',video:'/videos/trend04.mp4',tab:'trend'},
                 ].map(item=>(
                   <a key={item.key} href={`/dashboard/client/briefs/${savedBriefId}?tab=${item.tab}`} style={{display:'flex',flexDirection:'column',gap:'12px',textDecoration:'none'}}>
-                    <div onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.transform='scale(1.03)'}} onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.transform='scale(1)'}} style={{position:'relative',aspectRatio:'9/16',borderRadius:'8px',overflow:'hidden',transition:'transform 0.2s ease'}}>
+                    <div onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.transform='scale(1.03)';const wo=e.currentTarget.querySelector('[data-white-ov]') as HTMLElement;if(wo)wo.style.opacity='0'}} onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.transform='scale(1)';const wo=e.currentTarget.querySelector('[data-white-ov]') as HTMLElement;if(wo)wo.style.opacity='1'}} style={{position:'relative',aspectRatio:'9/16',borderRadius:'8px',overflow:'hidden',transition:'transform 0.2s ease'}}>
                       <video src={item.video} autoPlay muted loop playsInline style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover'}} />
+                      <div data-white-ov="" style={{position:'absolute',inset:0,background:'rgba(255,255,255,0.5)',opacity:1,transition:'opacity 0.25s ease',pointerEvents:'none'}} />
                     </div>
                     <div style={{display:'flex',flexDirection:'column',gap:'4px',padding:'0 2px'}}>
                       <div style={{fontSize:'13px',fontWeight:600,letterSpacing:'0.05em',color:'#0a0a0a'}}>{item.label}</div>
