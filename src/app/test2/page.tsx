@@ -538,7 +538,7 @@ export default function HomePage() {
                 { dur: 'Beta', name: 'AI Express', key: 'credit_ai_express', fallback: 1, prodLabel: '~5 DAKİKA' },
                 { dur: 'Beta', name: 'AI Persona', key: 'credit_ai_ugc', fallback: 1, prodLabel: '~3 DAKİKA' },
                 { dur: 'Beta', name: 'AI Animation', key: 'credit_ai_animation', fallback: 1, prodLabel: '~5 DAKİKA' },
-                { dur: 'Beta', name: 'AI Trend', key: 'credit_ai_trend', fallback: 2, prodLabel: '~5 DAKİKA' },
+                { dur: 'Beta', name: 'AI Trend', key: 'credit_ai_trend', fallback: 2, prodLabel: '~6 DAKİKA' },
               ].map((v: any) => {
                 const cr = videoCredits[v.key] || v.fallback
                 return (
