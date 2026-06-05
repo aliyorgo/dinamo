@@ -810,7 +810,7 @@ function ClientBriefDetail() {
             const aiStudioTabs = [
               expressVisible && {key:'express',label:'EXPRESS',count:aiChildren.filter(c=>c.express_engine!=='trend'&&c.express_engine!=='trend_cinema'&&c.express_engine!=='trend_oops'&&c.express_engine!=='trend_dans'&&c.express_engine!=='trend_gokten'&&c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout').length,processing:expressProcessing},
               ugcVisible && {key:'ugc',label:'PERSONA',count:ugcVideoCount,processing:ugcProcessing},
-              animationVisible && {key:'animation',label:'ANİMASYON',count:animationVideoCount,processing:animProcessing},
+              animationVisible && {key:'animation',label:'ANIMATION',count:animationVideoCount,processing:animProcessing},
               trendVisible && {key:'trend',label:'TREND',count:trendVideoCount,processing:trendProcessing},
             ].filter(Boolean) as {key:string,label:string,count:number,processing:boolean}[]
             return (
