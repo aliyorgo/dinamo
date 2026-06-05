@@ -286,8 +286,12 @@ function ClientBriefDetail() {
     setClientUser(cu)
     setCompanyName((cu as any)?.clients?.company_name || '')
     setLegalName((cu as any)?.clients?.legal_name || '')
-    const { data: b } = await supabase.from('briefs').select('*, clients(ai_video_enabled, ugc_enabled, packshots)').eq('id', id).single()
+    const { data: b } = await supabase.from('briefs').select('*, clients(ai_video_enabled, ugc_enabled, packshots, trend_formats_enabled)').eq('id', id).single()
     setBrief(b)
+    // Default trendFormat to first enabled format
+    const tfe = (b as any)?.clients?.trend_formats_enabled
+    const firstEnabled = (['banabak', 'amandikkat', 'dansdansdans', 'goktengelen'] as const).find(k => tfe?.[k] !== false) || 'banabak'
+    setTrendFormat(firstEnabled)
     // Aspect-aware packshot: ONLY check packshots JSONB for this brief's aspect (no legacy fallback in UI)
     const clientPackshots = (cu as any)?.clients?.packshots || {}
     const briefAspect = (b?.format || '9:16').replace(':', 'x')
@@ -1913,16 +1917,18 @@ function ClientBriefDetail() {
 
                   {/* FORMAT SEÇİMİ — Video Banner Seçici */}
                   <div style={{marginBottom:'5px'}}>
-                    <div style={{display:'flex',gap:'5px'}}>
+                    <div style={{display:'grid',gridTemplateColumns:'repeat(4, 1fr)',gap:'5px'}}>
                       {[
                         { key: 'banabak' as const, title: 'Bana Bak', director: 'Yönetmen: Ali Yorgancıoğlu', music: 'Müzik: DFX', video: '/videos/trend01.mp4' },
                         { key: 'amandikkat' as const, title: 'Top Sektirme', director: 'Yönetmen: Tolga Suna', music: 'Müzik: Tolga Suna', video: '/videos/trend02.mp4' },
                         { key: 'dansdansdans' as const, title: 'O Zaman Dans', director: 'Yönetmen: Ege Tül', music: 'Müzik: DFX', video: '/videos/trend03.mp4' },
                         { key: 'goktengelen' as const, title: 'Gökten Gelen', director: 'Yönetmen: Ilgar Öztürk', music: 'Müzik: DFX', video: '/videos/trend04.mp4' },
                       ].map(fmt => {
+                        const fmtEnabled = brief?.clients?.trend_formats_enabled?.[fmt.key] !== false
+                        if (!fmtEnabled) return <div key={fmt.key} />
                         const selected = trendFormat === fmt.key
                         return (
-                          <div key={fmt.key} onClick={() => setTrendFormat(fmt.key)} onMouseEnter={e => { const layer = e.currentTarget.querySelector('[data-darken]') as HTMLElement; if (layer) layer.style.opacity = '0' }} onMouseLeave={e => { const layer = e.currentTarget.querySelector('[data-darken]') as HTMLElement; if (layer) layer.style.opacity = '1' }} style={{flex:1,position:'relative',cursor:'pointer',overflow:'hidden',transition:'all 0.2s'}}>
+                          <div key={fmt.key} onClick={() => setTrendFormat(fmt.key)} onMouseEnter={e => { const layer = e.currentTarget.querySelector('[data-darken]') as HTMLElement; if (layer) layer.style.opacity = '0' }} onMouseLeave={e => { const layer = e.currentTarget.querySelector('[data-darken]') as HTMLElement; if (layer) layer.style.opacity = '1' }} style={{position:'relative',cursor:'pointer',overflow:'hidden',transition:'all 0.2s'}}>
                             <video autoPlay muted playsInline loop src={fmt.video} data-banner="true" style={{width:'100%',aspectRatio:'1',objectFit:'cover',display:'block'}} />
                             <div style={{position:'absolute',bottom:0,left:0,right:0,height:'45%',backgroundImage:'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%)',pointerEvents:'none',zIndex:1}} />
                             {!selected && <div data-darken style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.65)',zIndex:2,pointerEvents:'none',transition:'opacity 0.2s'}} />}

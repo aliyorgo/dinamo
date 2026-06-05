@@ -1138,6 +1138,36 @@ export default function ClientDetailPage() {
                     <span style={{ position: 'absolute', top: '3px', left: client?.ugc_enabled ? '23px' : '3px', width: '18px', height: '18px', borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }}></span>
                   </button>
                 </div>
+                <div style={{ marginTop: '16px', padding: '12px', background: 'rgba(0,0,0,0.02)', borderRadius: '8px' }}>
+                  <div style={{ fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}>AI Trend Formatlari</div>
+                  {[
+                    { key: 'banabak', label: 'Bana Bak' },
+                    { key: 'amandikkat', label: 'Top Sektirme' },
+                    { key: 'dansdansdans', label: 'O Zaman Dans' },
+                    { key: 'goktengelen', label: 'Gokten Gelen' },
+                  ].map(fmt => {
+                    const fmtEnabled = client?.trend_formats_enabled?.[fmt.key] !== false
+                    const activeCount = ['banabak', 'amandikkat', 'dansdansdans', 'goktengelen'].filter(k => client?.trend_formats_enabled?.[k] !== false).length
+                    const isLastOne = fmtEnabled && activeCount === 1
+                    return (
+                      <div key={fmt.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+                        <div>
+                          <div style={{ fontSize: '11px' }}>{fmt.label}</div>
+                          {isLastOne && <div style={{ fontSize: '9px', color: '#888' }}>En az 1 format aktif olmali</div>}
+                        </div>
+                        <button disabled={isLastOne} onClick={async () => {
+                          if (isLastOne) return
+                          const newFormats = { ...(client?.trend_formats_enabled || { banabak: true, amandikkat: true, dansdansdans: true, goktengelen: true }), [fmt.key]: !fmtEnabled }
+                          await supabase.from('clients').update({ trend_formats_enabled: newFormats }).eq('id', clientId)
+                          setClient((prev: any) => ({ ...prev, trend_formats_enabled: newFormats }))
+                          showMsg(fmtEnabled ? `${fmt.label} kapatildi` : `${fmt.label} acildi`)
+                        }} style={{ width: '40px', height: '22px', borderRadius: '100px', background: fmtEnabled ? '#1db81d' : '#ddd', border: 'none', cursor: isLastOne ? 'not-allowed' : 'pointer', position: 'relative', opacity: isLastOne ? 0.6 : 1, transition: 'background 0.2s' }}>
+                          <span style={{ position: 'absolute', left: fmtEnabled ? '20px' : '3px', top: '3px', width: '16px', height: '16px', borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }} />
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
                 {/* Brand Logo */}
                 <div style={{ marginBottom: '14px' }}>
                   <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}>Marka Logosu (Transparan PNG)</div>
