@@ -594,30 +594,28 @@ export default function ClientDashboard() {
                     ))}
                   </div>
 
-                  <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: 1.7, marginBottom: '40px' }}>
-                    Her brief gönderdikten sonra AI Express, AI Persona ve Creative Performance System özelliklerine erişirsiniz. AI Express ile ~5 dakikada yapay zeka videosu, AI Persona ile markanıza özel influencer videoları, CPS ile farklı yaratıcı yönler ve varyasyonlar üretin.
-                  </div>
-
-                  {/* Video grid */}
-                  {homeVideos.length > 0 && (
-                    <div style={{marginBottom:'40px'}}>
-                      <div style={{fontSize:'11px',letterSpacing:'2px',textTransform:'uppercase',color:'var(--color-text-tertiary)',fontWeight:'500',marginBottom:'16px'}}>
-                        DİNAMO İLE ÜRETİLDİ
-                      </div>
-                      <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'8px'}}>
-                        {homeVideos.map(v=>(
-                          <div key={v.id} style={{position:'relative',overflow:'hidden',aspectRatio:'9/16',background:'#0a0a0a',cursor:'pointer',border:'1px solid var(--color-border-tertiary)'}}
-                            onMouseEnter={e=>{const vid=e.currentTarget.querySelector('video') as HTMLVideoElement;if(vid)vid.play().catch(()=>{});const ov=e.currentTarget.querySelector('[data-ov]') as HTMLElement;if(ov)ov.style.opacity='0'}}
-                            onMouseLeave={e=>{const vid=e.currentTarget.querySelector('video') as HTMLVideoElement;if(vid){vid.pause();vid.currentTime=0}const ov=e.currentTarget.querySelector('[data-ov]') as HTMLElement;if(ov)ov.style.opacity='1'}}>
-                            <video src={v.video_url} loop muted playsInline preload="metadata" style={{width:'100%',height:'100%',objectFit:'cover'}} />
-                            <div data-ov="" style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.4)',display:'flex',alignItems:'flex-end',padding:'10px',transition:'opacity 0.3s'}}>
-                              <span style={{fontSize:'11px',fontWeight:'500',color:'#fff'}}>{v.title || ''}</span>
-                            </div>
+                  {/* AI Studio 4 kart */}
+                  <div style={{marginTop:'48px',marginBottom:'32px'}}>
+                    <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'16px',textAlign:'center'}}>AI STUDIO</div>
+                    <div style={{display:'grid',gridTemplateColumns:'repeat(4, 1fr)',gap:'12px'}}>
+                      {[
+                        {engine:'express',title:'Express',desc:'Hizli AI video, yonlendirmenize uygun uretilir',video:'/express_v_tn.mp4'},
+                        {engine:'persona',title:'Persona',desc:'AI influencer\'lar kampanyayi anlatsin',video:'/ugc_v_tn.mp4'},
+                        {engine:'animation',title:'Animation',desc:'Animasyon uretin. Marka maskotunuzu kullanin',video:'https://liegyfgignwepqgswxhg.supabase.co/storage/v1/object/public/videos/marketing/ai-animation/a_main_1.mp4'},
+                        {engine:'trend',title:'Trend',desc:'Yonetmenler tarafindan olusturulmus hazir formatlar',video:'/videos/trend04.mp4'},
+                      ].map(item=>(
+                        <div key={item.engine} style={{position:'relative',background:'#fff',border:'1px solid #0a0a0a',overflow:'hidden'}}>
+                          <div style={{position:'relative',aspectRatio:'9/16',overflow:'hidden'}}>
+                            <video src={item.video} autoPlay muted loop playsInline style={{width:'100%',height:'100%',objectFit:'cover'}} />
                           </div>
-                        ))}
-                      </div>
+                          <div style={{padding:'12px 14px'}}>
+                            <div style={{fontSize:'13px',fontWeight:600,color:'var(--color-text-primary)',marginBottom:'4px'}}>{item.title}</div>
+                            <div style={{fontSize:'11px',color:'var(--color-text-secondary)',lineHeight:1.45}}>{item.desc}</div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  )}
+                  </div>
                 </div>
               </div>
 
