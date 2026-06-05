@@ -510,7 +510,7 @@ export default function HomePage() {
 
           {/* Video Types — compact */}
           {mounted && <div style={{ marginTop: '48px' }}>
-            <div style={{ fontSize: '12px', letterSpacing: '2px', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', marginBottom: '16px' }}>Video Tipleri</div>
+            <div style={{ fontSize: '12px', letterSpacing: '2px', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', marginBottom: '16px' }}>Brief to Video</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
               {[
                 { dur: '6 sn', name: '6 saniye', key: 'credit_bumper', fallback: 12, prodLabel: '24 SAAT' },
@@ -532,7 +532,7 @@ export default function HomePage() {
               })}
             </div>
 
-            <div style={{ fontSize: '12px', letterSpacing: '2px', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', marginBottom: '16px', marginTop: '56px' }}>AI Studio</div>
+            <div style={{ fontSize: '12px', letterSpacing: '2px', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', marginBottom: '16px', marginTop: '56px' }}>Otomatik Üretilenler: AI Studio</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
               {[
                 { dur: 'Beta', name: 'AI Express', key: 'credit_ai_express', fallback: 1, prodLabel: '~5 DAKİKA' },
