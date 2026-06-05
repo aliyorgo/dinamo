@@ -355,6 +355,14 @@ export default function ClientDashboard() {
     const ugcUnviewed = ugcReadyMap[b.id] || []
     if (ugcUnviewed.length > 0) return 'ugc_ready'
 
+    // Animation unviewed
+    const animUnviewed = animReadyMap[b.id] || []
+    if (animUnviewed.length > 0) return 'ai_ready'
+
+    // Trend unviewed
+    const trendUnviewed = trendReadyMap[b.root_campaign_id] || trendReadyMap[b.id] || []
+    if (trendUnviewed.length > 0) return 'ai_ready'
+
     // "Done" = ana video delivered + all CPS delivered
     if (b.status === 'delivered') {
       const allCpsDone = cpsKids.length === 0 || cpsKids.every((k: any) => k.status === 'delivered')
