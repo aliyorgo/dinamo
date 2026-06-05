@@ -528,7 +528,6 @@ function NewBriefPage() {
                 <div style={{fontSize:'15px',fontWeight:'500',color:'#0a0a0a',marginBottom:'4px'}}>{savedIdea.title}</div>
                 <div style={{fontSize:'13px',color:'#6b6b66',lineHeight:1.5,marginBottom:'16px'}}>{savedIdea.description}</div>
                 <div style={{display:'flex',gap:'10px'}}>
-                  <button onClick={() => setSavedIdea(null)} className="btn" style={{padding:'8px 20px'}}>BU FİKRİ KORU</button>
                   <button onClick={() => { setSavedIdea(null); loadIdeas() }} disabled={ideasLoading} className="btn btn-outline" style={{padding:'8px 20px'}}>{ideasLoading ? 'YÜKLENİYOR...' : 'YENİ FİKİR ÜRET'}</button>
                 </div>
               </div>
