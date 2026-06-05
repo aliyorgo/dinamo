@@ -633,11 +633,11 @@ function NewBriefPage() {
                     <div onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.transform='scale(1.03)';const wo=e.currentTarget.querySelector('[data-white-ov]') as HTMLElement;if(wo)wo.style.opacity='0';const rb=e.currentTarget.querySelector('[data-ribbon]') as HTMLElement;if(rb)rb.style.opacity='1'}} onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.transform='scale(1)';const wo=e.currentTarget.querySelector('[data-white-ov]') as HTMLElement;if(wo)wo.style.opacity='1';const rb=e.currentTarget.querySelector('[data-ribbon]') as HTMLElement;if(rb)rb.style.opacity='0'}} style={{position:'relative',aspectRatio:'9/16',borderRadius:'8px',overflow:'hidden',transition:'transform 0.2s ease'}}>
                       <video src={item.video} autoPlay muted loop playsInline style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover'}} />
                       <div data-white-ov="" style={{position:'absolute',inset:0,background:'rgba(255,255,255,0.5)',opacity:1,transition:'opacity 0.25s ease',pointerEvents:'none'}} />
-                      <div data-ribbon="" style={{position:'absolute',top:22,right:-42,width:160,transform:'rotate(35deg)',background:'#1db81d',color:'#0a0a0a',textAlign:'center',padding:'7px 22px',fontSize:9,fontWeight:700,letterSpacing:'0.25em',opacity:0,transition:'opacity 0.2s ease',pointerEvents:'none',boxShadow:'0 2px 6px rgba(0,0,0,0.22)'}}>HEMEN URET</div>
+                      <div data-ribbon="" style={{position:'absolute',top:22,right:-42,width:160,transform:'rotate(35deg)',background:'#1db81d',color:'#0a0a0a',textAlign:'center',padding:'7px 22px',fontSize:9,fontWeight:700,letterSpacing:'0.25em',opacity:0,transition:'opacity 0.2s ease',pointerEvents:'none',boxShadow:'0 2px 6px rgba(0,0,0,0.22)'}}>{item.sub}</div>
                     </div>
                     <div style={{display:'flex',flexDirection:'column',gap:'4px',padding:'0 2px'}}>
                       <div style={{fontSize:'13px',fontWeight:600,letterSpacing:'0.05em',color:'#0a0a0a'}}>{item.label}</div>
-                      <div style={{fontSize:'12px',color:'#6b6b66',lineHeight:1.4}}><span style={{fontWeight:500,color:'#0a0a0a'}}>{item.sub}</span> {item.desc}</div>
+                      <div style={{fontSize:'12px',color:'#6b6b66',lineHeight:1.4}}>{item.desc}</div>
                     </div>
                   </a>
                 ))}
