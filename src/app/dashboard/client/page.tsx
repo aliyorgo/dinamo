@@ -621,31 +621,31 @@ export default function ClientDashboard() {
                   </div>
 
                   {/* AI Studio banner — auto-rotate */}
-                  <div style={{marginTop:'80px',marginBottom:'32px',paddingTop:'64px',borderTop:'1px solid var(--color-border-tertiary)'}}>
-                    <div style={{textAlign:'center',marginBottom:'48px'}}>
-                      <div style={{fontSize:'11px',letterSpacing:'2px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'12px'}}>AI STUDIO</div>
-                      <h2 style={{fontSize:'28px',fontWeight:500,color:'var(--color-text-primary)',marginBottom:'12px',letterSpacing:'-0.02em'}}>Brief gönderdikten sonra üretim sizin elinizde</h2>
-                      <p style={{fontSize:'15px',color:'var(--color-text-secondary)',lineHeight:1.6,maxWidth:'580px',margin:'0 auto'}}>İlk briefinizi oluşturduktan sonra AI Stüdyosu açılır. Dört farklı motorla içeriklerinizi saniyeler içinde üretebilirsiniz.</p>
+                  <div style={{marginTop:'48px',marginBottom:'24px',paddingTop:'40px',borderTop:'1px solid var(--color-border-tertiary)'}}>
+                    <div style={{textAlign:'center',marginBottom:'28px'}}>
+                      <div style={{fontSize:'10px',letterSpacing:'2px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'8px'}}>AI STUDIO</div>
+                      <h2 style={{fontSize:'22px',fontWeight:500,color:'var(--color-text-primary)',marginBottom:'8px',letterSpacing:'-0.02em'}}>Brief gönderdikten sonra üretim sizin elinizde</h2>
+                      <p style={{fontSize:'13px',color:'var(--color-text-secondary)',lineHeight:1.6,maxWidth:'520px',margin:'0 auto'}}>İlk briefinizi oluşturduktan sonra AI Stüdyosu açılır. Dört farklı motorla içeriklerinizi saniyeler içinde üretebilirsiniz.</p>
                     </div>
-                    <div style={{display:'grid',gridTemplateColumns:'200px 1fr',gap:'56px',alignItems:'center',background:'#fafaf8',border:'1px solid var(--color-border-tertiary)',padding:'32px'}}>
-                      <div style={{position:'relative',width:'200px',maxHeight:'350px',aspectRatio:'9/16',overflow:'hidden',background:'#000'}}>
+                    <div style={{display:'grid',gridTemplateColumns:'180px 1fr',gap:'36px',alignItems:'center',background:'#fafaf8',border:'1px solid var(--color-border-tertiary)',padding:'24px'}}>
+                      <div style={{position:'relative',width:'180px',maxHeight:'320px',aspectRatio:'9/16',overflow:'hidden',background:'#000'}}>
                         {ENGINES.map((eng,idx)=>(<video key={eng.title} src={eng.video} autoPlay muted loop playsInline style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',opacity:activeEngine===idx?1:0,transition:'opacity 600ms ease'}} />))}
                       </div>
-                      <div style={{position:'relative',minHeight:'280px'}}>
+                      <div style={{position:'relative',minHeight:'200px'}}>
                         {ENGINES.map((eng,idx)=>(<div key={eng.title} style={{position:idx===0?'relative':'absolute',top:0,left:0,right:0,opacity:activeEngine===idx?1:0,transition:'opacity 600ms ease',pointerEvents:activeEngine===idx?'auto':'none'}}>
-                          <div style={{fontSize:'11px',letterSpacing:'2px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'16px'}}>{eng.title}</div>
-                          <h3 style={{fontSize:'26px',fontWeight:500,color:'var(--color-text-primary)',marginBottom:'20px',lineHeight:1.3,letterSpacing:'-0.01em'}}>{eng.headline}</h3>
-                          <p style={{fontSize:'15px',color:'var(--color-text-secondary)',lineHeight:1.7}}>{eng.description}</p>
+                          <div style={{fontSize:'10px',letterSpacing:'1.8px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'10px'}}>{eng.title}</div>
+                          <h3 style={{fontSize:'19px',fontWeight:500,color:'var(--color-text-primary)',marginBottom:'12px',lineHeight:1.3,letterSpacing:'-0.01em'}}>{eng.headline}</h3>
+                          <p style={{fontSize:'13px',color:'var(--color-text-secondary)',lineHeight:1.55}}>{eng.description}</p>
                         </div>))}
-                        <div style={{marginTop:'40px',display:'flex',gap:'12px',alignItems:'center'}}>
-                          {ENGINES.map((eng,idx)=>(<button key={eng.title} onClick={()=>handleEngineClick(idx)} style={{flex:1,padding:'8px 0',background:'transparent',border:'none',cursor:'pointer',textAlign:'left',position:'relative'}}>
-                            <div style={{fontSize:'12px',fontWeight:activeEngine===idx?600:400,color:activeEngine===idx?'var(--color-text-primary)':'var(--color-text-tertiary)',marginBottom:'8px',transition:'color 300ms ease'}}>{eng.title}</div>
-                            <div style={{height:'2px',background:'var(--color-border-tertiary)',position:'relative',overflow:'hidden'}}><div style={{position:'absolute',left:0,top:0,bottom:0,width:activeEngine===idx?`${engineProgress}%`:(idx<activeEngine?'100%':'0%'),background:'#1db81d',transition:activeEngine===idx?'width 60ms linear':'none'}} /></div>
+                        <div style={{marginTop:'24px',display:'flex',gap:'10px',alignItems:'center'}}>
+                          {ENGINES.map((eng,idx)=>(<button key={eng.title} onClick={()=>handleEngineClick(idx)} style={{flex:1,padding:'6px 0',background:'transparent',border:'none',cursor:'pointer',textAlign:'left',position:'relative'}}>
+                            <div style={{fontSize:'11px',fontWeight:activeEngine===idx?600:400,color:activeEngine===idx?'var(--color-text-primary)':'var(--color-text-tertiary)',marginBottom:'6px',transition:'color 300ms ease'}}>{eng.title}</div>
+                            <div style={{height:'1.5px',background:'var(--color-border-tertiary)',position:'relative',overflow:'hidden'}}><div style={{position:'absolute',left:0,top:0,bottom:0,width:activeEngine===idx?`${engineProgress}%`:(idx<activeEngine?'100%':'0%'),background:'#1db81d',transition:activeEngine===idx?'width 60ms linear':'none'}} /></div>
                           </button>))}
                         </div>
                       </div>
                     </div>
-                    <div style={{textAlign:'center',marginTop:'24px',fontSize:'12px',color:'var(--color-text-tertiary)'}}>İlk briefinizi oluşturduktan sonra bu özelliklere erişim açılır</div>
+                    <div style={{textAlign:'center',marginTop:'16px',fontSize:'11px',color:'var(--color-text-tertiary)'}}>İlk briefinizi oluşturduktan sonra bu özelliklere erişim açılır</div>
                   </div>
                 </div>
               </div>
