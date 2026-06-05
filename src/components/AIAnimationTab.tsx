@@ -123,7 +123,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
     const stickyStyle = fb?.last_animation_style
     const stickyVo = fb?.voiceover_text || ''
 
-    if (stickyStyle) setSelectedStyle(stickyStyle)
+    setSelectedStyle(stickyStyle || 'mascot_only')
     if (stickyVo) {
       setVoiceoverText(stickyVo)
       suggestedRef.current = true
@@ -141,7 +141,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
         const sd = await sr.json()
         if (sd.suggestedStyleSlug) {
           setSuggestedSlug(sd.suggestedStyleSlug)
-          if (!stickyStyle) setSelectedStyle(sd.suggestedStyleSlug)
+          // Claude suggest bilgi amacli — selectedStyle override etmez (Maskot varsayilan korunur)
         }
         if (sd.voiceoverText) {
           setVoiceoverText(sd.voiceoverText)
