@@ -513,10 +513,10 @@ export default function HomePage() {
             <div style={{ fontSize: '12px', letterSpacing: '2px', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', marginBottom: '16px' }}>Brief to Video</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
               {[
-                { dur: '6 sn', name: '6 saniye', key: 'credit_bumper', fallback: 12, prodLabel: '24 SAAT' },
-                { dur: '15 sn', name: '15 saniye', key: 'credit_story', fallback: 18, prodLabel: '24 SAAT' },
-                { dur: '30 sn', name: '30 saniye', key: 'credit_feed', fallback: 24, prodLabel: '24 SAAT' },
-                { dur: '60 sn', name: '60 saniye', key: 'credit_longform', fallback: 36, prodLabel: '24 SAAT' },
+                { dur: '6-10 sn', name: 'Bumper / Pre-roll', key: 'credit_bumper', fallback: 12, prodLabel: '24 SAAT' },
+                { dur: '15 sn', name: 'Story / Reels', key: 'credit_story', fallback: 18, prodLabel: '24 SAAT' },
+                { dur: '30 sn', name: 'Feed Video', key: 'credit_feed', fallback: 24, prodLabel: '24 SAAT' },
+                { dur: '45-60 sn', name: 'Long Form', key: 'credit_longform', fallback: 36, prodLabel: '24 SAAT' },
               ].map((v: any) => {
                 const cr = videoCredits[v.key] || v.fallback
                 return (
