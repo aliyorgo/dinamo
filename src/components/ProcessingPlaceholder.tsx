@@ -128,7 +128,7 @@ export default function ProcessingPlaceholder({ logoSize = 115, fontSize = 10, s
         {subtitle && <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.6)', textAlign: 'center', lineHeight: 1.5, marginTop: '8px' }}>{subtitle}</div>}
       </div>
       {/* Fake railway log scroll — alt %25 */}
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '25%', zIndex: 6, pointerEvents: 'none', fontFamily: 'Menlo, Monaco, "SF Mono", Consolas, monospace', fontSize: 8, lineHeight: 1.4, color: 'rgba(255,255,255,0.65)', padding: '0 12px', overflow: 'hidden', WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 30%, black 70%, transparent 100%)', maskImage: 'linear-gradient(to bottom, transparent 0%, black 30%, black 70%, transparent 100%)' }}>
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '40%', zIndex: 6, pointerEvents: 'none', fontFamily: 'Menlo, Monaco, "SF Mono", Consolas, monospace', fontSize: 8, lineHeight: 1.4, color: 'rgba(255,255,255,0.65)', padding: '0 12px', overflow: 'hidden', WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 30%, black 70%, transparent 100%)', maskImage: 'linear-gradient(to bottom, transparent 0%, black 30%, black 70%, transparent 100%)' }}>
         <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', height: '100%' }}>
           {logs.map((line, i) => (
             <div key={`${i}-${line.slice(0, 15)}`} style={{ whiteSpace: 'normal', wordBreak: 'break-word', opacity: 0.55 + (i / Math.max(logs.length, 1)) * 0.4 }}>{line}</div>
