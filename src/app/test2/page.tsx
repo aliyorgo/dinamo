@@ -520,7 +520,7 @@ export default function HomePage() {
               ].map((v: any) => {
                 const cr = videoCredits[v.key] || v.fallback
                 return (
-                  <div key={v.name} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '18px 16px', transition: 'border-color 0.3s' }}>
+                  <div key={v.name} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px', padding: '14px 12px', transition: 'border-color 0.3s' }}>
                     <div style={{ marginBottom: '8px', minHeight: '20px' }}><span style={{ fontSize: '10px', color: '#1db81d', letterSpacing: '1px', fontWeight: '500' }}>{v.dur}</span></div>
                     <div style={{ fontSize: '13px', fontWeight: '500', marginBottom: '2px' }}>{v.name}</div>
                     <div style={{ fontSize: '22px', fontWeight: '300', letterSpacing: '-1px', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
@@ -532,7 +532,7 @@ export default function HomePage() {
               })}
             </div>
 
-            <div style={{ fontSize: '12px', letterSpacing: '2px', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', marginBottom: '16px', marginTop: '56px' }}>Otomatik Üretilenler: AI Studio</div>
+            <div style={{ fontSize: '12px', letterSpacing: '2px', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', marginBottom: '16px', marginTop: '56px' }}>AI Studio</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
               {[
                 { dur: 'Beta', name: 'AI Express', key: 'credit_ai_express', fallback: 1, prodLabel: '~5 DAKİKA' },
@@ -542,7 +542,7 @@ export default function HomePage() {
               ].map((v: any) => {
                 const cr = videoCredits[v.key] || v.fallback
                 return (
-                  <div key={v.name} style={{ background: 'rgba(29, 184, 29, 0.12)', border: '1px solid rgba(29, 184, 29, 0.30)', borderRadius: '12px', padding: '18px 16px', transition: 'border-color 0.3s' }}>
+                  <div key={v.name} style={{ background: 'rgba(29, 184, 29, 0.12)', border: '1px solid rgba(29, 184, 29, 0.30)', borderRadius: '10px', padding: '14px 12px', transition: 'border-color 0.3s' }}>
                     <div style={{ marginBottom: '8px', minHeight: '20px', textAlign: 'right' }}><span style={{ display: 'inline-block', background: 'rgba(29,184,29,0.15)', color: '#1db81d', padding: '3px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 600, letterSpacing: '1.5px', textTransform: 'uppercase' as const }}>{v.dur}</span></div>
                     <div style={{ fontSize: '13px', fontWeight: '500', marginBottom: '2px' }}>{v.name}</div>
                     <div style={{ fontSize: '22px', fontWeight: '300', letterSpacing: '-1px', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
