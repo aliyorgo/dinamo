@@ -496,8 +496,9 @@ function NewBriefPage() {
     if (idea) {
       await supabase.from('briefs').update({ selected_ai_idea: idea }).eq('id', savedBriefId)
     }
+    setSavedIdea(idea)
     setIdeaConfirm(null); setIdeaSaving(false)
-    router.push(`/dashboard/client/briefs/${savedBriefId}`)
+    setIdeasOpen(false)
   }
 
   if (step === 99) {
@@ -512,7 +513,7 @@ function NewBriefPage() {
             </div>
             <div style={{fontSize:'32px',fontWeight:'500',color:'var(--color-text-primary)',letterSpacing:'-0.02em',marginBottom:'8px'}}>Brief alındı</div>
             <div style={{fontSize:'15px',color:'var(--color-text-secondary)',lineHeight:1.65}}>
-              "{form.campaign_name}" ekibimize iletildi. 24 saat içinde teslim edilecek.
+              "{form.campaign_name}" ekibimize iletildi. 24 saat icinde videonuz teslim edilecek.
             </div>
           </div>
 
@@ -598,7 +599,7 @@ function NewBriefPage() {
 
           {/* Action cards */}
           <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'12px',textAlign:'center'}}>VEYA</div>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:'12px',marginBottom:'32px'}}>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'32px'}}>
             {savedBriefId && (
               <a href={`/dashboard/client/briefs/${savedBriefId}?tab=cps`} style={{textDecoration:'none',background:'#fff',border:'1px solid #0a0a0a',padding:'20px 18px',display:'flex',flexDirection:'column',cursor:'pointer',transition:'background 0.15s'}}
                 onMouseEnter={e=>{e.currentTarget.style.background='var(--color-background-secondary)'}} onMouseLeave={e=>{e.currentTarget.style.background='#fff'}}>
@@ -613,6 +614,14 @@ function NewBriefPage() {
               <div style={{fontSize:'15px',fontWeight:'500',color:'var(--color-text-primary)',marginBottom:'6px'}}>Yeni Brief</div>
               <div style={{fontSize:'12px',color:'var(--color-text-secondary)',lineHeight:1.5,flex:1}}>Farkli kampanya icin brief olustur</div>
             </a>
+            {savedBriefId && (
+              <a href={`/dashboard/client/briefs/${savedBriefId}`} style={{textDecoration:'none',background:'#fff',border:'1px solid #0a0a0a',padding:'20px 18px',display:'flex',flexDirection:'column',cursor:'pointer',transition:'background 0.15s'}}
+                onMouseEnter={e=>{e.currentTarget.style.background='var(--color-background-secondary)'}} onMouseLeave={e=>{e.currentTarget.style.background='#fff'}}>
+                <div style={{fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'8px'}}>ILERLE</div>
+                <div style={{fontSize:'15px',fontWeight:'500',color:'var(--color-text-primary)',marginBottom:'6px'}}>Brief Detayina Git</div>
+                <div style={{fontSize:'12px',color:'var(--color-text-secondary)',lineHeight:1.5,flex:1}}>Brief'i incele ve uret</div>
+              </a>
+            )}
           </div>
 
           {/* AI Studio — 4 sade video kart */}
