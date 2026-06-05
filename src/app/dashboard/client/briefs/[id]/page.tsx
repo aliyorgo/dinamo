@@ -150,7 +150,9 @@ function ClientBriefDetail() {
   }
   const [ugcVideosForSummary, setUgcVideosForSummary] = useState<any[]>([])
   const [ugcVideoCount, setUgcVideoCount] = useState(0)
+  const [ugcProcessing, setUgcProcessing] = useState(false)
   const [animationVideoCount, setAnimationVideoCount] = useState(0)
+  const [animProcessing, setAnimProcessing] = useState(false)
   const [trendChildren, setTrendChildren] = useState<any[]>([])
   const [trendVideoCount, setTrendVideoCount] = useState(0)
   const [trendInfoOpen, setTrendInfoOpen] = useState(false)
@@ -798,8 +800,8 @@ function ClientBriefDetail() {
             const trendProcessing = trendChildren.some(c=>c.status==='ai_processing'&&!c.ai_video_url&&c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout')
             const aiStudioTabs = [
               expressVisible && {key:'express',label:'EXPRESS',count:aiChildren.filter(c=>c.express_engine!=='trend'&&c.express_engine!=='trend_cinema'&&c.express_engine!=='trend_oops'&&c.express_engine!=='trend_dans'&&c.express_engine!=='trend_gokten'&&c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout').length,processing:expressProcessing},
-              ugcVisible && {key:'ugc',label:'PERSONA',count:ugcVideoCount,processing:false},
-              animationVisible && {key:'animation',label:'ANİMASYON',count:animationVideoCount,processing:false},
+              ugcVisible && {key:'ugc',label:'PERSONA',count:ugcVideoCount,processing:ugcProcessing},
+              animationVisible && {key:'animation',label:'ANİMASYON',count:animationVideoCount,processing:animProcessing},
               trendVisible && {key:'trend',label:'TREND',count:trendVideoCount,processing:trendProcessing},
             ].filter(Boolean) as {key:string,label:string,count:number,processing:boolean}[]
             return (
@@ -1787,11 +1789,11 @@ function ClientBriefDetail() {
 
               {/* ═══ UGC TAB ═══ */}
               {activeTab === 'ugc' && brief && (
-                <AIUGCTab briefId={id} brief={brief} clientUser={clientUser} autoPlayVideoId={searchParams.get('video') || undefined} onVideoCountChange={(count) => setUgcVideoCount(count)} />
+                <AIUGCTab briefId={id} brief={brief} clientUser={clientUser} autoPlayVideoId={searchParams.get('video') || undefined} onVideoCountChange={(count) => setUgcVideoCount(count)} onProcessingChange={setUgcProcessing} />
               )}
 
               {activeTab === 'animation' && brief && (
-                <AIAnimationTab briefId={id} brief={brief} clientUser={clientUser} autoPlayVideoId={searchParams.get('videoId') || undefined} onVideoCountChange={(count) => setAnimationVideoCount(count)} />
+                <AIAnimationTab briefId={id} brief={brief} clientUser={clientUser} autoPlayVideoId={searchParams.get('videoId') || undefined} onVideoCountChange={(count) => setAnimationVideoCount(count)} onProcessingChange={setAnimProcessing} />
               )}
 
               {/* ═══ TREND TAB ═══ */}

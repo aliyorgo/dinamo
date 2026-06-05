@@ -19,7 +19,7 @@ const UGC_STAGES = [
   { key: 'merge', label: 'Ses ve görüntü birleştiriliyor', duration: 25 },
 ]
 
-interface Props { briefId: string; brief: any; clientUser: any; autoPlayVideoId?: string; onVideoCountChange?: (count: number) => void }
+interface Props { briefId: string; brief: any; clientUser: any; autoPlayVideoId?: string; onVideoCountChange?: (count: number) => void; onProcessingChange?: (isProcessing: boolean) => void }
 
 function simpleHash(str: string): string {
   let hash = 0
@@ -53,7 +53,7 @@ function readOverlayText(scripts: Record<string, any>, personaId: number | strin
   return ''
 }
 
-export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPlayVideoId, onVideoCountChange }: Props) {
+export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPlayVideoId, onVideoCountChange, onProcessingChange }: Props) {
   // Data — local brief copy for lock updates
   const [brief, setBrief] = useState<any>(briefProp)
   useEffect(() => { setBrief(briefProp) }, [briefProp])
@@ -144,6 +144,7 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
     }, 8000)
     return () => clearInterval(poll)
   }, [hasProcessingVideos])
+  useEffect(() => { onProcessingChange?.(hasProcessingVideos) }, [hasProcessingVideos])
 
   // Timer-based stage progression for processing videos
   useEffect(() => {

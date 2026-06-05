@@ -9,7 +9,7 @@ import { generateCertificatePDF } from '@/lib/generate-certificate'
 
 const supabase = getSupabaseBrowser()
 
-interface Props { briefId: string; brief: any; clientUser: any; autoPlayVideoId?: string; onVideoCountChange?: (count: number) => void }
+interface Props { briefId: string; brief: any; clientUser: any; autoPlayVideoId?: string; onVideoCountChange?: (count: number) => void; onProcessingChange?: (isProcessing: boolean) => void }
 
 const STAGES = [
   { key: 'concept', label: 'Senaryo hazırlanıyor', duration: 15 },
@@ -28,7 +28,7 @@ function formatDuration(start: string | null | undefined, end: string | null | u
   return sec < 60 ? `${sec} sn'de uretildi` : `${Math.floor(sec / 60)} dk'da uretildi`
 }
 
-export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVideoId, onVideoCountChange }: Props) {
+export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVideoId, onVideoCountChange, onProcessingChange }: Props) {
   const [styles, setStyles] = useState<any[]>([])
   const [hasMascot, setHasMascot] = useState(false)
   const [mascotIcons, setMascotIcons] = useState<Record<string, string | null>>({})
@@ -80,6 +80,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
     }, 8000)
     return () => clearInterval(poll)
   }, [hasProcessing])
+  useEffect(() => { onProcessingChange?.(hasProcessing) }, [hasProcessing])
 
   // Timer stages
   useEffect(() => {
