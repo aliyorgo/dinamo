@@ -72,10 +72,10 @@ export default function ClientDashboard() {
   const engineIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const engineProgressRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const ENGINES = [
-    {title:'Express',headline:'Brief gonderdiniz. Ekip calisirken yapay zeka da calisiyor.',description:'Dinamo AI Express, brief\'inizi okur. Marka tonunu, kurumsal renkleri ve hedef kitleyi analiz eder; 5 dakika icinde fikir, gorsel, Turkce seslendirme ve muzik uretir.',video:'/express_v_tn.mp4'},
-    {title:'Persona',headline:'3 dakikada AI influencer icerigi.',description:'Dinamo AI Persona, briefinizi analiz eder, uygun personayi olusturur ve gercek bir creator izlenimi yaratir. TikTok ve Reels uretimini hizlandirin.',video:'/ugc_v_tn.mp4'},
-    {title:'Animation',headline:'Markanizin maskotunu canlandirin ya da farkli animasyon stillerinde test edin.',description:'Dinamo AI Animation, brief\'inizi analiz eder; sahneyi, karakterleri, Turkce seslendirmeyi ve muzigi uretir. Studyo maliyetine girmeden fikrinizi deneyin.',video:'https://liegyfgignwepqgswxhg.supabase.co/storage/v1/object/public/videos/marketing/ai-animation/a_main_1.mp4'},
-    {title:'Trend',headline:'Profesyonel yonetmenler tarafindan curate edilmis hazir video formatlari.',description:'Telifi alinmis ozel muzikler, trendleri takip eden fikirler. Hizli, kaliteli ve tahmin edilebilir icerikler icin ideal.',video:'/videos/trend04.mp4'},
+    {title:'Express',headline:'Brief gönderdiniz. Ekip çalışırken yapay zeka da çalışıyor.',description:'Dinamo AI Express, brief\'inizi okur. Marka tonunu, kurumsal renkleri ve hedef kitleyi analiz eder; 5 dakika içinde fikir, görsel, Türkçe seslendirme ve müzik üretir.',video:'/express_v_tn.mp4'},
+    {title:'Persona',headline:'3 dakikada AI influencer içeriği.',description:'Dinamo AI Persona, briefinizi analiz eder, uygun personayı oluşturur ve gerçek bir creator izlenimi yaratır. TikTok ve Reels üretimini hızlandırın.',video:'/ugc_v_tn.mp4'},
+    {title:'Animation',headline:'Markanızın maskotunu canlandırın ya da farklı animasyon stillerinde test edin.',description:'Dinamo AI Animation, brief\'inizi analiz eder; sahneyi, karakterleri, Türkçe seslendirmeyi ve müziği üretir. Stüdyo maliyetine girmeden fikrinizi deneyin.',video:'https://liegyfgignwepqgswxhg.supabase.co/storage/v1/object/public/videos/marketing/ai-animation/a_main_1.mp4'},
+    {title:'Trend',headline:'Profesyonel yönetmenler tarafından curate edilmiş hazır video formatları.',description:'Telifi alınmış özel müzikler, trendleri takip eden fikirler. Hızlı, kaliteli ve tahmin edilebilir içerikler için ideal.',video:'/videos/trend04.mp4'},
   ]
   const ROTATE_MS = 6000
   useEffect(() => {
@@ -624,8 +624,8 @@ export default function ClientDashboard() {
                   <div style={{marginTop:'80px',marginBottom:'32px',paddingTop:'64px',borderTop:'1px solid var(--color-border-tertiary)'}}>
                     <div style={{textAlign:'center',marginBottom:'48px'}}>
                       <div style={{fontSize:'11px',letterSpacing:'2px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'12px'}}>AI STUDIO</div>
-                      <h2 style={{fontSize:'28px',fontWeight:500,color:'var(--color-text-primary)',marginBottom:'12px',letterSpacing:'-0.02em'}}>Brief gonderdikten sonra uretim sizin elinizde</h2>
-                      <p style={{fontSize:'15px',color:'var(--color-text-secondary)',lineHeight:1.6,maxWidth:'580px',margin:'0 auto'}}>Ilk briefinizi olusturduktan sonra AI Studyosu acilir. Dort farkli motorla iceriklerinizi saniyeler icinde uretebilirsiniz.</p>
+                      <h2 style={{fontSize:'28px',fontWeight:500,color:'var(--color-text-primary)',marginBottom:'12px',letterSpacing:'-0.02em'}}>Brief gönderdikten sonra üretim sizin elinizde</h2>
+                      <p style={{fontSize:'15px',color:'var(--color-text-secondary)',lineHeight:1.6,maxWidth:'580px',margin:'0 auto'}}>İlk briefinizi oluşturduktan sonra AI Stüdyosu açılır. Dört farklı motorla içeriklerinizi saniyeler içinde üretebilirsiniz.</p>
                     </div>
                     <div style={{display:'grid',gridTemplateColumns:'380px 1fr',gap:'56px',alignItems:'center',background:'#fafaf8',border:'1px solid var(--color-border-tertiary)',padding:'32px',minHeight:'480px'}}>
                       <div style={{position:'relative',aspectRatio:'9/16',overflow:'hidden',background:'#000'}}>
@@ -645,7 +645,7 @@ export default function ClientDashboard() {
                         </div>
                       </div>
                     </div>
-                    <div style={{textAlign:'center',marginTop:'24px',fontSize:'12px',color:'var(--color-text-tertiary)'}}>Ilk briefinizi olusturduktan sonra bu ozelliklere erisim acilir</div>
+                    <div style={{textAlign:'center',marginTop:'24px',fontSize:'12px',color:'var(--color-text-tertiary)'}}>İlk briefinizi oluşturduktan sonra bu özelliklere erişim açılır</div>
                   </div>
                 </div>
               </div>
