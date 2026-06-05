@@ -171,19 +171,23 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
     setVoiceoverLoading(false)
   }
 
+  const generatingRef = useRef(false)
   async function handleGenerate() {
-    if (generating || !selectedStyle || !voiceoverText.trim()) return
+    if (!selectedStyle || !voiceoverText.trim()) return
+    if (generatingRef.current) return
+    generatingRef.current = true
     setGenerating(true); setMsg('')
     try {
       const res = await fetch('/api/animation/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief_id: briefId, style_slug: selectedStyle, client_user_id: clientUser?.id, voiceover_text: voiceoverText.trim() }) })
       const data = await res.json()
-      if (data.error) { setMsg(data.error); setGenerating(false); return }
+      if (data.error) { setMsg(data.error); generatingRef.current = false; setGenerating(false); return }
       if (data.animation_video_id) {
         const si = styles.find(s => s.slug === selectedStyle)
         setAnimationVideos(prev => [...prev, { id: data.animation_video_id, status: 'queued', style_slug: selectedStyle, version: data.version, animation_styles: si ? { label: si.label, icon_path: si.icon_path } : null, created_at: new Date().toISOString() }])
         setHighlightId(data.animation_video_id); setTimeout(() => setHighlightId(null), 1500)
       }
     } catch { setMsg('Bağlantı hatası') }
+    generatingRef.current = false
     setGenerating(false)
   }
 

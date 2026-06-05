@@ -305,8 +305,11 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
   }
 
   // Generate new version
+  const generatingRef = useRef(false)
   async function handleGenerate() {
     if (!selectedPersona || !scriptText) return
+    if (generatingRef.current) return
+    generatingRef.current = true
     setGenerating(true)
 
     let finalScript = scriptText.trim()
@@ -340,12 +343,13 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
         // Poll
         const poll = setInterval(async () => {
           const { data: v } = await supabase.from('ugc_videos').select('*, personas(name, slug)').eq('id', genData.ugc_video_id).single()
-          if (v && (v.status === 'ready' || v.status === 'failed')) { clearInterval(poll); setHighlightId(genData.ugc_video_id); setTimeout(() => setHighlightId(null), 1500); setUgcVideos(prev => prev.map(x => x.id === genData.ugc_video_id ? v : x)); setGenerating(false) }
+          if (v && (v.status === 'ready' || v.status === 'failed')) { clearInterval(poll); setHighlightId(genData.ugc_video_id); setTimeout(() => setHighlightId(null), 1500); setUgcVideos(prev => prev.map(x => x.id === genData.ugc_video_id ? v : x)); generatingRef.current = false; setGenerating(false) }
           else if (v && v.status !== 'queued') { setUgcVideos(prev => prev.map(x => x.id === genData.ugc_video_id ? v : x)) }
         }, 10000)
         setUgcVideos(prev => [...prev, { id: genData.ugc_video_id, status: 'queued', persona_id: selectedPersona, personas: personas.find(p => p.id === selectedPersona), created_at: new Date().toISOString() }])
       } else { setMsg(genData.error || 'Üretim başarısız') }
     } catch { setMsg('Bağlantı hatası') }
+    generatingRef.current = false
     setGenerating(false)
   }
 

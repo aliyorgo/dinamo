@@ -196,7 +196,9 @@ function ClientBriefDetail() {
   const aiChildParam = searchParams.get('ai_child')
   const trendChildParam = searchParams.get('trend_child')
   const [briefExpanded, setBriefExpanded] = useState(false)
-  const [autoGenerateTriggered, setAutoGenerateTriggered] = useState(false)
+  const autoGenerateRef = useRef(false)
+  const generatingRef = useRef(false)
+  const trendGeneratingRef = useRef(false)
   const [cpsChildren, setCpsChildren] = useState<any[]>([])
   const [cpsPackage, setCpsPackage] = useState<number>(0)
   const [cpsVariations, setCpsVariations] = useState<any[]>([])
@@ -269,11 +271,11 @@ function ClientBriefDetail() {
 
   // Auto-generate AI Express from URL param
   useEffect(() => {
-    if (autoGenerateTriggered) return
+    if (autoGenerateRef.current) return
     if (searchParams.get('autoGenerate') !== '1') return
-    if (!brief || !clientUser || aiChildren.length > 0 || aiGenerating) return
+    if (!brief || !clientUser || aiChildren.length > 0) return
     if (brief.clients?.ai_video_enabled === false) return
-    setAutoGenerateTriggered(true)
+    autoGenerateRef.current = true
     handleStudioGenerate('character')
   }, [brief, clientUser, aiChildren.length])
 
@@ -483,7 +485,9 @@ function ClientBriefDetail() {
   }
 
   async function handleStudioGenerate(mode: 'character' | 'product' = 'character') {
-    if (!clientUser || !brief || aiGenerating) return
+    if (!clientUser || !brief) return
+    if (generatingRef.current) return
+    generatingRef.current = true
     setAiGenerating(true)
     setShowAiGenerate(false)
     setAiError('')
@@ -499,6 +503,7 @@ function ClientBriefDetail() {
         logClientActivity({ actionType: 'brief.submitted', userName, clientName: companyName, clientId: brief.client_id, targetType: 'brief', targetId: data.child_brief.id, targetLabel: data.child_brief.campaign_name, metadata: { type: 'ai_express', mode } })
       }
     } catch (err) { setAiError('Bağlantı hatası') }
+    generatingRef.current = false
     setAiGenerating(false)
   }
 
@@ -1574,7 +1579,7 @@ function ClientBriefDetail() {
                     ) : (
                       <div>
                         <div style={{display:'flex',gap:'8px'}}>
-                          <button className="dinamo-generate-btn" onClick={()=>handleStudioGenerate('character')} disabled={(clientUser?.allocated_credits||0)<1&&aiChildren.filter(c=>c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout'&&c.ai_video_status!==null).length>0}
+                          <button className="dinamo-generate-btn" onClick={()=>handleStudioGenerate('character')} disabled={aiGenerating||((clientUser?.allocated_credits||0)<1&&aiChildren.filter(c=>c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout'&&c.ai_video_status!==null).length>0)}
                             style={{flex:1,padding:'14px',background:((clientUser?.allocated_credits||0)<1&&aiChildren.filter(c=>c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout'&&c.ai_video_status!==null).length>0)?'#ccc':'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'13px',fontWeight:600,cursor:((clientUser?.allocated_credits||0)<1&&aiChildren.filter(c=>c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout'&&c.ai_video_status!==null).length>0)?'not-allowed':'pointer',transition:'background 0.15s',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}>
                             {(() => { const cc = aiChildren.filter(c => c.ai_video_status !== 'failed' && c.ai_video_status !== 'timeout' && c.ai_video_status !== null).length; return cc === 0 ? 'EXPRESS ÜRET (ÜCRETSİZ · ~5 DAKİKA)' : `EXPRESS ÜRET (${creditSettings?.credit_ai_express_generate || 1} KREDİ · ~5 DAKİKA)` })()}
                           </button>
@@ -1946,12 +1951,15 @@ function ClientBriefDetail() {
 
                   {/* ÜRET BUTONU */}
                   <div>
-                    <button className="dinamo-generate-btn" disabled={(clientUser?.allocated_credits||0)<1&&trendChildren.filter(c=>c.ai_video_status!=='failed').length>0} onClick={async()=>{
+                    <button className="dinamo-generate-btn" disabled={trendGeneratingRef.current||((clientUser?.allocated_credits||0)<1&&trendChildren.filter(c=>c.ai_video_status!=='failed').length>0)} onClick={async()=>{
+                      if (trendGeneratingRef.current) return
+                      trendGeneratingRef.current = true
                       try {
                         const res = await fetch('/api/trend/generate', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({brief_id:id,client_user_id:clientUser.id,cinema_mode:trendCinema,format_type:trendFormat}) })
                         const data = await res.json()
                         if (data.child_brief) { setTrendChildren(prev=>[...prev,data.child_brief]); setTrendVideoCount(prev=>prev+1) }
                       } catch {}
+                      trendGeneratingRef.current = false
                     }} style={{width:'100%',padding:'14px',background:((clientUser?.allocated_credits||0)<1&&trendChildren.filter(c=>c.ai_video_status!=='failed').length>0)?'#ccc':'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'13px',fontWeight:600,cursor:((clientUser?.allocated_credits||0)<1&&trendChildren.filter(c=>c.ai_video_status!=='failed').length>0)?'not-allowed':'pointer'}}>
                       {trendChildren.filter(c=>c.ai_video_status!=='failed').length === 0 ? 'TREND ÜRET (ÜCRETSİZ · ~4 DAKİKA)' : 'TREND ÜRET (1 KREDİ · ~4 DAKİKA)'}
                     </button>
