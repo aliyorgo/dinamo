@@ -584,8 +584,8 @@ export default function ClientDashboard() {
             /* WELCOME SCREEN */
             <div style={{background:'var(--color-background-secondary)',minHeight:'100%',display:'flex',flexDirection:'column',position:'relative'}}>
 
-              <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',padding:'0 48px'}}>
-                <div style={{maxWidth:'600px',width:'100%'}}>
+              <div style={{flex:1,display:'flex',alignItems:'flex-start',justifyContent:'flex-start',padding:'48px 32px 48px 48px'}}>
+                <div style={{maxWidth:'800px',width:'100%'}}>
                   {/* Hero */}
                   <h1 style={{fontSize:'40px',fontWeight:'500',color:'var(--color-text-secondary)',letterSpacing:'-0.02em',lineHeight:1.1,margin:0}}>
                     Hoş geldiniz,
