@@ -594,27 +594,32 @@ export default function ClientDashboard() {
                     ))}
                   </div>
 
-                  {/* AI Studio 4 kart */}
-                  <div style={{marginTop:'48px',marginBottom:'32px'}}>
-                    <div style={{fontSize:'11px',letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'16px',textAlign:'center'}}>AI STUDIO</div>
+                  {/* AI Studio info bolumu */}
+                  <div style={{marginTop:'64px',marginBottom:'32px',paddingTop:'48px',borderTop:'1px solid var(--color-border-tertiary)'}}>
+                    <div style={{textAlign:'center',marginBottom:'32px'}}>
+                      <div style={{fontSize:'11px',letterSpacing:'2px',textTransform:'uppercase',color:'var(--color-text-tertiary)',marginBottom:'12px'}}>AI STUDIO</div>
+                      <h2 style={{fontSize:'22px',fontWeight:500,color:'var(--color-text-primary)',marginBottom:'10px',letterSpacing:'-0.01em'}}>Brief gonderdikten sonra uretim sizin elinizde</h2>
+                      <p style={{fontSize:'14px',color:'var(--color-text-secondary)',lineHeight:1.6,maxWidth:'560px',margin:'0 auto'}}>Ilk briefinizi olusturduktan sonra AI Studyosu acilir. Dort farkli motor ile saniyeler icinde videolar uretebilirsiniz.</p>
+                    </div>
                     <div style={{display:'grid',gridTemplateColumns:'repeat(4, 1fr)',gap:'12px'}}>
                       {[
-                        {engine:'express',title:'Express',desc:'Hizli AI video, yonlendirmenize uygun uretilir',video:'/express_v_tn.mp4'},
-                        {engine:'persona',title:'Persona',desc:'AI influencer\'lar kampanyayi anlatsin',video:'/ugc_v_tn.mp4'},
-                        {engine:'animation',title:'Animation',desc:'Animasyon uretin. Marka maskotunuzu kullanin',video:'https://liegyfgignwepqgswxhg.supabase.co/storage/v1/object/public/videos/marketing/ai-animation/a_main_1.mp4'},
-                        {engine:'trend',title:'Trend',desc:'Yonetmenler tarafindan olusturulmus hazir formatlar',video:'/videos/trend04.mp4'},
+                        {title:'Express',desc:'Hizli AI video, yonlendirmenize uygun uretilir',video:'/express_v_tn.mp4'},
+                        {title:'Persona',desc:'AI influencer\'lar kampanyayi anlatsin',video:'/ugc_v_tn.mp4'},
+                        {title:'Animation',desc:'Animasyon uretin. Marka maskotunuzu kullanin',video:'https://liegyfgignwepqgswxhg.supabase.co/storage/v1/object/public/videos/marketing/ai-animation/a_main_1.mp4'},
+                        {title:'Trend',desc:'Yonetmenler tarafindan olusturulmus hazir formatlar',video:'/videos/trend04.mp4'},
                       ].map(item=>(
-                        <div key={item.engine} style={{position:'relative',background:'#fff',border:'1px solid #0a0a0a',overflow:'hidden'}}>
-                          <div style={{position:'relative',aspectRatio:'9/16',overflow:'hidden'}}>
+                        <div key={item.title} style={{background:'#fff',border:'1px solid #0a0a0a',overflow:'hidden',cursor:'default'}}>
+                          <div style={{position:'relative',aspectRatio:'9/16',overflow:'hidden',background:'#000'}}>
                             <video src={item.video} autoPlay muted loop playsInline style={{width:'100%',height:'100%',objectFit:'cover'}} />
                           </div>
-                          <div style={{padding:'12px 14px'}}>
-                            <div style={{fontSize:'13px',fontWeight:600,color:'var(--color-text-primary)',marginBottom:'4px'}}>{item.title}</div>
-                            <div style={{fontSize:'11px',color:'var(--color-text-secondary)',lineHeight:1.45}}>{item.desc}</div>
+                          <div style={{padding:'14px 14px 16px'}}>
+                            <div style={{fontSize:'14px',fontWeight:600,color:'var(--color-text-primary)',marginBottom:'6px'}}>{item.title}</div>
+                            <div style={{fontSize:'12px',color:'var(--color-text-secondary)',lineHeight:1.5}}>{item.desc}</div>
                           </div>
                         </div>
                       ))}
                     </div>
+                    <div style={{textAlign:'center',marginTop:'24px',fontSize:'12px',color:'var(--color-text-tertiary)'}}>Ilk briefinizi olusturduktan sonra bu ozelliklere erisim acilir</div>
                   </div>
                 </div>
               </div>
