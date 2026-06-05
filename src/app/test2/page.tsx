@@ -396,6 +396,41 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ══════ AI Trend ══════ */}
+      <section style={{ background: '#0a0a0a' }}>
+        <div className="s-pad" style={{ maxWidth: '1200px', margin: '0 auto', padding: '100px 48px' }}>
+          <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '72px', alignItems: 'center' }}>
+            <div>
+              <div style={{ marginBottom: '16px' }}>
+                <div style={{ fontSize: '11px', letterSpacing: '3px', color: '#1db81d', textTransform: 'uppercase', marginBottom: '16px', fontWeight: '400' }}>AI Trend</div>
+                <h2 style={{ fontSize: 'clamp(18px, 2.6vw, 27px)', fontWeight: '300', letterSpacing: '-1px', marginBottom: '12px' }}>Akışta Geç Geçilmeyen Format</h2>
+                <div style={{ display: 'inline-block', padding: '4px 12px', background: 'rgba(29,184,29,0.1)', border: '1px solid rgba(29,184,29,0.2)', fontSize: '11px', color: '#1DB81D', marginBottom: '40px' }}>BETA</div>
+              </div>
+              <div>
+                <p style={{ fontSize: '18px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.9, marginBottom: '20px', fontWeight: '300' }}>
+                  TikTok'un en cok izlenen 4 viral formatina markani yerlestir — Bana Bak, Top Sektirme, O Zaman Dans, Gokten Gelen.
+                </p>
+                <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.9, marginBottom: '20px', fontWeight: '300' }}>
+                  Hazir dans, muzik ve kurguya markanin gorselleri ve mesaji eklenir. Uretim dakikalar icinde tamamlanir.
+                </p>
+                <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.9, marginBottom: '20px', fontWeight: '300' }}>
+                  Indirim kampanyalari, urun lansmani, hizli duyurular — akista durdurucu icerik icin ideal.
+                </p>
+                <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.3)', marginTop: '16px', letterSpacing: '0.5px' }}>
+                  ~5 dakika · Ilk deneme ucretsiz · 1 kredi uretim, 2 kredi satin alma
+                </p>
+              </div>
+            </div>
+            <div>
+              <div style={{ position: 'relative', width: '52%', aspectRatio: '9 / 16', display: 'inline-block' }}>
+                <video src="/videos/trend04.mp4" autoPlay muted loop playsInline style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
+                <img src="/overlay2_tiktok.png" alt="" aria-hidden="true" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none', borderRadius: '8px' }} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ══════ FİYATLANDIRMA ══════ */}
       <section id="fiyatlandirma" style={{ background: '#0a0a0a' }}>
         <div className="s-pad" style={{ maxWidth: '1200px', margin: '0 auto', padding: '120px 48px' }}>
@@ -481,13 +516,14 @@ export default function HomePage() {
             <div style={{ fontSize: '12px', letterSpacing: '2px', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', marginBottom: '16px' }}>Video Tipleri</div>
             <div className="grid-6" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
               {[
-                { dur: '6–10 sn', name: 'Bumper / Pre-roll', key: 'credit_bumper', fallback: 12, prodLabel: '24 SAAT' },
-                { dur: '15 sn', name: 'Story / Reels', key: 'credit_story', fallback: 18, prodLabel: '24 SAAT' },
-                { dur: '30 sn', name: 'Feed Video', key: 'credit_feed', fallback: 24, prodLabel: '24 SAAT' },
-                { dur: '45–60 sn', name: 'Long Form', key: 'credit_longform', fallback: 36, prodLabel: '24 SAAT' },
+                { dur: '6 sn', name: '6 saniye', key: 'credit_bumper', fallback: 12, prodLabel: '24 SAAT' },
+                { dur: '15 sn', name: '15 saniye', key: 'credit_story', fallback: 18, prodLabel: '24 SAAT' },
+                { dur: '30 sn', name: '30 saniye', key: 'credit_feed', fallback: 24, prodLabel: '24 SAAT' },
+                { dur: '60 sn', name: '60 saniye', key: 'credit_longform', fallback: 36, prodLabel: '24 SAAT' },
                 { dur: 'Beta', name: 'AI Express', key: 'credit_ai_express', fallback: 1, prodLabel: '~5 DAKİKA' },
                 { dur: 'Beta', name: 'AI Persona', key: 'credit_ai_ugc', fallback: 1, prodLabel: '~3 DAKİKA' },
                 { dur: 'Beta', name: 'AI Animation', key: 'credit_ai_animation', fallback: 1, prodLabel: '~5 DAKİKA' },
+                { dur: 'Beta', name: 'AI Trend', key: 'credit_ai_trend', fallback: 2, prodLabel: '~5 DAKİKA' },
               ].map((v: any) => {
                 const cr = videoCredits[v.key] || v.fallback
                 const isAi = v.key.includes('ai_')
