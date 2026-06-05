@@ -50,7 +50,8 @@ JSON şeması:
 }
 
 Kurallar:
-- video_type: kullanıcının anlatımına göre en uygun tipi seç. Platform belirtildiyse (Instagram story, YouTube pre-roll vs.) ona göre seç.
+- video_type: kullanıcının anlatımına göre en uygun tipi seç.
+- KRITIK PLATFORM KURALI: User input'ta 'Secilen mecralar' alani verilir. Brief metninde SADECE bu mecralari referans et. Secilmemis mecra adini ASLA yazma (orn Instagram secilmemisse 'Instagram' kelimesi gecmesin). 'belirtilmemis' ise 'dijital mecralar' veya 'sosyal medya' gibi genel ifade kullan.
 - format: video_type'a uygun format seç. Story/Reels için 9:16, YouTube için 16:9 gibi.
 - message: müşterinin ajansına yazdığı kampanya brifing metni olarak yaz. Dış ses, senaryo veya anlatı DEĞİL. Pazarlama yöneticisi tonunda, birinci çoğul şahıs ("Bu kampanyayla hedefliyoruz", "Markamız", "Beklentimiz"). Ne satıldığını, kime, neden, ne zaman, hangi mecrada olduğunu net anlatan 3-4 cümle.
 - voiceover_type: "ai" olarak ayarla.

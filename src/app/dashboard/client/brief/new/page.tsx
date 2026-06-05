@@ -156,7 +156,7 @@ function NewBriefPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          user_input: `Aşağıdaki brief metnini koru ama genişlet. Eksik detayları tamamla, hedef kitle, beklenti ve mecra bilgilerini daha net hale getir. Aynı tonda kal, pazarlama yöneticisi sesi. Sadece message alanını dön, diğer alanları olduğu gibi bırak.\n\nMevcut brief metni:\n${form.message}\n\nKampanya: ${form.campaign_name}\nVideo Tipi: ${form.video_type}\nHedef Kitle: ${form.target_audience}\nCTA: ${form.cta || 'Yok'}`,
+          user_input: `Aşağıdaki brief metnini koru ama genişlet. Eksik detayları tamamla, hedef kitle, beklenti ve mecra bilgilerini daha net hale getir. Aynı tonda kal, pazarlama yöneticisi sesi. Sadece message alanını dön, diğer alanları olduğu gibi bırak.\n\nMevcut brief metni:\n${form.message}\n\nKampanya: ${form.campaign_name}\nVideo Tipi: ${form.video_type}\nHedef Kitle: ${form.target_audience}\nCTA: ${form.cta || 'Yok'}\nSecilen mecralar: ${form.platforms.length > 0 ? form.platforms.join(', ') : 'belirtilmemis'}`,
           brand_name: companyName,
         })
       })
