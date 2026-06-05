@@ -511,26 +511,39 @@ export default function HomePage() {
           {/* Video Types — compact */}
           {mounted && <div style={{ marginTop: '48px' }}>
             <div style={{ fontSize: '12px', letterSpacing: '2px', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', marginBottom: '16px' }}>Video Tipleri</div>
-            <div className="grid-6" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
               {[
                 { dur: '6 sn', name: '6 saniye', key: 'credit_bumper', fallback: 12, prodLabel: '24 SAAT' },
                 { dur: '15 sn', name: '15 saniye', key: 'credit_story', fallback: 18, prodLabel: '24 SAAT' },
                 { dur: '30 sn', name: '30 saniye', key: 'credit_feed', fallback: 24, prodLabel: '24 SAAT' },
                 { dur: '60 sn', name: '60 saniye', key: 'credit_longform', fallback: 36, prodLabel: '24 SAAT' },
+              ].map((v: any) => {
+                const cr = videoCredits[v.key] || v.fallback
+                return (
+                  <div key={v.name} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '18px 16px', transition: 'border-color 0.3s' }}>
+                    <div style={{ marginBottom: '8px', minHeight: '20px' }}><span style={{ fontSize: '10px', color: '#1db81d', letterSpacing: '1px', fontWeight: '500' }}>{v.dur}</span></div>
+                    <div style={{ fontSize: '13px', fontWeight: '500', marginBottom: '2px' }}>{v.name}</div>
+                    <div style={{ fontSize: '22px', fontWeight: '300', letterSpacing: '-1px', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                      {cr} <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', fontWeight: '400' }}>kredi</span>
+                    </div>
+                    <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', letterSpacing: '1px', marginTop: '6px' }}>{v.prodLabel}</div>
+                  </div>
+                )
+              })}
+            </div>
+
+            <div style={{ fontSize: '12px', letterSpacing: '2px', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', marginBottom: '16px', marginTop: '56px' }}>AI Studyo Formatlari</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+              {[
                 { dur: 'Beta', name: 'AI Express', key: 'credit_ai_express', fallback: 1, prodLabel: '~5 DAKİKA' },
                 { dur: 'Beta', name: 'AI Persona', key: 'credit_ai_ugc', fallback: 1, prodLabel: '~3 DAKİKA' },
                 { dur: 'Beta', name: 'AI Animation', key: 'credit_ai_animation', fallback: 1, prodLabel: '~5 DAKİKA' },
                 { dur: 'Beta', name: 'AI Trend', key: 'credit_ai_trend', fallback: 2, prodLabel: '~5 DAKİKA' },
               ].map((v: any) => {
                 const cr = videoCredits[v.key] || v.fallback
-                const isAi = v.key.includes('ai_')
                 return (
-                  <div key={v.name} style={{
-                    background: isAi ? 'rgba(29, 184, 29, 0.12)' : 'rgba(255,255,255,0.03)',
-                    border: isAi ? '1px solid rgba(29, 184, 29, 0.30)' : '1px solid rgba(255,255,255,0.08)',
-                    borderRadius: '12px', padding: '18px 16px', transition: 'border-color 0.3s',
-                  }}>
-                    <div style={{ marginBottom: '8px', minHeight: '20px', textAlign: isAi ? 'right' : 'left' }}>{isAi ? <span style={{ display: 'inline-block', background: 'rgba(29,184,29,0.15)', color: '#1db81d', padding: '3px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 600, letterSpacing: '1.5px', textTransform: 'uppercase' as const }}>{v.dur}</span> : <span style={{ fontSize: '10px', color: '#1db81d', letterSpacing: '1px', fontWeight: '500' }}>{v.dur}</span>}</div>
+                  <div key={v.name} style={{ background: 'rgba(29, 184, 29, 0.12)', border: '1px solid rgba(29, 184, 29, 0.30)', borderRadius: '12px', padding: '18px 16px', transition: 'border-color 0.3s' }}>
+                    <div style={{ marginBottom: '8px', minHeight: '20px', textAlign: 'right' }}><span style={{ display: 'inline-block', background: 'rgba(29,184,29,0.15)', color: '#1db81d', padding: '3px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 600, letterSpacing: '1.5px', textTransform: 'uppercase' as const }}>{v.dur}</span></div>
                     <div style={{ fontSize: '13px', fontWeight: '500', marginBottom: '2px' }}>{v.name}</div>
                     <div style={{ fontSize: '22px', fontWeight: '300', letterSpacing: '-1px', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                       {cr} <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', fontWeight: '400' }}>kredi</span>
