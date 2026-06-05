@@ -513,10 +513,10 @@ export default function HomePage() {
             <div style={{ fontSize: '12px', letterSpacing: '2px', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', marginBottom: '16px' }}>Brief to Video</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
               {[
-                { dur: '6-10 sn', name: 'Bumper / Pre-roll', key: 'credit_bumper', fallback: 12, prodLabel: '24 SAAT' },
-                { dur: '15 sn', name: 'Story / Reels', key: 'credit_story', fallback: 18, prodLabel: '24 SAAT' },
-                { dur: '30 sn', name: 'Feed Video', key: 'credit_feed', fallback: 24, prodLabel: '24 SAAT' },
-                { dur: '45-60 sn', name: 'Long Form', key: 'credit_longform', fallback: 36, prodLabel: '24 SAAT' },
+                { dur: '6-10 sn', name: 'Bumper / Pre-roll', key: 'credit_bumper', fallback: 60, prodLabel: '24 SAAT' },
+                { dur: '15 sn', name: 'Story / Reels', key: 'credit_story', fallback: 120, prodLabel: '24 SAAT' },
+                { dur: '30 sn', name: 'Feed Video', key: 'credit_feed', fallback: 180, prodLabel: '24 SAAT' },
+                { dur: '45-60 sn', name: 'Long Form', key: 'credit_longform', fallback: 300, prodLabel: '24 SAAT' },
               ].map((v: any) => {
                 const cr = videoCredits[v.key] || v.fallback
                 return (
@@ -535,10 +535,10 @@ export default function HomePage() {
             <div style={{ fontSize: '12px', letterSpacing: '2px', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', marginBottom: '16px', marginTop: '56px' }}>AI Studio</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
               {[
-                { dur: 'Beta', name: 'AI Express', key: 'credit_ai_express', fallback: 1, prodLabel: '~5 DAKİKA' },
-                { dur: 'Beta', name: 'AI Persona', key: 'credit_ai_ugc', fallback: 1, prodLabel: '~3 DAKİKA' },
-                { dur: 'Beta', name: 'AI Animation', key: 'credit_ai_animation', fallback: 1, prodLabel: '~5 DAKİKA' },
-                { dur: 'Beta', name: 'AI Trend', key: 'credit_ai_trend', fallback: 2, prodLabel: '~6 DAKİKA' },
+                { dur: 'Beta', name: 'AI Express', key: 'credit_ai_express', fallback: 10, prodLabel: '~5 DAKİKA' },
+                { dur: 'Beta', name: 'AI Persona', key: 'credit_ai_ugc', fallback: 10, prodLabel: '~3 DAKİKA' },
+                { dur: 'Beta', name: 'AI Animation', key: 'credit_ai_animation', fallback: 10, prodLabel: '~5 DAKİKA' },
+                { dur: 'Beta', name: 'AI Trend', key: 'credit_ai_trend', fallback: 20, prodLabel: '~6 DAKİKA' },
               ].map((v: any) => {
                 const cr = videoCredits[v.key] || v.fallback
                 return (

@@ -16,17 +16,17 @@ export type CreditSettings = {
 }
 
 const DEFAULTS: CreditSettings = {
-  credit_ai_express: 1,
-  credit_ai_express_generate: 1,
-  credit_ai_ugc: 1,
-  credit_ai_ugc_generate: 1,
-  credit_bumper: 6,
-  credit_feed: 20,
-  credit_language_addon: 2,
-  credit_longform: 30,
-  credit_revision: 4,
-  credit_story: 12,
-  credit_voiceover_real: 6,
+  credit_ai_express: 10,
+  credit_ai_express_generate: 10,
+  credit_ai_ugc: 10,
+  credit_ai_ugc_generate: 10,
+  credit_bumper: 60,
+  credit_feed: 200,
+  credit_language_addon: 20,
+  credit_longform: 300,
+  credit_revision: 40,
+  credit_story: 120,
+  credit_voiceover_real: 60,
 }
 
 let cached: CreditSettings | null = null
