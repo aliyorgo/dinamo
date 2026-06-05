@@ -627,8 +627,8 @@ export default function ClientDashboard() {
                       <h2 style={{fontSize:'28px',fontWeight:500,color:'var(--color-text-primary)',marginBottom:'12px',letterSpacing:'-0.02em'}}>Brief gönderdikten sonra üretim sizin elinizde</h2>
                       <p style={{fontSize:'15px',color:'var(--color-text-secondary)',lineHeight:1.6,maxWidth:'580px',margin:'0 auto'}}>İlk briefinizi oluşturduktan sonra AI Stüdyosu açılır. Dört farklı motorla içeriklerinizi saniyeler içinde üretebilirsiniz.</p>
                     </div>
-                    <div style={{display:'grid',gridTemplateColumns:'380px 1fr',gap:'56px',alignItems:'center',background:'#fafaf8',border:'1px solid var(--color-border-tertiary)',padding:'32px',minHeight:'480px'}}>
-                      <div style={{position:'relative',aspectRatio:'9/16',overflow:'hidden',background:'#000'}}>
+                    <div style={{display:'grid',gridTemplateColumns:'200px 1fr',gap:'56px',alignItems:'center',background:'#fafaf8',border:'1px solid var(--color-border-tertiary)',padding:'32px'}}>
+                      <div style={{position:'relative',width:'200px',maxHeight:'350px',aspectRatio:'9/16',overflow:'hidden',background:'#000'}}>
                         {ENGINES.map((eng,idx)=>(<video key={eng.title} src={eng.video} autoPlay muted loop playsInline style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',opacity:activeEngine===idx?1:0,transition:'opacity 600ms ease'}} />))}
                       </div>
                       <div style={{position:'relative',minHeight:'280px'}}>
