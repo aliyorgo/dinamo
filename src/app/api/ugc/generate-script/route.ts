@@ -170,7 +170,7 @@ FORMAT: {"dialogue":"140-155 char Türkçe metin","overlay_text":"max 7 kelime e
   }
 
   // setup_choice validation — gecersizse default'a dus
-  const setupChoice = SETUP_IDS.includes(script.setup_choice) ? script.setup_choice : 'selfie_bedroom'
+  const setupChoice = SETUP_IDS.includes(script.setup_choice) ? script.setup_choice : 'couch_chill'
   console.log('[GENERATE-SCRIPT] setup_choice:', script.setup_choice, '→', setupChoice)
 
   return NextResponse.json({ dialogue: script.dialogue, overlay_text: script.overlay_text || '', setup_choice: setupChoice, changes_summary: script.changes_summary || '' })

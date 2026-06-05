@@ -475,7 +475,7 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
           <div style={{ textAlign: 'center', padding: '20px', color: '#888', fontSize: '13px' }}>Henüz video üretilmedi. Yukarıdan persona seçin, metin oluşturun ve üretin.</div>
         )}
 
-        {ugcVideos.map((video, idx) => {
+        {Array.from(new Map(ugcVideos.map(v => [v.id, v])).values()).map((video, idx) => {
           const hasVideo = !!video.final_url
           const isPurchased = video.status === 'sold'
           const isFailed = video.status === 'failed' && !isPurchased
