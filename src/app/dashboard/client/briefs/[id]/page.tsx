@@ -792,8 +792,33 @@ function ClientBriefDetail() {
           </div>
         </div>
 
+        {/* AI STUDIO — HEMEN ÜRET KARTLARI */}
+        <div style={{padding:'24px 28px 0',background:'#fff'}}>
+          <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'14px'}}>
+            <div style={{fontSize:'15px',fontWeight:600,color:'#0a0a0a'}}>AI Studio ile Hemen Uret</div>
+            <span style={{fontSize:'9px',padding:'2px 6px',background:'#0a4b1a',color:'#4ade80',borderRadius:'4px',letterSpacing:'0.05em',fontWeight:600}}>BETA</span>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(4, 1fr)',gap:'10px',maxWidth:'640px'}}>
+            {[
+              {key:'express' as const,label:'AI EXPRESS',sub:'~5 dakika',video:'/express_v_tn.mp4'},
+              {key:'ugc' as const,label:'AI PERSONA',sub:'~3 dakika',video:'/ugc_v_tn.mp4'},
+              {key:'animation' as const,label:'AI ANIMATION',sub:'~5 dakika',video:'https://liegyfgignwepqgswxhg.supabase.co/storage/v1/object/public/videos/marketing/ai-animation/a_main_1.mp4'},
+              {key:'trend' as const,label:'AI TREND',sub:'~6 dakika',video:'/videos/trend04.mp4'},
+            ].map(item=>(
+              <button key={item.key} onClick={()=>{setActiveTab(item.key);setTimeout(()=>{const el=document.getElementById('ai-studio-tabs');if(el)el.scrollIntoView({behavior:'smooth',block:'start'})},50)}} onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.transform='scale(1.03)';const ov=e.currentTarget.querySelector('[data-hover-ov]') as HTMLElement;if(ov)ov.style.opacity='1'}} onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.transform='scale(1)';const ov=e.currentTarget.querySelector('[data-hover-ov]') as HTMLElement;if(ov)ov.style.opacity='0'}} style={{position:'relative',aspectRatio:'9/16',padding:0,border:'none',background:'transparent',cursor:'pointer',borderRadius:'8px',overflow:'hidden',transition:'transform 0.18s ease'}}>
+                <video src={item.video} autoPlay muted loop playsInline style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover'}} />
+                <img src="/overlay2_tiktok.png" alt="" style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',pointerEvents:'none'}} />
+                <div data-hover-ov="" style={{position:'absolute',inset:0,background:'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)',opacity:0,transition:'opacity 0.2s ease',display:'flex',flexDirection:'column',justifyContent:'flex-end',padding:'10px',color:'#fff',pointerEvents:'none'}}>
+                  <div style={{fontSize:'11px',fontWeight:600,letterSpacing:'0.05em',marginBottom:'2px'}}>{item.label}</div>
+                  <div style={{fontSize:'9px',opacity:0.8}}>{item.sub}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* TABS — 2 GROUP LAYOUT */}
-        <div style={{display:'flex',alignItems:'flex-end',gap:0,paddingLeft:'28px',paddingBottom:'0',background:'#fff'}}>
+        <div id="ai-studio-tabs" style={{display:'flex',alignItems:'flex-end',gap:0,paddingLeft:'28px',paddingBottom:'0',background:'#fff'}}>
           {(() => {
             const expressVisible = brief?.clients?.ai_video_enabled !== false && featureFlags.aiExpressGlobal
             const ugcVisible = brief?.clients?.ugc_enabled !== false && featureFlags.ugcGlobal
