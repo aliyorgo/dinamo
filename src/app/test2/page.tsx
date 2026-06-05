@@ -51,7 +51,7 @@ export default function HomePage() {
   const worksVisible = siteSettings['works_visible'] !== 'false'
   const partnersVisible = siteSettings['partners_visible'] !== 'false'
   const advancedPrice = Number(siteSettings['advanced_customization_price'] || 150000)
-  const advancedPriceFormatted = advancedPrice.toLocaleString('tr-TR')
+  const advancedPriceFormatted = mounted ? advancedPrice.toLocaleString('tr-TR') : ''
 
   return (
     <div style={{ fontFamily: "'Inter', system-ui, sans-serif", background: '#0a0a0a', color: '#fff', minHeight: '100vh' }}>
