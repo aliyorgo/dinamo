@@ -58,6 +58,7 @@ export default function ClientDashboard() {
   const [animReadyMap, setAnimReadyMap] = useState<Record<string, any[]>>({})
   const [animCountMap, setAnimCountMap] = useState<Record<string, number>>({})
   const [trendCountMap, setTrendCountMap] = useState<Record<string, number>>({})
+  const [trendProcessingMap, setTrendProcessingMap] = useState<Record<string, boolean>>({})
   const [trendReadyMap, setTrendReadyMap] = useState<Record<string, any[]>>({})
   const [loading, setLoading] = useState(true)
   // Notifications
@@ -160,6 +161,12 @@ export default function ClientDashboard() {
             if (key) tcMap[key] = (tcMap[key] || 0) + 1
           })
           setTrendCountMap(tcMap)
+          const tpMap: Record<string, boolean> = {}
+          trendKids?.forEach((k: any) => {
+            const key = k.root_campaign_id || k.parent_brief_id
+            if (key && k.ai_video_status !== 'completed' && k.ai_video_status !== 'failed' && k.ai_video_status !== 'timeout' && !k.ai_video_url) tpMap[key] = true
+          })
+          setTrendProcessingMap(tpMap)
 
           // Trend ready (completed + video_url + unviewed)
           const trMap: Record<string, any[]> = {}
@@ -308,19 +315,20 @@ export default function ClientDashboard() {
     if (cpsKids.length > 0) indicators.push({ label: `CPS · ${cpsKids.length} YÖN` })
     const ugcCount = ugcCountMap[b.id] || 0
     if (b.ugc_status || ugcCount > 0) {
-      const ugcProcessing = b.ugc_status === 'queued' || b.ugc_status === 'generating'
+      const ugcProcessing = ['queued','generating','revising','revising_claimed'].includes(b.ugc_status || '')
       const ugcFailed = b.ugc_status === 'failed'
       indicators.push({ label: `AI PERSONA${ugcCount > 0 ? ` · ${ugcCount}` : ''}`, pulse: ugcProcessing, error: ugcFailed, tab: 'ugc' })
     }
     if (b.animation_status) {
-      const animProcessing = b.animation_status === 'queued' || b.animation_status === 'generating'
+      const animProcessing = ['queued','generating','revising','revising_claimed'].includes(b.animation_status || '')
       const animFailed = b.animation_status === 'failed'
       const animCount = animCountMap[b.id] || 0
       indicators.push({ label: `ANİMASYON${animCount > 0 ? ` · ${animCount}` : ''}`, pulse: animProcessing, error: animFailed, tab: 'animation' })
     }
     const trendCount = trendCountMap[b.root_campaign_id] || trendCountMap[b.id] || 0
     if (trendCount > 0) {
-      indicators.push({ label: `TREND · ${trendCount}`, tab: 'trend' })
+      const tp = trendProcessingMap[b.root_campaign_id] || trendProcessingMap[b.id] || false
+      indicators.push({ label: `TREND · ${trendCount}`, pulse: tp, tab: 'trend' })
     }
     if (b.static_image_files || b.static_images_url) indicators.push({ label: 'GÖRSEL' })
     return indicators
