@@ -403,18 +403,15 @@ export default function HomePage() {
             <div>
               <div style={{ marginBottom: '16px' }}>
                 <div style={{ fontSize: '11px', letterSpacing: '3px', color: '#1db81d', textTransform: 'uppercase', marginBottom: '16px', fontWeight: '400' }}>AI Trend</div>
-                <h2 style={{ fontSize: 'clamp(18px, 2.6vw, 27px)', fontWeight: '300', letterSpacing: '-1px', marginBottom: '12px' }}>Akışta Geç Geçilmeyen Format</h2>
+                <h2 style={{ fontSize: 'clamp(18px, 2.6vw, 27px)', fontWeight: '300', letterSpacing: '-1px', marginBottom: '12px' }}>Profesyonel Yonetmenlerden Hazir Formatlar</h2>
                 <div style={{ display: 'inline-block', padding: '4px 12px', background: 'rgba(29,184,29,0.1)', border: '1px solid rgba(29,184,29,0.2)', fontSize: '11px', color: '#1DB81D', marginBottom: '40px' }}>BETA</div>
               </div>
               <div>
                 <p style={{ fontSize: '18px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.9, marginBottom: '20px', fontWeight: '300' }}>
-                  TikTok'un en cok izlenen 4 viral formatina markani yerlestir — Bana Bak, Top Sektirme, O Zaman Dans, Gokten Gelen.
-                </p>
-                <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.9, marginBottom: '20px', fontWeight: '300' }}>
-                  Hazir dans, muzik ve kurguya markanin gorselleri ve mesaji eklenir. Uretim dakikalar icinde tamamlanir.
+                  Profesyonel yonetmenler tarafindan curate edilmis hazir video formatlari. Telifi alinmis ozel muzikler, trendleri takip eden fikirler. Surekli guncellenir, her zaman taze.
                 </p>
                 <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.9, marginBottom: '20px', fontWeight: '300' }}>
-                  Indirim kampanyalari, urun lansmani, hizli duyurular — akista durdurucu icerik icin ideal.
+                  Hizli, kaliteli ve tahmin edilebilir icerikler icin ideal — indirim kampanyalari, urun lansmanlari, marka duyurulari.
                 </p>
                 <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.3)', marginTop: '16px', letterSpacing: '0.5px' }}>
                   ~5 dakika · Ilk deneme ucretsiz · 1 kredi uretim, 2 kredi satin alma
