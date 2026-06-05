@@ -1,14 +1,118 @@
-export default function ProcessingPlaceholder({ logoSize = 115, fontSize = 10, subtitle, accentColor = '#2ed573' }: {
+'use client'
+import { useEffect, useState, useRef } from 'react'
+
+const LOG_COMMON = [
+  '[agency] brief received from client portal',
+  '[agency] parsing campaign objectives',
+  '[agency] verifying brand guidelines',
+  '[producer] brief approved — dispatching to AI orchestrator',
+  '[producer] queue position: 1 / priority: normal',
+  '[orchestrator] routing to engine',
+  '[claude] sonnet-4.5-thinking initialized',
+  '[claude] analyzing brief context',
+  '[claude] extracting tone, target audience, key messages',
+  '[claude] drafting creative concept (revision 1/3)',
+  '[claude] concept locked — generating production script',
+]
+const LOG_EXPRESS = [
+  '[claude] writing visual narrative (shot 1/1)',
+  '[nano-banana] generating reference frame',
+  '[nano-banana] character consistency: anchor locked',
+  '[seedance] piapi/seedance-2-fast initialized',
+  '[seedance] queued (region: us-west-2)',
+  '[seedance] processing — image to video, 15s, 720p',
+  '[seedance] frame generation: 24/360',
+  '[seedance] frame generation: 178/360',
+  '[seedance] frame generation: 360/360',
+  '[seedance] task complete: video_url received',
+  '[ffmpeg] downloading source video',
+  '[ffmpeg] applying CTA overlay',
+  '[ffmpeg] re-encoding: libx264 -crf 19 yuv420p',
+  '[supabase] uploading to storage bucket: ai-videos',
+  '[supabase] upload complete',
+  '[orchestrator] notifying client portal',
+]
+const LOG_PERSONA = [
+  '[claude] selecting persona archetype',
+  '[claude] matched: Gen Z creator — TR',
+  '[claude] mizansen roll: 0.41 → third_person',
+  '[claude] setup: gopro_walking_wide',
+  '[claude] script: 18 words, 6 seconds',
+  '[veo] piapi/veo3.1-video-fast initialized',
+  '[veo] reference image attached',
+  '[veo] task submitted: veo3.1-fast',
+  '[veo] processing — text+image to video, 9:16',
+  '[veo] generation: 18% — character locked',
+  '[veo] generation: 47% — motion synthesis',
+  '[veo] generation: 89% — final pass',
+  '[veo] task complete',
+  '[ffmpeg] detect-and-trim pass',
+  '[ffmpeg] CTA overlay applied',
+  '[supabase] uploading...',
+]
+const LOG_ANIMATION = [
+  '[claude] reading animation_styles table',
+  '[claude] style: mascot_only',
+  '[claude] writing voiceover script (32 words)',
+  '[elevenlabs] voice: Rachel-TR-v2',
+  '[elevenlabs] generating TTS (12.3s)',
+  '[elevenlabs] audio normalized: -16 LUFS',
+  '[seedance] piapi/seedance-2-fast initialized',
+  '[seedance] styleFreePrefix2D activated',
+  '[seedance] task submitted: 720p, 15s',
+  '[seedance] generation: 23% — style transfer',
+  '[seedance] generation: 67% — motion',
+  '[seedance] generation: 100%',
+  '[ffmpeg] audio + video mux',
+  '[ffmpeg] CTA overlay applied',
+  '[supabase] uploading...',
+]
+const LOG_TREND = [
+  '[claude] trend format: Bana Bak',
+  '[claude] reading format playbook',
+  '[nano-banana] generating opening frame',
+  '[kling] piapi/kling-3.0 multi_shot initialized',
+  '[kling] task: 6 shots, 15s total',
+  '[kling] queued',
+  '[kling] generation: 23%',
+  '[kling] generation: 67%',
+  '[kling] generation: 100%',
+  '[elevenlabs] voiceover: 12 words',
+  '[ffmpeg] sync audio + video',
+  '[ffmpeg] CTA overlay',
+  '[supabase] uploading...',
+]
+
+function getPool(engine?: string) {
+  const e = engine === 'persona' ? LOG_PERSONA : engine === 'animation' ? LOG_ANIMATION : engine === 'trend' ? LOG_TREND : LOG_EXPRESS
+  return [...LOG_COMMON, ...e]
+}
+
+export default function ProcessingPlaceholder({ logoSize = 115, fontSize = 10, subtitle, accentColor = '#2ed573', engine, status }: {
   logoSize?: number
   fontSize?: number
   subtitle?: string
   accentColor?: string
+  engine?: 'express' | 'persona' | 'animation' | 'trend'
+  status?: string
 }) {
-  // Parse hex to rgba for gradient stops
   const r = parseInt(accentColor.slice(1, 3), 16)
   const g = parseInt(accentColor.slice(3, 5), 16)
   const b = parseInt(accentColor.slice(5, 7), 16)
   const scanGrad = `linear-gradient(to bottom, transparent 0%, rgba(${r},${g},${b},0.0) 30%, rgba(${r},${g},${b},0.6) 50%, rgba(${r},${g},${b},0.0) 70%, transparent 100%)`
+
+  const [logs, setLogs] = useState<string[]>([])
+  const idxRef = useRef(0)
+
+  useEffect(() => {
+    if (status === 'failed' || status === 'error') return
+    const pool = getPool(engine)
+    const iv = setInterval(() => {
+      idxRef.current = (idxRef.current + 1) % pool.length
+      setLogs(prev => [...prev, pool[idxRef.current]].slice(-8))
+    }, 1800)
+    return () => clearInterval(iv)
+  }, [engine, status])
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', animation: 'dinamoOpacityDip 7s infinite' }}>
@@ -22,6 +126,14 @@ export default function ProcessingPlaceholder({ logoSize = 115, fontSize = 10, s
         <img src="/dinamo_logo.png" alt="" style={{ width: `${logoSize}px`, objectFit: 'contain', display: 'block', animation: 'pulse 1.8s ease-in-out infinite' }} />
         <div style={{ fontSize: `${fontSize}px`, fontWeight: '500', letterSpacing: '0.1em', color: '#fff', marginTop: '2px', animation: 'pulse 1.5s ease infinite' }}>ÇALIŞIYOR</div>
         {subtitle && <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.6)', textAlign: 'center', lineHeight: 1.5, marginTop: '8px' }}>{subtitle}</div>}
+      </div>
+      {/* Fake railway log scroll — alt %25 */}
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '25%', zIndex: 6, pointerEvents: 'none', fontFamily: 'Menlo, Monaco, "SF Mono", Consolas, monospace', fontSize: 9, lineHeight: 1.4, color: 'rgba(150,150,150,0.35)', padding: '0 12px', overflow: 'hidden', WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 30%, black 70%, transparent 100%)', maskImage: 'linear-gradient(to bottom, transparent 0%, black 30%, black 70%, transparent 100%)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', height: '100%' }}>
+          {logs.map((line, i) => (
+            <div key={`${i}-${line.slice(0, 15)}`} style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', opacity: 0.3 + (i / Math.max(logs.length, 1)) * 0.5 }}>{line}</div>
+          ))}
+        </div>
       </div>
     </div>
   )
