@@ -6,6 +6,7 @@ import { pauseOtherVideos } from '@/lib/video-playback'
 import ProcessingPlaceholder from '@/components/ProcessingPlaceholder'
 import CTAReviseBox from '@/components/CTAReviseBox'
 import { generateCertificatePDF } from '@/lib/generate-certificate'
+import { useClientContext } from '@/app/dashboard/client/layout'
 
 const supabase = getSupabaseBrowser()
 
@@ -29,6 +30,7 @@ function formatDuration(start: string | null | undefined, end: string | null | u
 }
 
 export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVideoId, onVideoCountChange, onProcessingChange }: Props) {
+  const { refreshCredits } = useClientContext()
   const [styles, setStyles] = useState<any[]>([])
   const [hasMascot, setHasMascot] = useState(false)
   const [mascotIcons, setMascotIcons] = useState<Record<string, string | null>>({})
@@ -189,6 +191,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
     } catch { setMsg('Bağlantı hatası') }
     generatingRef.current = false
     setGenerating(false)
+    refreshCredits()
   }
 
   async function handlePurchase(vid: string) {
@@ -196,7 +199,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
     try {
       const res = await fetch('/api/animation/purchase', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ animation_video_id: vid }) })
       const d = await res.json()
-      if (d.error) setMsg(d.error); else setAnimationVideos(prev => prev.map(v => v.id === vid ? { ...v, status: 'sold' } : v))
+      if (d.error) setMsg(d.error); else { setAnimationVideos(prev => prev.map(v => v.id === vid ? { ...v, status: 'sold' } : v)); refreshCredits() }
     } catch { setMsg('Bağlantı hatası') }
     setPurchasing(null)
   }
@@ -404,7 +407,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
                     ) : null}
                   </div>
                 )}
-                {hasVideo && !isFailed && <CTAReviseBox videoId={video.id} engine="animation" currentCtaText={video.cta_text || brief?.cta || ''} preCtaVideoUrl={video.pre_cta_video_url} status={video.status} ctaEnabled={animSettings?.cta_enabled !== false} onStatusChange={s => setAnimationVideos(prev => prev.map(v => v.id === video.id ? {...v, status: s} : v))} />}
+                {hasVideo && !isFailed && <CTAReviseBox videoId={video.id} engine="animation" currentCtaText={video.cta_text || brief?.cta || ''} preCtaVideoUrl={video.pre_cta_video_url} status={video.status} ctaEnabled={animSettings?.cta_enabled !== false} onStatusChange={s => { setAnimationVideos(prev => prev.map(v => v.id === video.id ? {...v, status: s} : v)); refreshCredits() }} />}
               </div>
             </div>
           )

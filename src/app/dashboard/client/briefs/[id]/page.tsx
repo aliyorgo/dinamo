@@ -76,7 +76,7 @@ export default function ClientBriefDetailWrapper() {
 function ClientBriefDetail() {
   const params = useParams()
   const router = useRouter()
-  const { customizationTier } = useClientContext()
+  const { customizationTier, refreshCredits } = useClientContext()
   const searchParams = useSearchParams()
   const id = params.id as string
   const { credits: creditSettings, flags: featureFlags } = useCredits()
@@ -505,6 +505,7 @@ function ClientBriefDetail() {
     } catch (err) { setAiError('Bağlantı hatası') }
     generatingRef.current = false
     setAiGenerating(false)
+    refreshCredits()
   }
 
   async function handleStudioPurchase(childBrief: any) {
@@ -520,6 +521,7 @@ function ClientBriefDetail() {
     if (result.error) { setAiError(result.error); return }
     setClientUser({ ...clientUser, allocated_credits: (clientUser.allocated_credits || 0) - (creditSettings?.credit_ai_express || 1) })
     setAiChildren(prev => prev.map(c => c.id === childBrief.id ? { ...c, status: 'delivered' } : c))
+    refreshCredits()
     loadData()
   }
 
@@ -1549,7 +1551,7 @@ function ClientBriefDetail() {
                               </div>
                             )
                           })()}
-                          {hasVideo && !isFailed && <CTAReviseBox videoId={child.id} engine="express" currentCtaText={child.cta_text || child.cta || ''} preCtaVideoUrl={child.pre_cta_video_url} status={child.ai_video_status} ctaEnabled={expressSettings?.cta !== false} onStatusChange={s => setAiChildren(prev => prev.map(c => c.id === child.id ? {...c, ai_video_status: s} : c))} />}
+                          {hasVideo && !isFailed && <CTAReviseBox videoId={child.id} engine="express" currentCtaText={child.cta_text || child.cta || ''} preCtaVideoUrl={child.pre_cta_video_url} status={child.ai_video_status} ctaEnabled={expressSettings?.cta !== false} onStatusChange={s => { setAiChildren(prev => prev.map(c => c.id === child.id ? {...c, ai_video_status: s} : c)); refreshCredits() }} />}
                         </div>
                       </div>
                     )
@@ -1962,6 +1964,7 @@ function ClientBriefDetail() {
                         if (data.child_brief) { setTrendChildren(prev=>[...prev,data.child_brief]); setTrendVideoCount(prev=>prev+1) }
                       } catch {}
                       trendGeneratingRef.current = false
+                      refreshCredits()
                     }} style={{width:'100%',padding:'14px',background:((clientUser?.allocated_credits||0)<1&&trendChildren.filter(c=>c.ai_video_status!=='failed').length>0)?'#ccc':'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'13px',fontWeight:600,cursor:((clientUser?.allocated_credits||0)<1&&trendChildren.filter(c=>c.ai_video_status!=='failed').length>0)?'not-allowed':'pointer'}}>
                       {trendChildren.filter(c=>c.ai_video_status!=='failed').length === 0 ? 'TREND ÜRET (ÜCRETSİZ · ~4 DAKİKA)' : 'TREND ÜRET (1 KREDİ · ~4 DAKİKA)'}
                     </button>

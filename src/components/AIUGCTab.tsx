@@ -8,6 +8,7 @@ import ProcessingPlaceholder from '@/components/ProcessingPlaceholder'
 import CTAReviseBox from '@/components/CTAReviseBox'
 import { downloadFile } from '@/lib/download-helper'
 import { pauseOtherVideos } from '@/lib/video-playback'
+import { useClientContext } from '@/app/dashboard/client/layout'
 import StaticImageGeneratorModal from '@/components/StaticImageGeneratorModal'
 
 const supabase = getSupabaseBrowser()
@@ -54,6 +55,7 @@ function readOverlayText(scripts: Record<string, any>, personaId: number | strin
 }
 
 export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPlayVideoId, onVideoCountChange, onProcessingChange }: Props) {
+  const { refreshCredits } = useClientContext()
   // Data — local brief copy for lock updates
   const [brief, setBrief] = useState<any>(briefProp)
   useEffect(() => { setBrief(briefProp) }, [briefProp])
@@ -351,6 +353,7 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
     } catch { setMsg('Bağlantı hatası') }
     generatingRef.current = false
     setGenerating(false)
+    refreshCredits()
   }
 
   // Persist ugc_scripts via service role endpoint (RLS bypass)
@@ -366,7 +369,7 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
     try {
       const res = await fetch('/api/ugc/purchase', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ugc_video_id: videoId }) })
       const data = await res.json()
-      if (data.download_url) { setUgcVideos(prev => prev.map(v => v.id === videoId ? { ...v, status: 'sold' } : v)) }
+      if (data.download_url) { setUgcVideos(prev => prev.map(v => v.id === videoId ? { ...v, status: 'sold' } : v)); refreshCredits() }
       else { setMsg(data.error || 'Satın alma başarısız') }
     } catch { setMsg('Bağlantı hatası') }
     setPurchasing(null)
@@ -593,7 +596,7 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
                     )}
                   </div>
                 )}
-                {hasVideo && !isFailed && <CTAReviseBox videoId={video.id} engine="persona" currentCtaText={video.cta_text || brief?.cta || ''} preCtaVideoUrl={video.pre_cta_video_url} status={video.status} ctaEnabled={settings?.cta !== false} onStatusChange={s => setUgcVideos(prev => prev.map(v => v.id === video.id ? {...v, status: s} : v))} />}
+                {hasVideo && !isFailed && <CTAReviseBox videoId={video.id} engine="persona" currentCtaText={video.cta_text || brief?.cta || ''} preCtaVideoUrl={video.pre_cta_video_url} status={video.status} ctaEnabled={settings?.cta !== false} onStatusChange={s => { setUgcVideos(prev => prev.map(v => v.id === video.id ? {...v, status: s} : v)); refreshCredits() }} />}
 
                 {/* Lock appearance toggle — anchor based */}
                 {hasVideo && !isFailed && (() => {
