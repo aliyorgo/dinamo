@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
   // Count Trend children for credit calc
   const { count: completedCount } = await supabase.from('briefs').select('id', { count: 'exact', head: true }).eq('root_campaign_id', rootId).in('express_engine', ['trend', 'trend_cinema', 'trend_oops', 'trend_dans', 'trend_gokten']).not('ai_video_status', 'in', '("failed","timeout")').not('ai_video_status', 'is', null)
   const cc = completedCount || 0
-  const creditCost = cc === 0 ? 0 : await getCreditCost('credit_ai_express_generate', 1)
+  const creditCost = cc === 0 ? 0 : await getCreditCost('credit_ai_trend_generate', 1)
 
   if (creditCost > 0) {
     const { data: cu } = await supabase.from('client_users').select('allocated_credits').eq('id', client_user_id).single()
