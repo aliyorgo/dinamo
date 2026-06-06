@@ -27,7 +27,7 @@ export default function CTAReviseBox({ videoId, engine, currentCtaText, preCtaVi
     <div style={{marginTop:'12px'}}>
       <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'4px'}}>
         <span style={{fontSize:'12px',fontWeight:600,color:'#0a0a0a'}}>Hızlı CTA Revize</span>
-        <span style={{fontSize:'10px',fontStyle:'italic',color:'#bbb'}}>~ 15 sn - Ücretsiz</span>
+        <span style={{fontSize:'10px',fontStyle:'italic',color:'#bbb'}}>~ 15 sn - 1 Kredi</span>
       </div>
       <div style={{display:'flex',borderRadius:'8px',border:'1px solid #e0dfd8',overflow:'hidden',opacity:isRevising?0.5:1,transition:'opacity 0.2s',maxWidth:'400px'}}>
         <input value={editedCta} onChange={e => setEditedCta(e.target.value)} disabled={isRevising} maxLength={200} autoComplete="off" placeholder="CTA metni..." style={{flex:1,fontSize:'12px',padding:'8px 12px',border:'none',outline:'none',background:'#fff',color:'#0a0a0a',minWidth:0}} />
