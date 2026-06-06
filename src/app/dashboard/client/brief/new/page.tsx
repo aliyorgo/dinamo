@@ -255,7 +255,7 @@ function NewBriefPage() {
     setPreviewLoading(false)
   }
 
-  const brandVoiceForGender = brandVoices?.[form.voiceover_gender || 'female'] || null
+  const brandVoiceForGender = brandVoices?.[form.voiceover_gender || 'female'] || brandVoices?.['female'] || brandVoices?.['male'] || null
   const previewChanged = previewUrl && (form.voiceover_text !== previewTextSnapshot || form.voiceover_gender !== previewGenderSnapshot)
 
   async function handleAiBrief() {
