@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'insufficient_credits', required: cost, balance: cu?.allocated_credits || 0 }, { status: 402 })
       }
       await supabase.from('client_users').update({ allocated_credits: cu.allocated_credits - cost }).eq('id', cu.id)
-      await supabase.from('credit_transactions').insert({ client_id: clientId, client_user_id: cu.id, amount: -cost, type: 'image_generate', description: 'Görsel oluşturma' })
+      await supabase.from('credit_transactions').insert({ client_id: clientId, client_user_id: cu.id, amount: -cost, type: 'image_generate', description: `Görsel oluşturma - ${briefId}` })
     }
 
     await supabase.from('briefs').update({
