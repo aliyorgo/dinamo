@@ -116,11 +116,17 @@ export default function StaticImageGeneratorModal({ briefId, videoUrl, existingU
     setGenerating(true)
     setError('')
     try {
-      await fetch('/api/static-images/generate', {
+      const genRes = await fetch('/api/static-images/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ briefId, selectedFrames: [frames[selectedFrame]], copy, ugcVideoId: ugcVideoId || undefined }),
       })
+      if (genRes.status === 402) {
+        const d = await genRes.json()
+        setError(`Yetersiz kredi. Gerekli: ${d.required}, mevcut: ${d.balance}`)
+        setGenerating(false)
+        return
+      }
       pollStatus((result) => {
         setDownloadUrl(result.url)
         onGenerated?.(result.url)

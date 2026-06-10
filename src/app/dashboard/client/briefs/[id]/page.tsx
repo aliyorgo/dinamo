@@ -1487,10 +1487,13 @@ function ClientBriefDetail() {
                                       GÖRSEL İNDİR ↓
                                     </button>
                                   ) : (
-                                    <button onClick={()=>setStaticImageModal({ briefId: child.id, videoUrl: child.ai_video_url })}
-                                      style={{fontSize:'11px',color:'#0a0a0a',background:'none',border:'1px solid #0a0a0a',padding:'5px 12px',cursor:'pointer'}}>
-                                      Görsel Oluştur
-                                    </button>
+                                    <>
+                                      <button onClick={()=>setStaticImageModal({ briefId: child.id, videoUrl: child.ai_video_url })}
+                                        style={{fontSize:'11px',color:'#0a0a0a',background:'none',border:'1px solid #0a0a0a',padding:'5px 12px',cursor:'pointer'}}>
+                                        Görsel Oluştur
+                                      </button>
+                                      <span style={{fontSize:'10px',color:'#888'}}>{creditSettings?.credit_image_generate||2} kredi</span>
+                                    </>
                                   )}
                                 </>
                               ) : (
@@ -1876,15 +1879,35 @@ function ClientBriefDetail() {
                           {hasVideo && !isFailed && (
                             <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
                               {isPurchased ? (
-                                <button onClick={()=>downloadFile(child.ai_video_url, `dinamo_${slugify(companyName)}_trend_v${idx+1}.mp4`)}
-                                  style={{fontSize:'11px',color:'#0a0a0a',background:'none',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'6px',padding:'5px 12px',display:'inline-flex',alignItems:'center',gap:'4px',cursor:'pointer'}}>
-                                  <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M8 2v9M4 8l4 4 4-4" stroke="#0a0a0a" strokeWidth="1.5" strokeLinecap="round"/><path d="M2 13h12" stroke="#0a0a0a" strokeWidth="1.5" strokeLinecap="round"/></svg>
-                                  Indir
-                                </button>
+                                <>
+                                  <button onClick={()=>downloadFile(child.ai_video_url, `dinamo_${slugify(companyName)}_trend_v${idx+1}.mp4`)}
+                                    style={{fontSize:'11px',color:'#0a0a0a',background:'none',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'6px',padding:'5px 12px',display:'inline-flex',alignItems:'center',gap:'4px',cursor:'pointer'}}>
+                                    <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M8 2v9M4 8l4 4 4-4" stroke="#0a0a0a" strokeWidth="1.5" strokeLinecap="round"/><path d="M2 13h12" stroke="#0a0a0a" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                                    Indir
+                                  </button>
+                                  <button onClick={()=>generateCertificatePDF(child, companyName, legalName)}
+                                    style={{fontSize:'11px',color:'#555',background:'none',border:'0.5px solid rgba(0,0,0,0.12)',borderRadius:'6px',padding:'5px 12px',cursor:'pointer'}}>
+                                    Telif Belgesi
+                                  </button>
+                                  {child.static_images_url && /\.(png|jpg|jpeg|webp)$/i.test(child.static_images_url) ? (
+                                    <button onClick={()=>downloadFile(child.static_images_url, `gorsel_trend_v${idx+1}.png`)}
+                                      style={{fontSize:'11px',color:'#0a0a0a',background:'none',border:'1px solid #0a0a0a',padding:'5px 12px',cursor:'pointer',letterSpacing:'1px',textTransform:'uppercase'}}>
+                                      GÖRSEL İNDİR ↓
+                                    </button>
+                                  ) : (
+                                    <>
+                                      <button onClick={()=>setStaticImageModal({ briefId: child.id, videoUrl: child.ai_video_url })}
+                                        style={{fontSize:'11px',color:'#0a0a0a',background:'none',border:'1px solid #0a0a0a',padding:'5px 12px',cursor:'pointer'}}>
+                                        Görsel Oluştur
+                                      </button>
+                                      <span style={{fontSize:'10px',color:'#888'}}>{creditSettings?.credit_image_generate||2} kredi</span>
+                                    </>
+                                  )}
+                                </>
                               ) : (
                                 <>
-                                  <button onClick={()=>handleStudioPurchase(child)} disabled={(clientUser?.allocated_credits||0)<(creditSettings?.credit_ai_express||1)} className="btn btn-accent" style={{padding:'6px 16px'}}>SATIN AL</button>
-                                  <span style={{fontSize:'13px',color:'#888'}}>{creditSettings?.credit_ai_express||1} kredi</span>
+                                  <button onClick={()=>handleStudioPurchase(child)} disabled={(clientUser?.allocated_credits||0)<(creditSettings?.credit_ai_trend||1)} className="btn btn-accent" style={{padding:'6px 16px'}}>SATIN AL</button>
+                                  <span style={{fontSize:'13px',color:'#888'}}>{creditSettings?.credit_ai_trend||1} kredi</span>
                                 </>
                               )}
                             </div>

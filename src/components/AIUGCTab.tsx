@@ -10,6 +10,7 @@ import { downloadFile } from '@/lib/download-helper'
 import { pauseOtherVideos } from '@/lib/video-playback'
 import { useClientContext } from '@/app/dashboard/client/layout'
 import StaticImageGeneratorModal from '@/components/StaticImageGeneratorModal'
+import { useCredits } from '@/lib/credits'
 
 const supabase = getSupabaseBrowser()
 
@@ -56,6 +57,7 @@ function readOverlayText(scripts: Record<string, any>, personaId: number | strin
 
 export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPlayVideoId, onVideoCountChange, onProcessingChange }: Props) {
   const { refreshCredits } = useClientContext()
+  const { credits: creditSettings } = useCredits()
   // Data — local brief copy for lock updates
   const [brief, setBrief] = useState<any>(briefProp)
   useEffect(() => { setBrief(briefProp) }, [briefProp])
@@ -562,7 +564,10 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
                         {video.static_images_url && /\.(png|jpg|jpeg|webp)$/i.test(video.static_images_url) ? (
                           <button onClick={() => downloadFile(video.static_images_url, `${(brief?.campaign_name || 'brief').replace(/\s+/g, '_').toLowerCase()}_persona_v${idx + 1}.png`)} style={{ fontSize: '11px', color: '#0a0a0a', background: 'none', border: '1px solid #0a0a0a', padding: '5px 12px', cursor: 'pointer', letterSpacing: '1px', textTransform: 'uppercase' }}>GÖRSEL İNDİR ↓</button>
                         ) : (
-                          <button onClick={() => setStaticImageModal({ briefId, videoUrl: video.raw_video_url || video.final_url, ugcVideoId: video.id })} style={{ fontSize: '11px', color: '#0a0a0a', background: 'none', border: '0.5px solid rgba(0,0,0,0.15)', padding: '5px 12px', cursor: 'pointer' }}>Görsel Oluştur</button>
+                          <>
+                            <button onClick={() => setStaticImageModal({ briefId, videoUrl: video.raw_video_url || video.final_url, ugcVideoId: video.id })} style={{ fontSize: '11px', color: '#0a0a0a', background: 'none', border: '0.5px solid rgba(0,0,0,0.15)', padding: '5px 12px', cursor: 'pointer' }}>Görsel Oluştur</button>
+                            <span style={{ fontSize: '10px', color: '#888' }}>{creditSettings?.credit_image_generate||2} kredi</span>
+                          </>
                         )}
                       </>
                     ) : (

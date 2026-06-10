@@ -13,6 +13,7 @@ export type CreditSettings = {
   credit_revision: number
   credit_story: number
   credit_voiceover_real: number
+  credit_image_generate: number
 }
 
 const DEFAULTS: CreditSettings = {
@@ -27,6 +28,7 @@ const DEFAULTS: CreditSettings = {
   credit_revision: 40,
   credit_story: 120,
   credit_voiceover_real: 60,
+  credit_image_generate: 2,
 }
 
 let cached: CreditSettings | null = null

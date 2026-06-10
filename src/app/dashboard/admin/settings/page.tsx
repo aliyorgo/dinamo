@@ -173,6 +173,7 @@ export default function SettingsPage() {
     { key: 'credit_voiceover_real', label: 'Profesyonel seslendirme kredi değeri', type: 'number', unit: 'kredi' },
     { key: 'credit_ai_express', label: 'AI Express kredi değeri', type: 'number', unit: 'kredi' },
     { key: 'credit_ai_ugc', label: 'AI Persona kredi değeri', type: 'number', unit: 'kredi' },
+    { key: 'credit_image_generate', label: 'Görsel Oluşturma', type: 'number', unit: 'kredi' },
     { key: 'ai_express_global_enabled', label: 'AI Express global aktif', type: 'toggle' },
     { key: 'ugc_global_enabled', label: 'Persona global aktif', type: 'toggle' },
     { key: 'animation_global_enabled', label: 'Animation global aktif', type: 'toggle' },

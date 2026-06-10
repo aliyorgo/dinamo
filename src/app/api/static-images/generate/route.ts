@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { getCreditCost } from '@/lib/credits-server'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
@@ -7,6 +8,30 @@ export async function POST(req: NextRequest) {
   try {
     const { briefId, selectedFrames, copy, ugcVideoId } = await req.json()
     if (!briefId || !selectedFrames?.length) return NextResponse.json({ error: 'briefId ve frame seçimi gerekli' }, { status: 400 })
+
+    // Kredi düşürme
+    const cost = await getCreditCost('credit_image_generate', 2)
+    let clientId: string | null = null
+
+    if (ugcVideoId) {
+      const { data: video } = await supabase.from('ugc_videos').select('brief_id').eq('id', ugcVideoId).single()
+      if (video) {
+        const { data: brief } = await supabase.from('briefs').select('client_id').eq('id', video.brief_id).single()
+        clientId = brief?.client_id || null
+      }
+    } else {
+      const { data: brief } = await supabase.from('briefs').select('client_id').eq('id', briefId).single()
+      clientId = brief?.client_id || null
+    }
+
+    if (cost > 0 && clientId) {
+      const { data: cu } = await supabase.from('client_users').select('id, allocated_credits').eq('client_id', clientId).order('allocated_credits', { ascending: false }).limit(1).single()
+      if (!cu || cu.allocated_credits < cost) {
+        return NextResponse.json({ error: 'insufficient_credits', required: cost, balance: cu?.allocated_credits || 0 }, { status: 402 })
+      }
+      await supabase.from('client_users').update({ allocated_credits: cu.allocated_credits - cost }).eq('id', cu.id)
+      await supabase.from('credit_transactions').insert({ client_id: clientId, client_user_id: cu.id, amount: -cost, type: 'image_generate', description: 'Görsel oluşturma' })
+    }
 
     await supabase.from('briefs').update({
       static_images_job_status: 'pending',
