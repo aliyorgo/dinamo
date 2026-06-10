@@ -26,7 +26,7 @@ export default function PronunciationModal({ candidates, saving, onContinue, onC
           <button onClick={onClose} disabled={saving} style={{ background: 'none', border: 'none', fontSize: '22px', color: '#888', cursor: saving ? 'not-allowed' : 'pointer', lineHeight: 1 }}>&times;</button>
         </div>
         <div style={{ fontSize: '13px', color: '#6b6b66', marginBottom: '20px', lineHeight: 1.5 }}>
-          Aşağıdaki ifadelerin seslendirmede nasıl okunacağını belirtebilirsiniz. Boş bırakırsanız olduğu gibi okunur. Ekran yazıları ve CTA orijinal yazımıyla kalır.
+          Okunuşunu yazınız. Kelime, sesli okunduğunda nasıl duyulması gerekiyorsa öyle yazın — örneğin "Bankam+" için "bankam plas". İngilizce okunan kelimeleri İngilizce yazımıyla bırakabilirsiniz (örneğin "Prime" doğru okunuyorsa "Prime" yazın). Boş bırakırsanız kelime yazıldığı gibi okunur.
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '24px' }}>
           {candidates.map(w => (
@@ -35,7 +35,7 @@ export default function PronunciationModal({ candidates, saving, onContinue, onC
               <input
                 value={inputs[w] || ''}
                 onChange={e => setInputs(prev => ({ ...prev, [w]: e.target.value }))}
-                placeholder="okunuşu — örn: bankam plas"
+                placeholder="örn. bankam plas"
                 style={{ flex: 1, padding: '9px 11px', fontSize: '13px', border: '1px solid #e5e4db', boxSizing: 'border-box' }}
               />
             </div>
