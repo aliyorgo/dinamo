@@ -1138,10 +1138,13 @@ function ClientBriefDetail() {
                                 GÖRSEL İNDİR ↓
                               </button>
                             ) : (
+                              <>
                               <button onClick={()=>setStaticImageModal({ briefId: id, videoUrl: currentVideo?.video_url || brief.ai_video_url })}
                                 style={{width:'100%',padding:'10px',background:'#fff',border:'1px solid #0a0a0a',fontSize:'12px',color:'#0a0a0a',cursor:'pointer',fontWeight:'500',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px'}}>
                                 Görsel Oluştur
                               </button>
+                              <span style={{fontSize:'10px',color:'#888',width:'100%',textAlign:'center'}}>{creditSettings?.credit_image_generate||2} kredi</span>
+                              </>
                             )}
                           </div>
                         </div>

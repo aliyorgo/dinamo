@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { downloadFile } from '@/lib/download-helper'
+import { useCredits } from '@/lib/credits'
 
 interface Props {
   briefId: string
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export default function StaticImageGeneratorModal({ briefId, videoUrl, existingUrl, fileName, ugcVideoId, onClose, onGenerated }: Props) {
+  const { credits: creditSettings } = useCredits()
   const [loading, setLoading] = useState(true)
   const [loadingMessage, setLoadingMessage] = useState('Kareler hazırlanıyor...')
   const [frames, setFrames] = useState<string[]>([])
@@ -204,7 +206,7 @@ export default function StaticImageGeneratorModal({ briefId, videoUrl, existingU
               </button>
               <button onClick={handleGenerate} disabled={generating || selectedFrame === null}
                 style={{ padding: '9px 24px', background: selectedFrame === null ? '#ccc' : '#22c55e', color: '#fff', border: 'none', fontSize: '13px', fontWeight: '600', cursor: generating || selectedFrame === null ? 'not-allowed' : 'pointer', opacity: selectedFrame === null ? 0.5 : 1 }}>
-                {selectedFrame === null ? 'Frame seçin' : 'ÜRET'}
+                {selectedFrame === null ? 'Frame seçin' : `ÜRET · ${creditSettings?.credit_image_generate||2} kredi`}
               </button>
             </div>
           </>
