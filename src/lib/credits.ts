@@ -6,6 +6,11 @@ export type CreditSettings = {
   credit_ai_express_generate: number
   credit_ai_ugc: number
   credit_ai_ugc_generate: number
+  credit_ai_animation: number
+  credit_ai_animation_generate: number
+  credit_ai_trend: number
+  credit_ai_trend_generate: number
+  credit_cta_revise: number
   credit_bumper: number
   credit_feed: number
   credit_language_addon: number
@@ -21,6 +26,11 @@ const DEFAULTS: CreditSettings = {
   credit_ai_express_generate: 5,
   credit_ai_ugc: 10,
   credit_ai_ugc_generate: 5,
+  credit_ai_animation: 10,
+  credit_ai_animation_generate: 5,
+  credit_ai_trend: 20,
+  credit_ai_trend_generate: 5,
+  credit_cta_revise: 1,
   credit_bumper: 60,
   credit_feed: 200,
   credit_language_addon: 20,

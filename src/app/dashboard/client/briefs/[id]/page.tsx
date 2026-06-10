@@ -465,7 +465,7 @@ function ClientBriefDetail() {
 
   async function handleAiPurchase() {
     if (!clientUser || !brief?.ai_video_url) return
-    if ((clientUser.allocated_credits || 0) < (creditSettings?.credit_ai_express || 1)) { setAiError('Yetersiz kredi'); return }
+    if ((clientUser.allocated_credits || 0) < (creditSettings?.credit_ai_express || 10)) { setAiError('Yetersiz kredi'); return }
     const { data: { session } } = await supabase.auth.getSession(); const user = session?.user
     if (!user) return
     const res = await fetch('/api/generate-ai-video/purchase', {
@@ -475,7 +475,7 @@ function ClientBriefDetail() {
     })
     const result = await res.json()
     if (result.error) { setAiError(result.error); return }
-    setClientUser({ ...clientUser, allocated_credits: (clientUser.allocated_credits || 0) - (creditSettings?.credit_ai_express || 1) })
+    setClientUser({ ...clientUser, allocated_credits: (clientUser.allocated_credits || 0) - (creditSettings?.credit_ai_express || 10) })
     setBrief((prev: any) => ({ ...prev, status: 'delivered' }))
     loadData()
   }
@@ -511,7 +511,7 @@ function ClientBriefDetail() {
 
   async function handleStudioPurchase(childBrief: any) {
     if (!clientUser || !childBrief?.ai_video_url) return
-    if ((clientUser.allocated_credits || 0) < (creditSettings?.credit_ai_express || 1)) { setAiError('Yetersiz kredi'); return }
+    if ((clientUser.allocated_credits || 0) < (creditSettings?.credit_ai_express || 10)) { setAiError('Yetersiz kredi'); return }
     const { data: { session } } = await supabase.auth.getSession(); const user = session?.user
     if (!user) return
     const res = await fetch('/api/generate-ai-video/purchase', {
@@ -520,7 +520,7 @@ function ClientBriefDetail() {
     })
     const result = await res.json()
     if (result.error) { setAiError(result.error); return }
-    setClientUser({ ...clientUser, allocated_credits: (clientUser.allocated_credits || 0) - (creditSettings?.credit_ai_express || 1) })
+    setClientUser({ ...clientUser, allocated_credits: (clientUser.allocated_credits || 0) - (creditSettings?.credit_ai_express || 10) })
     setAiChildren(prev => prev.map(c => c.id === childBrief.id ? { ...c, status: 'delivered' } : c))
     refreshCredits()
     loadData()
@@ -967,10 +967,10 @@ function ClientBriefDetail() {
                         <div style={{fontSize:'14px',fontWeight:'500',color:'#0a0a0a',marginBottom:'6px'}}>AI Video Hazır</div>
                         <div style={{fontSize:'12px',color:'#888',marginBottom:'20px',lineHeight:1.6}}>Videoyu beğendiyseniz satın alabilirsiniz.</div>
                         <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'8px'}}>
-                          <button onClick={handleAiPurchase} disabled={(clientUser?.allocated_credits||0)<(creditSettings?.credit_ai_express||1)} className="btn btn-accent" style={{padding:'12px 24px'}}>
+                          <button onClick={handleAiPurchase} disabled={(clientUser?.allocated_credits||0)<(creditSettings?.credit_ai_express||10)} className="btn btn-accent" style={{padding:'12px 24px'}}>
                             SATIN AL
                           </button>
-                          <span style={{fontSize:'13px',color:'#888'}}>{creditSettings?.credit_ai_express||1} kredi</span>
+                          <span style={{fontSize:'13px',color:'#888'}}>{creditSettings?.credit_ai_express||10} kredi</span>
                         </div>
                         <button onClick={handleAiDiscard}
                           style={{width:'100%',padding:'10px',background:'#fff',color:'#555',border:'0.5px solid rgba(0,0,0,0.15)',borderRadius:'10px',fontSize:'12px',cursor:'pointer',}}>
@@ -1502,10 +1502,10 @@ function ClientBriefDetail() {
                                 </>
                               ) : (
                                 <>
-                                  <button onClick={()=>handleStudioPurchase(child)} disabled={(clientUser?.allocated_credits||0)<(creditSettings?.credit_ai_express||1)} className="btn btn-accent" style={{padding:'6px 16px'}}>
+                                  <button onClick={()=>handleStudioPurchase(child)} disabled={(clientUser?.allocated_credits||0)<(creditSettings?.credit_ai_express||10)} className="btn btn-accent" style={{padding:'6px 16px'}}>
                                     SATIN AL
                                   </button>
-                                  <span style={{fontSize:'13px',color:'#888'}}>{creditSettings?.credit_ai_express||1} kredi</span>
+                                  <span style={{fontSize:'13px',color:'#888'}}>{creditSettings?.credit_ai_express||10} kredi</span>
                                 </>
                               )}
                             </div>
@@ -1591,7 +1591,7 @@ function ClientBriefDetail() {
                         <div style={{display:'flex',gap:'8px'}}>
                           <button className="dinamo-generate-btn" onClick={()=>handleStudioGenerate('character')} disabled={aiGenerating||((clientUser?.allocated_credits||0)<1&&aiChildren.filter(c=>c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout'&&c.ai_video_status!==null).length>0)}
                             style={{flex:1,padding:'14px',background:((clientUser?.allocated_credits||0)<1&&aiChildren.filter(c=>c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout'&&c.ai_video_status!==null).length>0)?'#ccc':'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'13px',fontWeight:600,cursor:((clientUser?.allocated_credits||0)<1&&aiChildren.filter(c=>c.ai_video_status!=='failed'&&c.ai_video_status!=='timeout'&&c.ai_video_status!==null).length>0)?'not-allowed':'pointer',transition:'background 0.15s',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}>
-                            {(() => { const cc = aiChildren.filter(c => c.ai_video_status !== 'failed' && c.ai_video_status !== 'timeout' && c.ai_video_status !== null).length; return cc === 0 ? 'EXPRESS ÜRET (ÜCRETSİZ · ~5 DAKİKA)' : `EXPRESS ÜRET (${creditSettings?.credit_ai_express_generate || 1} KREDİ · ~5 DAKİKA)` })()}
+                            {(() => { const cc = aiChildren.filter(c => c.ai_video_status !== 'failed' && c.ai_video_status !== 'timeout' && c.ai_video_status !== null).length; return cc === 0 ? 'EXPRESS ÜRET (ÜCRETSİZ · ~5 DAKİKA)' : `EXPRESS ÜRET (${creditSettings?.credit_ai_express_generate || 5} KREDİ · ~5 DAKİKA)` })()}
                           </button>
                           <button onClick={()=>{setVoiceoverText(brief?.voiceover_text||'');setVoiceoverModalOpen(true)}}
                             style={{width:'90px',padding:'14px 0',background:'#fff',color:'#3a3a3a',border:'1px solid #d4d2cc',borderRadius:'2px',fontSize:'12px',fontWeight:'500',cursor:'pointer',transition:'background 0.15s'}}
@@ -1910,8 +1910,8 @@ function ClientBriefDetail() {
                                 </>
                               ) : (
                                 <>
-                                  <button onClick={()=>handleStudioPurchase(child)} disabled={(clientUser?.allocated_credits||0)<(creditSettings?.credit_ai_trend||1)} className="btn btn-accent" style={{padding:'6px 16px'}}>SATIN AL</button>
-                                  <span style={{fontSize:'13px',color:'#888'}}>{creditSettings?.credit_ai_trend||1} kredi</span>
+                                  <button onClick={()=>handleStudioPurchase(child)} disabled={(clientUser?.allocated_credits||0)<(creditSettings?.credit_ai_trend||20)} className="btn btn-accent" style={{padding:'6px 16px'}}>SATIN AL</button>
+                                  <span style={{fontSize:'13px',color:'#888'}}>{creditSettings?.credit_ai_trend||20} kredi</span>
                                 </>
                               )}
                             </div>
@@ -1982,7 +1982,7 @@ function ClientBriefDetail() {
 
                   {/* ÜRET BUTONU */}
                   <div>
-                    <button className="dinamo-generate-btn" disabled={trendGeneratingRef.current||((clientUser?.allocated_credits||0)<1&&trendChildren.filter(c=>c.ai_video_status!=='failed').length>0)} onClick={async()=>{
+                    <button className="dinamo-generate-btn" disabled={trendGeneratingRef.current||((clientUser?.allocated_credits||0)<(creditSettings?.credit_ai_trend_generate||5)&&trendChildren.filter(c=>c.ai_video_status!=='failed').length>0)} onClick={async()=>{
                       if (trendGeneratingRef.current) return
                       trendGeneratingRef.current = true
                       try {
@@ -1992,8 +1992,8 @@ function ClientBriefDetail() {
                       } catch {}
                       trendGeneratingRef.current = false
                       refreshCredits()
-                    }} style={{width:'100%',padding:'14px',background:((clientUser?.allocated_credits||0)<1&&trendChildren.filter(c=>c.ai_video_status!=='failed').length>0)?'#ccc':'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'13px',fontWeight:600,cursor:((clientUser?.allocated_credits||0)<1&&trendChildren.filter(c=>c.ai_video_status!=='failed').length>0)?'not-allowed':'pointer'}}>
-                      {trendChildren.filter(c=>c.ai_video_status!=='failed').length === 0 ? 'TREND ÜRET (ÜCRETSİZ · ~4 DAKİKA)' : 'TREND ÜRET (1 KREDİ · ~4 DAKİKA)'}
+                    }} style={{width:'100%',padding:'14px',background:((clientUser?.allocated_credits||0)<(creditSettings?.credit_ai_trend_generate||5)&&trendChildren.filter(c=>c.ai_video_status!=='failed').length>0)?'#ccc':'#0a0a0a',color:'#fff',border:'none',borderRadius:'2px',fontSize:'13px',fontWeight:600,cursor:((clientUser?.allocated_credits||0)<(creditSettings?.credit_ai_trend_generate||5)&&trendChildren.filter(c=>c.ai_video_status!=='failed').length>0)?'not-allowed':'pointer'}}>
+                      {trendChildren.filter(c=>c.ai_video_status!=='failed').length === 0 ? 'TREND ÜRET (ÜCRETSİZ · ~4 DAKİKA)' : `TREND ÜRET (${creditSettings?.credit_ai_trend_generate||5} KREDİ · ~4 DAKİKA)`}
                     </button>
                   </div>
                 </div>

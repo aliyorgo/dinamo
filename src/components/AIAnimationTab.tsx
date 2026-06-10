@@ -8,6 +8,7 @@ import CTAReviseBox from '@/components/CTAReviseBox'
 import { generateCertificatePDF } from '@/lib/generate-certificate'
 import { useClientContext } from '@/app/dashboard/client/layout'
 import StatusDot from '@/components/StatusDot'
+import { useCredits } from '@/lib/credits'
 
 const supabase = getSupabaseBrowser()
 
@@ -32,6 +33,7 @@ function formatDuration(start: string | null | undefined, end: string | null | u
 
 export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVideoId, onVideoCountChange, onProcessingChange }: Props) {
   const { refreshCredits } = useClientContext()
+  const { credits: creditSettings } = useCredits()
   const [styles, setStyles] = useState<any[]>([])
   const [hasMascot, setHasMascot] = useState(false)
   const [mascotIcons, setMascotIcons] = useState<Record<string, string | null>>({})
@@ -389,7 +391,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
                         </button>
                         <button onClick={() => generateCertificatePDF(brief, brief?.clients?.company_name || '', brief?.clients?.legal_name)} style={{ fontSize: '11px', color: '#555', background: 'none', border: '0.5px solid rgba(0,0,0,0.12)', padding: '5px 12px', cursor: 'pointer' }}>Telif Belgesi</button>
                       </>
-                    ) : (<><button onClick={() => handlePurchase(video.id)} disabled={purchasing === video.id || credits < 1} className="btn btn-accent" style={{ padding: '6px 16px' }}>SATIN AL</button><span style={{ fontSize: '13px', color: '#888' }}>1 kredi</span></>)}
+                    ) : (<><button onClick={() => handlePurchase(video.id)} disabled={purchasing === video.id || credits < (creditSettings?.credit_ai_animation||10)} className="btn btn-accent" style={{ padding: '6px 16px' }}>SATIN AL</button><span style={{ fontSize: '13px', color: '#888' }}>{creditSettings?.credit_ai_animation||10} kredi</span></>)}
                   </div>
                 )}
                 {/* Feedback — hasVideo based (Express pattern, not isPurchased) */}
@@ -449,8 +451,8 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
                   {(() => {
                     const isTextEmpty = !voiceoverText.trim()
                     const isLoading = voiceoverLoading || generating
-                    const label = isLoading ? 'ÜRETİLİYOR...' : isTextEmpty ? 'DIŞ SES METNİ YAZ' : (totalCount === 0 ? 'ANİMASYON ÜRET (ÜCRETSİZ · ~5 DAKİKA)' : 'ANİMASYON ÜRET (1 KREDİ · ~5 DAKİKA)')
-                    const disabled = isLoading || !selectedStyle || (!isTextEmpty && credits < 1)
+                    const label = isLoading ? 'ÜRETİLİYOR...' : isTextEmpty ? 'DIŞ SES METNİ YAZ' : (totalCount === 0 ? 'ANİMASYON ÜRET (ÜCRETSİZ · ~5 DAKİKA)' : `ANİMASYON ÜRET (${creditSettings?.credit_ai_animation_generate||5} KREDİ · ~5 DAKİKA)`)
+                    const disabled = isLoading || !selectedStyle || (!isTextEmpty && credits < (creditSettings?.credit_ai_animation_generate||5))
                     const onClick = () => { if (isTextEmpty) handleGenerateVoiceover(); else handleGenerate() }
                     return <button className="dinamo-generate-btn" onClick={onClick} disabled={disabled} style={{ width: '100%', padding: '14px', marginTop: '10px', background: disabled ? '#ccc' : '#0a0a0a', color: '#fff', border: 'none', borderRadius: '2px', fontSize: '13px', fontWeight: 600, cursor: disabled ? 'not-allowed' : 'pointer' }}>{label}</button>
                   })()}

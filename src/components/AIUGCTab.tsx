@@ -573,8 +573,8 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
                       </>
                     ) : (
                       <>
-                        <button onClick={() => handlePurchase(video.id)} disabled={purchasing === video.id || (clientUser?.allocated_credits || 0) < 1} className="btn btn-accent" style={{ padding: '6px 16px' }}>SATIN AL</button>
-                        <span style={{ fontSize: '13px', color: '#888' }}>1 kredi</span>
+                        <button onClick={() => handlePurchase(video.id)} disabled={purchasing === video.id || (clientUser?.allocated_credits || 0) < (creditSettings?.credit_ai_ugc||10)} className="btn btn-accent" style={{ padding: '6px 16px' }}>SATIN AL</button>
+                        <span style={{ fontSize: '13px', color: '#888' }}>{creditSettings?.credit_ai_ugc||10} kredi</span>
                       </>
                     )}
                   </div>
@@ -675,8 +675,8 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
                         const isTextEmpty = !scriptText.trim()
                         const isLoading = scriptLoading || generating
                         const completedCount = ugcVideos.filter(v => v.status !== 'failed').length
-                        const label = isLoading ? 'ÜRETİLİYOR...' : isTextEmpty ? 'KONUŞMA METNİ YAZ' : (completedCount === 0 ? 'PERSONA ÜRET (ÜCRETSİZ · ~3 DAKİKA)' : 'PERSONA ÜRET (1 KREDİ · ~3 DAKİKA)')
-                        const disabled = isLoading || !selectedPersona || (!isTextEmpty && (clientUser?.allocated_credits || 0) < 1)
+                        const label = isLoading ? 'ÜRETİLİYOR...' : isTextEmpty ? 'KONUŞMA METNİ YAZ' : (completedCount === 0 ? 'PERSONA ÜRET (ÜCRETSİZ · ~3 DAKİKA)' : `PERSONA ÜRET (${creditSettings?.credit_ai_ugc_generate||5} KREDİ · ~3 DAKİKA)`)
+                        const disabled = isLoading || !selectedPersona || (!isTextEmpty && (clientUser?.allocated_credits || 0) < (creditSettings?.credit_ai_ugc_generate||5))
                         const onClick = async () => {
                           if (isTextEmpty) {
                             if (!selectedPersona) return
