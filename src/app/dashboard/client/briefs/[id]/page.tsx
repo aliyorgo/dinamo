@@ -16,6 +16,7 @@ import { downloadFile } from '@/lib/download-helper'
 import { useCredits } from '@/lib/credits'
 import { useClientContext } from '../../layout'
 import ProcessingPlaceholder from '@/components/ProcessingPlaceholder'
+import StatusDot from '@/components/StatusDot'
 import CTAReviseBox from '@/components/CTAReviseBox'
 
 const supabase = getSupabaseBrowser()
@@ -842,7 +843,7 @@ function ClientBriefDetail() {
                   <div style={{display:'flex',gap:0,borderBottom:'1.5px solid #1DB81D'}}>
                     {aiStudioTabs.map(tab=>{
                       const isActive = activeTab === tab.key
-                      return <button key={tab.key} onClick={()=>setActiveTab(tab.key as any)} style={{padding:'8px 14px',fontSize:'12px',fontWeight:isActive?500:400,color:isActive?'#000':'#666',letterSpacing:'1px',background:isActive?'rgba(29,184,29,0.05)':'transparent',border:'none',cursor:'pointer',borderRadius:'4px 4px 0 0',display:'inline-flex',alignItems:'center',gap:'6px'}}>{tab.label}{tab.count>0&&<span style={{color:'#1DB81D',fontWeight:500}}>{tab.count}</span>}{tab.processing&&<span style={{width:'6px',height:'6px',background:'#4ade80',borderRadius:'50%',display:'inline-block',animation:'pulse 1.5s ease infinite'}}></span>}</button>
+                      return <button key={tab.key} onClick={()=>setActiveTab(tab.key as any)} style={{padding:'8px 14px',fontSize:'12px',fontWeight:isActive?500:400,color:isActive?'#000':'#666',letterSpacing:'1px',background:isActive?'rgba(29,184,29,0.05)':'transparent',border:'none',cursor:'pointer',borderRadius:'4px 4px 0 0',display:'inline-flex',alignItems:'center',gap:'6px'}}>{tab.label}{tab.count>0&&<span style={{color:'#1DB81D',fontWeight:500}}>{tab.count}</span>}{tab.processing&&<StatusDot color="#4ade80" size={6} pulse />}</button>
                     })}
                   </div>
                 </div>
@@ -1448,7 +1449,7 @@ function ClientBriefDetail() {
                           <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'4px'}}>
                             <span style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>V{idx+1}</span>
                             {isPurchased && <span style={{fontSize:'9px',color:'#1DB81D',fontWeight:'600'}}>&#10003; Satın Alındı</span>}
-                            {isProcessing && <span style={{fontSize:'9px',fontWeight:'500',display:'inline-flex',alignItems:'center',gap:'4px'}}><span className="dot" style={{width:'6px',height:'6px',background:'#4ade80',display:'inline-block',animation:'pulse 1.5s ease infinite'}}></span><span style={{color:'#0a0a0a'}}>Üretiliyor</span> <span style={{color:'#6b6b66'}}>(~{child.express_engine === 'seedance_hq' ? '10' : '5'} dakika)</span></span>}
+                            {isProcessing && <span style={{fontSize:'9px',fontWeight:'500',display:'inline-flex',alignItems:'center',gap:'4px'}}><StatusDot color="#4ade80" size={6} pulse /><span style={{color:'#0a0a0a'}}>Üretiliyor</span> <span style={{color:'#6b6b66'}}>(~{child.express_engine === 'seedance_hq' ? '10' : '5'} dakika)</span></span>}
                             {isFailed && <span style={{fontSize:'9px',color:'#ef4444',fontWeight:'500'}}>Başarısız</span>}
                             {child.ai_express_settings_snapshot && (() => { const s = child.ai_express_settings_snapshot; const badges = []; if (s.logo) badges.push('LOGO'); if (s.cta) badges.push('CTA'); if (s.packshot) badges.push('PACKSHOT'); return badges.length > 0 ? <span style={{display:'inline-flex',gap:'4px',marginLeft:'6px'}}>{badges.map((b: string)=><span key={b} style={{fontSize:'9px',padding:'2px 6px',background:'#f5f4f0',color:'#888',letterSpacing:'0.5px',fontWeight:600}}>{b}</span>)}</span> : null })()}
                             {/* DEBUG: director badge + prompt link */}
@@ -1871,7 +1872,7 @@ function ClientBriefDetail() {
                           <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'6px'}}>
                             <span style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>V{idx+1}</span>
                             {isPurchased && <span style={{fontSize:'9px',color:'#1DB81D',fontWeight:'600'}}>&#10003; Satin Alindi</span>}
-                            {isProcessing && <span style={{fontSize:'9px',fontWeight:'500',display:'inline-flex',alignItems:'center',gap:'4px'}}><span style={{width:'6px',height:'6px',background:'#4ade80',display:'inline-block',borderRadius:'50%',animation:'pulse 1.5s ease infinite'}}></span><span style={{color:'#0a0a0a'}}>Uretiliyor</span> <span style={{color:'#6b6b66'}}>(~4 dakika)</span></span>}
+                            {isProcessing && <span style={{fontSize:'9px',fontWeight:'500',display:'inline-flex',alignItems:'center',gap:'4px'}}><StatusDot color="#4ade80" size={6} pulse /><span style={{color:'#0a0a0a'}}>Uretiliyor</span> <span style={{color:'#6b6b66'}}>(~4 dakika)</span></span>}
                             {isFailed && <span style={{fontSize:'9px',color:'#ef4444',fontWeight:'500'}}>Basarisiz</span>}
                             <span style={{marginLeft:'6px',fontSize:'9px',padding:'2px 6px',background:'#e8e1ff',color:'#5d4ec3',borderRadius:'3px',letterSpacing:'0.5px',fontWeight:500,textTransform:'uppercase'}}>{child.express_engine==='trend_oops'?'Top Sektirme':child.express_engine==='trend_dans'?'O Zaman Dans':child.express_engine==='trend_gokten'?'Gökten Gelen':'Bana Bak'}</span>
                           </div>

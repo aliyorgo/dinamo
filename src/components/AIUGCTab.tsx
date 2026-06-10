@@ -11,6 +11,7 @@ import { pauseOtherVideos } from '@/lib/video-playback'
 import { useClientContext } from '@/app/dashboard/client/layout'
 import StaticImageGeneratorModal from '@/components/StaticImageGeneratorModal'
 import { useCredits } from '@/lib/credits'
+import StatusDot from '@/components/StatusDot'
 
 const supabase = getSupabaseBrowser()
 
@@ -529,7 +530,7 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
                   {personaName && <span style={{ fontSize: '10px', padding: '2px 8px', background: '#1DB81D', color: '#fff', letterSpacing: '0.5px', fontWeight: 600, textTransform: 'uppercase' }}>{personaName}</span>}
                   {video.settings_snapshot && (() => { const s = video.settings_snapshot; const badges: string[] = []; if (s.tone) badges.push(s.tone.toUpperCase()); if (s.cta) badges.push('CTA'); if (s.watermark) badges.push('WATERMARK'); return badges.map((b: string) => <span key={b} style={{ fontSize: '9px', padding: '2px 6px', background: '#f5f4f0', color: '#888', letterSpacing: '0.5px', fontWeight: 600 }}>{b}</span>) })()}
                   {isPurchased && <span style={{ fontSize: '9px', color: '#1DB81D', fontWeight: '600' }}>&#10003; Satın Alındı</span>}
-                  {isProcessing && <span style={{ fontSize: '9px', fontWeight: '500', display: 'inline-flex', alignItems: 'center', gap: '4px' }}><span className="dot" style={{ width: '6px', height: '6px', background: '#3b82f6', display: 'inline-block', animation: 'pulse 1.5s ease infinite' }} /><span style={{ color: '#0a0a0a' }}>Üretiliyor</span> <span style={{ color: '#6b6b66' }}>(~3 dakika)</span></span>}
+                  {isProcessing && <span style={{ fontSize: '9px', fontWeight: '500', display: 'inline-flex', alignItems: 'center', gap: '4px' }}><StatusDot color="#3b82f6" size={6} pulse /><span style={{ color: '#0a0a0a' }}>Üretiliyor</span> <span style={{ color: '#6b6b66' }}>(~3 dakika)</span></span>}
                   {isFailed && <span style={{ fontSize: '9px', color: '#ef4444', fontWeight: '500' }}>Başarısız</span>}
                 </div>
                 <div style={{ fontSize: '11px', color: '#888', marginBottom: '10px' }}>
