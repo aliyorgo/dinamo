@@ -77,7 +77,7 @@ export default function ClientBriefDetailWrapper() {
 function ClientBriefDetail() {
   const params = useParams()
   const router = useRouter()
-  const { customizationTier, refreshCredits } = useClientContext()
+  const { customizationTier, refreshCredits, credits } = useClientContext()
   const searchParams = useSearchParams()
   const id = params.id as string
   const { credits: creditSettings, flags: featureFlags } = useCredits()
@@ -757,7 +757,7 @@ function ClientBriefDetail() {
           <div style={{fontSize:'18px',fontWeight:'700',color:'#fff',marginBottom:'2px'}}>{companyName || 'Dinamo'}</div>
           <div style={{fontSize:'13px',fontWeight:'400',color:'#888',marginBottom:'12px'}}>{userName}</div>
           <div style={{fontSize:'10px',color:'#AAA',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:'8px'}}>KREDİ BAKİYESİ</div>
-          <div style={{fontSize:'28px',fontWeight:'700',color:'#1DB81D',letterSpacing:'-1px'}}>{clientUser?.allocated_credits||0}</div>
+          <div style={{fontSize:'28px',fontWeight:'700',color:'#1DB81D',letterSpacing:'-1px'}}>{credits ?? clientUser?.allocated_credits ?? 0}</div>
         </div>
         <nav style={{padding:'10px 8px'}}>
           <div onClick={()=>router.push('/dashboard/client')} style={{display:'flex',alignItems:'center',gap:'8px',padding:'7px 8px',borderRadius:'8px',cursor:'pointer',marginBottom:'1px'}}>
