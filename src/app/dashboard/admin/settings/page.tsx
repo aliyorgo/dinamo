@@ -277,7 +277,7 @@ export default function SettingsPage() {
               <tbody>
                 {pronunciations.map((p, i) => (
                   <tr key={p.id} style={{borderBottom:i<pronunciations.length-1?'1px solid #f0f0ee':'none'}}>
-                    <td style={{padding:'12px 24px',fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{p.written}</td>
+                    <td style={{padding:'12px 24px',fontSize:'13px',fontWeight:'500',color:'#0a0a0a'}}>{p.written}<span style={{marginLeft:'8px',fontSize:'9px',fontWeight:'600',letterSpacing:'0.5px',padding:'2px 7px',borderRadius:'100px',background:p.client_id?'rgba(29,184,29,0.1)':'#f0efe8',color:p.client_id?'#1db81d':'#888'}}>{p.client_id ? (p.company_name || 'Müşteri') : 'GLOBAL'}</span></td>
                     <td style={{padding:'12px 16px',fontSize:'13px',color:'#0a0a0a',fontFamily:'monospace'}}>{p.pronounced}</td>
                     <td style={{padding:'12px 16px',textAlign:'center'}}>
                       <button onClick={()=>togglePronunciation(p.id, p.is_active)}

@@ -6,7 +6,16 @@ const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env
 export async function GET() {
   const { data, error } = await supabase.from('brand_pronunciations').select('*').order('written')
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json(data)
+
+  // client_id dolu kayıtlara müşteri adını ekle (FK'ya bağlı kalmadan manuel eşleştirme)
+  const clientIds = [...new Set((data || []).filter((d: any) => d.client_id).map((d: any) => d.client_id))]
+  let nameMap: Record<string, string> = {}
+  if (clientIds.length > 0) {
+    const { data: clients } = await supabase.from('clients').select('id, company_name').in('id', clientIds)
+    nameMap = Object.fromEntries((clients || []).map((c: any) => [c.id, c.company_name]))
+  }
+  const enriched = (data || []).map((d: any) => ({ ...d, company_name: d.client_id ? (nameMap[d.client_id] || null) : null }))
+  return NextResponse.json(enriched)
 }
 
 export async function POST(req: NextRequest) {
