@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getActiveBrandRules, buildBrandRulesBlock } from '@/lib/brand-learning'
 import { getClaudeModel } from '@/lib/claude-model'
+import { SCREEN_UI_IDEA_RULE } from '@/lib/ai-idea-rules'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
@@ -72,6 +73,7 @@ YASAK:
 - Cinsel/duygusal abartı klişeleri
 - 'Ekran patlıyor', 'göz kamaştırıcı geçiş', 'rüya gibi atmosfer' tarzı süslü dil
 - Renk kodu (#hex) veya spesifik renk adı (mavi, kırmızı vb.)
+- ${SCREEN_UI_IDEA_RULE}
 
 BUNUN YERİNE reklamcı insight'ı ile yaz:
 - Tüketicinin yaşadığı durum/his

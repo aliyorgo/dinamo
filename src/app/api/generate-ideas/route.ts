@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getActiveBrandRules, buildBrandRulesBlock } from '@/lib/brand-learning'
 import { getClaudeModel } from '@/lib/claude-model'
+import { SCREEN_UI_IDEA_RULE } from '@/lib/ai-idea-rules'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
@@ -37,6 +38,7 @@ URETIM KISITLARI — fikirler bu kisitlara UYGUN olmali:
 - Video 15 saniye, yapay zeka (Kling 3.0) ile uretilecek — gercekci, cekilebilir sahneler oner.
 - Video 6 sahnelik akistan olusur — fikrin 6 sahneye bolunebilir bir akisi olsun.
 - Markanin logosu, urunu, yazi, fiyat ekranda GORUNMEZ — fikir duygu/atmosfer/karakter uzerine kurulu olmali.
+- ${SCREEN_UI_IDEA_RULE}
 - Karakterler KONUSMAZ — diyalog yok, gorsel anlatim esas.
 - Asiri karmasik sahnelerden (kalabalik, cok ozne) kacin — yapay zeka tutarliligi zorlanir.
 - Mekan gercekci (Turkiye ortami tercih).
