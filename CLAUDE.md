@@ -15,7 +15,7 @@ Bu doküman Claude Code'un her session başında okuyacağı çalışma kurallar
 
 ## DOKUNULMAZ DOSYALAR (Aliyorgo onayı olmadan)
 
-- pipeline_final.js (V1 Kling, deprecated kalacak)
+- pipeline_final.js = Express V1, AKTİF ve tek stabil production sürümü, worker.js:183'ten runPipeline ile çağrılıyor. STABİL — DİKKATLİ DOKUN: deprecated değil; AKSİNE stabil olduğu için kırma riski yüksek. Sadece açık talimatla, dikkatle dokunulur.
 - pipeline_animation.js
 - pipeline_ugc.js
 - pipeline_static_images.js
@@ -101,7 +101,7 @@ Yapı Kredi premium demo yakın. Demo blocker'lar öncelikli:
 - DB: Supabase (project: liegyfgignwepqgswxhg)
 - Frontend: Vercel (Next.js, ~/dinamo same repo)
 - Pipelines:
-  - pipeline_final.js (V1 Kling, deprecated)
+  - pipeline_final.js (Express V1 Kling, AKTİF — tek stabil production sürümü, worker.js:183'ten çağrılıyor)
   - pipeline_express_seedance.js (V2 Seedance i2v + Nano Banana, AKTİF)
   - pipeline_animation.js (mascot animation)
   - pipeline_ugc.js (persona/UGC)
