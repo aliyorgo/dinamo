@@ -161,7 +161,7 @@ function ClientBriefDetail() {
   const [animationVideosForSummary, setAnimationVideosForSummary] = useState<any[]>([])
   const [activeTab, setActiveTab] = useState<'hybrid'|'cps'|'express'|'ugc'|'animation'|'trend'|'summary'>(searchParams.get('tab') === 'express' ? 'express' : searchParams.get('tab') === 'ugc' ? 'ugc' : searchParams.get('tab') === 'animation' ? 'animation' : searchParams.get('tab') === 'trend' ? 'trend' : searchParams.get('tab') === 'cps' ? 'cps' : searchParams.get('tab') === 'summary' ? 'summary' : 'hybrid')
 
-  // DEBUG: Seedance prompt modal (gecici)
+  // DEBUG: Video prompt modal (gecici)
   const [debugPrompt, setDebugPrompt] = useState<{director: string; prompt: string} | null>(null)
 
   // Onboarding: auto-open info modal on first visit per module
@@ -2144,13 +2144,13 @@ function ClientBriefDetail() {
 
       {/* CPS INFO MODAL */}
 
-      {/* DEBUG: Seedance prompt read-only modal */}
+      {/* DEBUG: Video prompt read-only modal */}
       {debugPrompt && (
         <div onClick={()=>setDebugPrompt(null)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.6)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center'}}>
           <div onClick={e=>e.stopPropagation()} style={{background:'#fff',maxWidth:'700px',width:'90%',maxHeight:'80vh',display:'flex',flexDirection:'column',padding:'24px'}}>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}}>
               <div>
-                <div style={{fontSize:'14px',fontWeight:'600'}}>Seedance Prompt (Debug)</div>
+                <div style={{fontSize:'14px',fontWeight:'600'}}>Video Prompt (Debug)</div>
                 {debugPrompt.director && <span style={{fontSize:'10px',padding:'2px 8px',background:'rgba(139,92,246,0.08)',color:'#8b5cf6',fontWeight:600}}>DIR: {debugPrompt.director}</span>}
               </div>
               <button onClick={()=>setDebugPrompt(null)} style={{width:'28px',height:'28px',border:'none',background:'none',cursor:'pointer',fontSize:'18px',color:'#888'}}>x</button>

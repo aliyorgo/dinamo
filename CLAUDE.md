@@ -22,6 +22,16 @@ Bu doküman Claude Code'un her session başında okuyacağı çalışma kurallar
 - worker.js routing kısmı (sadece poll ekleme onaylı)
 - Mevcut DB schema'da CREATE TABLE / DELETE TABLE / DROP
 
+## ENGINE MATRİSİ
+
+- **Express** = Kling 3.0 (pipeline_final.js, default, worker.js:183; express_engine null|kling)
+- **Express V2** = pipeline_express_seedance.js (opt-in, express_engine seedance/seedance_hq/premium_v2, GERÇEKTEN Seedance)
+- **Animation** = Seedance 2 Fast (doğru)
+- **Persona** = Veo 3.1 Fast
+- **Trend** = Kling
+- "Kling 2 Master" YANLIŞ — sadece ölü pipeline.js'te.
+- Ölü dosyalar _archive/'de: pipeline.js, pipeline_final_BACKUP.js.
+
 ## ONAY GEREKEN KARARLAR
 
 - DB migration apply (yeni tablo, ALTER, DROP)
