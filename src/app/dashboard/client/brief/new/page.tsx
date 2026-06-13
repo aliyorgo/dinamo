@@ -271,6 +271,10 @@ function NewBriefPage() {
     setPreviewLoading(false)
   }
 
+  // Default cinsiyet brand voice'a göre: marka SADECE tek cinsiyet ses tanımladıysa o, aksi halde 'female'
+  const hasFemaleVoice = !!brandVoices?.female
+  const hasMaleVoice = !!brandVoices?.male
+  const defaultGender: 'male' | 'female' = (hasMaleVoice && !hasFemaleVoice) ? 'male' : 'female'
   const brandVoiceForGender = brandVoices?.[form.voiceover_gender || 'female'] || brandVoices?.['female'] || brandVoices?.['male'] || null
   const previewChanged = previewUrl && (form.voiceover_text !== previewTextSnapshot || form.voiceover_gender !== previewGenderSnapshot)
 
@@ -951,8 +955,8 @@ function NewBriefPage() {
                 <div style={{fontSize:'11px',color:'var(--color-text-secondary)',letterSpacing:'2px',textTransform:'uppercase',fontWeight:'500',marginBottom:'8px'}}>Seslendirme Tipi</div>
                 <div>
                   <span style={pillStyle(form.voiceover_type==='none')} onClick={()=>{if(form.voiceover_text)setSavedVoiceoverText(form.voiceover_text);setForm({...form,voiceover_type:'none',voiceover_gender:''})}}>Yok</span>
-                  <span style={pillStyle(form.voiceover_type==='ai')} onClick={()=>setForm({...form,voiceover_type:'ai',voiceover_gender:form.voiceover_gender||'female',voiceover_text:form.voiceover_text||savedVoiceoverText})}>AI Seslendirme</span>
-                  <span style={pillStyle(form.voiceover_type==='real')} onClick={()=>setForm({...form,voiceover_type:'real',voiceover_gender:form.voiceover_gender||'female',voiceover_text:form.voiceover_text||savedVoiceoverText})}>Profesyonel Seslendirme (+6 kredi)</span>
+                  <span style={pillStyle(form.voiceover_type==='ai')} onClick={()=>setForm({...form,voiceover_type:'ai',voiceover_gender:form.voiceover_gender||defaultGender,voiceover_text:form.voiceover_text||savedVoiceoverText})}>AI Seslendirme</span>
+                  <span style={pillStyle(form.voiceover_type==='real')} onClick={()=>setForm({...form,voiceover_type:'real',voiceover_gender:form.voiceover_gender||defaultGender,voiceover_text:form.voiceover_text||savedVoiceoverText})}>Profesyonel Seslendirme (+6 kredi)</span>
                 </div>
               </div>
               {form.voiceover_type!=='none'&&(
