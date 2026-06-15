@@ -19,7 +19,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   // Get client brand_voices
   const { data: client } = await supabase.from('clients').select('brand_voices').eq('id', brief.client_id).single()
   const gender = brief.voiceover_gender || 'female'
-  const brandVoice = client?.brand_voices?.[gender]
+  let brandVoice = client?.brand_voices?.[gender]
+  if (!brandVoice?.voice_id) {
+    // İstenen cinsiyette ses yok → markanın mevcut diğer cinsiyetine düş
+    brandVoice = client?.brand_voices?.female?.voice_id ? client.brand_voices.female
+               : client?.brand_voices?.male?.voice_id ? client.brand_voices.male
+               : null
+  }
   if (!brandVoice?.voice_id) return NextResponse.json({ error: 'Marka sesi seçilmemiş' }, { status: 400 })
 
   const voiceId = brandVoice.voice_id
