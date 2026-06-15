@@ -299,7 +299,7 @@ function NewBriefPage() {
         cta: data.cta || prev.cta,
         message: data.message || prev.message,
         voiceover_type: data.voiceover_type || prev.voiceover_type,
-        voiceover_gender: data.voiceover_gender || prev.voiceover_gender,
+        voiceover_gender: data.voiceover_gender || defaultGender || prev.voiceover_gender,
         voiceover_text: data.voiceover_text || prev.voiceover_text,
         notes: data.notes || prev.notes,
       }))

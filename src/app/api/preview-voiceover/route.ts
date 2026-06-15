@@ -12,7 +12,13 @@ export async function POST(req: NextRequest) {
 
   const { data: client } = await supabase.from('clients').select('brand_voices').eq('id', client_id).single()
   const voiceGender = gender || 'female'
-  const brandVoice = client?.brand_voices?.[voiceGender]
+  let brandVoice = client?.brand_voices?.[voiceGender]
+  if (!brandVoice?.voice_id) {
+    // İstenen cinsiyette ses yok → markanın mevcut diğer cinsiyetine düş
+    brandVoice = client?.brand_voices?.female?.voice_id ? client.brand_voices.female
+               : client?.brand_voices?.male?.voice_id ? client.brand_voices.male
+               : null
+  }
   if (!brandVoice?.voice_id) return NextResponse.json({ error: 'Marka sesi seçilmemiş' }, { status: 400 })
 
   const apiKey = process.env.ELEVENLABS_API_KEY

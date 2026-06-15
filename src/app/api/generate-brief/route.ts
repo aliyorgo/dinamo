@@ -44,7 +44,7 @@ JSON şeması:
   "cta": "string — CTA metni, has_cta no ise boş string",
   "message": "string — müşterinin ajansına yazdığı kampanya brifing metni (dış ses veya senaryo DEĞİL)",
   "voiceover_type": "string — ai",
-  "voiceover_gender": "string — female veya male",
+  "voiceover_gender": "string — kullanıcı açıkça belirtmediyse boş string, belirttiyse female veya male",
   "voiceover_text": "string — video tipine uygun sürede Türkçe profesyonel seslendirme metni",
   "notes": "string — ek notlar, uyarılar, hassasiyetler"
 }
@@ -55,7 +55,7 @@ Kurallar:
 - format: video_type'a uygun format seç. Story/Reels için 9:16, YouTube için 16:9 gibi.
 - message: müşterinin ajansına yazdığı kampanya brifing metni olarak yaz. Dış ses, senaryo veya anlatı DEĞİL. Pazarlama yöneticisi tonunda, birinci çoğul şahıs ("Bu kampanyayla hedefliyoruz", "Markamız", "Beklentimiz"). Ne satıldığını, kime, neden, ne zaman, hangi mecrada olduğunu net anlatan 3-4 cümle.
 - voiceover_type: "ai" olarak ayarla.
-- voiceover_gender: "female" olarak ayarla. Kullanıcı başka bir tercih belirtmedikçe bu değeri kullan.
+- voiceover_gender: Kullanıcı açıkça cinsiyet (erkek/kadın ses) belirtmediyse BOŞ string "" döndür — marka sesine göre otomatik belirlenecek. Sadece kullanıcı açıkça belirttiyse "male" veya "female" yaz.
 - voiceover_text: video tipine uygun sürede (Bumper ~9 kelime, Story ~22, Feed ~45, Long Form ~90) Türkçe profesyonel seslendirme metni yaz.
 - notes: kullanıcının belirttiği hassasiyetler veya ek talepler.
 - Marka adı: ${brand_name || 'belirtilmemiş'}
