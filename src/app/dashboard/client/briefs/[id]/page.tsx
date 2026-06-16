@@ -1930,7 +1930,7 @@ function ClientBriefDetail() {
                               )}
                             </div>
                           )}
-                          {child.ai_video_error && <div style={{fontSize:'11px',color:'#dc2626',marginTop:'8px'}}>{child.ai_video_error}</div>}
+                          {isFailed && <div style={{fontSize:'11px',color:'#dc2626',marginTop:'8px'}}>Üretim başarısız oldu. Lütfen tekrar deneyin.</div>}
                           {/* CTA Revize — sağ kolonun altında */}
                           {child.kling_video_url && hasVideo && !isFailed && (() => {
                             const isRevising = child.ai_video_status === 'revising' || child.ai_video_status === 'revising_claimed'
