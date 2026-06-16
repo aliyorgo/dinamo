@@ -118,14 +118,18 @@ function NewBriefPage() {
       if (draftId) setIsDraftEdit(true)
       supabase.from('briefs').select('*').eq('id', loadId).single().then(({ data: b }) => {
         if (b) {
+          // Promo'lu brief'te DB cta'sı türetilmiş "{kod} koduyla {fırsat}" kalıbı olabilir —
+          // onu kullanıcının orijinali sayma; kalıba eşitse form.cta'yı boş bırak (promo kapatılınca stale kalıp takılı kalmasın).
+          const promoPattern = (b.promo_code && b.promo_offer) ? `${b.promo_code} koduyla ${b.promo_offer}` : null
+          const userCta = (promoPattern && b.cta === promoPattern) ? '' : (b.cta || '')
           setForm({
             campaign_name: b.campaign_name || '',
             video_type: b.video_type || '',
             format: b.format || '',
             platforms: b.platforms || [],
             target_audience: b.target_audience || '',
-            has_cta: b.cta ? 'yes' : 'no',
-            cta: b.cta || '',
+            has_cta: userCta ? 'yes' : 'no',
+            cta: userCta,
             message: b.message || '',
             voiceover_type: b.voiceover_type || 'none',
             voiceover_gender: b.voiceover_gender || '',
@@ -323,7 +327,7 @@ function NewBriefPage() {
       format: form.format,
       platforms: form.platforms.length > 0 ? form.platforms : null,
       message: form.message,
-      cta: form.promo_enabled === 'yes' ? `${form.promo_code} koduyla ${form.promo_offer}` : (form.has_cta === 'yes' ? form.cta : null),
+      cta: (form.promo_enabled === 'yes' && form.promo_code && form.promo_offer) ? `${form.promo_code} koduyla ${form.promo_offer}` : (form.has_cta === 'yes' ? form.cta : null),
       promo_code: form.promo_enabled === 'yes' ? form.promo_code : null,
       promo_offer: form.promo_enabled === 'yes' ? form.promo_offer : null,
       target_audience: form.target_audience,
