@@ -690,7 +690,7 @@ export default function HomePage() {
       </footer>
 
       {/* Package Detail Modal */}
-      <PackageDetailModal isOpen={!!detailModal} onClose={() => setDetailModal(null)} mode="package" initialTab={detailModal || 'demo'} pricesVisible={pricesVisible} advancedCustomizationPrice={advancedPrice} />
+      <PackageDetailModal isOpen={!!detailModal} onClose={() => setDetailModal(null)} mode="package" initialTab={detailModal || 'demo'} pricesVisible={pricesVisible} advancedCustomizationPrice={advancedPrice} packageInfo={Object.fromEntries(packages.map((p: any) => { const nameToKey: Record<string, string> = { Demo: 'demo', 'Başlangıç': 'baslangic', Standart: 'standart', Kurumsal: 'kurumsal' }; return [nameToKey[p.name] || p.name, { credits: p.credits, price_tl: p.price_tl }] }))} />
     </div>
   )
 }

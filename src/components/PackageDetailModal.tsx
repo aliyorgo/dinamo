@@ -10,6 +10,7 @@ interface Props {
   initialTab: string
   pricesVisible?: boolean
   advancedCustomizationPrice?: number
+  packageInfo?: Record<string, { credits: number; price_tl: string | number }>
 }
 
 const basicGroups = [
@@ -44,7 +45,7 @@ function GroupList({ groups }: { groups: { label: string; items: string[] }[] })
   ))}</>
 }
 
-export default function PackageDetailModal({ isOpen, onClose, mode, initialTab, pricesVisible = true, advancedCustomizationPrice = 150000 }: Props) {
+export default function PackageDetailModal({ isOpen, onClose, mode, initialTab, pricesVisible = true, advancedCustomizationPrice = 150000, packageInfo }: Props) {
   const [activeTab, setActiveTab] = useState(initialTab)
   useEffect(() => { setActiveTab(initialTab) }, [initialTab])
 
@@ -65,9 +66,17 @@ export default function PackageDetailModal({ isOpen, onClose, mode, initialTab, 
   ]
   const tabs = mode === 'package' ? packageTabs : tierTabs
 
+  // Kredi/fiyat artık landing'in DB'den (credit_packages) yüklediği packageInfo prop'undan gelir.
+  // Prop gelmezse güncel DB değerlerine düşülür — eski hardcoded 30/100/500 ASLA gösterilmez.
+  const PKG_FALLBACK: Record<string, { credits: number; price_tl: string | number }> = {
+    demo: { credits: 300, price_tl: 0 }, baslangic: { credits: 1000, price_tl: 350000 }, standart: { credits: 5000, price_tl: 1750000 }, kurumsal: { credits: 10000, price_tl: 0 },
+  }
+  const pkgInfo = (k: string) => packageInfo?.[k] || PKG_FALLBACK[k]
+  const crN = (k: string) => Number(pkgInfo(k)?.credits ?? 0).toLocaleString('tr-TR')
+  const prN = (k: string) => Number(pkgInfo(k)?.price_tl ?? 0).toLocaleString('tr-TR')
   const packageTitles: Record<string, string> = pricesVisible
-    ? { demo: 'Demo Paketi · 30 Kredi · Ücretsiz', baslangic: `Başlangıç Paketi · 100 Kredi · 350.000 TL +KDV`, standart: 'Standart Paket · 500 Kredi · 1.750.000 TL +KDV', kurumsal: 'Kurumsal Paket · 1.000+ Kredi · İletişim' }
-    : { demo: 'Demo Paketi · 30 Kredi', baslangic: 'Başlangıç Paketi · 100 Kredi', standart: 'Standart Paket · 500 Kredi', kurumsal: 'Kurumsal Paket · 1.000+ Kredi' }
+    ? { demo: `Demo Paketi · ${crN('demo')} Kredi · Ücretsiz`, baslangic: `Başlangıç Paketi · ${crN('baslangic')} Kredi · ${prN('baslangic')} TL +KDV`, standart: `Standart Paket · ${crN('standart')} Kredi · ${prN('standart')} TL +KDV`, kurumsal: `Kurumsal Paket · ${crN('kurumsal')}+ Kredi · İletişim` }
+    : { demo: `Demo Paketi · ${crN('demo')} Kredi`, baslangic: `Başlangıç Paketi · ${crN('baslangic')} Kredi`, standart: `Standart Paket · ${crN('standart')} Kredi`, kurumsal: `Kurumsal Paket · ${crN('kurumsal')}+ Kredi` }
   const tierTitles: Record<string, string> = { basic: 'Basic Customization', advanced: 'Advanced Customization', corporate: 'Kurumsal Paket' }
   const refs: Record<string, string> = { standart: 'Basic Marka Customization\'daki tüm hizmetler ve...', kurumsal: 'Advanced Marka Customization\'daki tüm hizmetler ve...', advanced: 'Basic Marka Customization\'daki tüm hizmetler ve...', corporate: 'Advanced Marka Customization\'daki tüm hizmetler ve...' }
 
