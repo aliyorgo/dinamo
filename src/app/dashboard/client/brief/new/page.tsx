@@ -80,6 +80,9 @@ function NewBriefPage() {
     extra_topic: '',
     languages: [] as string[],
     reference_links: [] as string[],
+    promo_enabled: '',
+    promo_code: '',
+    promo_offer: '',
   })
 
   useEffect(() => {
@@ -131,6 +134,9 @@ function NewBriefPage() {
             extra_topic: '',
             languages: b.languages || [],
             reference_links: b.reference_links || [],
+            promo_enabled: b.promo_code ? 'yes' : 'no',
+            promo_code: b.promo_code || '',
+            promo_offer: b.promo_offer || '',
           })
           setStep(1)
         }
@@ -318,6 +324,8 @@ function NewBriefPage() {
       platforms: form.platforms.length > 0 ? form.platforms : null,
       message: form.message,
       cta: form.has_cta === 'yes' ? form.cta : null,
+      promo_code: form.promo_enabled === 'yes' ? form.promo_code : null,
+      promo_offer: form.promo_enabled === 'yes' ? form.promo_offer : null,
       target_audience: form.target_audience,
       voiceover_type: form.voiceover_type,
       voiceover_gender: form.voiceover_gender || null,
@@ -803,6 +811,26 @@ function NewBriefPage() {
                 <input style={inputStyle} value={form.campaign_name} onChange={e=>setForm({...form,campaign_name:e.target.value})} placeholder="örn. Yaz Kampanyası 2025..." />
               </div>
               <div style={{marginBottom:'22px'}}>
+                <div style={{fontSize:'11px',color:'var(--color-text-secondary)',letterSpacing:'2px',textTransform:'uppercase',fontWeight:'500',marginBottom:'8px'}}>Kampanya kodu vereceğim</div>
+                <div>
+                  <span style={pillStyle(form.promo_enabled==='yes')} onClick={()=>setForm({...form,promo_enabled:'yes'})}>Evet, var</span>
+                  <span style={pillStyle(form.promo_enabled==='no')} onClick={()=>setForm({...form,promo_enabled:'no',promo_code:'',promo_offer:''})}>Hayır, yok</span>
+                </div>
+              </div>
+              {form.promo_enabled==='yes'&&(<>
+                <div style={{marginBottom:'22px'}}>
+                  <div style={{fontSize:'11px',color:'var(--color-text-secondary)',letterSpacing:'2px',textTransform:'uppercase',fontWeight:'500',marginBottom:'8px'}}>Kampanya Kodu</div>
+                  <input style={inputStyle} value={form.promo_code} onChange={e=>setForm({...form,promo_code:e.target.value})} placeholder="örn. YAPIKREDI50" />
+                </div>
+                <div style={{marginBottom:'22px'}}>
+                  <div style={{fontSize:'11px',color:'var(--color-text-secondary)',letterSpacing:'2px',textTransform:'uppercase',fontWeight:'500',marginBottom:'8px'}}>Fırsat / Ne Sunuyor</div>
+                  <input style={inputStyle} value={form.promo_offer} onChange={e=>setForm({...form,promo_offer:e.target.value})} placeholder="örn. %50 bonus" />
+                </div>
+                {(!form.promo_code.trim()||!form.promo_offer.trim())&&(
+                  <div style={{fontSize:'11px',color:'#ef4444',marginBottom:'14px'}}>Kampanya kodu ve fırsat alanları zorunludur.</div>
+                )}
+              </>)}
+              <div style={{marginBottom:'22px'}}>
                 <div style={{fontSize:'11px',color:'var(--color-text-secondary)',letterSpacing:'2px',textTransform:'uppercase',fontWeight:'500',marginBottom:'8px'}}>Video Tipi</div>
                 <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>{VIDEO_TYPES.map(t=>{
                   const sel = form.video_type===t
@@ -1140,12 +1168,12 @@ function NewBriefPage() {
               {step<6?(
                 <button onClick={()=>setStep(step+1)}
                   disabled={
-                    (step===1&&(!form.campaign_name||!form.video_type||!form.format))||
+                    (step===1&&(!form.campaign_name||!form.video_type||!form.format||(form.promo_enabled==='yes'&&(!form.promo_code.trim()||!form.promo_offer.trim()))))||
                     (step===2&&(!form.target_audience||!form.has_cta))||
                     (step===3&&!form.message)
                   }
                   className="btn"
-                  style={{opacity:(step===1&&(!form.campaign_name||!form.video_type||!form.format))||(step===2&&(!form.target_audience||!form.has_cta))||(step===3&&!form.message)?0.4:1}}>
+                  style={{opacity:(step===1&&(!form.campaign_name||!form.video_type||!form.format||(form.promo_enabled==='yes'&&(!form.promo_code.trim()||!form.promo_offer.trim()))))||(step===2&&(!form.target_audience||!form.has_cta))||(step===3&&!form.message)?0.4:1}}>
                   DEVAM →</button>
               ):(
                 <div style={{display:'flex',gap:'8px'}}>
