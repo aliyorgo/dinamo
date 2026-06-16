@@ -173,7 +173,7 @@ export default function HomePage() {
           <a href="/login" style={{
             background: '#1db81d', color: '#fff', padding: '10px 22px', borderRadius: '100px',
             fontSize: '13px', fontWeight: '500', transition: 'transform 0.2s', textDecoration: 'none',
-          }}>GİRİŞ</a>
+          }}>MÜŞTERİ GİRİŞİ</a>
         </div>
       </nav>
 
@@ -203,8 +203,7 @@ export default function HomePage() {
             ))}
           </h1>
           <p style={{ fontSize: '17px', fontWeight: '300', color: 'rgba(255,255,255,0.55)', lineHeight: 1.7, maxWidth: '580px', margin: '0 auto' }}>
-            {"İnsan kalitesinde, AI hızında prodüksiyon. Ekibimiz strateji ve kreatif yönü kurar; AI dakikalar içinde alternatif üretir; siz fikrinizi yayına çıkmadan test edersiniz. Dinamo siz üretirken sürekli öğrenmeye devam eder, markanızı tanır, kendini geliştirir."}{' '}
-            <a href="/demo-request" style={{ color: '#1DB81D', textDecoration: 'underline' }}>Demo için iletişime geçin.</a>
+            {"İnsan kalitesinde, AI hızında prodüksiyon. Ekibimiz strateji ve kreatif yönü kurar; AI dakikalar içinde alternatif üretir; siz fikrinizi yayına çıkmadan test edersiniz. Dinamo siz üretirken sürekli öğrenmeye devam eder, markanızı tanır, kendini geliştirir."}
           </p>
         </div>
         {/* Demo button — bottom right */}
