@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
       method: 'POST',
       headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-opus-4-20250514', max_tokens: 300,
+        model: 'claude-opus-4-8', max_tokens: 300,
         system: `Sen bir reklam metin yazarısın. ${style.label} tarzında animasyon için 25-30 kelimelik Türkçe dış ses metni yaz. Stilin mood'u: ${moodStr}. Broadcast kalitesinde, doğal ritimli, nokta veya ünlemle biten. Sadece metni dön, başka bir şey yazma.`,
         messages: [{ role: 'user', content: `Kampanya: ${brief.campaign_name}\nBrief: ${brief.message || ''}\nHedef Kitle: ${brief.target_audience || ''}\nCTA: ${brief.cta || ''}\n\nDış ses metni:` }],
       }),

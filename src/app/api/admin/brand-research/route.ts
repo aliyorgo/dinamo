@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
       method: 'POST',
       headers: { 'x-api-key': ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-6',
         max_tokens: 1500,
         tools: [{ type: 'web_search_20250305', name: 'web_search' }],
         messages: [{ role: 'user', content: `"${brandName}" markası/şirketi hakkında güvenilir kaynak URL'leri bul. Resmi web sitesi, LinkedIn şirket sayfası, Wikipedia, sosyal medya profilleri ve marka analiz makaleleri ara.

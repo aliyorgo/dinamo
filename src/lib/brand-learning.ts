@@ -87,7 +87,7 @@ export async function extractBrandRuleCandidate({ clientId, clientName, sourceTy
       method: 'POST',
       headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-opus-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 2500,
         messages: [{ role: 'user', content: prompt }],
       }),
