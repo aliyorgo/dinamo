@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     ? `\n\nMÜŞTERİ TALEPLERİ (EN YÜKSEK ÖNCELİK):\n${previous_feedbacks.map((f: any) => `${f.video_version} (${f.persona_slug || ''}): "${f.feedback}"`).join('\n')}\n\nKRİTİK: Bu yorumlar müşteri talebidir, EMİR mahiyetindedir.\n- Müşteri talebine SADIK KAL, kendi yorumunu katma\n- En son yorum en önemli, çelişen yorumlarda en son yazılanı uygula\n- Persona kimliği KORUNUR (yaş, cinsiyet, ton, isim) — bu değişmez\n- Mekan, atmosfer, sahne detayları, konuşma içeriği değişebilir\n\nÖNCELİK: 1.Müşteri feedback 2.Brief 3.Marka kuralları 4.Persona default`
     : ''
 
-  const { data: brief } = await supabase.from('briefs').select('campaign_name, message, target_audience, cta, product_image_url, clients(use_fast_mode)').eq('id', brief_id).single()
+  const { data: brief } = await supabase.from('briefs').select('campaign_name, message, target_audience, cta, promo_code, promo_offer, product_image_url, clients(use_fast_mode)').eq('id', brief_id).single()
   if (!brief) return NextResponse.json({ error: 'Brief bulunamadı' }, { status: 404 })
 
   const { data: persona } = await supabase.from('personas').select('*').eq('id', persona_id).single()
@@ -28,6 +28,7 @@ export async function POST(req: NextRequest) {
   const toneNote = tone === 'samimi' ? 'Çok samimi, günlük konuşma dili.' : tone === 'resmi' ? 'Profesyonel ve resmi.' : 'Normal günlük konuşma.'
   const ctaNote = includeCta ? `ZORUNLU CTA: Dialogue'un son 20-30 karakteri CTA olmalı. Brief CTA: "${brief.cta || 'platformda bul'}". Bu CTA'yı doğal şekilde dialogue'a yedir. Boşsa generic CTA yaz (linkten bak, hemen dene).` : 'CTA EKLEME, sadece doğal kapanış.'
   const productNote = use_product ? 'Ürün videoda görünecek, persona ürünü gösteriyor.' : 'Ürün görünmüyor, sadece sözlü anlatım.'
+  const promoNote = (brief.promo_code && brief.promo_offer) ? `\nKAMPANYA KODU: Bu videoda "${brief.promo_code}" kodu ve "${brief.promo_offer}" fırsatı var. Diyalog fırsatı doğal anlatsın ve izleyiciye "ekrandaki kodu kullan" desin; kodu ASLA harf harf veya sesli OKUMA. overlay_text MUTLAKA "${brief.promo_code} koduyla ${brief.promo_offer}" olsun.` : ''
 
   const model = await getClaudeModel('ugc-script', (brief as any).clients?.use_fast_mode || false)
   const supportsPrefill = model.includes('haiku')
@@ -45,7 +46,7 @@ export async function POST(req: NextRequest) {
 PERSONA: ${persona.name} — ${persona.tone_description}
 TON: ${toneNote}
 ${ctaNote}
-${productNote}${feedbackBlock}
+${productNote}${promoNote}${feedbackBlock}
 
 KURALLAR:
 - Tek string dialogue, toplam ${includeCta ? '145-165' : '140-155'} karakter. 8 saniyeyi TAM DOLDUR.

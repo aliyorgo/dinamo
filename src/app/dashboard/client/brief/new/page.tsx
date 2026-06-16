@@ -323,7 +323,7 @@ function NewBriefPage() {
       format: form.format,
       platforms: form.platforms.length > 0 ? form.platforms : null,
       message: form.message,
-      cta: form.has_cta === 'yes' ? form.cta : null,
+      cta: form.promo_enabled === 'yes' ? `${form.promo_code} koduyla ${form.promo_offer}` : (form.has_cta === 'yes' ? form.cta : null),
       promo_code: form.promo_enabled === 'yes' ? form.promo_code : null,
       promo_offer: form.promo_enabled === 'yes' ? form.promo_offer : null,
       target_audience: form.target_audience,

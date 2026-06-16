@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getActiveBrandRules, buildBrandRulesBlock } from '@/lib/brand-learning'
 import { getClaudeModel } from '@/lib/claude-model'
-import { SCREEN_UI_IDEA_RULE } from '@/lib/ai-idea-rules'
+import { SCREEN_UI_IDEA_RULE, PROMO_IDEA_RULE } from '@/lib/ai-idea-rules'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
   const rules = brief.client_id ? await getActiveBrandRules(brief.client_id) : []
   const rulesBlock = buildBrandRulesBlock(rules)
 
-  const prompt = `${rulesBlock}Aşağıdaki brief için ${duration} saniyelik bir ${brief.video_type} videosu için ${numIdeas} farklı yaratıcı konsept öner.
+  const prompt = `${rulesBlock}${brief.promo_code && brief.promo_offer ? `${PROMO_IDEA_RULE}\nFırsat: ${brief.promo_offer}\n\n` : ''}Aşağıdaki brief için ${duration} saniyelik bir ${brief.video_type} videosu için ${numIdeas} farklı yaratıcı konsept öner.
 
 Marka: ${brief.clients?.company_name || ''}
 Mesaj: ${brief.message || ''}

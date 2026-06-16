@@ -2,12 +2,12 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getActiveBrandRules, buildBrandRulesBlock } from '@/lib/brand-learning'
 import { getClaudeModel } from '@/lib/claude-model'
-import { SCREEN_UI_IDEA_RULE } from '@/lib/ai-idea-rules'
+import { SCREEN_UI_IDEA_RULE, PROMO_IDEA_RULE } from '@/lib/ai-idea-rules'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
 export async function POST(request: Request) {
-  const { campaign_name, brand_name, message, target_audience, video_type, cta, count, clientId } = await request.json()
+  const { campaign_name, brand_name, message, target_audience, video_type, cta, count, clientId, promo_code, promo_offer } = await request.json()
 
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) return NextResponse.json({ error: 'API key yok' }, { status: 500 })
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
   const rulesBlock = buildBrandRulesBlock(rules)
   const numIdeas = count || 3
 
-  const prompt = `${rulesBlock}Sen yaratici bir video produksiyon yonetmenisin. Asagidaki brief icin ${numIdeas} farkli yaratici video konsepti olustur.
+  const prompt = `${rulesBlock}${promo_code && promo_offer ? `${PROMO_IDEA_RULE}\nFırsat: ${promo_offer}\n\n` : ''}Sen yaratici bir video produksiyon yonetmenisin. Asagidaki brief icin ${numIdeas} farkli yaratici video konsepti olustur.
 
 Brief:
 - Kampanya: ${campaign_name || 'Belirtilmemis'}
