@@ -9,6 +9,8 @@ import { generateCertificatePDF } from '@/lib/generate-certificate'
 import { useClientContext } from '@/app/dashboard/client/layout'
 import StatusDot from '@/components/StatusDot'
 import { useCredits } from '@/lib/credits'
+import PronunciationModal from '@/components/PronunciationModal'
+import { usePronunciationCheck } from '@/lib/use-pronunciation-check'
 
 const supabase = getSupabaseBrowser()
 
@@ -34,6 +36,7 @@ function formatDuration(start: string | null | undefined, end: string | null | u
 export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVideoId, onVideoCountChange, onProcessingChange }: Props) {
   const { refreshCredits } = useClientContext()
   const { credits: creditSettings } = useCredits()
+  const { checkAndPrompt, modalProps: pronModalProps } = usePronunciationCheck()
   const [styles, setStyles] = useState<any[]>([])
   const [hasMascot, setHasMascot] = useState(false)
   const [mascotIcons, setMascotIcons] = useState<Record<string, string | null>>({})
@@ -158,6 +161,8 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
   }
 
   async function persistVoiceover(text: string) {
+    const ok = await checkAndPrompt(text, brief?.client_id)
+    if (!ok) return
     await supabase.from('briefs').update({ voiceover_text: text }).eq('id', briefId)
   }
 
@@ -513,6 +518,7 @@ export default function AIAnimationTab({ briefId, brief, clientUser, autoPlayVid
           )
         })()}
       </div>
+      {pronModalProps && <PronunciationModal {...pronModalProps} />}
     </div>
   )
 }

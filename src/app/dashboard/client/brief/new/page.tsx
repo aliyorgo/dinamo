@@ -7,21 +7,11 @@ import { useClientContext } from '../../layout'
 import { cleanVoiceName } from '@/lib/voice-utils'
 import { useCredits, CREDIT_DEFAULTS } from '@/lib/credits'
 import PronunciationModal from '@/components/PronunciationModal'
+import { usePronunciationCheck } from '@/lib/use-pronunciation-check'
 
 const supabase = getSupabaseBrowser()
 
-// Telaffuzu belirsiz aday ifadeleri yakala: içinde + & / # geçen ya da harf-rakam bitişik tokenlar (Türkçe destekli)
-function detectPronCandidates(text: string): string[] {
-  if (!text) return []
-  const tokens = text.split(/\s+/).map(t => t.replace(/^[.,!?:;"'()\[\]]+|[.,!?:;"'()\[\]]+$/g, '')).filter(Boolean)
-  const seen = new Set<string>()
-  const out: string[] = []
-  for (const tok of tokens) {
-    const isCandidate = /[+&\/#]/.test(tok) || /(\p{L}\p{N}|\p{N}\p{L})/u.test(tok)
-    if (isCandidate) { const k = tok.toLowerCase(); if (!seen.has(k)) { seen.add(k); out.push(tok) } }
-  }
-  return out
-}
+// detectPronCandidates + telaffuz tespiti src/lib/use-pronunciation-check.ts'e taşındı
 
 const VIDEO_TYPES = ['Bumper / Pre-roll','Story / Reels','Feed Video','Long Form']
 const VIDEO_DURATIONS: Record<string,string> = {'Bumper / Pre-roll':'6 saniye','Story / Reels':'15 saniye','Feed Video':'30 saniye','Long Form':'60 saniye'}
@@ -72,8 +62,7 @@ function NewBriefPage() {
   const [previewLimitHit, setPreviewLimitHit] = useState(false)
   const [previewVoiceName, setPreviewVoiceName] = useState('')
   const [savedVoiceoverText, setSavedVoiceoverText] = useState('')
-  const [pronModal, setPronModal] = useState<{ candidates: string[]; asDraft: boolean } | null>(null)
-  const [pronSaving, setPronSaving] = useState(false)
+  const { checkAndPrompt, modalProps: pronModalProps } = usePronunciationCheck()
 
   const [form, setForm] = useState({
     campaign_name: '',
@@ -308,40 +297,15 @@ function NewBriefPage() {
     setAiBriefLoading(false)
   }
 
-  async function handlePronContinue(items: { written: string; pronounced: string }[]) {
-    setPronSaving(true)
-    try {
-      if (items.length > 0) {
-        const { data: { session } } = await supabase.auth.getSession()
-        if (session?.access_token) {
-          await fetch('/api/pronunciations', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` }, body: JSON.stringify({ items }) })
-        }
-      }
-    } catch {}
-    setPronSaving(false)
-    const asDraft = pronModal?.asDraft || false
-    setPronModal(null)
-    handleSubmit(asDraft, true)
-  }
-
-  async function handleSubmit(asDraft = false, skipPronCheck = false) {
+  async function handleSubmit(asDraft = false) {
     if (!clientUser) return
     const cost = calcCost()
     if (!asDraft && clientUser.allocated_credits < cost) return
-    if (!asDraft && !skipPronCheck) {
-      const pronText = [form.message, form.campaign_name, form.has_cta === 'yes' ? form.cta : ''].filter(Boolean).join(' ')
-      const candidates = detectPronCandidates(pronText)
-      if (candidates.length > 0) {
-        let remaining = candidates
-        try {
-          const { data: { session } } = await supabase.auth.getSession()
-          if (session?.access_token) {
-            const res = await fetch(`/api/pronunciations?words=${encodeURIComponent(candidates.join(','))}`, { headers: { Authorization: `Bearer ${session.access_token}` } })
-            if (res.ok) { const d = await res.json(); const reg = new Set<string>(d.registered || []); remaining = candidates.filter(c => !reg.has(c.toLowerCase())) }
-          }
-        } catch {}
-        if (remaining.length > 0) { setPronModal({ candidates: remaining, asDraft }); return }
-      }
+    if (!asDraft) {
+      // voiceover_text de dış ses olduğu için taramaya dahil (message/campaign_name/cta zaten taranıyordu)
+      const pronText = [form.message, form.campaign_name, form.has_cta === 'yes' ? form.cta : '', form.voiceover_text].filter(Boolean).join(' ')
+      const ok = await checkAndPrompt(pronText, clientUser.client_id)
+      if (!ok) return
     }
     setSubmitting(true)
     const noteParts = [form.notes, form.extra_topic].filter(Boolean)
@@ -1197,9 +1161,7 @@ function NewBriefPage() {
           )}
         </div>
       </div>
-      {pronModal && (
-        <PronunciationModal candidates={pronModal.candidates} saving={pronSaving} onContinue={handlePronContinue} onClose={() => setPronModal(null)} />
-      )}
+      {pronModalProps && <PronunciationModal {...pronModalProps} />}
     </div>
   )
 }

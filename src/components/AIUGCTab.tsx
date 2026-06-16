@@ -12,6 +12,8 @@ import { useClientContext } from '@/app/dashboard/client/layout'
 import StaticImageGeneratorModal from '@/components/StaticImageGeneratorModal'
 import { useCredits } from '@/lib/credits'
 import StatusDot from '@/components/StatusDot'
+import PronunciationModal from '@/components/PronunciationModal'
+import { usePronunciationCheck } from '@/lib/use-pronunciation-check'
 
 const supabase = getSupabaseBrowser()
 
@@ -59,6 +61,7 @@ function readOverlayText(scripts: Record<string, any>, personaId: number | strin
 export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPlayVideoId, onVideoCountChange, onProcessingChange }: Props) {
   const { refreshCredits } = useClientContext()
   const { credits: creditSettings } = useCredits()
+  const { checkAndPrompt, modalProps: pronModalProps } = usePronunciationCheck()
   // Data — local brief copy for lock updates
   const [brief, setBrief] = useState<any>(briefProp)
   useEffect(() => { setBrief(briefProp) }, [briefProp])
@@ -666,7 +669,7 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
                     </div>
                   ) : (
                     <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-                      <textarea value={scriptText} onChange={e => { if (e.target.value.length <= UGC_MAX_CHARS) setScriptText(e.target.value) }} onBlur={() => { if (!selectedPersona || scriptText === readScript(ugcScripts, selectedPersona)) return; const updated = { ...ugcScripts, [String(selectedPersona)]: { ...ugcScripts[String(selectedPersona)], dialogue: scriptText, overlay_text: readOverlayText(ugcScripts, selectedPersona) } }; setUgcScripts(updated); persistUgcScripts(updated) }} placeholder={scriptLoading ? 'Üretiliyor...' : 'Bu persona için konuşma metni henüz üretilmedi. Butona basın veya buraya yazın.'} style={{ width: '100%', flex: 1, minHeight: '80px', fontSize: '18px', color: '#0a0a0a', lineHeight: 1.5, border: '1px solid #e5e4db', padding: '10px 12px', resize: 'none', boxSizing: 'border-box' }} />
+                      <textarea value={scriptText} onChange={e => { if (e.target.value.length <= UGC_MAX_CHARS) setScriptText(e.target.value) }} onBlur={async () => { if (!selectedPersona || scriptText === readScript(ugcScripts, selectedPersona)) return; const ok = await checkAndPrompt(scriptText, brief?.client_id); if (!ok) return; const updated = { ...ugcScripts, [String(selectedPersona)]: { ...ugcScripts[String(selectedPersona)], dialogue: scriptText, overlay_text: readOverlayText(ugcScripts, selectedPersona) } }; setUgcScripts(updated); persistUgcScripts(updated) }} placeholder={scriptLoading ? 'Üretiliyor...' : 'Bu persona için konuşma metni henüz üretilmedi. Butona basın veya buraya yazın.'} style={{ width: '100%', flex: 1, minHeight: '80px', fontSize: '18px', color: '#0a0a0a', lineHeight: 1.5, border: '1px solid #e5e4db', padding: '10px 12px', resize: 'none', boxSizing: 'border-box' }} />
                       <div style={{ marginTop: '8px' }}>
                         <div style={{ fontSize: '11px', fontWeight: 600, color: '#8a8a82', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Ekran Yazısı</div>
                         <input type="text" value={overlayText} onChange={e => setOverlayText(e.target.value)} onBlur={() => { if (!selectedPersona || overlayText === readOverlayText(ugcScripts, selectedPersona)) return; const updated = { ...ugcScripts, [String(selectedPersona)]: { ...ugcScripts[String(selectedPersona)], dialogue: readScript(ugcScripts, selectedPersona), overlay_text: overlayText } }; setUgcScripts(updated); persistUgcScripts(updated) }} placeholder="Videoda görünecek kısa yazı — üretimde otomatik oluşur" style={{ width: '100%', fontSize: '14px', color: '#0a0a0a', border: '1px solid #e5e4db', padding: '8px 12px', boxSizing: 'border-box' }} />
@@ -751,6 +754,7 @@ export default function AIUGCTab({ briefId, brief: briefProp, clientUser, autoPl
           }}
         />
       )}
+      {pronModalProps && <PronunciationModal {...pronModalProps} />}
     </div>
   )
 }

@@ -17,6 +17,8 @@ import { useCredits } from '@/lib/credits'
 import { useClientContext } from '../../layout'
 import ProcessingPlaceholder from '@/components/ProcessingPlaceholder'
 import StatusDot from '@/components/StatusDot'
+import PronunciationModal from '@/components/PronunciationModal'
+import { usePronunciationCheck } from '@/lib/use-pronunciation-check'
 import CTAReviseBox from '@/components/CTAReviseBox'
 
 const supabase = getSupabaseBrowser()
@@ -78,6 +80,7 @@ function ClientBriefDetail() {
   const params = useParams()
   const router = useRouter()
   const { customizationTier, refreshCredits, credits } = useClientContext()
+  const { checkAndPrompt, modalProps: pronModalProps } = usePronunciationCheck()
   const searchParams = useSearchParams()
   const id = params.id as string
   const { credits: creditSettings, flags: featureFlags } = useCredits()
@@ -2114,6 +2117,8 @@ function ClientBriefDetail() {
             <div style={{display:'flex',gap:'8px',justifyContent:'flex-end'}}>
               <button onClick={()=>setVoiceoverModalOpen(false)} className="btn btn-outline" style={{padding:'8px 16px'}}>İPTAL</button>
               <button disabled={voiceoverSaving || voiceoverText.trim().length===0 || voiceoverText===brief?.voiceover_text || voiceoverText.trim().split(/\s+/).filter(Boolean).length>15} onClick={async()=>{
+                const ok = await checkAndPrompt(voiceoverText, brief?.client_id)
+                if (!ok) return
                 setVoiceoverSaving(true)
                 try {
                   const res = await fetch(`/api/briefs/${id}/voiceover-text`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({voiceover_text:voiceoverText})})
@@ -2125,6 +2130,8 @@ function ClientBriefDetail() {
           </div>
         </div>
       )}
+
+      {pronModalProps && <PronunciationModal {...pronModalProps} />}
 
       {staticImageModal && (
         <StaticImageGeneratorModal
