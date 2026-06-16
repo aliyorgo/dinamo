@@ -1883,6 +1883,17 @@ function ClientBriefDetail() {
                             <span style={{marginLeft:'6px',fontSize:'9px',padding:'2px 6px',background:'#e8e1ff',color:'#5d4ec3',borderRadius:'3px',letterSpacing:'0.5px',fontWeight:500,textTransform:'uppercase'}}>{child.express_engine==='trend_oops'?'Top Sektirme':child.express_engine==='trend_dans'?'O Zaman Dans':child.express_engine==='trend_gokten'?'Gökten Gelen':'Bana Bak'}</span>
                           </div>
                           <div style={{fontSize:'11px',color:'#888',marginBottom:'14px'}}>{new Date(child.created_at).toLocaleDateString('tr-TR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}{child.completed_at && <><span style={{margin:'0 8px',color:'#ccc'}}>|</span><span style={{color:'#aaa'}}>{formatDuration(child.created_at, child.completed_at)}</span></>}</div>
+                          {isFailed && (
+                            <div style={{display:'flex',gap:'6px',marginBottom:'10px'}}>
+                              <button onClick={async ()=>{
+                                await supabase.from('briefs').update({ ai_video_status:'processing_concept', ai_video_error:null, status:'ai_processing' }).eq('id',child.id)
+                                setTrendChildren(prev=>prev.map(c=>c.id===child.id?{...c,ai_video_status:'processing_concept',status:'ai_processing'}:c))
+                              }}
+                                style={{padding:'5px 12px',background:'#0a0a0a',color:'#fff',border:'none',borderRadius:'4px',fontSize:'11px',fontWeight:'500',cursor:'pointer'}}>
+                                Tekrar Dene
+                              </button>
+                            </div>
+                          )}
                           {hasVideo && !isFailed && (
                             <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
                               {isPurchased ? (
