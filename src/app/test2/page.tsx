@@ -451,7 +451,7 @@ export default function HomePage() {
                 )}
                 <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: '20px', fontWeight: '400' }}>{p.name}</div>
                 <div style={{ fontSize: '40px', fontWeight: '300', letterSpacing: '-2px', marginBottom: '4px' }}>
-                  {p.name === 'Kurumsal' ? '1.000+' : p.credits?.toLocaleString('tr-TR')} <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.3)', fontWeight: '400' }}>kredi</span>
+                  {p.name === 'Kurumsal' ? `${p.credits?.toLocaleString('tr-TR')}+` : p.credits?.toLocaleString('tr-TR')} <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.3)', fontWeight: '400' }}>kredi</span>
                 </div>
                 {pricesVisible ? (
                   <div style={{ fontSize: '15px', color: 'rgba(255,255,255,0.4)', marginBottom: '28px', paddingBottom: '28px', borderBottom: '1px solid rgba(255,255,255,0.06)', fontWeight: '300' }}>
@@ -466,7 +466,9 @@ export default function HomePage() {
                     )}
                   </div>
                 ) : (
-                  <div style={{ marginBottom: '28px', paddingBottom: '28px', borderBottom: '1px solid rgba(255,255,255,0.06)' }} />
+                  <div style={{ fontSize: '15px', marginBottom: '28px', paddingBottom: '28px', borderBottom: '1px solid rgba(255,255,255,0.06)', fontWeight: '300' }}>
+                    {p.name === 'Demo' ? <span style={{ color: '#1db81d', fontWeight: '500' }}>Ücretsiz</span> : null}
+                  </div>
                 )}
                 {p.features && (
                   <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>

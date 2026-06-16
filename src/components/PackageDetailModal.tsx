@@ -76,7 +76,7 @@ export default function PackageDetailModal({ isOpen, onClose, mode, initialTab, 
   const prN = (k: string) => Number(pkgInfo(k)?.price_tl ?? 0).toLocaleString('tr-TR')
   const packageTitles: Record<string, string> = pricesVisible
     ? { demo: `Demo Paketi · ${crN('demo')} Kredi · Ücretsiz`, baslangic: `Başlangıç Paketi · ${crN('baslangic')} Kredi · ${prN('baslangic')} TL +KDV`, standart: `Standart Paket · ${crN('standart')} Kredi · ${prN('standart')} TL +KDV`, kurumsal: `Kurumsal Paket · ${crN('kurumsal')}+ Kredi · İletişim` }
-    : { demo: `Demo Paketi · ${crN('demo')} Kredi`, baslangic: `Başlangıç Paketi · ${crN('baslangic')} Kredi`, standart: `Standart Paket · ${crN('standart')} Kredi`, kurumsal: `Kurumsal Paket · ${crN('kurumsal')}+ Kredi` }
+    : { demo: `Demo Paketi · ${crN('demo')} Kredi · Ücretsiz`, baslangic: `Başlangıç Paketi · ${crN('baslangic')} Kredi`, standart: `Standart Paket · ${crN('standart')} Kredi`, kurumsal: `Kurumsal Paket · ${crN('kurumsal')}+ Kredi` }
   const tierTitles: Record<string, string> = { basic: 'Basic Customization', advanced: 'Advanced Customization', corporate: 'Kurumsal Paket' }
   const refs: Record<string, string> = { standart: 'Basic Marka Customization\'daki tüm hizmetler ve...', kurumsal: 'Advanced Marka Customization\'daki tüm hizmetler ve...', advanced: 'Basic Marka Customization\'daki tüm hizmetler ve...', corporate: 'Advanced Marka Customization\'daki tüm hizmetler ve...' }
 
