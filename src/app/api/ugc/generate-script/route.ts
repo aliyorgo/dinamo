@@ -174,7 +174,13 @@ FORMAT: {"dialogue":"140-155 char Türkçe metin","overlay_text":"max 7 kelime e
   const setupChoice = SETUP_IDS.includes(script.setup_choice) ? script.setup_choice : 'couch_chill'
   console.log('[GENERATE-SCRIPT] setup_choice:', script.setup_choice, '→', setupChoice)
 
-  return NextResponse.json({ dialogue: script.dialogue, overlay_text: script.overlay_text || '', setup_choice: setupChoice, changes_summary: script.changes_summary || '' })
+  // PROMO override: promo aktifse overlay_text'i koşulsuz "{kod} koduyla {fırsat}" yap (Claude promo talimatına uymuyordu — kodu kırpıyor/atıyor).
+  // Böylece ugc_scripts DB'ye doğru değer yazılır; worker render-time'da ayrıca garanti ezer. Dialogue (ses) DOKUNULMAZ.
+  const overlayOut = (brief.promo_code && brief.promo_offer)
+    ? `${String(brief.promo_code).trim()} koduyla ${String(brief.promo_offer).trim()}`
+    : (script.overlay_text || '')
+
+  return NextResponse.json({ dialogue: script.dialogue, overlay_text: overlayOut, setup_choice: setupChoice, changes_summary: script.changes_summary || '' })
   } catch (err: any) {
     console.error('[GENERATE-SCRIPT] FATAL:', err.message, err.stack)
     return NextResponse.json({ error: err.message }, { status: 500 })
