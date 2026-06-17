@@ -1849,6 +1849,8 @@ function ClientBriefDetail() {
                     const isPurchased = child.status === 'delivered'
                     const isFailed = !isPurchased && (child.ai_video_status === 'failed' || child.ai_video_status === 'timeout')
                     const isProcessing = child.status === 'ai_processing' && !hasVideo && !isFailed
+                    // Revize edilebilirlik kararlı koşula bağlı: kling_video_url anlık null olsa bile (realtime/refetch race) completed/ready ise revize box korunur. Worker kling_video_url'ü DB'den okur.
+                    const canRevise = !!child.kling_video_url || child.ai_video_status === 'completed' || child.ai_video_status === 'ready'
                     return (
                       <div key={child.id} id={`trend-child-${child.id}`} style={{display:'flex',gap:'14px',padding:'14px',marginBottom:'8px',border:'1px solid var(--color-border-tertiary)',background:'#fff',alignItems:'flex-start',transition:'background 0.15s'}}
                         onMouseEnter={e=>{e.currentTarget.style.background='var(--color-background-secondary)'}}
@@ -1932,7 +1934,7 @@ function ClientBriefDetail() {
                           )}
                           {isFailed && <div style={{fontSize:'11px',color:'#dc2626',marginTop:'8px'}}>Üretim başarısız oldu. Lütfen tekrar deneyin.</div>}
                           {/* CTA Revize — sağ kolonun altında */}
-                          {child.kling_video_url && hasVideo && !isFailed && (() => {
+                          {canRevise && hasVideo && !isFailed && (() => {
                             const isRevising = child.ai_video_status === 'revising' || child.ai_video_status === 'revising_claimed'
                             const ctaFallback = child.cta_text || child.ai_express_settings_snapshot?.placard_text || child.ai_express_settings_snapshot?.voiceover_blocks?.block3 || child.ai_express_settings_snapshot?.cta_text || ''
                             const editedCta = trendCtaEdits[child.id] ?? ctaFallback
@@ -1959,7 +1961,7 @@ function ClientBriefDetail() {
                               </div>
                             )
                           })()}
-                          {!child.kling_video_url && hasVideo && !isFailed && <div style={{marginTop:'auto',paddingTop:'12px',fontSize:'9px',color:'#ccc',fontStyle:'italic'}}>Bu video revize edilemiyor (eski sürüm)</div>}
+                          {!canRevise && hasVideo && !isFailed && <div style={{marginTop:'auto',paddingTop:'12px',fontSize:'9px',color:'#ccc',fontStyle:'italic'}}>Bu video revize edilemiyor (eski sürüm)</div>}
                         </div>
                       </div>
                     )
