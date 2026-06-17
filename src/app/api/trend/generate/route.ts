@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   const { brief_id, client_user_id, cinema_mode, format_type } = await req.json()
   if (!brief_id || !client_user_id) return NextResponse.json({ error: 'brief_id ve client_user_id gerekli' }, { status: 400 })
 
-  const { data: brief } = await supabase.from('briefs').select('id, client_id, root_campaign_id, campaign_name, format, video_type, product_image_url, message, voiceover_text, voiceover_type, voiceover_gender, cta, target_audience, platforms, notes, languages, selected_ai_idea').eq('id', brief_id).single()
+  const { data: brief } = await supabase.from('briefs').select('id, client_id, root_campaign_id, campaign_name, format, video_type, product_image_url, message, voiceover_text, voiceover_type, voiceover_gender, cta, promo_code, promo_offer, target_audience, platforms, notes, languages, selected_ai_idea').eq('id', brief_id).single()
   if (!brief) return NextResponse.json({ error: 'Brief bulunamadi' }, { status: 404 })
 
   const rootId = brief.root_campaign_id || brief_id
@@ -44,6 +44,8 @@ export async function POST(req: NextRequest) {
     voiceover_text: brief.voiceover_text,
     voiceover_gender: brief.voiceover_gender,
     cta: brief.cta,
+    promo_code: brief.promo_code ?? null,
+    promo_offer: brief.promo_offer ?? null,
     target_audience: brief.target_audience,
     platforms: brief.platforms,
     video_type: brief.video_type,
