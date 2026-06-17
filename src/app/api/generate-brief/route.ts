@@ -56,7 +56,7 @@ Kurallar:
 - message: müşterinin ajansına yazdığı kampanya brifing metni olarak yaz. Dış ses, senaryo veya anlatı DEĞİL. Pazarlama yöneticisi tonunda, birinci çoğul şahıs ("Bu kampanyayla hedefliyoruz", "Markamız", "Beklentimiz"). Ne satıldığını, kime, neden, ne zaman, hangi mecrada olduğunu net anlatan 3-4 cümle.
 - voiceover_type: "ai" olarak ayarla.
 - voiceover_gender: Kullanıcı açıkça cinsiyet (erkek/kadın ses) belirtmediyse BOŞ string "" döndür — marka sesine göre otomatik belirlenecek. Sadece kullanıcı açıkça belirttiyse "male" veya "female" yaz.
-- voiceover_text: video tipine uygun sürede (Bumper ~9 kelime, Story ~22, Feed ~45, Long Form ~90) Türkçe profesyonel seslendirme metni yaz.
+- voiceover_text: video tipine uygun sürede (Bumper ~9 kelime, Story ~22, Feed ~45, Long Form ~90) Türkçe profesyonel seslendirme metni yaz. EĞER brief'te bir kampanya/indirim KODU varsa (örn. BIRADIMAT, YK50): seslendirme metninde fırsatı/teklifi anlat AMA kodu ASLA metne yazma, harf harf veya açık şekilde OKUTMA. Kod yerine "ekrandaki kodu kullan" gibi bir ifade kullan — kod ekranda görünecek, ses sadece işaret eder. Örnek: "BIRADIMAT kodunu kullan" YANLIŞ → "ekrandaki kodu kullan" DOĞRU.
 - notes: kullanıcının belirttiği hassasiyetler veya ek talepler.
 - Marka adı: ${brand_name || 'belirtilmemiş'}
 - Türkçe yaz, sade ve düzgün dil kullan.`,
