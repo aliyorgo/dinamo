@@ -55,6 +55,7 @@ KURALLAR:
 - Reklamcı klişesi yasak (kazandıran, tam aradığın, bence). CTA gerekiyorsa istisna: 'dene', 'bak', 'al', 'linkten ulaş' gibi doğal CTA cümleleri kullanılabilir.
 - Emoji yasak, sadece düz Türkçe metin.
 - Doğal Türkçe, persona tonuna sadık.
+- TÜRKÇE KARAKTER ZORUNLU (hem dialogue hem overlay_text): doğru Türkçe karakterler kullan (ş ç ğ ü ö ı İ), ASCII'ye düşürme — 'Arkadaşını' yaz 'Arkadasini' değil, 'Sınırsız' yaz 'Sinirsiz' değil. ElevenLabs/Veo ASCII'yi yanlış seslendirir; ekran yazısı da bozuk görünür.
 
 ━━━ OVERLAY TEXT (EKRAN YAZISI) ━━━
 Dialogue'dan AYRI olarak, videonun ustune basilacak kisa bir ekran yazisi (overlay_text) uret. Bu yazi seslendirilmez — sadece ekranda gorunur.
