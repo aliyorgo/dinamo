@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getActiveBrandRules, buildBrandRulesBlock } from '@/lib/brand-learning'
 import { getClaudeModel } from '@/lib/claude-model'
-import { SCREEN_UI_IDEA_RULE, PROMO_IDEA_RULE } from '@/lib/ai-idea-rules'
+import { SCREEN_UI_IDEA_RULE, PROMO_IDEA_RULE, NO_DIALOGUE_IDEA_RULE } from '@/lib/ai-idea-rules'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
@@ -69,6 +69,8 @@ Süre bazlı derinlik:
 - 60sn+: hikaye anlatımı, başlangıç-orta-son yapısı
 
 ${SCREEN_UI_IDEA_RULE}
+
+${NO_DIALOGUE_IDEA_RULE}
 
 YASAK:
 - VFX terminolojisi (pırıltı, patlama, ışıltı, slow-motion, time-lapse, hyperlapse)
