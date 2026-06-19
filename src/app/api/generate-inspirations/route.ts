@@ -68,12 +68,13 @@ Süre bazlı derinlik:
 - 30sn: kavramsal akış, orta derinlik
 - 60sn+: hikaye anlatımı, başlangıç-orta-son yapısı
 
+${SCREEN_UI_IDEA_RULE}
+
 YASAK:
 - VFX terminolojisi (pırıltı, patlama, ışıltı, slow-motion, time-lapse, hyperlapse)
 - Cinsel/duygusal abartı klişeleri
 - 'Ekran patlıyor', 'göz kamaştırıcı geçiş', 'rüya gibi atmosfer' tarzı süslü dil
 - Renk kodu (#hex) veya spesifik renk adı (mavi, kırmızı vb.)
-- ${SCREEN_UI_IDEA_RULE}
 
 BUNUN YERİNE reklamcı insight'ı ile yaz:
 - Tüketicinin yaşadığı durum/his
