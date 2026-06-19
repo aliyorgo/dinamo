@@ -130,7 +130,7 @@ export default function CertificatesPage() {
                       {item.data.personas?.name || 'Persona'} · {new Date(item.sortDate).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
                     </div>
                   </div>
-                  <button onClick={() => generateUgcCertificatePDF({ campaign_name: item.data.briefs?.campaign_name, id: item.data.brief_id }, companyName, item.data.personas?.name, legalName)}
+                  <button onClick={() => generateUgcCertificatePDF({ campaign_name: item.data.briefs?.campaign_name, id: item.data.brief_id, updated_at: item.data.updated_at, created_at: item.data.created_at }, companyName, item.data.personas?.name, legalName)}
                     style={{ padding: '6px 14px', background: '#fff', border: '0.5px solid rgba(0,0,0,0.12)', fontSize: '11px', color: '#0a0a0a', cursor: 'pointer', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M4 1h5l4 4v9a1 1 0 01-1 1H4a1 1 0 01-1-1V2a1 1 0 011-1z" stroke="#0a0a0a" strokeWidth="1.2"/><path d="M9 1v4h4" stroke="#0a0a0a" strokeWidth="1.2"/></svg>
                     İndir

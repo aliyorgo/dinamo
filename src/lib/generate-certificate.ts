@@ -1,6 +1,13 @@
 import { jsPDF } from 'jspdf'
 import { ROBOTO_REGULAR } from './roboto-font'
 
+// Tarihi güvenli formatla — geçersiz/eksik tarihte bugüne düşer ("Invalid Date" basmaz).
+function formatCertDate(raw?: string | number | Date): string {
+  const d = raw ? new Date(raw) : new Date()
+  const valid = isNaN(d.getTime()) ? new Date() : d
+  return valid.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })
+}
+
 export function generateCertificatePDF(brief: any, companyName: string, legalName?: string) {
   const certCompanyName = legalName || companyName
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
@@ -33,7 +40,7 @@ export function generateCertificatePDF(brief: any, companyName: string, legalNam
 
   // Info
   doc.setFontSize(11)
-  const deliverDate = new Date(brief.updated_at || brief.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })
+  const deliverDate = formatCertDate(brief.updated_at || brief.created_at)
   const info: [string, string][] = [
     ['Kampanya:', brief.campaign_name || ''],
     ['Müşteri:', certCompanyName || ''],
@@ -120,7 +127,7 @@ export function generateUgcCertificatePDF(brief: any, companyName: string, perso
   y += 10
 
   doc.setFontSize(11)
-  const deliverDate = new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })
+  const deliverDate = formatCertDate(brief.updated_at || brief.created_at)
   const info: [string, string][] = [
     ['Kampanya:', brief.campaign_name || ''],
     ['Müşteri:', certCompanyName || ''],
