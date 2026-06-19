@@ -46,7 +46,9 @@ JSON şeması:
   "voiceover_type": "string — ai",
   "voiceover_gender": "string — kullanıcı açıkça belirtmediyse boş string, belirttiyse female veya male",
   "voiceover_text": "string — video tipine uygun sürede Türkçe profesyonel seslendirme metni",
-  "notes": "string — ek notlar, uyarılar, hassasiyetler"
+  "notes": "string — ek notlar, uyarılar, hassasiyetler",
+  "promo_code": "string — kullanıcı metninde kampanya/indirim KODU varsa (örn BIRADIMAT, YK50) çıkar, yoksa boş string",
+  "promo_offer": "string — o kodla sunulan fırsat/teklif (örn '10.000 TL'ye varan nakit', '%50 bonus') varsa çıkar, yoksa boş string"
 }
 
 Kurallar:
@@ -58,6 +60,7 @@ Kurallar:
 - voiceover_gender: Kullanıcı açıkça cinsiyet (erkek/kadın ses) belirtmediyse BOŞ string "" döndür — marka sesine göre otomatik belirlenecek. Sadece kullanıcı açıkça belirttiyse "male" veya "female" yaz.
 - voiceover_text: video tipine uygun sürede (Bumper ~9 kelime, Story ~22, Feed ~45, Long Form ~90) Türkçe profesyonel seslendirme metni yaz. EĞER brief'te bir kampanya/indirim KODU varsa (örn. BIRADIMAT, YK50): seslendirme metninde fırsatı/teklifi anlat AMA kodu ASLA metne yazma, harf harf veya açık şekilde OKUTMA. Kod yerine "ekrandaki kodu kullan" gibi bir ifade kullan — kod ekranda görünecek, ses sadece işaret eder. Örnek: "BIRADIMAT kodunu kullan" YANLIŞ → "ekrandaki kodu kullan" DOĞRU.
 - notes: kullanıcının belirttiği hassasiyetler veya ek talepler.
+- promo_code/promo_offer: kullanıcı metninde kod VE fırsat BİRLİKTE geçiyorsa çıkar. İKİSİ BİRLİKTE olmalı — sadece biri varsa veya emin değilsen İKİSİNİ DE boş bırak. ASLA uydurma, tahmin etme.
 - Marka adı: ${brand_name || 'belirtilmemiş'}
 - Türkçe yaz, sade ve düzgün dil kullan.`,
       messages: [{

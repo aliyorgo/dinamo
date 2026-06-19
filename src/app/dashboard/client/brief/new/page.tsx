@@ -301,6 +301,9 @@ function NewBriefPage() {
         voiceover_gender: data.voiceover_gender || defaultGender || prev.voiceover_gender,
         voiceover_text: data.voiceover_text || prev.voiceover_text,
         notes: data.notes || prev.notes,
+        promo_code: data.promo_code || prev.promo_code,
+        promo_offer: data.promo_offer || prev.promo_offer,
+        promo_enabled: (data.promo_code && data.promo_offer) ? 'yes' : prev.promo_enabled,
       }))
       setStep(1)
     } catch {}
