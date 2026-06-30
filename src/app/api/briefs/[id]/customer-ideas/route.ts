@@ -24,7 +24,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model,
-        max_tokens: 600,
+        max_tokens: 1500,
         messages: [{ role: 'user', content: `${rulesBlock}Bu brief için 3 farklı yaratıcı yön öner.
 
 Başlık: 2-3 kelime, tarz/mekan belirten kısa etiket. Edebi olma. Örnekler: "Sahil Çekimi", "Stüdyo Portre", "Sokak Sahnesi", "Ev İçi", "Doğa Planı"
@@ -53,11 +53,22 @@ Sadece JSON döndür: { "ideas": [{ "title": "...", "description": "..." }, ...]
       }),
     })
 
-    if (!res.ok) return NextResponse.json({ error: 'AI hatası' }, { status: 500 })
+    if (!res.ok) {
+      console.error('[customer-ideas] Claude API hata:', res.status, (await res.text()).slice(0, 500))
+      return NextResponse.json({ error: 'AI hatası' }, { status: 500 })
+    }
     const data = await res.json()
     const text = (data.content?.[0]?.text || '').trim()
+    // Sağlam parse: fence temizle, sonra ilk { ile son } arasını al (önsöz/sonsöz toleransı).
     let ideas = []
-    try { ideas = JSON.parse(text.replace(/```json|```/g, '').trim()).ideas || [] } catch { ideas = [] }
+    const cleaned = text.replace(/```json|```/g, '').trim()
+    const jsonSlice = cleaned.slice(cleaned.indexOf('{'), cleaned.lastIndexOf('}') + 1)
+    try {
+      ideas = JSON.parse(jsonSlice || cleaned).ideas || []
+    } catch {
+      console.error('[customer-ideas] Parse fail, ham yanıt:', text.slice(0, 500))
+      ideas = []
+    }
     return NextResponse.json({ ideas })
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 })
