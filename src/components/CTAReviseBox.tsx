@@ -16,11 +16,13 @@ export default function CTAReviseBox({ videoId, engine, currentCtaText, preCtaVi
 
   if (!ctaEnabled) return null
 
-  if (!preCtaVideoUrl) {
+  const isRevising = status === 'revising' || status === 'revising_claimed'
+
+  // Revize sırasında preCtaVideoUrl anlık null olsa bile "eski sürüm" gösterme (revize zaten işleniyor — spinner çakışmasını önler).
+  if (!preCtaVideoUrl && !isRevising) {
     return <div style={{marginTop:'8px',fontSize:'9px',color:'#ccc',fontStyle:'italic'}}>Bu video revize edilemiyor (eski sürüm)</div>
   }
 
-  const isRevising = status === 'revising' || status === 'revising_claimed'
   const unchanged = editedCta.trim() === (currentCtaText || '').trim()
 
   return (

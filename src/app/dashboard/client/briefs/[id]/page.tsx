@@ -1850,7 +1850,7 @@ function ClientBriefDetail() {
                     const isFailed = !isPurchased && (child.ai_video_status === 'failed' || child.ai_video_status === 'timeout')
                     const isProcessing = child.status === 'ai_processing' && !hasVideo && !isFailed
                     // Revize edilebilirlik kararlı koşula bağlı: kling_video_url anlık null olsa bile (realtime/refetch race) completed/ready ise revize box korunur. Worker kling_video_url'ü DB'den okur.
-                    const canRevise = !!child.kling_video_url || child.ai_video_status === 'completed' || child.ai_video_status === 'ready'
+                    const canRevise = !!child.kling_video_url || child.ai_video_status === 'completed' || child.ai_video_status === 'ready' || child.ai_video_status === 'revising' || child.ai_video_status === 'revising_claimed'
                     return (
                       <div key={child.id} id={`trend-child-${child.id}`} style={{display:'flex',gap:'14px',padding:'14px',marginBottom:'8px',border:'1px solid var(--color-border-tertiary)',background:'#fff',alignItems:'flex-start',transition:'background 0.15s'}}
                         onMouseEnter={e=>{e.currentTarget.style.background='var(--color-background-secondary)'}}
