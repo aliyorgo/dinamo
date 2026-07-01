@@ -837,11 +837,6 @@ export default function ClientDashboard() {
               {viewMode === 'timeline' && (
                 <div>
                   {[...nonDrafts, ...drafts].map(b => {
-                    const aiKids = aiChildrenMap[b.root_campaign_id] || aiChildrenMap[b.id] || []
-                    const cpsKids = cpsChildrenMap[b.root_campaign_id] || cpsChildrenMap[b.id] || []
-                    const aiCount = aiKids.length
-                    const cpsCount = cpsKids.length
-                    const hasImg = !!b.static_image_files || !!b.static_images_url
                     const cat = getBriefCategory(b)
                     const catColors: Record<string,string> = { question:'#ef4444', approval:'#f5a623', ai_ready:'#4ade80', ugc_ready:'#4ade80', producing:'#888', done:'var(--color-text-tertiary)', draft:'#c5c5b8' }
                     const catLabels: Record<string,string> = { question:'Sorumuz Var', approval:'Onay Bekliyor', ai_ready:'AI Express Hazır', ugc_ready:'AI PERSONA Hazır', producing:'Üretiliyor', done:'Tamamlandı', draft:'Taslak' }
@@ -853,9 +848,7 @@ export default function ClientDashboard() {
                           <div style={{fontSize:'13px',fontWeight:'500',color:'#0a0a0a',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.campaign_name || 'İsimsiz Taslak'}</div>
                           <div style={{display:'flex',gap:'6px',marginTop:'5px',flexWrap:'wrap'}}>
                             <span style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'2px 7px',border:`1px solid ${catColors[cat]}`,color:catColors[cat],fontWeight:'500'}}>{catLabels[cat]}</span>
-                            <span style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'2px 7px',border:'1px solid #e5e4db',color:aiCount > 0 ? '#0a0a0a' : '#c5c5b8',background:aiCount > 0 ? '#fafaf7' : 'transparent'}}>AI EXPRESS · {aiCount}</span>
-                            <span style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'2px 7px',border:'1px solid #e5e4db',color:cpsCount > 0 ? '#0a0a0a' : '#c5c5b8',background:cpsCount > 0 ? '#fafaf7' : 'transparent'}}>CPS · {cpsCount} YÖN</span>
-                            {hasImg && <span style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'2px 7px',border:'1px solid #e5e4db',color:'#0a0a0a',background:'#fafaf7'}}>GÖRSEL</span>}
+                            {getBriefIndicators(b).map((ind,i) => <span key={i} onClick={ind.tab ? (e) => { e.stopPropagation(); router.push(`/dashboard/client/briefs/${b.id}?tab=${ind.tab}`) } : undefined} style={{fontSize:'9px',letterSpacing:'1.5px',textTransform:'uppercase',padding:'2px 7px',border:'1px solid #e5e4db',color:'#0a0a0a',background:'#fafaf7',display:'inline-flex',alignItems:'center',gap:'4px',cursor:ind.tab?'pointer':undefined}}>{ind.error ? <span className="dot" style={{width:'5px',height:'5px',minWidth:'5px',minHeight:'5px',background:'#ef4444',display:'inline-block',flexShrink:0}} /> : ind.pulse ? <span className="dot" style={{width:'5px',height:'5px',minWidth:'5px',minHeight:'5px',background:'#4ade80',display:'inline-block',animation:'ai-pulse 1.2s ease-in-out infinite',flexShrink:0}} /> : null}{ind.label}</span>)}
                           </div>
                         </div>
                         <div style={{fontSize:'10px',letterSpacing:'1px',textTransform:'uppercase',color:'#aaa',flexShrink:0}}>{new Date(b.updated_at || b.created_at).toLocaleDateString('tr-TR',{day:'numeric',month:'short'})}</div>
